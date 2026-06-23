@@ -1,0 +1,11 @@
+/madoc.exe
+/madoc
+/madoc.db
+/madoc.db-*
+*.db
+*.db-wal
+*.db-shm
+/frontend/dist/*
+!/frontend/dist/.gitkeep
+!/frontend/dist/index.html
+AFFiNE-canary
