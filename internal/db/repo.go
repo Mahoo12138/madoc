@@ -176,3 +176,283 @@ func (r *Repo) SearchFTS(ctx context.Context, query string) ([]SearchHit, error)
 	}
 	return out, rows.Err()
 }
+
+// ---------------------------------------------------------------------------
+// User
+// ---------------------------------------------------------------------------
+
+type User struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Password  *string   `json:"-"`
+	AvatarURL *string   `json:"avatar_url"`
+	Registered bool     `json:"registered"`
+	Disabled  bool      `json:"disabled"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (r *Repo) CreateUser(ctx context.Context, id, name, email, password string) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO users(id, name, email, password) VALUES(?, ?, ?, ?)`,
+		id, name, email, password)
+	return err
+}
+
+func (r *Repo) GetUserByEmail(ctx context.Context, email string) (*User, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT id, name, email, password, avatar_url, registered, disabled, created_at, updated_at
+		 FROM users WHERE email=?`, email)
+	var u User
+	err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.AvatarURL, &u.Registered, &u.Disabled, &u.CreatedAt, &u.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &u, err
+}
+
+func (r *Repo) GetUserByID(ctx context.Context, id string) (*User, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT id, name, email, password, avatar_url, registered, disabled, created_at, updated_at
+		 FROM users WHERE id=?`, id)
+	var u User
+	err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.AvatarURL, &u.Registered, &u.Disabled, &u.CreatedAt, &u.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &u, err
+}
+
+func (r *Repo) ListUsers(ctx context.Context) ([]User, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT id, name, email, password, avatar_url, registered, disabled, created_at, updated_at
+		 FROM users ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []User
+	for rows.Next() {
+		var u User
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.AvatarURL, &u.Registered, &u.Disabled, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, u)
+	}
+	return out, rows.Err()
+}
+
+func (r *Repo) CountUsers(ctx context.Context) (int, error) {
+	var n int
+	err := r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM users`).Scan(&n)
+	return n, err
+}
+
+// ---------------------------------------------------------------------------
+// Session + UserSession
+// ---------------------------------------------------------------------------
+
+type Session struct {
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (r *Repo) CreateSession(ctx context.Context, id string) error {
+	_, err := r.db.ExecContext(ctx, `INSERT INTO sessions(id) VALUES(?)`, id)
+	return err
+}
+
+func (r *Repo) GetSession(ctx context.Context, id string) (*Session, error) {
+	row := r.db.QueryRowContext(ctx, `SELECT id, created_at FROM sessions WHERE id=?`, id)
+	var s Session
+	err := row.Scan(&s.ID, &s.CreatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &s, err
+}
+
+func (r *Repo) DeleteSession(ctx context.Context, id string) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM sessions WHERE id=?`, id)
+	return err
+}
+
+type UserSession struct {
+	ID        string     `json:"id"`
+	SessionID string     `json:"session_id"`
+	UserID    string     `json:"user_id"`
+	ExpiresAt *time.Time `json:"expires_at"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
+func (r *Repo) CreateUserSession(ctx context.Context, id, sessionID, userID string, expiresAt *time.Time) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO user_sessions(id, session_id, user_id, expires_at) VALUES(?, ?, ?, ?)`,
+		id, sessionID, userID, expiresAt)
+	return err
+}
+
+func (r *Repo) GetUserSession(ctx context.Context, sessionID string) (*UserSession, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT id, session_id, user_id, expires_at, created_at
+		 FROM user_sessions WHERE session_id=?`, sessionID)
+	var s UserSession
+	err := row.Scan(&s.ID, &s.SessionID, &s.UserID, &s.ExpiresAt, &s.CreatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &s, err
+}
+
+func (r *Repo) DeleteUserSession(ctx context.Context, sessionID string) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM user_sessions WHERE session_id=?`, sessionID)
+	return err
+}
+
+func (r *Repo) DeleteExpiredSessions(ctx context.Context) error {
+	_, err := r.db.ExecContext(ctx,
+		`DELETE FROM user_sessions WHERE expires_at IS NOT NULL AND expires_at < datetime('now')`)
+	return err
+}
+
+// ---------------------------------------------------------------------------
+// Workspace
+// ---------------------------------------------------------------------------
+
+type Workspace struct {
+	ID        string    `json:"id"`
+	Public    bool      `json:"public"`
+	Name      *string   `json:"name"`
+	AvatarKey *string   `json:"avatar_key"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (r *Repo) CreateWorkspace(ctx context.Context, id string, public bool, name *string) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO workspaces(id, public, name) VALUES(?, ?, ?)`,
+		id, public, name)
+	return err
+}
+
+func (r *Repo) GetWorkspace(ctx context.Context, id string) (*Workspace, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT id, public, name, avatar_key, created_at FROM workspaces WHERE id=?`, id)
+	var w Workspace
+	err := row.Scan(&w.ID, &w.Public, &w.Name, &w.AvatarKey, &w.CreatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &w, err
+}
+
+func (r *Repo) ListWorkspacesByUser(ctx context.Context, userID string) ([]Workspace, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT w.id, w.public, w.name, w.avatar_key, w.created_at
+		 FROM workspaces w
+		 JOIN workspace_user_permissions p ON p.workspace_id = w.id
+		 WHERE p.user_id = ?
+		 ORDER BY w.created_at DESC`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Workspace
+	for rows.Next() {
+		var w Workspace
+		if err := rows.Scan(&w.ID, &w.Public, &w.Name, &w.AvatarKey, &w.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, w)
+	}
+	return out, rows.Err()
+}
+
+func (r *Repo) DeleteWorkspace(ctx context.Context, id string) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM workspaces WHERE id=?`, id)
+	return err
+}
+
+// ---------------------------------------------------------------------------
+// WorkspaceUserPermission
+// ---------------------------------------------------------------------------
+
+// Permission types matching AFFiNE Int-based enum:
+//   Owner=100, Admin=50, Collaborator=10, External=0
+const (
+	PermOwner       = 100
+	PermAdmin       = 50
+	PermCollaborator = 10
+	PermExternal    = 0
+)
+
+type WorkspaceUserPermission struct {
+	ID          string    `json:"id"`
+	WorkspaceID string    `json:"workspace_id"`
+	UserID      string    `json:"user_id"`
+	Type        int       `json:"type"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+func (r *Repo) AddWorkspacePermission(ctx context.Context, id, workspaceID, userID string, permType int) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO workspace_user_permissions(id, workspace_id, user_id, type) VALUES(?, ?, ?, ?)
+		 ON CONFLICT(workspace_id, user_id) DO UPDATE SET type=excluded.type, status='Accepted'`,
+		id, workspaceID, userID, permType)
+	return err
+}
+
+func (r *Repo) GetWorkspacePermission(ctx context.Context, workspaceID, userID string) (*WorkspaceUserPermission, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT id, workspace_id, user_id, type, status, created_at, updated_at
+		 FROM workspace_user_permissions WHERE workspace_id=? AND user_id=?`,
+		workspaceID, userID)
+	var p WorkspaceUserPermission
+	err := row.Scan(&p.ID, &p.WorkspaceID, &p.UserID, &p.Type, &p.Status, &p.CreatedAt, &p.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &p, err
+}
+
+func (r *Repo) RemoveWorkspacePermission(ctx context.Context, workspaceID, userID string) error {
+	_, err := r.db.ExecContext(ctx,
+		`DELETE FROM workspace_user_permissions WHERE workspace_id=? AND user_id=?`,
+		workspaceID, userID)
+	return err
+}
+
+// ---------------------------------------------------------------------------
+// AppConfig
+// ---------------------------------------------------------------------------
+
+func (r *Repo) GetAppConfig(ctx context.Context, id string) (string, error) {
+	var val string
+	err := r.db.QueryRowContext(ctx, `SELECT value FROM app_configs WHERE id=?`, id).Scan(&val)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "{}", nil
+	}
+	return val, err
+}
+
+func (r *Repo) SetAppConfig(ctx context.Context, id, value string) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO app_configs(id, value) VALUES(?, ?)
+		 ON CONFLICT(id) DO UPDATE SET value=excluded.value, updated_at=datetime('now')`,
+		id, value)
+	return err
+}
+
+// ---------------------------------------------------------------------------
+// Initialization check
+// ---------------------------------------------------------------------------
+
+func (r *Repo) IsInitialized(ctx context.Context) (bool, error) {
+	n, err := r.CountUsers(ctx)
+	if err != nil {
+		return false, err
+	}
+	return n > 0, nil
+}
