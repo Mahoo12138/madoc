@@ -122,6 +122,7 @@ CREATE TABLE IF NOT EXISTS blobs (
     key          TEXT NOT NULL,
     size         INTEGER NOT NULL DEFAULT 0,
     mime         TEXT NOT NULL DEFAULT 'application/octet-stream',
+    data         BLOB,
     status       INTEGER NOT NULL DEFAULT 0,
     created_at   DATETIME NOT NULL DEFAULT (datetime('now')),
     deleted_at   DATETIME,

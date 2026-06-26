@@ -2,10 +2,12 @@ package main
 
 import (
 	"embed"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +17,7 @@ import (
 	"madoc/internal/auth"
 	"madoc/internal/db"
 	"madoc/internal/graphql"
+	"madoc/internal/sync"
 )
 
 //go:embed all:frontend/dist
@@ -36,6 +39,7 @@ func main() {
 	authH := auth.NewAuthHandler(sm, csrf, repo)
 	setupH := auth.NewSetupHandler(repo, sm, csrf)
 	gqlH := graphql.NewHandler(repo)
+	syncSrv := sync.NewServer(repo)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP)
@@ -49,6 +53,11 @@ func main() {
 	r.Post("/api/auth/sign-out", authH.SignOut)
 	r.Get("/api/auth/session", authH.Session)
 	r.With(sm.OptionalAuth).Post("/graphql", gqlH.ServeHTTP)
+
+	r.Mount("/socket.io", syncSrv.Router())
+
+	r.Get("/api/workspaces/{workspaceId}/blobs/{key}", blobDownloadHandler(repo))
+	r.With(sm.OptionalAuth).Post("/api/workspaces/{workspaceId}/blobs/{key}", blobUploadHandler(repo))
 
 	static, err := fs.Sub(frontendFS, "frontend/dist")
 	if err != nil {
@@ -87,6 +96,43 @@ func spaHandler(static fs.FS, fileServer http.Handler) http.HandlerFunc {
 			return
 		}
 		fileServer.ServeHTTP(w, r)
+	}
+}
+
+func blobDownloadHandler(repo *db.Repo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		workspaceID := chi.URLParam(r, "workspaceId")
+		key := chi.URLParam(r, "key")
+		b, err := repo.GetBlob(r.Context(), workspaceID, key)
+		if err != nil {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", b.Mime)
+		w.Header().Set("Content-Length", strconv.Itoa(len(b.Data)))
+		w.Write(b.Data)
+	}
+}
+
+func blobUploadHandler(repo *db.Repo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		workspaceID := chi.URLParam(r, "workspaceId")
+		key := chi.URLParam(r, "key")
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "read error", http.StatusBadRequest)
+			return
+		}
+		mimeType := r.Header.Get("Content-Type")
+		if mimeType == "" {
+			mimeType = "application/octet-stream"
+		}
+		if err := repo.CreateBlob(r.Context(), workspaceID, key, int64(len(data)), mimeType, data); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"success":true}`))
 	}
 }
 

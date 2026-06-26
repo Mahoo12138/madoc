@@ -138,7 +138,7 @@ func TestBlobCRUD(t *testing.T) {
 	if err := r.CreateWorkspace(ctx, "ws1", false, &name); err != nil {
 		t.Fatal(err)
 	}
-	if err := r.CreateBlob(ctx, "ws1", "img.png", 1024, "image/png"); err != nil {
+	if err := r.CreateBlob(ctx, "ws1", "img.png", 1024, "image/png", []byte("fake-image-data")); err != nil {
 		t.Fatal(err)
 	}
 	b, err := r.GetBlob(ctx, "ws1", "img.png")

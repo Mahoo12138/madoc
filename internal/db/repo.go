@@ -108,6 +108,33 @@ func (r *Repo) DeleteUpdatesBefore(ctx context.Context, workspaceID, guid string
 	return err
 }
 
+func (r *Repo) DeleteUpdates(ctx context.Context, workspaceID, guid string) error {
+	_, err := r.db.ExecContext(ctx,
+		`DELETE FROM updates WHERE workspace_id=? AND guid=?`,
+		workspaceID, guid)
+	return err
+}
+
+func (r *Repo) ListDocIDsByWorkspace(ctx context.Context, workspaceID string) ([]string, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT DISTINCT guid FROM updates WHERE workspace_id=?
+		 UNION SELECT DISTINCT guid FROM snapshots WHERE workspace_id=?`,
+		workspaceID, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
 // ---------------------------------------------------------------------------
 // Blob — file attachments per workspace (table: blobs)
 // ---------------------------------------------------------------------------
@@ -117,24 +144,25 @@ type Blob struct {
 	Key         string    `json:"key"`
 	Size        int64     `json:"size"`
 	Mime        string    `json:"mime"`
+	Data        []byte    `json:"data"`
 	Status      int       `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
 	DeletedAt   *string   `json:"deleted_at"`
 }
 
-func (r *Repo) CreateBlob(ctx context.Context, workspaceID, key string, size int64, mime string) error {
+func (r *Repo) CreateBlob(ctx context.Context, workspaceID, key string, size int64, mime string, data []byte) error {
 	_, err := r.db.ExecContext(ctx,
-		`INSERT INTO blobs(workspace_id, key, size, mime) VALUES(?, ?, ?, ?)`,
-		workspaceID, key, size, mime)
+		`INSERT INTO blobs(workspace_id, key, size, mime, data) VALUES(?, ?, ?, ?, ?)`,
+		workspaceID, key, size, mime, data)
 	return err
 }
 
 func (r *Repo) GetBlob(ctx context.Context, workspaceID, key string) (*Blob, error) {
 	row := r.db.QueryRowContext(ctx,
-		`SELECT workspace_id, key, size, mime, status, created_at, deleted_at
+		`SELECT workspace_id, key, size, mime, data, status, created_at, deleted_at
 		 FROM blobs WHERE workspace_id=? AND key=?`, workspaceID, key)
 	var b Blob
-	err := row.Scan(&b.WorkspaceID, &b.Key, &b.Size, &b.Mime, &b.Status, &b.CreatedAt, &b.DeletedAt)
+	err := row.Scan(&b.WorkspaceID, &b.Key, &b.Size, &b.Mime, &b.Data, &b.Status, &b.CreatedAt, &b.DeletedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -146,6 +174,25 @@ func (r *Repo) DeleteBlob(ctx context.Context, workspaceID, key string) error {
 		`UPDATE blobs SET deleted_at=datetime('now') WHERE workspace_id=? AND key=?`,
 		workspaceID, key)
 	return err
+}
+
+func (r *Repo) ListBlobs(ctx context.Context, workspaceID string) ([]Blob, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT workspace_id, key, size, mime, data, status, created_at, deleted_at
+		 FROM blobs WHERE workspace_id=? AND deleted_at IS NULL`, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Blob
+	for rows.Next() {
+		var b Blob
+		if err := rows.Scan(&b.WorkspaceID, &b.Key, &b.Size, &b.Mime, &b.Data, &b.Status, &b.CreatedAt, &b.DeletedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, b)
+	}
+	return out, rows.Err()
 }
 
 // ---------------------------------------------------------------------------
