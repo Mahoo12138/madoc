@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 )
 
@@ -16,108 +15,78 @@ type Repo struct {
 
 func NewRepo(db *sql.DB) *Repo { return &Repo{db: db} }
 
-type Doc struct {
-	ID        string    `json:"id"`
-	Title     string    `json:"title"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+// ---------------------------------------------------------------------------
+// Snapshot — latest Yjs document state per doc (table: snapshots)
+// ---------------------------------------------------------------------------
+
+type Snapshot struct {
+	WorkspaceID string    `json:"workspace_id"`
+	GUID        string    `json:"guid"`
+	Blob        []byte    `json:"blob"`
+	State       []byte    `json:"state"`
+	Size        int64     `json:"size"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	CreatedBy   *string   `json:"created_by"`
+	UpdatedBy   *string   `json:"updated_by"`
 }
 
-func (r *Repo) CreateDoc(ctx context.Context, id, title string) error {
+func (r *Repo) GetSnapshot(ctx context.Context, workspaceID, guid string) (*Snapshot, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT workspace_id, guid, blob, state, size, created_at, updated_at, created_by, updated_by
+		 FROM snapshots WHERE workspace_id=? AND guid=?`, workspaceID, guid)
+	var s Snapshot
+	err := row.Scan(&s.WorkspaceID, &s.GUID, &s.Blob, &s.State, &s.Size, &s.CreatedAt, &s.UpdatedAt, &s.CreatedBy, &s.UpdatedBy)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &s, err
+}
+
+func (r *Repo) UpsertSnapshot(ctx context.Context, s *Snapshot) error {
 	_, err := r.db.ExecContext(ctx,
-		`INSERT INTO docs(id, title) VALUES(?, ?) ON CONFLICT(id) DO NOTHING`,
-		id, title)
+		`INSERT INTO snapshots(workspace_id, guid, blob, state, size, created_by, updated_by)
+		 VALUES(?, ?, ?, ?, ?, ?, ?)
+		 ON CONFLICT(workspace_id, guid) DO UPDATE SET
+		   blob=excluded.blob, state=excluded.state, size=excluded.size,
+		   updated_by=excluded.updated_by, updated_at=datetime('now')`,
+		s.WorkspaceID, s.GUID, s.Blob, s.State, s.Size, s.CreatedBy, s.UpdatedBy)
 	return err
 }
 
-func (r *Repo) ListDocs(ctx context.Context) ([]Doc, error) {
-	rows, err := r.db.QueryContext(ctx, `SELECT id, title, created_at, updated_at FROM docs ORDER BY updated_at DESC`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var out []Doc
-	for rows.Next() {
-		var d Doc
-		if err := rows.Scan(&d.ID, &d.Title, &d.CreatedAt, &d.UpdatedAt); err != nil {
-			return nil, err
-		}
-		out = append(out, d)
-	}
-	return out, rows.Err()
+// ---------------------------------------------------------------------------
+// Update — sequential Yjs binary patches (table: updates)
+// ---------------------------------------------------------------------------
+
+type DocUpdate struct {
+	WorkspaceID string    `json:"workspace_id"`
+	GUID        string    `json:"guid"`
+	CreatedAt   time.Time `json:"created_at"`
+	Blob        []byte    `json:"blob"`
+	CreatedBy   *string   `json:"created_by"`
 }
 
-func (r *Repo) GetDoc(ctx context.Context, id string) (*Doc, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT id, title, created_at, updated_at FROM docs WHERE id=?`, id)
-	var d Doc
-	if err := row.Scan(&d.ID, &d.Title, &d.CreatedAt, &d.UpdatedAt); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-	return &d, nil
+func (r *Repo) AppendUpdate(ctx context.Context, workspaceID, guid string, blob []byte, createdBy *string) (time.Time, error) {
+	now := time.Now().UTC()
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO updates(workspace_id, guid, created_at, blob, created_by) VALUES(?, ?, ?, ?, ?)`,
+		workspaceID, guid, now.Format(time.RFC3339Nano), blob, createdBy)
+	return now, err
 }
 
-func (r *Repo) GetSnapshot(ctx context.Context, id string) ([]byte, error) {
-	row := r.db.QueryRowContext(ctx, `SELECT snapshot FROM docs WHERE id=?`, id)
-	var b []byte
-	if err := row.Scan(&b); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-	return b, nil
-}
-
-func (r *Repo) SaveSnapshot(ctx context.Context, id string, blob []byte) error {
-	res, err := r.db.ExecContext(ctx,
-		`UPDATE docs SET snapshot=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`, blob, id)
-	if err != nil {
-		return err
-	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
-		_, err = r.db.ExecContext(ctx,
-			`INSERT INTO docs(id, title, snapshot) VALUES(?, 'Untitled', ?)`, id, blob)
-	}
-	return err
-}
-
-func (r *Repo) AppendUpdate(ctx context.Context, docID string, blob []byte) (int64, error) {
-	if _, err := r.db.ExecContext(ctx,
-		`INSERT INTO docs(id, title) VALUES(?, 'Untitled') ON CONFLICT(id) DO NOTHING`, docID); err != nil {
-		return 0, fmt.Errorf("ensure doc: %w", err)
-	}
-	res, err := r.db.ExecContext(ctx,
-		`INSERT INTO doc_updates(doc_id, update_blob) VALUES(?, ?)`, docID, blob)
-	if err != nil {
-		return 0, err
-	}
-	if _, err := r.db.ExecContext(ctx,
-		`UPDATE docs SET updated_at=CURRENT_TIMESTAMP WHERE id=?`, docID); err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
-}
-
-type Update struct {
-	ID    int64
-	Bytes []byte
-}
-
-func (r *Repo) ListUpdates(ctx context.Context, docID string) ([]Update, error) {
+func (r *Repo) ListUpdates(ctx context.Context, workspaceID, guid string) ([]DocUpdate, error) {
 	rows, err := r.db.QueryContext(ctx,
-		`SELECT id, update_blob FROM doc_updates WHERE doc_id=? ORDER BY id ASC`, docID)
+		`SELECT workspace_id, guid, created_at, blob, created_by
+		 FROM updates WHERE workspace_id=? AND guid=? ORDER BY created_at ASC`,
+		workspaceID, guid)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []Update
+	var out []DocUpdate
 	for rows.Next() {
-		var u Update
-		if err := rows.Scan(&u.ID, &u.Bytes); err != nil {
+		var u DocUpdate
+		if err := rows.Scan(&u.WorkspaceID, &u.GUID, &u.CreatedAt, &u.Blob, &u.CreatedBy); err != nil {
 			return nil, err
 		}
 		out = append(out, u)
@@ -125,56 +94,113 @@ func (r *Repo) ListUpdates(ctx context.Context, docID string) ([]Update, error) 
 	return out, rows.Err()
 }
 
-func (r *Repo) CountUpdates(ctx context.Context, docID string) (int, error) {
+func (r *Repo) CountUpdates(ctx context.Context, workspaceID, guid string) (int, error) {
 	var n int
 	err := r.db.QueryRowContext(ctx,
-		`SELECT COUNT(*) FROM doc_updates WHERE doc_id=?`, docID).Scan(&n)
+		`SELECT COUNT(*) FROM updates WHERE workspace_id=? AND guid=?`, workspaceID, guid).Scan(&n)
 	return n, err
 }
 
-func (r *Repo) DeleteUpdatesUpTo(ctx context.Context, docID string, maxID int64) error {
+func (r *Repo) DeleteUpdatesBefore(ctx context.Context, workspaceID, guid string, before time.Time) error {
 	_, err := r.db.ExecContext(ctx,
-		`DELETE FROM doc_updates WHERE doc_id=? AND id<=?`, docID, maxID)
+		`DELETE FROM updates WHERE workspace_id=? AND guid=? AND created_at<?`,
+		workspaceID, guid, before.Format(time.RFC3339Nano))
 	return err
 }
 
-func (r *Repo) UpsertText(ctx context.Context, docID, content string) error {
-	tx, err := r.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	if _, err := tx.ExecContext(ctx, `DELETE FROM doc_search WHERE doc_id=?`, docID); err != nil {
-		return err
-	}
-	if _, err := tx.ExecContext(ctx, `INSERT INTO doc_search(doc_id, content) VALUES(?, ?)`, docID, content); err != nil {
-		return err
-	}
-	return tx.Commit()
+// ---------------------------------------------------------------------------
+// Blob — file attachments per workspace (table: blobs)
+// ---------------------------------------------------------------------------
+
+type Blob struct {
+	WorkspaceID string    `json:"workspace_id"`
+	Key         string    `json:"key"`
+	Size        int64     `json:"size"`
+	Mime        string    `json:"mime"`
+	Status      int       `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
+	DeletedAt   *string   `json:"deleted_at"`
 }
 
-type SearchHit struct {
-	DocID   string `json:"doc_id"`
-	Snippet string `json:"snippet"`
+func (r *Repo) CreateBlob(ctx context.Context, workspaceID, key string, size int64, mime string) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO blobs(workspace_id, key, size, mime) VALUES(?, ?, ?, ?)`,
+		workspaceID, key, size, mime)
+	return err
 }
 
-func (r *Repo) SearchFTS(ctx context.Context, query string) ([]SearchHit, error) {
-	rows, err := r.db.QueryContext(ctx,
-		`SELECT doc_id, snippet(doc_search, 1, '<b>', '</b>', '...', 16)
-		 FROM doc_search WHERE doc_search MATCH ? ORDER BY rank LIMIT 50`, query)
-	if err != nil {
-		return nil, err
+func (r *Repo) GetBlob(ctx context.Context, workspaceID, key string) (*Blob, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT workspace_id, key, size, mime, status, created_at, deleted_at
+		 FROM blobs WHERE workspace_id=? AND key=?`, workspaceID, key)
+	var b Blob
+	err := row.Scan(&b.WorkspaceID, &b.Key, &b.Size, &b.Mime, &b.Status, &b.CreatedAt, &b.DeletedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
 	}
-	defer rows.Close()
-	var out []SearchHit
-	for rows.Next() {
-		var h SearchHit
-		if err := rows.Scan(&h.DocID, &h.Snippet); err != nil {
-			return nil, err
-		}
-		out = append(out, h)
+	return &b, err
+}
+
+func (r *Repo) DeleteBlob(ctx context.Context, workspaceID, key string) error {
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE blobs SET deleted_at=datetime('now') WHERE workspace_id=? AND key=?`,
+		workspaceID, key)
+	return err
+}
+
+// ---------------------------------------------------------------------------
+// WorkspacePage — page metadata per workspace (table: workspace_pages)
+// ---------------------------------------------------------------------------
+
+type WorkspacePage struct {
+	WorkspaceID string `json:"workspace_id"`
+	DocID       string `json:"doc_id"`
+	Public      bool   `json:"public"`
+	Mode        int    `json:"mode"`
+	Title       string `json:"title"`
+}
+
+func (r *Repo) UpsertWorkspacePage(ctx context.Context, p *WorkspacePage) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO workspace_pages(workspace_id, doc_id, public, mode, title) VALUES(?, ?, ?, ?, ?)
+		 ON CONFLICT(workspace_id, doc_id) DO UPDATE SET
+		   public=excluded.public, mode=excluded.mode, title=excluded.title`,
+		p.WorkspaceID, p.DocID, p.Public, p.Mode, p.Title)
+	return err
+}
+
+func (r *Repo) GetWorkspacePage(ctx context.Context, workspaceID, docID string) (*WorkspacePage, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT workspace_id, doc_id, public, mode, title
+		 FROM workspace_pages WHERE workspace_id=? AND doc_id=?`, workspaceID, docID)
+	var p WorkspacePage
+	err := row.Scan(&p.WorkspaceID, &p.DocID, &p.Public, &p.Mode, &p.Title)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
 	}
-	return out, rows.Err()
+	return &p, err
+}
+
+// ---------------------------------------------------------------------------
+// UserSnapshot — per-user Yjs docs (table: user_snapshots)
+// ---------------------------------------------------------------------------
+
+func (r *Repo) GetUserSnapshot(ctx context.Context, userID, id string) ([]byte, error) {
+	var blob []byte
+	err := r.db.QueryRowContext(ctx,
+		`SELECT blob FROM user_snapshots WHERE user_id=? AND id=?`, userID, id).Scan(&blob)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return blob, err
+}
+
+func (r *Repo) SaveUserSnapshot(ctx context.Context, userID, id string, blob []byte) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO user_snapshots(user_id, id, blob) VALUES(?, ?, ?)
+		 ON CONFLICT(user_id, id) DO UPDATE SET blob=excluded.blob, updated_at=datetime('now')`,
+		userID, id, blob)
+	return err
 }
 
 // ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import (
 	"context"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func openTestDB(t *testing.T) *Repo {
@@ -17,71 +18,144 @@ func openTestDB(t *testing.T) *Repo {
 	return NewRepo(conn)
 }
 
-func TestUpdatesAndSnapshot(t *testing.T) {
+func TestSnapshotUpsert(t *testing.T) {
 	ctx := context.Background()
 	r := openTestDB(t)
 
-	if err := r.CreateDoc(ctx, "d1", "Hello"); err != nil {
+	snap := &Snapshot{
+		WorkspaceID: "ws1",
+		GUID:        "doc1",
+		Blob:        []byte("hello"),
+		State:       []byte("state"),
+		Size:        5,
+	}
+	if err := r.UpsertSnapshot(ctx, snap); err != nil {
 		t.Fatal(err)
 	}
-	id1, err := r.AppendUpdate(ctx, "d1", []byte{1, 2, 3})
+	got, err := r.GetSnapshot(ctx, "ws1", "doc1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := r.AppendUpdate(ctx, "d1", []byte{4, 5, 6}); err != nil {
+	if string(got.Blob) != "hello" {
+		t.Fatalf("expected 'hello', got %q", string(got.Blob))
+	}
+}
+
+func TestUpdates(t *testing.T) {
+	ctx := context.Background()
+	r := openTestDB(t)
+
+	if _, err := r.AppendUpdate(ctx, "ws1", "doc1", []byte{1, 2, 3}, nil); err != nil {
 		t.Fatal(err)
 	}
-	ups, err := r.ListUpdates(ctx, "d1")
+	time.Sleep(time.Millisecond)
+	ts2, err := r.AppendUpdate(ctx, "ws1", "doc1", []byte{4, 5, 6}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ups, err := r.ListUpdates(ctx, "ws1", "doc1")
 	if err != nil || len(ups) != 2 {
 		t.Fatalf("expect 2 updates, got %d err=%v", len(ups), err)
 	}
 
-	if err := r.SaveSnapshot(ctx, "d1", []byte("snap")); err != nil {
+	if err := r.DeleteUpdatesBefore(ctx, "ws1", "doc1", ts2); err != nil {
 		t.Fatal(err)
 	}
-	snap, err := r.GetSnapshot(ctx, "d1")
-	if err != nil || string(snap) != "snap" {
-		t.Fatalf("snapshot mismatch: %q err=%v", snap, err)
-	}
-
-	if err := r.DeleteUpdatesUpTo(ctx, "d1", id1); err != nil {
-		t.Fatal(err)
-	}
-	ups, _ = r.ListUpdates(ctx, "d1")
-	if len(ups) != 1 {
-		t.Fatalf("expect 1 update remain, got %d", len(ups))
+	ups, err = r.ListUpdates(ctx, "ws1", "doc1")
+	if err != nil || len(ups) != 1 {
+		t.Fatalf("expect 1 update remain, got %d err=%v", len(ups), err)
 	}
 }
 
-func TestFTS(t *testing.T) {
+func TestUserSession(t *testing.T) {
 	ctx := context.Background()
 	r := openTestDB(t)
-	if err := r.CreateDoc(ctx, "d1", ""); err != nil {
+
+	if err := r.CreateUser(ctx, "u1", "test", "test@test.com", "hash"); err != nil {
 		t.Fatal(err)
 	}
-	if err := r.UpsertText(ctx, "d1", "hello world madoc"); err != nil {
-		t.Fatal(err)
-	}
-	hits, err := r.SearchFTS(ctx, "madoc")
+	u, err := r.GetUserByEmail(ctx, "test@test.com")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(hits) != 1 || hits[0].DocID != "d1" {
-		t.Fatalf("expected hit on d1, got %+v", hits)
+	if u.Name != "test" {
+		t.Fatalf("expected 'test', got %q", u.Name)
+	}
+	users, err := r.ListUsers(ctx)
+	if err != nil || len(users) != 1 {
+		t.Fatalf("expect 1 user, got %d", len(users))
 	}
 }
 
-func TestListDocs(t *testing.T) {
+func TestWorkspaceLifecycle(t *testing.T) {
 	ctx := context.Background()
 	r := openTestDB(t)
-	if err := r.CreateDoc(ctx, "a", "A"); err != nil {
+
+	name := "My Workspace"
+	if err := r.CreateUser(ctx, "u1", "admin", "admin@test.com", "hash"); err != nil {
 		t.Fatal(err)
 	}
-	if err := r.CreateDoc(ctx, "b", "B"); err != nil {
+	if err := r.CreateWorkspace(ctx, "ws1", false, &name); err != nil {
 		t.Fatal(err)
 	}
-	docs, err := r.ListDocs(ctx)
-	if err != nil || len(docs) != 2 {
-		t.Fatalf("expect 2 docs, got %d err=%v", len(docs), err)
+	if err := r.AddWorkspacePermission(ctx, "p1", "ws1", "u1", PermOwner); err != nil {
+		t.Fatal(err)
+	}
+	list, err := r.ListWorkspacesByUser(ctx, "u1")
+	if err != nil || len(list) != 1 {
+		t.Fatalf("expect 1 workspace, got %d err=%v", len(list), err)
+	}
+	if err := r.DeleteWorkspace(ctx, "ws1"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestAppConfig(t *testing.T) {
+	ctx := context.Background()
+	r := openTestDB(t)
+
+	val, err := r.GetAppConfig(ctx, "theme")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if val != "{}" {
+		t.Fatalf("expected '{}', got %q", val)
+	}
+	if err := r.SetAppConfig(ctx, "theme", `"dark"`); err != nil {
+		t.Fatal(err)
+	}
+	val, err = r.GetAppConfig(ctx, "theme")
+	if err != nil || val != `"dark"` {
+		t.Fatalf("expected '\"dark\"', got %q err=%v", val, err)
+	}
+}
+
+func TestBlobCRUD(t *testing.T) {
+	ctx := context.Background()
+	r := openTestDB(t)
+
+	name := "Test WS"
+	if err := r.CreateWorkspace(ctx, "ws1", false, &name); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.CreateBlob(ctx, "ws1", "img.png", 1024, "image/png"); err != nil {
+		t.Fatal(err)
+	}
+	b, err := r.GetBlob(ctx, "ws1", "img.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b.Size != 1024 || b.Mime != "image/png" {
+		t.Fatalf("unexpected blob: %+v", b)
+	}
+	if err := r.DeleteBlob(ctx, "ws1", "img.png"); err != nil {
+		t.Fatal(err)
+	}
+	b, err = r.GetBlob(ctx, "ws1", "img.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b.DeletedAt == nil {
+		t.Fatal("expected deleted_at to be set")
 	}
 }
