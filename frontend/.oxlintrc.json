@@ -1,0 +1,4 @@
+{
+  "rules": {},
+  "ignorePatterns": ["node_modules\\ndist\\ncoverage\\n\r"]
+}

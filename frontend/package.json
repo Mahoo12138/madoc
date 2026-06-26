@@ -1,0 +1,18 @@
+{
+  "name": "@madoc/web",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/common",
+    "packages/common/*",
+    "packages/frontend/*",
+    "packages/frontend/apps/*",
+    "tools",
+    "tools/*"
+  ],
+  "packageManager": "yarn@4.13.0",
+  "scripts": {
+    "build": "yarn affine build",
+    "dev": "yarn affine dev"
+  }
+}
