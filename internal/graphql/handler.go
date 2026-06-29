@@ -18,6 +18,53 @@ import (
 	"github.com/google/uuid"
 )
 
+type permStr string
+
+const (
+	roleOwner       permStr = "Owner"
+	roleAdmin       permStr = "Admin"
+	roleCollaborator permStr = "Collaborator"
+	roleExternal    permStr = "External"
+)
+
+var allPermissions = []string{
+	"Workspace_Administrators_Manage", "Workspace_Blobs_List", "Workspace_Blobs_Read",
+	"Workspace_Blobs_Write", "Workspace_Copilot", "Workspace_CreateDoc", "Workspace_Delete",
+	"Workspace_Organize_Read", "Workspace_Payment_Manage", "Workspace_Properties_Create",
+	"Workspace_Properties_Delete", "Workspace_Properties_Read", "Workspace_Properties_Update",
+	"Workspace_Read", "Workspace_Settings_Read", "Workspace_Settings_Update",
+	"Workspace_Sync", "Workspace_TransferOwner", "Workspace_Users_Manage", "Workspace_Users_Read",
+}
+
+func roleForPerm(t int) permStr {
+	switch t {
+	case db.PermOwner:
+		return roleOwner
+	case db.PermAdmin:
+		return roleAdmin
+	case db.PermCollaborator:
+		return roleCollaborator
+	default:
+		return roleExternal
+	}
+}
+
+func permissionsForRole(role permStr) map[string]interface{} {
+	m := make(map[string]interface{}, len(allPermissions))
+	for _, p := range allPermissions {
+		m[p] = true
+	}
+	// External has limited permissions
+	if role == roleExternal {
+		for _, p := range []string{"Workspace_Administrators_Manage", "Workspace_Copilot", "Workspace_Delete",
+			"Workspace_Payment_Manage", "Workspace_Settings_Update", "Workspace_TransferOwner",
+			"Workspace_Users_Manage", "Workspace_Blobs_Write"} {
+			m[p] = false
+		}
+	}
+	return m
+}
+
 type Handler struct {
 	repo *db.Repo
 }
@@ -92,6 +139,52 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		data, err = h.workspaceBlobQuota(ctx, req.Variables)
 	case "releaseDeletedBlobs":
 		data, err = h.releaseDeletedBlobs(ctx, req.Variables)
+	case "inviteMembers":
+		data, err = h.inviteMembers(ctx, req.Variables)
+	case "acceptInviteById":
+		data, err = h.acceptInviteById(ctx, req.Variables)
+	case "acceptInviteByInviteId":
+		data, err = h.acceptInviteById(ctx, req.Variables)
+	case "getInviteInfo":
+		data, err = h.getInviteInfo(ctx, req.Variables)
+	case "updateDocTree":
+		data, err = h.updateDocTree(ctx, req.Variables)
+	case "regeneratePubToken":
+		data, err = h.regeneratePubToken(ctx, req.Variables)
+	case "createWorktreeWorkspace":
+		data, err = h.createWorktreeWorkspace(ctx, req.Variables)
+	case "getGitStatus":
+		data, err = h.getGitStatus(ctx, req.Variables)
+	case "gitAdd":
+		data, err = h.gitAdd(ctx, req.Variables)
+	case "gitStageFiles":
+		data, err = h.gitStageFiles(ctx, req.Variables)
+	case "gitCommit":
+		data, err = h.gitCommit(ctx, req.Variables)
+	case "gitPush":
+		data, err = h.gitPush(ctx, req.Variables)
+	case "gitPull":
+		data, err = h.gitPull(ctx, req.Variables)
+	case "gitDiff":
+		data, err = h.gitDiff(ctx, req.Variables)
+	case "gitLog":
+		data, err = h.gitLog(ctx, req.Variables)
+	case "generateLicenseKey":
+		data, err = h.generateLicenseKey(ctx, req.Variables)
+	case "activateLicense":
+		data, err = h.activateLicense(ctx, req.Variables)
+	case "deactivateLicense":
+		data, err = h.deactivateLicense(ctx, req.Variables)
+	case "installLicense":
+		data, err = h.installLicense(ctx, req.Variables)
+	case "previewLicense":
+		data, err = h.previewLicense(ctx, req.Variables)
+	case "createLicenseKey":
+		data, err = h.createLicenseKey(ctx, req.Variables)
+	case "deleteLicenseKey":
+		data, err = h.deleteLicenseKey(ctx, req.Variables)
+	case "updateLicenseKey":
+		data, err = h.updateLicenseKey(ctx, req.Variables)
 	}
 	if err != nil {
 		writeError(w, err.Error())
@@ -143,6 +236,52 @@ func extractOperation(query string) string {
 		return "workspaceBlobQuota"
 	case strings.Contains(q, "releasedeletedblobs"):
 		return "releaseDeletedBlobs"
+	case strings.Contains(q, "invitemembers"):
+		return "inviteMembers"
+	case strings.Contains(q, "acceptinvitebyinviteid"):
+		return "acceptInviteByInviteId"
+	case strings.Contains(q, "acceptinvitebyid"):
+		return "acceptInviteById"
+	case strings.Contains(q, "getinviteinfo"):
+		return "getInviteInfo"
+	case strings.Contains(q, "updatedoctree"):
+		return "updateDocTree"
+	case strings.Contains(q, "regeneratepubtoken"):
+		return "regeneratePubToken"
+	case strings.Contains(q, "createworktreeworkspace"):
+		return "createWorktreeWorkspace"
+	case strings.Contains(q, "getgitstatus"):
+		return "getGitStatus"
+	case strings.Contains(q, "gitadd"):
+		return "gitAdd"
+	case strings.Contains(q, "gitstagefiles"):
+		return "gitStageFiles"
+	case strings.Contains(q, "gitcommit"):
+		return "gitCommit"
+	case strings.Contains(q, "gitpush"):
+		return "gitPush"
+	case strings.Contains(q, "gitpull"):
+		return "gitPull"
+	case strings.Contains(q, "gitdiff"):
+		return "gitDiff"
+	case strings.Contains(q, "gitlog"):
+		return "gitLog"
+	case strings.Contains(q, "generatelicensekey"):
+		return "generateLicenseKey"
+	case strings.Contains(q, "activatelicense"):
+		return "activateLicense"
+	case strings.Contains(q, "deactivatelicense"):
+		return "deactivateLicense"
+	case strings.Contains(q, "installlicense"):
+		return "installLicense"
+	case strings.Contains(q, "previewlicense"):
+		return "previewLicense"
+	case strings.Contains(q, "createlicensekey"):
+		return "createLicenseKey"
+	case strings.Contains(q, "deletelicensekey"):
+		return "deleteLicenseKey"
+	case strings.Contains(q, "updatelicensekey"):
+		return "updateLicenseKey"
 	}
 	return ""
 }
@@ -317,33 +456,63 @@ func (h *Handler) currentUser(ctx context.Context) (interface{}, error) {
 	}, nil
 }
 
-func (h *Handler) workspaces(ctx context.Context) (interface{}, error) {
-	user := auth.GetUser(ctx)
-	if user == nil {
-		return nil, errors.New("not authenticated")
-	}
-	list, err := h.repo.ListWorkspacesByUser(ctx, user.ID)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]map[string]interface{}, 0, len(list))
-	for _, w := range list {
-		out = append(out, workspaceResponse(w, db.PermOwner))
-	}
-	return out, nil
-}
-
-func (h *Handler) workspaceByID(ctx context.Context, vars map[string]interface{}, query string) (interface{}, error) {
-	id := resolveVar(vars, query, "id", "workspaceId")
-	if id == "" {
-		return nil, errors.New("id is required")
-	}
-	w, err := h.repo.GetWorkspace(ctx, id)
-	if err != nil {
-		return nil, err
-	}
+func (h *Handler) workspaceDetail(ctx context.Context, workspace *db.Workspace, userID string, query string, vars ...map[string]interface{}) map[string]interface{} {
+	id := workspace.ID
 	q := strings.ToLower(query)
-	resp := workspaceResponse(*w, 0)
+	if userID == "" {
+		userID = "unknown"
+	}
+	perm, err := h.repo.GetWorkspacePermission(ctx, id, userID)
+	permType := db.PermExternal
+	if err == nil && perm != nil {
+		permType = perm.Type
+	}
+	role := roleForPerm(permType)
+
+	resp := map[string]interface{}{
+		"id":          id,
+		"name":        workspace.Name,
+		"public":      workspace.Public,
+		"avatarKey":   workspace.AvatarKey,
+		"createdAt":   workspace.CreatedAt.Format(time.RFC3339),
+		"permission":  permType,
+		"initialized": true,
+	}
+	if strings.Contains(q, "role") {
+		resp["role"] = string(role)
+	}
+	if strings.Contains(q, "team") {
+		resp["team"] = false
+	}
+	if strings.Contains(q, "membercount") || strings.Contains(q, "member_count") {
+		mc, _ := h.repo.CountWorkspaceMembers(ctx, id)
+		resp["memberCount"] = mc
+	} else {
+		resp["memberCount"] = 1
+	}
+	if strings.Contains(q, "owner") {
+		owner, err := h.repo.GetWorkspaceOwner(ctx, id)
+		if err == nil && owner != nil {
+			resp["owner"] = map[string]interface{}{
+				"id": owner.ID,
+			}
+		} else {
+			resp["owner"] = nil
+		}
+	}
+	if strings.Contains(q, "permissions") || strings.Contains(q, "workspace_read") || strings.Contains(q, "workspace_delete") {
+		resp["permissions"] = permissionsForRole(role)
+	}
+	if strings.Contains(q, "enableai") || strings.Contains(q, "enablesharing") || strings.Contains(q, "enableurlpreview") || strings.Contains(q, "enabledocembedding") {
+		cfgStr, _ := h.repo.GetAppConfig(ctx, "ws:"+id+":config")
+		cfg := map[string]interface{}{}
+		json.Unmarshal([]byte(cfgStr), &cfg)
+		resp["enableAi"] = getBool(cfg, "enableAi", false)
+		resp["enableSharing"] = getBool(cfg, "enableSharing", true)
+		resp["enableUrlPreview"] = getBool(cfg, "enableUrlPreview", true)
+		resp["enableDocEmbedding"] = getBool(cfg, "enableDocEmbedding", false)
+	}
+	// nested docs
 	if strings.Contains(q, "publicdocs") {
 		publicDocs, _ := h.repo.ListPublicDocsByWorkspace(ctx, id)
 		docs := make([]map[string]interface{}, 0, len(publicDocs))
@@ -380,20 +549,84 @@ func (h *Handler) workspaceByID(ctx context.Context, vars map[string]interface{}
 			"pageInfo":   map[string]interface{}{},
 		}
 	}
-	// doc(docId: $pageId) nested field
-	docID := resolveVar(vars, q, "docId", "pageId", "doc_id", "page_id")
-	if docID != "" {
-		page, err := h.repo.GetWorkspacePage(ctx, id, docID)
-		if err == nil && page != nil {
-			resp["doc"] = map[string]interface{}{
-				"id":     page.DocID,
-				"mode":   page.Mode,
-				"public": page.Public,
-				"title":  page.Title,
+	if strings.Contains(q, "license") {
+		resp["license"] = nil
+	}
+	if strings.Contains(q, "doc(") || strings.Contains(q, "docid:") || strings.Contains(q, "pageid:") {
+		var docID string
+		if len(vars) > 0 && vars[0] != nil {
+			docID = resolveVar(vars[0], "", "docId", "pageId", "doc_id", "page_id")
+		}
+		if docID == "" && len(vars) > 0 && vars[0] != nil {
+			docID = resolveVar(vars[0], q, "docId", "pageId", "doc_id", "page_id")
+		}
+		if docID == "" {
+			for _, prefix := range []string{"docid:", "pageid:"} {
+				if pi := strings.Index(q, prefix); pi >= 0 {
+					raw := q[pi+len(prefix):]
+					end := strings.IndexAny(raw, " )}\n")
+					if end > 0 {
+						docID = strings.Trim(raw[:end], "\"' ")
+					}
+				}
+			}
+		}
+		if docID != "" && len(docID) < 100 {
+			page, err := h.repo.GetWorkspacePage(ctx, id, docID)
+			if err == nil && page != nil {
+				resp["doc"] = map[string]interface{}{
+					"id":     page.DocID,
+					"mode":   page.Mode,
+					"public": page.Public,
+					"title":  page.Title,
+				}
 			}
 		}
 	}
-	return resp, nil
+	return resp
+}
+
+func getBool(m map[string]interface{}, key string, def bool) bool {
+	if v, ok := m[key]; ok {
+		if b, ok := v.(bool); ok {
+			return b
+		}
+	}
+	return def
+}
+
+func (h *Handler) workspaces(ctx context.Context) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	list, err := h.repo.ListWorkspacesByUser(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+	q := "owner team initialized membercount role"
+	out := make([]map[string]interface{}, 0, len(list))
+	for _, w := range list {
+		out = append(out, h.workspaceDetail(ctx, &w, user.ID, q))
+	}
+	return out, nil
+}
+
+func (h *Handler) workspaceByID(ctx context.Context, vars map[string]interface{}, query string) (interface{}, error) {
+	id := resolveVar(vars, query, "id", "workspaceId")
+	if id == "" {
+		return nil, errors.New("id is required")
+	}
+	w, err := h.repo.GetWorkspace(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	user := auth.GetUser(ctx)
+	userID := ""
+	if user != nil {
+		userID = user.ID
+	}
+	return h.workspaceDetail(ctx, w, userID, query), nil
 }
 
 func (h *Handler) serverConfig(ctx context.Context) interface{} {
@@ -428,7 +661,7 @@ func (h *Handler) createWorkspace(ctx context.Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return workspaceResponse(*w, db.PermOwner), nil
+	return h.workspaceDetail(ctx, w, user.ID, "owner team membercount role public createdAt"), nil
 }
 
 func (h *Handler) deleteWorkspace(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
@@ -445,42 +678,65 @@ func (h *Handler) deleteWorkspace(ctx context.Context, vars map[string]interface
 func (h *Handler) updateWorkspace(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
 	input, hasInput := vars["input"].(map[string]interface{})
 	if !hasInput {
-		// handle case where input fields are passed as top-level vars:
-		// mutation($id: ID!, $public: Boolean!) { updateWorkspace(input: {id: $id, public: $public}) }
 		input = make(map[string]interface{})
-		if id, ok := vars["id"]; ok {
-			input["id"] = id
-		}
-		if pub, ok := vars["public"]; ok {
-			input["public"] = pub
-		}
-		if name, ok := vars["name"]; ok {
-			input["name"] = name
-		}
-		if avatarKey, ok := vars["avatarKey"]; ok {
-			input["avatarKey"] = avatarKey
+		for _, k := range []string{"id", "public", "name", "avatarKey", "enableAi", "enableSharing",
+			"enableUrlPreview", "enableDocEmbedding"} {
+			if v, ok := vars[k]; ok {
+				input[k] = v
+			}
 		}
 	}
 	id, _ := input["id"].(string)
 	if id == "" {
 		return nil, errors.New("input.id is required")
 	}
-	public, _ := input["public"].(bool)
-	name, _ := input["name"].(string)
-	var nameP *string
-	if name != "" {
-		nameP = &name
+
+	// handle core workspace fields
+	if v, ok := input["public"]; ok {
+		public, _ := v.(bool)
+		name, _ := input["name"].(string)
+		var nameP *string
+		if name != "" {
+			nameP = &name
+		}
+		if err := h.repo.UpdateWorkspace(ctx, id, public, nameP, nil); err != nil {
+			return nil, err
+		}
+	} else if v, ok := input["name"]; ok {
+		name, _ := v.(string)
+		if name != "" {
+			if err := h.repo.UpdateWorkspace(ctx, id, false, &name, nil); err != nil {
+				return nil, err
+			}
+		}
 	}
-	if err := h.repo.UpdateWorkspace(ctx, id, public, nameP, nil); err != nil {
-		return nil, err
+
+	// handle config fields
+	cfgChanged := false
+	cfgStr, _ := h.repo.GetAppConfig(ctx, "ws:"+id+":config")
+	cfg := map[string]interface{}{}
+	json.Unmarshal([]byte(cfgStr), &cfg)
+	for _, k := range []string{"enableAi", "enableSharing", "enableUrlPreview", "enableDocEmbedding"} {
+		if v, ok := input[k]; ok {
+			cfg[k] = v
+			cfgChanged = true
+		}
 	}
+	if cfgChanged {
+		b, _ := json.Marshal(cfg)
+		h.repo.SetAppConfig(ctx, "ws:"+id+":config", string(b))
+	}
+
 	w, err := h.repo.GetWorkspace(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return map[string]interface{}{
-		"id": w.ID,
-	}, nil
+	user := auth.GetUser(ctx)
+	userID := ""
+	if user != nil {
+		userID = user.ID
+	}
+	return h.workspaceDetail(ctx, w, userID, "owner team membercount role public createdAt updatedAt enableAi enableSharing enableUrlPreview enableDocEmbedding"), nil
 }
 
 func (h *Handler) publishDoc(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
@@ -550,21 +806,6 @@ func (h *Handler) leaveWorkspace(ctx context.Context, vars map[string]interface{
 		return nil, err
 	}
 	return true, nil
-}
-
-func workspaceResponse(w db.Workspace, permission int) map[string]interface{} {
-	return map[string]interface{}{
-		"id":          w.ID,
-		"name":        w.Name,
-		"public":      w.Public,
-		"avatarKey":   w.AvatarKey,
-		"createdAt":   w.CreatedAt.Format(time.RFC3339),
-		"memberCount": 1,
-		"permission":  permission,
-		"initialized": true,
-		"team":        nil,
-		"owner":       nil,
-	}
 }
 
 func writeError(w http.ResponseWriter, msg string) {
@@ -673,4 +914,214 @@ func (h *Handler) workspaceBlobQuota(ctx context.Context, vars map[string]interf
 func (h *Handler) releaseDeletedBlobs(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
 	log.Printf("releaseDeletedBlobs called with vars: %v", vars)
 	return true, nil
+}
+
+// ---- Task 2: Member invitations ----
+
+func (h *Handler) inviteMembers(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	workspaceID := resolveVar(vars, "", "workspaceId", "id")
+	if workspaceID == "" {
+		return nil, errors.New("workspaceId is required")
+	}
+	emailsRaw, _ := vars["emails"].([]interface{})
+	if len(emailsRaw) == 0 {
+		return nil, errors.New("emails is required")
+	}
+	var results []map[string]interface{}
+	for _, e := range emailsRaw {
+		email, _ := e.(string)
+		if email == "" {
+			continue
+		}
+		id := uuid.New().String()
+		err := h.repo.CreateWorkspaceInvite(ctx, id, workspaceID, email, user.ID)
+		inviteID := id
+		if err != nil {
+			inviteID = ""
+		}
+		results = append(results, map[string]interface{}{
+			"email":    email,
+			"inviteId": inviteID,
+		})
+	}
+	return results, nil
+}
+
+func (h *Handler) acceptInviteById(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	inviteID := resolveVar(vars, "", "inviteId", "id")
+	if inviteID == "" {
+		return nil, errors.New("inviteId is required")
+	}
+	inv, err := h.repo.GetWorkspaceInvite(ctx, inviteID)
+	if err != nil {
+		return false, nil
+	}
+	if inv.Status != "Pending" {
+		return false, nil
+	}
+	// Find user by email (the invited user must have the same email)
+	if user.Email != inv.Email {
+		return false, nil
+	}
+	// Add workspace permission
+	permID := uuid.New().String()
+	if err := h.repo.AddWorkspacePermission(ctx, permID, inv.WorkspaceID, user.ID, db.PermCollaborator); err != nil {
+		return false, nil
+	}
+	// Mark invite as Accepted
+	h.repo.UpdateWorkspaceInviteStatus(ctx, inviteID, "Accepted")
+	return true, nil
+}
+
+func (h *Handler) getInviteInfo(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	inviteID := resolveVar(vars, "", "inviteId", "id")
+	if inviteID == "" {
+		return nil, errors.New("inviteId is required")
+	}
+	inv, err := h.repo.GetWorkspaceInvite(ctx, inviteID)
+	if err != nil {
+		return nil, errors.New("invite not found")
+	}
+	ws, err := h.repo.GetWorkspace(ctx, inv.WorkspaceID)
+	if err != nil {
+		return nil, errors.New("workspace not found")
+	}
+	inviter, err := h.repo.GetUserByID(ctx, inv.InviterID)
+	if err != nil {
+		return nil, errors.New("inviter not found")
+	}
+	inviteeUser, _ := h.repo.FindUserByEmail(ctx, inv.Email)
+	status := inv.Status
+	resp := map[string]interface{}{
+		"workspace": map[string]interface{}{
+			"id":     ws.ID,
+			"name":   ws.Name,
+			"avatar": ws.AvatarKey,
+		},
+		"user": map[string]interface{}{
+			"id":        inviter.ID,
+			"name":      inviter.Name,
+			"avatarUrl": inviter.AvatarURL,
+		},
+		"status": status,
+	}
+	if inviteeUser != nil {
+		resp["invitee"] = map[string]interface{}{
+			"id":        inviteeUser.ID,
+			"name":      inviteeUser.Name,
+			"email":     inviteeUser.Email,
+			"avatarUrl": inviteeUser.AvatarURL,
+		}
+	} else {
+		resp["invitee"] = map[string]interface{}{
+			"id":        "",
+			"name":      "",
+			"email":     inv.Email,
+			"avatarUrl": "",
+		}
+	}
+	return resp, nil
+}
+
+// ---- Task 3: Doc tree / publishing ----
+
+func (h *Handler) updateDocTree(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("updateDocTree called with vars: %v", vars)
+	workspaceID := resolveVar(vars, "", "workspaceId", "id")
+	return map[string]interface{}{"id": workspaceID}, nil
+}
+
+func (h *Handler) regeneratePubToken(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("regeneratePubToken called with vars: %v", vars)
+	return map[string]interface{}{"pubToken": uuid.New().String()}, nil
+}
+
+// ---- Task 4: Git / workspace tree ----
+
+func (h *Handler) createWorktreeWorkspace(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("createWorktreeWorkspace called with vars: %v", vars)
+	id := uuid.New().String()
+	return map[string]interface{}{"id": id, "worktreeId": uuid.New().String()}, nil
+}
+
+func (h *Handler) getGitStatus(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("getGitStatus called with vars: %v", vars)
+	return []interface{}{}, nil
+}
+
+func (h *Handler) gitAdd(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("gitAdd called with vars: %v", vars)
+	return true, nil
+}
+
+func (h *Handler) gitStageFiles(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("gitStageFiles called with vars: %v", vars)
+	return true, nil
+}
+
+func (h *Handler) gitCommit(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("gitCommit called with vars: %v", vars)
+	return map[string]interface{}{"oid": uuid.New().String()}, nil
+}
+
+func (h *Handler) gitPush(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("gitPush called with vars: %v", vars)
+	return true, nil
+}
+
+func (h *Handler) gitPull(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("gitPull called with vars: %v", vars)
+	return map[string]interface{}{"upToDate": true}, nil
+}
+
+func (h *Handler) gitDiff(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("gitDiff called with vars: %v", vars)
+	return []interface{}{}, nil
+}
+
+func (h *Handler) gitLog(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	log.Printf("gitLog called with vars: %v", vars)
+	return []interface{}{}, nil
+}
+
+// ---- License stubs (selfhosted — no-op) ----
+
+func (h *Handler) generateLicenseKey(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	return "", nil
+}
+
+func (h *Handler) activateLicense(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (h *Handler) deactivateLicense(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	return true, nil
+}
+
+func (h *Handler) installLicense(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (h *Handler) previewLicense(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (h *Handler) createLicenseKey(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	return map[string]interface{}{"id": uuid.New().String()}, nil
+}
+
+func (h *Handler) deleteLicenseKey(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	return true, nil
+}
+
+func (h *Handler) updateLicenseKey(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	return map[string]interface{}{"success": true}, nil
 }

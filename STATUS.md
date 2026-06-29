@@ -8,6 +8,7 @@
 - Db 测试：`go test -timeout 30s -count=1 -v ./internal/db/` — 6/6 通过 ✅
 - 冒烟测试：info、setup admin、登录、GraphQL CRUD、blob 上传下载、Engine.IO 握手 — 全部通过 ✅
 - GraphQL Phase 3 测试：currentUser(token/features/quota)、publishDoc、revokePublicDoc、updateWorkspace、workspace(publicDocs) — 全部通过 ✅
+- GraphQL Phase 4：构建（`go build`）+ vet 通过 ✅
 
 ---
 
@@ -158,6 +159,48 @@
 
 ---
 
+## Phase 4 — 工作区增强 + 成员邀请（已完成）
+
+### `workspace(id)` 增强（`internal/graphql/handler.go`）
+- 重构 `workspaceResponse` → `workspaceDetail`，根据查询参数动态返回：
+  - `owner { id }`：从 `workspace_user_permissions type=100` 查找所有者
+  - `memberCount`：`COUNT(workspace_user_permissions)`
+  - `role`：当前用户的 role 字符串（Owner / Admin / Collaborator / External）
+  - `permissions`：基于 role 的权限 map（20 项权限布尔值）
+  - `team`：始终 `false`（自部署无 team 概念）
+  - `enableAi`、`enableSharing`、`enableUrlPreview`、`enableDocEmbedding`：读/写 `app_configs ws:{id}:config`
+
+### `workspaces` 列表增强
+- 列表项现包含 `owner { id }`、`team`、`role`、`memberCount`
+
+### `updateWorkspace` 增强
+- 支持 config 字段（`enableAi`、`enableSharing`、`enableUrlPreview`、`enableDocEmbedding`）
+- 配置以 JSON 形式持久化到 `app_configs` key `ws:{id}:config`
+- 返回完整 workspace detail
+
+### 成员邀请（`internal/db/repo.go` + `internal/graphql/handler.go`）
+- 新增 `workspace_invites` 表（id、workspace_id、email、inviter_id、status、created_at、updated_at）
+- DB 方法：`CreateWorkspaceInvite`、`GetWorkspaceInvite`、`UpdateWorkspaceInviteStatus`、`FindUserByEmail`、`ListWorkspaceInvites`
+- `inviteMembers(workspaceId, emails)`：创建邀请记录，返回 `[{ email, inviteId }]`
+- `acceptInviteById(workspaceId, inviteId)`：验证邮箱匹配 → 添加 `Collaborator` 权限 → 标记 `Accepted`
+- `getInviteInfo(inviteId)`：返回 `{ workspace { id name avatar }, user { id name avatarUrl }, status, invitee { id name email avatarUrl } }`
+- 额外 `acceptInviteByInviteId` 操作名别名兼容
+
+### Git / DocTree / Worktree 存根
+- 新增存根操作：`updateDocTree`、`regeneratePubToken`、`createWorktreeWorkspace`、`getGitStatus`、`gitAdd`、`gitStageFiles`、`gitCommit`、`gitPush`、`gitPull`、`gitDiff`、`gitLog`
+
+### License 存根（自部署无授权体系）
+- 前端调用的 `generateLicenseKey`、`activateLicense`、`deactivateLicense`、`installLicense`、`previewLicense` 返回空/不可用值
+- `workspace { license }` 始终返回 `null`
+
+### DB 层新增
+- `ListWorkspacePermissions`、`CountWorkspaceMembers`、`GetWorkspaceOwner`
+- `GetUserByID`（已有）、`FindUserByEmail`
+- 邀请方法（见上文）
+- `workspace_invites` 索引
+
+---
+
 ## 技术决策
 
 ### Yjs 策略 — Relay 模式
@@ -200,14 +243,33 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 | `appConfig` | Query | 是否已初始化 |
 | `currentUser` | Query | 当前用户（含 token/features/quota/settings） |
 | `serverConfig` | Query | 服务器配置 |
-| `workspaces` | Query | 用户的工作区列表 |
-| `workspace(id)` | Query | 单个工作区（含 publicDocs/doc/quota 等嵌套字段） |
+| `workspaces` | Query | 用户的工作区列表（含 owner/team/role/memberCount） |
+| `workspace(id)` | Query | 单个工作区（含 owner/role/permissions/license/config 等） |
 | `createWorkspace` | Mutation | 创建工作区 |
 | `deleteWorkspace` | Mutation | 删除工作区 |
-| `updateWorkspace` | Mutation | 更新工作区（public/name） |
+| `updateWorkspace` | Mutation | 更新工作区（public/name/config 字段） |
 | `publishDoc` | Mutation | 公开文档 |
 | `revokePublicDoc` | Mutation | 撤销文档公开 |
 | `leaveWorkspace` | Mutation | 退出工作区 |
+| `inviteMembers` | Mutation | 邀请成员（按邮箱） |
+| `acceptInviteById` / `acceptInviteByInviteId` | Mutation | 接受邀请 |
+| `getInviteInfo` | Query | 查询邀请信息 |
+| `updateDocTree` | Mutation | 更新文档树（存根） |
+| `regeneratePubToken` | Mutation | 重新生成公开 token（存根） |
+| `createWorktreeWorkspace` | Mutation | 创建工作树工作区（存根） |
+| `getGitStatus` | Query | Git 状态（存根） |
+| `gitAdd` | Mutation | Git add（存根） |
+| `gitStageFiles` | Mutation | Git stage（存根） |
+| `gitCommit` | Mutation | Git 提交（存根） |
+| `gitPush` | Mutation | Git 推送（存根） |
+| `gitPull` | Mutation | Git 拉取（存根） |
+| `gitDiff` | Query | Git diff（存根） |
+| `gitLog` | Query | Git 日志（存根） |
+| `generateLicenseKey` | Mutation | 生成授权密钥（存根） |
+| `activateLicense` | Mutation | 激活授权（存根） |
+| `deactivateLicense` | Mutation | 停用授权（存根） |
+| `installLicense` | Mutation | 安装授权文件（存根） |
+| `previewLicense` | Mutation | 预览授权（存根） |
 | `createBlobUpload` | Mutation | 创建 blob 上传 |
 | `setBlob` | Mutation | 上传 blob（支持 multipart） |
 | `completeBlobUpload` | Mutation | 完成上传 |
@@ -229,7 +291,7 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 - 通知系统（`notification.count.get` 返回 0）
 - 评论 / Calendar / BYOK / Copilot GraphQL 字段
 - `workspace(id)` 的 `blobs` 嵌套展开
-- 成员邀请 / 邀请链接 / 权限管理 REST 端点
+- 邀请链接 / 权限管理 REST 端点
 - 禁用用户 / 会话管理管理接口
 
 ---
@@ -239,8 +301,8 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 | 文件 | 说明 |
 |---|---|
 | `main.go` | 入口，路由配置，go:embed 前端，快照压缩循环 |
-| `internal/db/schema.sql` | 12 张 AFFiNE 表（全部 DATETIME） |
-| `internal/db/repo.go` | 所有 CRUD（用户、会话、工作区、快照、更新、blob、页面、配置、doc pairs） |
+| `internal/db/schema.sql` | 14 张 AFFiNE 映射表（全部 DATETIME） |
+| `internal/db/repo.go` | 所有 CRUD（用户、会话、工作区、快照、更新、blob、页面、配置、邀请、doc pairs） |
 | `internal/db/db_test.go` | 数据库测试（6 个测试用例） |
 | `internal/auth/session.go` | SessionManager |
 | `internal/auth/middleware.go` | RequireAuth / OptionalAuth / GetUser / GetSessionID |
@@ -248,7 +310,7 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 | `internal/auth/setup.go` | SetupHandler（创建管理员） |
 | `internal/auth/password.go` | bcrypt hash/check |
 | `internal/auth/csrf.go` | CSRFProtector |
-| `internal/graphql/handler.go` | GraphQL 执行器（pattern-match + multipart 解析 + 21+ 解析器） |
+| `internal/graphql/handler.go` | GraphQL 执行器（pattern-match + multipart 解析 + 40+ 解析器） |
 | `internal/socketio/packets.go` | Engine.IO + Socket.IO 包类型定义与编解码 |
 | `internal/socketio/handler.go` | Engine.IO HTTP 处理器（polling + WebSocket + auth 回调） |
 | `internal/sync/server.go` | SyncServer（事件路由 + 房间管理 + realtime 协议 + 快照压缩） |

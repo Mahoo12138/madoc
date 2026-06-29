@@ -138,3 +138,18 @@ CREATE TABLE IF NOT EXISTS app_configs (
     updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
+-- 13. WorkspaceInvites — member invitation records
+CREATE TABLE IF NOT EXISTS workspace_invites (
+    id           TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    email        TEXT NOT NULL,
+    inviter_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status       TEXT NOT NULL DEFAULT 'Pending',
+    created_at   DATETIME NOT NULL DEFAULT (datetime('now')),
+    updated_at   DATETIME NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_wi_ws ON workspace_invites(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_wi_email ON workspace_invites(email);
+
+
+

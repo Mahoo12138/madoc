@@ -519,6 +519,16 @@ type WorkspaceUserPermission struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+type WorkspaceInvite struct {
+	ID          string    `json:"id"`
+	WorkspaceID string    `json:"workspace_id"`
+	Email       string    `json:"email"`
+	InviterID   string    `json:"inviter_id"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
 func (r *Repo) AddWorkspacePermission(ctx context.Context, id, workspaceID, userID string, permType int) error {
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO workspace_user_permissions(id, workspace_id, user_id, type) VALUES(?, ?, ?, ?)
@@ -545,6 +555,105 @@ func (r *Repo) RemoveWorkspacePermission(ctx context.Context, workspaceID, userI
 		`DELETE FROM workspace_user_permissions WHERE workspace_id=? AND user_id=?`,
 		workspaceID, userID)
 	return err
+}
+
+func (r *Repo) ListWorkspacePermissions(ctx context.Context, workspaceID string) ([]WorkspaceUserPermission, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT id, workspace_id, user_id, type, status, created_at, updated_at
+		 FROM workspace_user_permissions WHERE workspace_id=?`, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []WorkspaceUserPermission
+	for rows.Next() {
+		var p WorkspaceUserPermission
+		if err := rows.Scan(&p.ID, &p.WorkspaceID, &p.UserID, &p.Type, &p.Status, &p.CreatedAt, &p.UpdatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, p)
+	}
+	return out, rows.Err()
+}
+
+func (r *Repo) CountWorkspaceMembers(ctx context.Context, workspaceID string) (int, error) {
+	var n int
+	err := r.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM workspace_user_permissions WHERE workspace_id=? AND status='Accepted'`,
+		workspaceID).Scan(&n)
+	return n, err
+}
+
+func (r *Repo) GetWorkspaceOwner(ctx context.Context, workspaceID string) (*User, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT u.id, u.name, u.email, u.password, u.avatar_url, u.registered, u.disabled, u.created_at, u.updated_at
+		 FROM users u
+		 JOIN workspace_user_permissions p ON p.user_id = u.id
+		 WHERE p.workspace_id=? AND p.type=100
+		 LIMIT 1`, workspaceID)
+	var u User
+	err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.AvatarURL, &u.Registered, &u.Disabled, &u.CreatedAt, &u.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &u, err
+}
+
+func (r *Repo) CreateWorkspaceInvite(ctx context.Context, id, workspaceID, email, inviterID string) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO workspace_invites(id, workspace_id, email, inviter_id, status) VALUES(?, ?, ?, ?, 'Pending')`,
+		id, workspaceID, email, inviterID)
+	return err
+}
+
+func (r *Repo) GetWorkspaceInvite(ctx context.Context, id string) (*WorkspaceInvite, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT id, workspace_id, email, inviter_id, status, created_at, updated_at
+		 FROM workspace_invites WHERE id=?`, id)
+	var inv WorkspaceInvite
+	err := row.Scan(&inv.ID, &inv.WorkspaceID, &inv.Email, &inv.InviterID, &inv.Status, &inv.CreatedAt, &inv.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &inv, err
+}
+
+func (r *Repo) UpdateWorkspaceInviteStatus(ctx context.Context, id, status string) error {
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE workspace_invites SET status=?, updated_at=datetime('now') WHERE id=?`,
+		status, id)
+	return err
+}
+
+func (r *Repo) FindUserByEmail(ctx context.Context, email string) (*User, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT id, name, email, password, avatar_url, registered, disabled, created_at, updated_at
+		 FROM users WHERE email=?`, email)
+	var u User
+	err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.AvatarURL, &u.Registered, &u.Disabled, &u.CreatedAt, &u.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &u, err
+}
+
+func (r *Repo) ListWorkspaceInvites(ctx context.Context, workspaceID string) ([]WorkspaceInvite, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT id, workspace_id, email, inviter_id, status, created_at, updated_at
+		 FROM workspace_invites WHERE workspace_id=?`, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []WorkspaceInvite
+	for rows.Next() {
+		var inv WorkspaceInvite
+		if err := rows.Scan(&inv.ID, &inv.WorkspaceID, &inv.Email, &inv.InviterID, &inv.Status, &inv.CreatedAt, &inv.UpdatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, inv)
+	}
+	return out, rows.Err()
 }
 
 // ---------------------------------------------------------------------------
