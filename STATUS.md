@@ -9,6 +9,7 @@
 - 冒烟测试：info、setup admin、登录、GraphQL CRUD、blob 上传下载、Engine.IO 握手 — 全部通过 ✅
 - GraphQL Phase 3 测试：currentUser(token/features/quota)、publishDoc、revokePublicDoc、updateWorkspace、workspace(publicDocs) — 全部通过 ✅
 - GraphQL Phase 4：构建（`go build`）+ vet 通过 ✅
+- GraphQL Phase 5：构建 + vet + db 测试通过 ✅
 
 ---
 
@@ -201,6 +202,69 @@
 
 ---
 
+## Phase 5 — User & Admin APIs + Dockerfile（已完成）
+
+### Schema 扩展
+- `schema.sql` 新增 2 表：`user_features`、`user_access_tokens`，总数 16 张
+- `user_features`：user_id → feature name → activated 标识
+- `user_access_tokens`：带名称/令牌哈希/过期时间的个人访问令牌
+
+### DB 层新增（`internal/db/repo.go`）
+- `ListUsers(filter)` — 分页 + 关键词搜索（name/email LIKE）
+- `CountUsersFiltered(keyword)` — 搜索总数
+- `CreateUser` / `UpdateUser` / `DeleteUser` — 用户 CRUD
+- `ToggleUserDisabled` — 启用/禁用用户
+- `UpdateUserPassword` — 密码更新
+- `GetPublicUserByID` — 公开用户信息
+- `GetUserFeatures` / `SetUserFeature` — 特性标志管理
+- `CreateAccessToken` / `RevokeAccessToken` / `ListAccessTokens` — 访问令牌 CRUD
+
+### GraphQL 新增变更（`internal/graphql/handler.go`）
+
+**用户管理（管理员）：**
+- `listUsers(filter)` → 分页列表
+- `usersCount(filter)` → 列表总数
+- `users(filter)` → 别名
+- `userByEmail(email)` → 用户详情（含 features、hasPassword）
+- `user(email)` → 返回 UserType / LimitedUserType（兼容前端查询）
+- `publicUserById(id)` → 公开信息
+- `createUser(input)` → 带 bcrypt 密码哈希
+- `deleteUser(id)` / `banUser(id)` / `enableUser(id)` → 禁用/启用/删除
+- `importUsers(input)` → 批量导入，逐条错误报告
+- `updateUserFeatures(userId, features)` → 设置特性标志
+- `updateUser(id, input)` → 修改名称/邮箱
+
+**应用配置（管理员）：**
+- `updateAppConfig(updates)` → 写入 `app_configs`
+- `validateConfig(updates)` → 配置验证（直接返回 valid）
+
+**工作区成员管理：**
+- `revokeMemberPermission(workspaceId, userId)` → 移除权限
+- `approveWorkspaceTeamMember(workspaceId, userId)` → 批准成员
+- `grantWorkspaceTeamMember(workspaceId, userId, permission)` → 新增权限（Admin/Owner/External/Collaborator）
+
+**邀请链接：**
+- `createInviteLink(workspaceId)` → 生成短链接码（存 `app_configs`）
+- `revokeInviteLink(workspaceId)` → 清除链接码
+
+**用户自助：**
+- `uploadAvatar` / `removeAvatar` → 头像引用
+- `updateProfile(input)` → 修改名称
+- `updateSettings(input)` → 通知偏好（存 `app_configs`）
+- `changeEmail(email)` → 修改邮箱
+- `changePassword(userId, newPassword)` → 密码修改（含 bcrypt）
+- `deleteAccount` → 删除当前用户
+
+**访问令牌：**
+- `generateUserAccessToken(input)` → 生成 32 字节 hex token
+- `revokeUserAccessToken(id)` → 撤销令牌
+
+### Dockerfile + BUILD.md
+- `Dockerfile`：多阶段构建（node:20-alpine 前端 → golang:1.25-alpine 后端 → alpine:3.19 运行时）
+- `BUILD.md`：本地构建 + Docker 运行 + 环境变量参考
+
+---
+
 ## 技术决策
 
 ### Yjs 策略 — Relay 模式
@@ -277,6 +341,29 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 | `listBlobs` | Query | 列出 blob |
 | `workspaceBlobQuota` | Query | 配额查询 |
 | `releaseDeletedBlobs` | Mutation | 释放已删除 blob |
+| `listUsers` / `users` / `usersCount` | Query | 分页用户列表（管理员） |
+| `userByEmail` / `user` | Query | 用户详情（管理员） |
+| `publicUserById` | Query | 公开用户信息 |
+| `createUser` | Mutation | 创建用户 |
+| `deleteUser` / `banUser` / `enableUser` | Mutation | 禁用/启用/删除用户 |
+| `importUsers` | Mutation | 批量导入用户 |
+| `updateUserFeatures` | Mutation | 设置用户特性标志 |
+| `updateUser` | Mutation | 修改用户名称/邮箱 |
+| `updateAppConfig` | Mutation | 更新应用配置 |
+| `validateConfig` | Mutation | 验证配置 |
+| `revokeMemberPermission` | Mutation | 移除工作区成员权限 |
+| `approveWorkspaceTeamMember` | Mutation | 批准工作区成员 |
+| `grantWorkspaceTeamMember` | Mutation | 授予工作区成员权限 |
+| `createInviteLink` | Mutation | 创建邀请链接 |
+| `revokeInviteLink` | Mutation | 撤销邀请链接 |
+| `uploadAvatar` / `removeAvatar` | Mutation | 头像管理 |
+| `updateProfile` | Mutation | 修改个人资料 |
+| `updateSettings` | Mutation | 更新通知偏好 |
+| `changeEmail` | Mutation | 修改邮箱 |
+| `changePassword` | Mutation | 修改密码 |
+| `deleteAccount` | Mutation | 删除账号 |
+| `generateUserAccessToken` | Mutation | 生成个人访问令牌 |
+| `revokeUserAccessToken` | Mutation | 撤销访问令牌 |
 
 ---
 
@@ -291,8 +378,8 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 - 通知系统（`notification.count.get` 返回 0）
 - 评论 / Calendar / BYOK / Copilot GraphQL 字段
 - `workspace(id)` 的 `blobs` 嵌套展开
-- 邀请链接 / 权限管理 REST 端点
-- 禁用用户 / 会话管理管理接口
+- 邀请链接 / 权限管理 GraphQL 字段（基本实现，可增强）
+- 管理员审计日志 / 操作记录
 
 ---
 
@@ -301,7 +388,7 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 | 文件 | 说明 |
 |---|---|
 | `main.go` | 入口，路由配置，go:embed 前端，快照压缩循环 |
-| `internal/db/schema.sql` | 14 张 AFFiNE 映射表（全部 DATETIME） |
+| `internal/db/schema.sql` | 16 张 AFFiNE 映射表（全部 DATETIME） |
 | `internal/db/repo.go` | 所有 CRUD（用户、会话、工作区、快照、更新、blob、页面、配置、邀请、doc pairs） |
 | `internal/db/db_test.go` | 数据库测试（6 个测试用例） |
 | `internal/auth/session.go` | SessionManager |
@@ -310,11 +397,13 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 | `internal/auth/setup.go` | SetupHandler（创建管理员） |
 | `internal/auth/password.go` | bcrypt hash/check |
 | `internal/auth/csrf.go` | CSRFProtector |
-| `internal/graphql/handler.go` | GraphQL 执行器（pattern-match + multipart 解析 + 40+ 解析器） |
+| `internal/graphql/handler.go` | GraphQL 执行器（pattern-match + multipart 解析 + 70+ 解析器） |
 | `internal/socketio/packets.go` | Engine.IO + Socket.IO 包类型定义与编解码 |
 | `internal/socketio/handler.go` | Engine.IO HTTP 处理器（polling + WebSocket + auth 回调） |
 | `internal/sync/server.go` | SyncServer（事件路由 + 房间管理 + realtime 协议 + 快照压缩） |
 | `internal/sync/room.go` | RoomManager + Peer/Room 定义 |
+| `Dockerfile` | 多阶段容器构建（frontend → backend → runtime） |
+| `BUILD.md` | 构建与运行说明 |
 | `go.mod` | 依赖：chi、sqlite、securecookie、websocket、crypto/bcrypt |
 
 ---

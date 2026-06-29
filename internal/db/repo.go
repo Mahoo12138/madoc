@@ -347,10 +347,25 @@ func (r *Repo) GetUserByID(ctx context.Context, id string) (*User, error) {
 	return &u, err
 }
 
-func (r *Repo) ListUsers(ctx context.Context) ([]User, error) {
-	rows, err := r.db.QueryContext(ctx,
-		`SELECT id, name, email, password, avatar_url, registered, disabled, created_at, updated_at
-		 FROM users ORDER BY created_at DESC`)
+func (r *Repo) ListUsers(ctx context.Context, filter ListUsersFilter) ([]User, error) {
+	q := `SELECT id, name, email, password, avatar_url, registered, disabled, created_at, updated_at
+		  FROM users WHERE 1=1`
+	args := []interface{}{}
+	if filter.Keyword != "" {
+		q += ` AND (name LIKE ? OR email LIKE ?)`
+		kw := "%" + filter.Keyword + "%"
+		args = append(args, kw, kw)
+	}
+	q += ` ORDER BY created_at DESC`
+	if filter.First > 0 {
+		q += ` LIMIT ?`
+		args = append(args, filter.First)
+	}
+	if filter.Skip > 0 {
+		q += ` OFFSET ?`
+		args = append(args, filter.Skip)
+	}
+	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -652,6 +667,148 @@ func (r *Repo) ListWorkspaceInvites(ctx context.Context, workspaceID string) ([]
 			return nil, err
 		}
 		out = append(out, inv)
+	}
+	return out, rows.Err()
+}
+
+// ---------------------------------------------------------------------------
+// User management (admin)
+// ---------------------------------------------------------------------------
+
+type UserFeature struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"user_id"`
+	Name      string    `json:"name"`
+	Activated int       `json:"activated"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type UserAccessToken struct {
+	ID        string     `json:"id"`
+	UserID    string     `json:"user_id"`
+	Name      string     `json:"name"`
+	Token     string     `json:"token"`
+	ExpiresAt *time.Time `json:"expires_at"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
+type ListUsersFilter struct {
+	First   int
+	Skip    int
+	Keyword string
+}
+
+func (r *Repo) CountUsersFiltered(ctx context.Context, keyword string) (int, error) {
+	q := `SELECT COUNT(*) FROM users WHERE 1=1`
+	args := []interface{}{}
+	if keyword != "" {
+		q += ` AND (name LIKE ? OR email LIKE ?)`
+		kw := "%" + keyword + "%"
+		args = append(args, kw, kw)
+	}
+	var n int
+	err := r.db.QueryRowContext(ctx, q, args...).Scan(&n)
+	return n, err
+}
+
+func (r *Repo) UpdateUser(ctx context.Context, id, name, email string) error {
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE users SET name=?, email=?, updated_at=datetime('now') WHERE id=?`,
+		name, email, id)
+	return err
+}
+
+func (r *Repo) ToggleUserDisabled(ctx context.Context, id string, disabled bool) error {
+	v := 0
+	if disabled {
+		v = 1
+	}
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE users SET disabled=?, updated_at=datetime('now') WHERE id=?`, v, id)
+	return err
+}
+
+func (r *Repo) DeleteUser(ctx context.Context, id string) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM users WHERE id=?`, id)
+	return err
+}
+
+func (r *Repo) GetPublicUserByID(ctx context.Context, id string) (*User, error) {
+	row := r.db.QueryRowContext(ctx,
+		`SELECT id, name, email, password, avatar_url, registered, disabled, created_at, updated_at
+		 FROM users WHERE id=?`, id)
+	var u User
+	err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.AvatarURL, &u.Registered, &u.Disabled, &u.CreatedAt, &u.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return &u, err
+}
+
+func (r *Repo) UpdateUserPassword(ctx context.Context, id, hash string) error {
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE users SET password=?, updated_at=datetime('now') WHERE id=?`, hash, id)
+	return err
+}
+
+func (r *Repo) GetUserFeatures(ctx context.Context, userID string) ([]UserFeature, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT id, user_id, name, activated, created_at FROM user_features WHERE user_id=?`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []UserFeature
+	for rows.Next() {
+		var f UserFeature
+		if err := rows.Scan(&f.ID, &f.UserID, &f.Name, &f.Activated, &f.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, f)
+	}
+	return out, rows.Err()
+}
+
+func (r *Repo) SetUserFeature(ctx context.Context, id, userID, name string, activated bool) error {
+	v := 0
+	if activated {
+		v = 1
+	}
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO user_features(id, user_id, name, activated) VALUES(?, ?, ?, ?)
+		 ON CONFLICT(user_id, name) DO UPDATE SET activated=excluded.activated`,
+		id, userID, name, v)
+	return err
+}
+
+func (r *Repo) CreateAccessToken(ctx context.Context, id, userID, name, token string, expiresAt *time.Time) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO user_access_tokens(id, user_id, name, token, expires_at) VALUES(?, ?, ?, ?, ?)`,
+		id, userID, name, token, expiresAt)
+	return err
+}
+
+func (r *Repo) RevokeAccessToken(ctx context.Context, id, userID string) error {
+	_, err := r.db.ExecContext(ctx,
+		`DELETE FROM user_access_tokens WHERE id=? AND user_id=?`, id, userID)
+	return err
+}
+
+func (r *Repo) ListAccessTokens(ctx context.Context, userID string) ([]UserAccessToken, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT id, user_id, name, token, expires_at, created_at
+		 FROM user_access_tokens WHERE user_id=? ORDER BY created_at DESC`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []UserAccessToken
+	for rows.Next() {
+		var t UserAccessToken
+		if err := rows.Scan(&t.ID, &t.UserID, &t.Name, &t.Token, &t.ExpiresAt, &t.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, t)
 	}
 	return out, rows.Err()
 }

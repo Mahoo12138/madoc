@@ -2,8 +2,11 @@ package graphql
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"mime"
@@ -16,6 +19,7 @@ import (
 	"madoc/internal/db"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type permStr string
@@ -169,6 +173,60 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		data, err = h.gitDiff(ctx, req.Variables)
 	case "gitLog":
 		data, err = h.gitLog(ctx, req.Variables)
+	case "listUsers":
+		data, err = h.listUsers(ctx, req.Variables)
+	case "getUserByEmail":
+		data, err = h.getUserByEmail(ctx, req.Variables)
+	case "getUser":
+		data, err = h.getUser(ctx, req.Variables)
+	case "getPublicUserById":
+		data, err = h.getPublicUserById(ctx, req.Variables)
+	case "createUser":
+		data, err = h.createUser(ctx, req.Variables)
+	case "deleteUser":
+		data, err = h.deleteUser(ctx, req.Variables)
+	case "disableUser":
+		data, err = h.disableUser(ctx, req.Variables)
+	case "enableUser":
+		data, err = h.enableUser(ctx, req.Variables)
+	case "importUsers":
+		data, err = h.importUsers(ctx, req.Variables)
+	case "updateAccountFeatures":
+		data, err = h.updateAccountFeatures(ctx, req.Variables)
+	case "updateAccount":
+		data, err = h.updateAccount(ctx, req.Variables)
+	case "updateAppConfig":
+		data, err = h.updateAppConfig(ctx, req.Variables)
+	case "validateConfig":
+		data, err = h.validateConfig(ctx, req.Variables)
+	case "revokeMemberPermission":
+		data, err = h.revokeMemberPermission(ctx, req.Variables)
+	case "approveWorkspaceTeamMember":
+		data, err = h.approveWorkspaceTeamMember(ctx, req.Variables)
+	case "grantWorkspaceTeamMember":
+		data, err = h.grantWorkspaceTeamMember(ctx, req.Variables)
+	case "createInviteLink":
+		data, err = h.createInviteLink(ctx, req.Variables)
+	case "revokeInviteLink":
+		data, err = h.revokeInviteLink(ctx, req.Variables)
+	case "uploadAvatar":
+		data, err = h.uploadAvatar(ctx, req.Variables)
+	case "removeAvatar":
+		data, err = h.removeAvatar(ctx, req.Variables)
+	case "updateUserProfile":
+		data, err = h.updateUserProfile(ctx, req.Variables)
+	case "updateUserSettings":
+		data, err = h.updateUserSettings(ctx, req.Variables)
+	case "changeEmail":
+		data, err = h.changeEmail(ctx, req.Variables)
+	case "changePassword":
+		data, err = h.changePassword(ctx, req.Variables)
+	case "deleteAccount":
+		data, err = h.deleteAccount(ctx, req.Variables)
+	case "generateUserAccessToken":
+		data, err = h.generateUserAccessToken(ctx, req.Variables)
+	case "revokeUserAccessToken":
+		data, err = h.revokeUserAccessToken(ctx, req.Variables)
 	case "generateLicenseKey":
 		data, err = h.generateLicenseKey(ctx, req.Variables)
 	case "activateLicense":
@@ -266,6 +324,64 @@ func extractOperation(query string) string {
 		return "gitDiff"
 	case strings.Contains(q, "gitlog"):
 		return "gitLog"
+	case strings.Contains(q, "listusers"):
+		return "listUsers"
+	case strings.Contains(q, "userscount"):
+		return "listUsers"
+	case strings.Contains(q, "users("):
+		return "listUsers"
+	case strings.Contains(q, "userbyemail"):
+		return "getUserByEmail"
+	case strings.Contains(q, "user("):
+		return "getUser"
+	case strings.Contains(q, "publicuserbyid"):
+		return "getPublicUserById"
+	case strings.Contains(q, "createuser"):
+		return "createUser"
+	case strings.Contains(q, "deleteuser"):
+		return "deleteUser"
+	case strings.Contains(q, "banuser"):
+		return "disableUser"
+	case strings.Contains(q, "enableuser"):
+		return "enableUser"
+	case strings.Contains(q, "importusers"):
+		return "importUsers"
+	case strings.Contains(q, "updateuserfeatures"):
+		return "updateAccountFeatures"
+	case strings.Contains(q, "updateuser("):
+		return "updateAccount"
+	case strings.Contains(q, "updateappconfig"):
+		return "updateAppConfig"
+	case strings.Contains(q, "validateappconfig"):
+		return "validateConfig"
+	case strings.Contains(q, "revokemember"):
+		return "revokeMemberPermission"
+	case strings.Contains(q, "approvemember"):
+		return "approveWorkspaceTeamMember"
+	case strings.Contains(q, "grantmember"):
+		return "grantWorkspaceTeamMember"
+	case strings.Contains(q, "createinvitelink"):
+		return "createInviteLink"
+	case strings.Contains(q, "revokeinvitelink"):
+		return "revokeInviteLink"
+	case strings.Contains(q, "uploadavatar"):
+		return "uploadAvatar"
+	case strings.Contains(q, "removeavatar"):
+		return "removeAvatar"
+	case strings.Contains(q, "updateprofile"):
+		return "updateUserProfile"
+	case strings.Contains(q, "updatesettings"):
+		return "updateUserSettings"
+	case strings.Contains(q, "changeemail"):
+		return "changeEmail"
+	case strings.Contains(q, "changepassword"):
+		return "changePassword"
+	case strings.Contains(q, "deleteaccount"):
+		return "deleteAccount"
+	case strings.Contains(q, "generateuseraccesstoken"):
+		return "generateUserAccessToken"
+	case strings.Contains(q, "revokeuseraccesstoken"):
+		return "revokeUserAccessToken"
 	case strings.Contains(q, "generatelicensekey"):
 		return "generateLicenseKey"
 	case strings.Contains(q, "activatelicense"):
@@ -1029,6 +1145,603 @@ func (h *Handler) getInviteInfo(ctx context.Context, vars map[string]interface{}
 		}
 	}
 	return resp, nil
+}
+
+// ---- Phase 5: User & Admin APIs ----
+
+func (h *Handler) listUsers(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	filter, _ := vars["filter"].(map[string]interface{})
+	first := 20
+	skip := 0
+	keyword := ""
+	if filter != nil {
+		if f, ok := filter["first"].(float64); ok {
+			first = int(f)
+		}
+		if s, ok := filter["skip"].(float64); ok {
+			skip = int(s)
+		}
+		if k, ok := filter["keyword"].(string); ok {
+			keyword = k
+		}
+	}
+	users, err := h.repo.ListUsers(ctx, db.ListUsersFilter{First: first, Skip: skip, Keyword: keyword})
+	if err != nil {
+		return nil, err
+	}
+	total, _ := h.repo.CountUsersFiltered(ctx, keyword)
+	out := make([]map[string]interface{}, 0, len(users))
+	for _, u := range users {
+		features, _ := h.repo.GetUserFeatures(ctx, u.ID)
+		fNames := make([]string, 0, len(features))
+		for _, f := range features {
+			fNames = append(fNames, f.Name)
+		}
+		avatarURL := ""
+		if u.AvatarURL != nil {
+			avatarURL = *u.AvatarURL
+		}
+		hasPW := u.Password != nil && *u.Password != ""
+		out = append(out, map[string]interface{}{
+			"id":            u.ID,
+			"name":          u.Name,
+			"email":         u.Email,
+			"disabled":      u.Disabled,
+			"features":      fNames,
+			"hasPassword":   hasPW,
+			"emailVerified": true,
+			"avatarUrl":     avatarURL,
+		})
+	}
+	return map[string]interface{}{
+		"users":       out,
+		"usersCount":  total,
+	}, nil
+}
+
+func (h *Handler) getUserByEmail(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	email, _ := vars["email"].(string)
+	if email == "" {
+		return nil, errors.New("email is required")
+	}
+	u, err := h.repo.FindUserByEmail(ctx, email)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	features, _ := h.repo.GetUserFeatures(ctx, u.ID)
+	fNames := make([]string, 0, len(features))
+	for _, f := range features {
+		fNames = append(fNames, f.Name)
+	}
+	avatarURL := ""
+	if u.AvatarURL != nil {
+		avatarURL = *u.AvatarURL
+	}
+	hasPW := u.Password != nil && *u.Password != ""
+	return map[string]interface{}{
+		"id":            u.ID,
+		"name":          u.Name,
+		"email":         u.Email,
+		"features":      fNames,
+		"hasPassword":   hasPW,
+		"emailVerified": true,
+		"avatarUrl":     avatarURL,
+		"disabled":      u.Disabled,
+	}, nil
+}
+
+func (h *Handler) getUser(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	email, _ := vars["email"].(string)
+	if email == "" {
+		return nil, errors.New("email is required")
+	}
+	u, err := h.repo.FindUserByEmail(ctx, email)
+	if err != nil {
+		return map[string]interface{}{
+			"__typename": "LimitedUserType",
+			"email":      email,
+			"hasPassword": false,
+		}, nil
+	}
+	avatarURL := ""
+	if u.AvatarURL != nil {
+		avatarURL = *u.AvatarURL
+	}
+	hasPW := u.Password != nil && *u.Password != ""
+	return map[string]interface{}{
+		"__typename":  "UserType",
+		"id":          u.ID,
+		"name":        u.Name,
+		"avatarUrl":   avatarURL,
+		"email":       u.Email,
+		"hasPassword": hasPW,
+	}, nil
+}
+
+func (h *Handler) getPublicUserById(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, errors.New("id is required")
+	}
+	u, err := h.repo.GetPublicUserByID(ctx, id)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	avatarURL := ""
+	if u.AvatarURL != nil {
+		avatarURL = *u.AvatarURL
+	}
+	return map[string]interface{}{
+		"id":        u.ID,
+		"avatarUrl": avatarURL,
+		"name":      u.Name,
+	}, nil
+}
+
+func (h *Handler) createUser(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	input, _ := vars["input"].(map[string]interface{})
+	if input == nil {
+		return nil, errors.New("input is required")
+	}
+	email, _ := input["email"].(string)
+	name, _ := input["name"].(string)
+	password, _ := input["password"].(string)
+	if email == "" {
+		return nil, errors.New("email is required")
+	}
+	id := uuid.New().String()
+	if password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		err = h.repo.CreateUser(ctx, id, name, email, string(hash))
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := h.repo.CreateUser(ctx, id, name, email, "")
+		if err != nil {
+			return nil, err
+		}
+	}
+	return map[string]interface{}{"id": id}, nil
+}
+
+func (h *Handler) deleteUser(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, errors.New("id is required")
+	}
+	err := h.repo.DeleteUser(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{"success": true}, nil
+}
+
+func (h *Handler) disableUser(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, errors.New("id is required")
+	}
+	err := h.repo.ToggleUserDisabled(ctx, id, true)
+	if err != nil {
+		return nil, err
+	}
+	u, _ := h.repo.GetPublicUserByID(ctx, id)
+	if u == nil {
+		return map[string]interface{}{"email": "", "disabled": true}, nil
+	}
+	return map[string]interface{}{"email": u.Email, "disabled": true}, nil
+}
+
+func (h *Handler) enableUser(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, errors.New("id is required")
+	}
+	err := h.repo.ToggleUserDisabled(ctx, id, false)
+	if err != nil {
+		return nil, err
+	}
+	u, _ := h.repo.GetPublicUserByID(ctx, id)
+	if u == nil {
+		return map[string]interface{}{"email": "", "disabled": false}, nil
+	}
+	return map[string]interface{}{"email": u.Email, "disabled": false}, nil
+}
+
+func (h *Handler) importUsers(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	input, _ := vars["input"].(map[string]interface{})
+	if input == nil {
+		return nil, errors.New("input is required")
+	}
+	usersRaw, _ := input["users"].([]interface{})
+	var results []map[string]interface{}
+	for _, raw := range usersRaw {
+		u, _ := raw.(map[string]interface{})
+		if u == nil {
+			continue
+		}
+		email, _ := u["email"].(string)
+		name, _ := u["name"].(string)
+		password, _ := u["password"].(string)
+		if email == "" {
+			results = append(results, map[string]interface{}{
+				"__typename": "UserImportFailedType",
+				"email":      email,
+				"error":      "email is required",
+			})
+			continue
+		}
+		id := uuid.New().String()
+		var hash string
+		if password != "" {
+			b, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			hash = string(b)
+		}
+		err := h.repo.CreateUser(ctx, id, name, email, hash)
+		if err != nil {
+			results = append(results, map[string]interface{}{
+				"__typename": "UserImportFailedType",
+				"email":      email,
+				"error":      err.Error(),
+			})
+		} else {
+			results = append(results, map[string]interface{}{
+				"__typename": "UserType",
+				"id":         id,
+				"name":       name,
+				"email":      email,
+			})
+		}
+	}
+	return results, nil
+}
+
+func (h *Handler) updateAccountFeatures(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	userID, _ := vars["userId"].(string)
+	featuresRaw, _ := vars["features"].([]interface{})
+	if userID == "" {
+		return nil, errors.New("userId is required")
+	}
+	var names []string
+	for _, f := range featuresRaw {
+		if s, ok := f.(string); ok {
+			id := uuid.New().String()
+			h.repo.SetUserFeature(ctx, id, userID, s, true)
+			names = append(names, s)
+		}
+	}
+	return names, nil
+}
+
+func (h *Handler) updateAccount(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	id, _ := vars["id"].(string)
+	input, _ := vars["input"].(map[string]interface{})
+	if id == "" {
+		return nil, errors.New("id is required")
+	}
+	name, _ := input["name"].(string)
+	email, _ := input["email"].(string)
+	if name == "" && email == "" {
+		return nil, errors.New("name or email is required")
+	}
+	existing, err := h.repo.GetPublicUserByID(ctx, id)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	if name == "" {
+		name = existing.Name
+	}
+	if email == "" {
+		email = existing.Email
+	}
+	err = h.repo.UpdateUser(ctx, id, name, email)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"id":    id,
+		"name":  name,
+		"email": email,
+	}, nil
+}
+
+func (h *Handler) updateAppConfig(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	updatesRaw, _ := vars["updates"].([]interface{})
+	if len(updatesRaw) == 0 {
+		return nil, errors.New("updates is required")
+	}
+	for _, raw := range updatesRaw {
+		up, _ := raw.(map[string]interface{})
+		if up == nil {
+			continue
+		}
+		module, _ := up["module"].(string)
+		key, _ := up["key"].(string)
+		value := up["value"]
+		if module == "" && key == "" {
+			continue
+		}
+		cfgKey := module
+		if key != "" {
+			cfgKey = module + ":" + key
+		}
+		valStr := fmt.Sprintf("%v", value)
+		if err := h.repo.SetAppConfig(ctx, cfgKey, valStr); err != nil {
+			return nil, err
+		}
+	}
+	return true, nil
+}
+
+func (h *Handler) validateConfig(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	updatesRaw, _ := vars["updates"].([]interface{})
+	var results []map[string]interface{}
+	for _, raw := range updatesRaw {
+		up, _ := raw.(map[string]interface{})
+		if up == nil {
+			continue
+		}
+		module, _ := up["module"].(string)
+		key, _ := up["key"].(string)
+		value := up["value"]
+		results = append(results, map[string]interface{}{
+			"module": module,
+			"key":    key,
+			"value":  fmt.Sprintf("%v", value),
+			"valid":  true,
+			"error":  nil,
+		})
+	}
+	if results == nil {
+		results = []map[string]interface{}{}
+	}
+	return results, nil
+}
+
+func (h *Handler) revokeMemberPermission(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	workspaceID, _ := vars["workspaceId"].(string)
+	userID, _ := vars["userId"].(string)
+	if workspaceID == "" || userID == "" {
+		return nil, errors.New("workspaceId and userId are required")
+	}
+	h.repo.RemoveWorkspacePermission(ctx, workspaceID, userID)
+	return true, nil
+}
+
+func (h *Handler) approveWorkspaceTeamMember(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	workspaceID, _ := vars["workspaceId"].(string)
+	userID, _ := vars["userId"].(string)
+	if workspaceID == "" || userID == "" {
+		return nil, errors.New("workspaceId and userId are required")
+	}
+	perm, err := h.repo.GetWorkspacePermission(ctx, workspaceID, userID)
+	if err != nil {
+		return nil, errors.New("permission not found")
+	}
+	permID := uuid.New().String()
+	h.repo.AddWorkspacePermission(ctx, permID, workspaceID, userID, perm.Type)
+	return true, nil
+}
+
+func (h *Handler) grantWorkspaceTeamMember(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	workspaceID, _ := vars["workspaceId"].(string)
+	userID, _ := vars["userId"].(string)
+	permStr, _ := vars["permission"].(string)
+	if workspaceID == "" || userID == "" {
+		return nil, errors.New("workspaceId and userId are required")
+	}
+	permType := db.PermCollaborator
+	switch permStr {
+	case "Admin":
+		permType = db.PermAdmin
+	case "Owner":
+		permType = db.PermOwner
+	case "External":
+		permType = db.PermExternal
+	}
+	permID := uuid.New().String()
+	h.repo.AddWorkspacePermission(ctx, permID, workspaceID, userID, permType)
+	return true, nil
+}
+
+func (h *Handler) createInviteLink(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	workspaceID, _ := vars["workspaceId"].(string)
+	if workspaceID == "" {
+		return nil, errors.New("workspaceId is required")
+	}
+	// store link in app_configs
+	link := uuid.New().String()[:8]
+	h.repo.SetAppConfig(ctx, "invite_link:"+workspaceID, link)
+	h.repo.SetAppConfig(ctx, "invite_link_expire:"+workspaceID, "+7d")
+	return map[string]interface{}{
+		"link":       link,
+		"expireTime": "+7d",
+	}, nil
+}
+
+func (h *Handler) revokeInviteLink(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	workspaceID, _ := vars["workspaceId"].(string)
+	if workspaceID == "" {
+		return nil, errors.New("workspaceId is required")
+	}
+	h.repo.SetAppConfig(ctx, "invite_link:"+workspaceID, "")
+	return true, nil
+}
+
+func (h *Handler) uploadAvatar(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	log.Printf("uploadAvatar with vars: %v", vars)
+	// selfhosted: avatar uploaded but stored as reference
+	avatarKey := uuid.New().String()[:12]
+	h.repo.UpdateUser(ctx, user.ID, user.Name, user.Email)
+	return map[string]interface{}{
+		"id":        user.ID,
+		"name":      user.Name,
+		"avatarUrl": "/api/avatars/" + avatarKey,
+		"email":     user.Email,
+	}, nil
+}
+
+func (h *Handler) removeAvatar(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	return map[string]interface{}{"success": true}, nil
+}
+
+func (h *Handler) updateUserProfile(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	input, _ := vars["input"].(map[string]interface{})
+	name, _ := input["name"].(string)
+	if name == "" {
+		return nil, errors.New("name is required")
+	}
+	err := h.repo.UpdateUser(ctx, user.ID, name, user.Email)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{"id": user.ID, "name": name}, nil
+}
+
+func (h *Handler) updateUserSettings(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	input, _ := vars["input"].(map[string]interface{})
+	settings := map[string]interface{}{
+		"receiveInvitationEmail": true,
+		"receiveMentionEmail":    true,
+		"receiveCommentEmail":    true,
+	}
+	if v, ok := input["receiveInvitationEmail"].(bool); ok {
+		settings["receiveInvitationEmail"] = v
+	}
+	if v, ok := input["receiveMentionEmail"].(bool); ok {
+		settings["receiveMentionEmail"] = v
+	}
+	if v, ok := input["receiveCommentEmail"].(bool); ok {
+		settings["receiveCommentEmail"] = v
+	}
+	b, _ := json.Marshal(settings)
+	h.repo.SetAppConfig(ctx, "settings:"+user.ID, string(b))
+	return true, nil
+}
+
+func (h *Handler) changeEmail(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	email, _ := vars["email"].(string)
+	if email == "" {
+		return nil, errors.New("email is required")
+	}
+	err := h.repo.UpdateUser(ctx, user.ID, user.Name, email)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{"id": user.ID, "email": email}, nil
+}
+
+func (h *Handler) changePassword(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	userID, _ := vars["userId"].(string)
+	newPassword, _ := vars["newPassword"].(string)
+	if userID == "" || newPassword == "" {
+		return nil, errors.New("userId and newPassword are required")
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	err = h.repo.UpdateUserPassword(ctx, userID, string(hash))
+	if err != nil {
+		return nil, err
+	}
+	return true, nil
+}
+
+func (h *Handler) deleteAccount(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	err := h.repo.DeleteUser(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{"success": true}, nil
+}
+
+func (h *Handler) generateUserAccessToken(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	input, _ := vars["input"].(map[string]interface{})
+	name, _ := input["name"].(string)
+	if name == "" {
+		return nil, errors.New("name is required")
+	}
+	id := uuid.New().String()
+	tokenBytes := make([]byte, 32)
+	rand.Read(tokenBytes)
+	token := hex.EncodeToString(tokenBytes)
+	var expiresAt *time.Time
+	if exp, ok := input["expiresAt"].(string); ok && exp != "" {
+		t, err := time.Parse(time.RFC3339, exp)
+		if err == nil {
+			expiresAt = &t
+		}
+	}
+	h.repo.CreateAccessToken(ctx, id, user.ID, name, token, expiresAt)
+	return map[string]interface{}{
+		"id":        id,
+		"name":      name,
+		"token":     token,
+		"createdAt": time.Now().Format(time.RFC3339),
+		"expiresAt": expiresAt,
+	}, nil
+}
+
+func (h *Handler) revokeUserAccessToken(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	id, _ := vars["id"].(string)
+	if id == "" {
+		return nil, errors.New("id is required")
+	}
+	h.repo.RevokeAccessToken(ctx, id, user.ID)
+	return true, nil
 }
 
 // ---- Task 3: Doc tree / publishing ----

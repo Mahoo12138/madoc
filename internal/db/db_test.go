@@ -81,7 +81,7 @@ func TestUserSession(t *testing.T) {
 	if u.Name != "test" {
 		t.Fatalf("expected 'test', got %q", u.Name)
 	}
-	users, err := r.ListUsers(ctx)
+	users, err := r.ListUsers(ctx, ListUsersFilter{})
 	if err != nil || len(users) != 1 {
 		t.Fatalf("expect 1 user, got %d", len(users))
 	}
