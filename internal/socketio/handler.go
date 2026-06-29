@@ -20,18 +20,19 @@ const pingInterval = 25 * time.Second
 const pingTimeout = 20 * time.Second
 
 type Session struct {
-	ID         string
-	Upgraded   bool
-	mu         sync.Mutex
-	pending    []string
-	createdAt  time.Time
-	lastPing   time.Time
-	onPacket   func(sid string, pkt EnginePacket)
-	onClose    func(sid string)
-	closeOnce  sync.Once
-	closed     bool
-	wsConn     *websocket.Conn
-	writeMu    sync.Mutex
+	ID        string
+	UserID    string
+	Upgraded  bool
+	mu        sync.Mutex
+	pending   []string
+	createdAt time.Time
+	lastPing  time.Time
+	onPacket  func(sid string, pkt EnginePacket)
+	onClose   func(sid string)
+	closeOnce sync.Once
+	closed    bool
+	wsConn    *websocket.Conn
+	writeMu   sync.Mutex
 }
 
 type Handler struct {
@@ -39,6 +40,7 @@ type Handler struct {
 	sessions map[string]*Session
 	OnPacket func(sid string, pkt EnginePacket)
 	OnClose  func(sid string)
+	AuthFunc func(r *http.Request) string
 }
 
 func NewHandler() *Handler {
@@ -74,6 +76,16 @@ func (h *Handler) removeSession(sid string) {
 	h.mu.Unlock()
 }
 
+func (h *Handler) GetUserID(sid string) string {
+	ses := h.getSession(sid)
+	if ses == nil {
+		return ""
+	}
+	ses.mu.Lock()
+	defer ses.mu.Unlock()
+	return ses.UserID
+}
+
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	transport := r.URL.Query().Get("transport")
 	if r.Method == "OPTIONS" {
@@ -94,14 +106,22 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) resolveUser(r *http.Request) string {
+	if h.AuthFunc == nil {
+		return ""
+	}
+	return h.AuthFunc(r)
+}
+
 func (h *Handler) handleHandshake(w http.ResponseWriter, r *http.Request) {
 	ses := h.createSession()
+	ses.UserID = h.resolveUser(r)
 	openData, _ := json.Marshal(map[string]interface{}{
-		"sid":           ses.ID,
-		"upgrades":      []string{"websocket"},
-		"pingInterval":  pingInterval.Milliseconds(),
-		"pingTimeout":   pingTimeout.Milliseconds(),
-		"maxPayload":    1000000,
+		"sid":          ses.ID,
+		"upgrades":     []string{"websocket"},
+		"pingInterval": pingInterval.Milliseconds(),
+		"pingTimeout":  pingTimeout.Milliseconds(),
+		"maxPayload":   1000000,
 	})
 	resp := EnginePacket{Type: EngineOpen, Data: string(openData)}.Encode()
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -117,7 +137,6 @@ func (h *Handler) handlePolling(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ses.Upgraded {
-		EnginePacket{Type: EngineNoop}.Encode()
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("6"))
 		return
@@ -159,6 +178,7 @@ func (h *Handler) handlePolling(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	ses := h.createSession()
+	ses.UserID = h.resolveUser(r)
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("socketio: upgrade error: %v", err)

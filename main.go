@@ -39,7 +39,7 @@ func main() {
 	authH := auth.NewAuthHandler(sm, csrf, repo)
 	setupH := auth.NewSetupHandler(repo, sm, csrf)
 	gqlH := graphql.NewHandler(repo)
-	syncSrv := sync.NewServer(repo)
+	syncSrv := sync.NewServer(repo, sm)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP)
@@ -55,6 +55,7 @@ func main() {
 	r.With(sm.OptionalAuth).Post("/graphql", gqlH.ServeHTTP)
 
 	r.Mount("/socket.io", syncSrv.Router())
+	syncSrv.StartCompactionLoop()
 
 	r.Get("/api/workspaces/{workspaceId}/blobs/{key}", blobDownloadHandler(repo))
 	r.With(sm.OptionalAuth).Post("/api/workspaces/{workspaceId}/blobs/{key}", blobUploadHandler(repo))

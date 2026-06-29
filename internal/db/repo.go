@@ -115,6 +115,30 @@ func (r *Repo) DeleteUpdates(ctx context.Context, workspaceID, guid string) erro
 	return err
 }
 
+type DocPair struct {
+	WorkspaceID string
+	DocID       string
+}
+
+func (r *Repo) ListAllDocPairs(ctx context.Context) ([]DocPair, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT DISTINCT workspace_id, guid FROM updates
+		 UNION SELECT DISTINCT workspace_id, guid FROM snapshots`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []DocPair
+	for rows.Next() {
+		var p DocPair
+		if err := rows.Scan(&p.WorkspaceID, &p.DocID); err != nil {
+			return nil, err
+		}
+		out = append(out, p)
+	}
+	return out, rows.Err()
+}
+
 func (r *Repo) ListDocIDsByWorkspace(ctx context.Context, workspaceID string) ([]string, error) {
 	rows, err := r.db.QueryContext(ctx,
 		`SELECT DISTINCT guid FROM updates WHERE workspace_id=?
@@ -205,6 +229,32 @@ type WorkspacePage struct {
 	Public      bool   `json:"public"`
 	Mode        int    `json:"mode"`
 	Title       string `json:"title"`
+}
+
+func (r *Repo) ListPublicDocsByWorkspace(ctx context.Context, workspaceID string) ([]WorkspacePage, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT workspace_id, doc_id, public, mode, title
+		 FROM workspace_pages WHERE workspace_id=? AND public=1`, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []WorkspacePage
+	for rows.Next() {
+		var p WorkspacePage
+		if err := rows.Scan(&p.WorkspaceID, &p.DocID, &p.Public, &p.Mode, &p.Title); err != nil {
+			return nil, err
+		}
+		out = append(out, p)
+	}
+	return out, rows.Err()
+}
+
+func (r *Repo) UpdateWorkspace(ctx context.Context, id string, public bool, name *string, avatarKey *string) error {
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE workspaces SET public=?, name=COALESCE(?, name), avatar_key=COALESCE(?, avatar_key)
+		 WHERE id=?`, public, name, avatarKey, id)
+	return err
 }
 
 func (r *Repo) UpsertWorkspacePage(ctx context.Context, p *WorkspacePage) error {

@@ -63,13 +63,21 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "workspaces":
 		data, err = h.workspaces(ctx)
 	case "workspace":
-		data, err = h.workspaceByID(ctx, req.Variables)
+		data, err = h.workspaceByID(ctx, req.Variables, req.Query)
 	case "serverConfig":
 		data = h.serverConfig(ctx)
 	case "createWorkspace":
-		data, err = h.createWorkspace(ctx, req.Variables)
+		data, err = h.createWorkspace(ctx)
 	case "deleteWorkspace":
 		data, err = h.deleteWorkspace(ctx, req.Variables)
+	case "updateWorkspace":
+		data, err = h.updateWorkspace(ctx, req.Variables)
+	case "publishDoc":
+		data, err = h.publishDoc(ctx, req.Variables)
+	case "revokePublicDoc":
+		data, err = h.revokePublicDoc(ctx, req.Variables)
+	case "leaveWorkspace":
+		data, err = h.leaveWorkspace(ctx, req.Variables)
 	case "createBlobUpload":
 		data, err = h.createBlobUpload(ctx, req.Variables)
 	case "setBlob":
@@ -107,6 +115,14 @@ func extractOperation(query string) string {
 		return "createWorkspace"
 	case strings.Contains(q, "deleteworkspace"):
 		return "deleteWorkspace"
+	case strings.Contains(q, "updateworkspace"):
+		return "updateWorkspace"
+	case strings.Contains(q, "publishdoc"):
+		return "publishDoc"
+	case strings.Contains(q, "revokepublicdoc"):
+		return "revokePublicDoc"
+	case strings.Contains(q, "leaveworkspace"):
+		return "leaveWorkspace"
 	case strings.Contains(q, "workspace("):
 		return "workspace"
 	case strings.Contains(q, "workspaces"):
@@ -211,7 +227,40 @@ func setNested(m map[string]interface{}, path string, data string, filename stri
 	}
 }
 
+func resolveVar(vars map[string]interface{}, query string, names ...string) string {
+	for _, n := range names {
+		if v, ok := vars[n].(string); ok && v != "" {
+			return v
+		}
+	}
+	if query != "" {
+		q := strings.ToLower(query)
+		for _, n := range names {
+			// match patterns like: id: $someVar or workspaceId: $someVar
+			for _, p := range []string{n + ":", n + " :"} {
+				idx := strings.Index(q, p)
+				if idx >= 0 {
+					rest := q[idx+len(p):]
+					rest = strings.TrimSpace(rest)
+					if strings.HasPrefix(rest, "$") {
+						end := strings.IndexAny(rest, " )}\n\r")
+						if end > 0 {
+							varName := strings.TrimSpace(rest[1:end])
+							if v, ok := vars[varName].(string); ok && v != "" {
+								return v
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// ---------------------------------------------------------------------------
 // Resolvers
+// ---------------------------------------------------------------------------
 
 func (h *Handler) appConfig(ctx context.Context) (interface{}, error) {
 	ok, err := h.repo.IsInitialized(ctx)
@@ -226,11 +275,45 @@ func (h *Handler) currentUser(ctx context.Context) (interface{}, error) {
 	if user == nil {
 		return nil, nil
 	}
+	sessionID := auth.GetSessionID(ctx)
 	return map[string]interface{}{
-		"id":        user.ID,
-		"name":      user.Name,
-		"email":     user.Email,
-		"avatarUrl": user.AvatarURL,
+		"id":            user.ID,
+		"name":          user.Name,
+		"email":         user.Email,
+		"emailVerified": true,
+		"avatarUrl":     user.AvatarURL,
+		"token": map[string]interface{}{
+			"sessionToken": sessionID,
+		},
+		"features": []interface{}{},
+		"quota": map[string]interface{}{
+			"name":         "Free Plan",
+			"blobLimit":    104857600,
+			"storageQuota": 1073741824,
+			"historyPeriod": 90,
+			"memberLimit":  10,
+			"humanReadable": map[string]interface{}{
+				"name":          "Free Plan",
+				"blobLimit":     "100 MB",
+				"storageQuota":  "1 GB",
+				"historyPeriod": "90 days",
+				"memberLimit":   "10",
+			},
+		},
+		"quotaUsage": map[string]interface{}{
+			"storageQuota": 0,
+		},
+		"settings": map[string]interface{}{
+			"receiveInvitationEmail": true,
+			"receiveMentionEmail":    true,
+			"receiveCommentEmail":    true,
+		},
+		"invoiceCount":     0,
+		"invoices":         []interface{}{},
+		"notifications":    map[string]interface{}{"totalCount": 0, "edges": []interface{}{}, "pageInfo": map[string]interface{}{}},
+		"subscriptions":    []interface{}{},
+		"calendarAccounts": []interface{}{},
+		"copilot":          map[string]interface{}{},
 	}, nil
 }
 
@@ -250,8 +333,8 @@ func (h *Handler) workspaces(ctx context.Context) (interface{}, error) {
 	return out, nil
 }
 
-func (h *Handler) workspaceByID(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
-	id, _ := vars["id"].(string)
+func (h *Handler) workspaceByID(ctx context.Context, vars map[string]interface{}, query string) (interface{}, error) {
+	id := resolveVar(vars, query, "id", "workspaceId")
 	if id == "" {
 		return nil, errors.New("id is required")
 	}
@@ -259,7 +342,58 @@ func (h *Handler) workspaceByID(ctx context.Context, vars map[string]interface{}
 	if err != nil {
 		return nil, err
 	}
-	return workspaceResponse(*w, 0), nil
+	q := strings.ToLower(query)
+	resp := workspaceResponse(*w, 0)
+	if strings.Contains(q, "publicdocs") {
+		publicDocs, _ := h.repo.ListPublicDocsByWorkspace(ctx, id)
+		docs := make([]map[string]interface{}, 0, len(publicDocs))
+		for _, p := range publicDocs {
+			docs = append(docs, map[string]interface{}{
+				"id":   p.DocID,
+				"mode": p.Mode,
+			})
+		}
+		resp["publicDocs"] = docs
+	}
+	if strings.Contains(q, "quota") {
+		resp["quota"] = map[string]interface{}{
+			"blobLimit": 104857600,
+			"humanReadable": map[string]interface{}{
+				"blobLimit": "100 MB",
+			},
+		}
+	}
+	if strings.Contains(q, "subscription") {
+		resp["subscription"] = nil
+	}
+	if strings.Contains(q, "calendars") {
+		resp["calendars"] = []interface{}{}
+	}
+	if strings.Contains(q, "byoksettings") || strings.Contains(q, "byokusage") {
+		resp["byokSettings"] = nil
+		resp["byokUsage"] = []interface{}{}
+	}
+	if strings.Contains(q, "commentchanges") {
+		resp["commentChanges"] = map[string]interface{}{
+			"totalCount": 0,
+			"edges":      []interface{}{},
+			"pageInfo":   map[string]interface{}{},
+		}
+	}
+	// doc(docId: $pageId) nested field
+	docID := resolveVar(vars, q, "docId", "pageId", "doc_id", "page_id")
+	if docID != "" {
+		page, err := h.repo.GetWorkspacePage(ctx, id, docID)
+		if err == nil && page != nil {
+			resp["doc"] = map[string]interface{}{
+				"id":     page.DocID,
+				"mode":   page.Mode,
+				"public": page.Public,
+				"title":  page.Title,
+			}
+		}
+	}
+	return resp, nil
 }
 
 func (h *Handler) serverConfig(ctx context.Context) interface{} {
@@ -277,7 +411,7 @@ func (h *Handler) serverConfig(ctx context.Context) interface{} {
 	}
 }
 
-func (h *Handler) createWorkspace(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+func (h *Handler) createWorkspace(ctx context.Context) (interface{}, error) {
 	user := auth.GetUser(ctx)
 	if user == nil {
 		return nil, errors.New("not authenticated")
@@ -298,11 +432,121 @@ func (h *Handler) createWorkspace(ctx context.Context, vars map[string]interface
 }
 
 func (h *Handler) deleteWorkspace(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
-	id, _ := vars["id"].(string)
+	id := resolveVar(vars, "", "id", "workspaceId")
 	if id == "" {
 		return nil, errors.New("id is required")
 	}
 	if err := h.repo.DeleteWorkspace(ctx, id); err != nil {
+		return nil, err
+	}
+	return true, nil
+}
+
+func (h *Handler) updateWorkspace(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	input, hasInput := vars["input"].(map[string]interface{})
+	if !hasInput {
+		// handle case where input fields are passed as top-level vars:
+		// mutation($id: ID!, $public: Boolean!) { updateWorkspace(input: {id: $id, public: $public}) }
+		input = make(map[string]interface{})
+		if id, ok := vars["id"]; ok {
+			input["id"] = id
+		}
+		if pub, ok := vars["public"]; ok {
+			input["public"] = pub
+		}
+		if name, ok := vars["name"]; ok {
+			input["name"] = name
+		}
+		if avatarKey, ok := vars["avatarKey"]; ok {
+			input["avatarKey"] = avatarKey
+		}
+	}
+	id, _ := input["id"].(string)
+	if id == "" {
+		return nil, errors.New("input.id is required")
+	}
+	public, _ := input["public"].(bool)
+	name, _ := input["name"].(string)
+	var nameP *string
+	if name != "" {
+		nameP = &name
+	}
+	if err := h.repo.UpdateWorkspace(ctx, id, public, nameP, nil); err != nil {
+		return nil, err
+	}
+	w, err := h.repo.GetWorkspace(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"id": w.ID,
+	}, nil
+}
+
+func (h *Handler) publishDoc(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	workspaceID := resolveVar(vars, "", "workspaceId", "id")
+	docID := resolveVar(vars, "", "docId", "pageId", "doc_id", "page_id")
+	modeFloat, _ := vars["mode"].(float64)
+	mode := int(modeFloat)
+	if mode == 0 {
+		modeStr, ok := vars["mode"].(string)
+		if ok {
+			switch strings.ToLower(modeStr) {
+			case "edgeless":
+				mode = 1
+			default:
+				mode = 0
+			}
+		}
+	}
+	if workspaceID == "" || docID == "" {
+		return nil, errors.New("workspaceId and docId are required")
+	}
+	if err := h.repo.UpsertWorkspacePage(ctx, &db.WorkspacePage{
+		WorkspaceID: workspaceID,
+		DocID:       docID,
+		Public:      true,
+		Mode:        mode,
+	}); err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"id":   docID,
+		"mode": mode,
+	}, nil
+}
+
+func (h *Handler) revokePublicDoc(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	workspaceID := resolveVar(vars, "", "workspaceId", "id")
+	docID := resolveVar(vars, "", "docId", "pageId", "doc_id", "page_id")
+	if workspaceID == "" || docID == "" {
+		return nil, errors.New("workspaceId and docId are required")
+	}
+	if err := h.repo.UpsertWorkspacePage(ctx, &db.WorkspacePage{
+		WorkspaceID: workspaceID,
+		DocID:       docID,
+		Public:      false,
+		Mode:        0,
+	}); err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"id":     docID,
+		"mode":   0,
+		"public": false,
+	}, nil
+}
+
+func (h *Handler) leaveWorkspace(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
+	workspaceID := resolveVar(vars, "", "workspaceId", "id")
+	if workspaceID == "" {
+		return nil, errors.New("workspaceId is required")
+	}
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return nil, errors.New("not authenticated")
+	}
+	if err := h.repo.RemoveWorkspacePermission(ctx, workspaceID, user.ID); err != nil {
 		return nil, err
 	}
 	return true, nil
@@ -317,6 +561,9 @@ func workspaceResponse(w db.Workspace, permission int) map[string]interface{} {
 		"createdAt":   w.CreatedAt.Format(time.RFC3339),
 		"memberCount": 1,
 		"permission":  permission,
+		"initialized": true,
+		"team":        nil,
+		"owner":       nil,
 	}
 }
 
@@ -328,7 +575,9 @@ func writeError(w http.ResponseWriter, msg string) {
 	})
 }
 
+// ---------------------------------------------------------------------------
 // Blob resolvers
+// ---------------------------------------------------------------------------
 
 func (h *Handler) createBlobUpload(ctx context.Context, vars map[string]interface{}) (interface{}, error) {
 	workspaceID, _ := vars["workspaceId"].(string)
@@ -339,14 +588,14 @@ func (h *Handler) createBlobUpload(ctx context.Context, vars map[string]interfac
 	existing, _ := h.repo.GetBlob(ctx, workspaceID, key)
 	if existing != nil {
 		return map[string]interface{}{
-			"method":         "GRAPHQL",
-			"blobKey":        key,
+			"method":          "GRAPHQL",
+			"blobKey":         key,
 			"alreadyUploaded": true,
 		}, nil
 	}
 	return map[string]interface{}{
-		"method":         "GRAPHQL",
-		"blobKey":        key,
+		"method":          "GRAPHQL",
+		"blobKey":         key,
 		"alreadyUploaded": false,
 	}, nil
 }
