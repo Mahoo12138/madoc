@@ -41,10 +41,17 @@ func main() {
 	gqlH := graphql.NewHandler(repo)
 	syncSrv := sync.NewServer(repo, sm)
 
+	isDev := os.Getenv("MADOC_DEV") == "true"
+
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	if isDev {
+		r.Use(corsMiddleware)
+		log.Println("MADOC_DEV=true: CORS enabled for development")
+	}
 
 	r.Get("/info", infoHandler)
 	r.Post("/api/setup/create-admin-user", setupH.ServeHTTP)
@@ -87,12 +94,14 @@ func spaHandler(static fs.FS, fileServer http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := strings.TrimPrefix(r.URL.Path, "/")
 		if p == "" {
-			fileServer.ServeHTTP(w, r)
+			r2 := r.Clone(r.Context())
+			r2.URL.Path = "/selfhost.html"
+			fileServer.ServeHTTP(w, r2)
 			return
 		}
 		if _, err := fs.Stat(static, p); err != nil {
 			r2 := r.Clone(r.Context())
-			r2.URL.Path = "/"
+			r2.URL.Path = "/selfhost.html"
 			fileServer.ServeHTTP(w, r2)
 			return
 		}
@@ -142,4 +151,23 @@ func envOr(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// corsMiddleware adds permissive CORS headers for local development.
+// Only active when MADOC_DEV=true.
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		}
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, x-affine-csrf-token, x-operation-name")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

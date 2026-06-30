@@ -1,0 +1,39 @@
+# Air - Go hot reload configuration
+# https://github.com/air-verse/air
+
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  # Binary output path
+  bin = "./tmp/madoc.exe"
+  # Build command
+  cmd = "go build -o ./tmp/madoc.exe ."
+  # Watch these file extensions
+  include_ext = ["go", "html", "css", "sql"]
+  # Ignore these directories
+  exclude_dir = ["tmp", "frontend", "AFFiNE", "node_modules", ".codegraph"]
+  # Watch these directories (empty = watch all except excluded)
+  include_dir = [""]
+  # Delay before rebuilding (ms)
+  delay = 500
+  # Stop old binary before building new one
+  stop_on_error = true
+  # Send interrupt signal (SIGINT) to kill the process
+  kill_delay = 300
+  # Additional environment variables
+  [build.env]
+    MADOC_DEV = "true"
+
+[log]
+  time = true
+
+[color]
+  main = "magenta"
+  watcher = "cyan"
+  build = "yellow"
+  runner = "green"
+
+[misc]
+  clean_on_exit = true

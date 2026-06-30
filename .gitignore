@@ -8,4 +8,5 @@
 /frontend/dist/*
 !/frontend/dist/.gitkeep
 !/frontend/dist/index.html
-AFFiNE-canary
+node_modules
+/tmp/

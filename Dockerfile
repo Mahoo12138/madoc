@@ -1,9 +1,9 @@
 FROM node:20-alpine AS frontend-builder
 WORKDIR /src/frontend
 COPY frontend/ ./
-RUN corepack enable && yarn set version 4.13.0
-RUN yarn install --immutable
-RUN yarn affine build
+RUN corepack enable && pnpm --version
+RUN pnpm install --frozen-lockfile
+RUN pnpm affine build
 
 FROM golang:1.25-alpine AS builder
 RUN apk add --no-cache git
