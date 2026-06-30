@@ -1,5 +1,5 @@
-import { ByokKeyStorage, ByokProvider } from '@affine/graphql';
-import type { I18nInstance } from '@affine/i18n';
+import { ByokKeyStorage, ByokProvider } from '@madoc/graphql';
+import type { I18nInstance } from '@madoc/i18n';
 
 import type { ByokKey, ByokStorage } from './types';
 
@@ -138,7 +138,7 @@ export function rowDescription(t: I18nInstance, key: ByokKey) {
 
   return [storageLabel(t, key.storage), activity, key.description]
     .filter(Boolean)
-    .join(' â€¢ ');
+    .join(' â€?');
 }
 
 export function warningDescription(

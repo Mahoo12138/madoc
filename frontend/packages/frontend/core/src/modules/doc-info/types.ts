@@ -1,5 +1,5 @@
 import type { DatabaseBlockDataSource } from '@blocksuite/affine/blocks/database';
-import type { LiveData } from '@toeverything/infra';
+import type { LiveData } from '@madoc/infra';
 
 import type { Doc } from '../doc';
 

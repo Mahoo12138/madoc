@@ -1,5 +1,5 @@
-import type { WorkspaceServerService } from '@affine/core/modules/cloud';
-import type { NbstoreService } from '@affine/core/modules/storage';
+import type { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import type { NbstoreService } from '@madoc/core/modules/storage';
 import {
   addWorkspaceEmbeddingFilesMutation,
   addWorkspaceEmbeddingIgnoredDocsMutation,
@@ -9,8 +9,8 @@ import {
   removeWorkspaceEmbeddingFilesMutation,
   removeWorkspaceEmbeddingIgnoredDocsMutation,
   setEnableDocEmbeddingMutation,
-} from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 
 export class EmbeddingStore extends Store {
   constructor(

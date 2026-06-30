@@ -5,22 +5,22 @@ import {
   PropertyCollapsibleContent,
   PropertyCollapsibleSection,
   Scrollable,
-} from '@affine/component';
-import { useGuard } from '@affine/core/components/guard';
+} from '@madoc/component';
+import { useGuard } from '@madoc/core/components/guard';
 import {
   type DefaultOpenProperty,
   WorkspacePropertyRow,
-} from '@affine/core/components/properties';
-import { CreatePropertyMenuItems } from '@affine/core/components/properties/menu/create-doc-property';
-import { LinksRow } from '@affine/core/desktop/dialogs/doc-info/links-row';
-import { TimeRow } from '@affine/core/desktop/dialogs/doc-info/time-row';
-import type { DocCustomPropertyInfo } from '@affine/core/modules/db';
-import { DocDatabaseBacklinkInfo } from '@affine/core/modules/doc-info';
-import { DocLinksService } from '@affine/core/modules/doc-link';
-import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/components/properties';
+import { CreatePropertyMenuItems } from '@madoc/core/components/properties/menu/create-doc-property';
+import { LinksRow } from '@madoc/core/desktop/dialogs/doc-info/links-row';
+import { TimeRow } from '@madoc/core/desktop/dialogs/doc-info/time-row';
+import type { DocCustomPropertyInfo } from '@madoc/core/modules/db';
+import { DocDatabaseBacklinkInfo } from '@madoc/core/modules/doc-info';
+import { DocLinksService } from '@madoc/core/modules/doc-link';
+import { WorkspacePropertyService } from '@madoc/core/modules/workspace-property';
+import { useI18n } from '@madoc/i18n';
 import { PlusIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 
 import * as styles from './doc-info.css';

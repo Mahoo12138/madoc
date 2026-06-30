@@ -1,4 +1,4 @@
-import type { License } from '@affine/graphql';
+import type { License } from '@madoc/graphql';
 import {
   catchErrorInto,
   effect,
@@ -9,7 +9,7 @@ import {
   onStart,
   Service,
   smartRetry,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { tap } from 'rxjs';
 
 import type { WorkspaceService } from '../../workspace';

@@ -1,7 +1,7 @@
-import type { Tag } from '@affine/core/modules/tag';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { Trans } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+import type { Tag } from '@madoc/core/modules/tag';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { Trans } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { ListFloatingToolbar } from '../components/list-floating-toolbar';

@@ -4,17 +4,17 @@ import {
   shallowUpdater,
   useDraggable,
   useDropTarget,
-} from '@affine/component';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/component';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import {
   CloseIcon,
   ExpandFullIcon,
   InsertLeftIcon,
   InsertRightIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { assignInlineVars } from '@vanilla-extract/dynamic';
 import { useAtom } from 'jotai';
 import type { HTMLAttributes, PropsWithChildren } from 'react';

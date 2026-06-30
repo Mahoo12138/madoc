@@ -6,30 +6,30 @@ import {
   MenuItem,
   notify,
   useConfirmModal,
-} from '@affine/component';
-import { useGuard } from '@affine/core/components/guard';
-import { ServerService } from '@affine/core/modules/cloud';
-import { AuthService } from '@affine/core/modules/cloud/services/auth';
-import { type DocCommentEntity } from '@affine/core/modules/comment/entities/doc-comment';
-import { CommentPanelService } from '@affine/core/modules/comment/services/comment-panel-service';
-import { DocCommentManagerService } from '@affine/core/modules/comment/services/doc-comment-manager';
+} from '@madoc/component';
+import { useGuard } from '@madoc/core/components/guard';
+import { ServerService } from '@madoc/core/modules/cloud';
+import { AuthService } from '@madoc/core/modules/cloud/services/auth';
+import { type DocCommentEntity } from '@madoc/core/modules/comment/entities/doc-comment';
+import { CommentPanelService } from '@madoc/core/modules/comment/services/comment-panel-service';
+import { DocCommentManagerService } from '@madoc/core/modules/comment/services/doc-comment-manager';
 import type {
   CommentAttachment,
   DocComment,
   DocCommentReply,
-} from '@affine/core/modules/comment/types';
-import { DocService } from '@affine/core/modules/doc';
-import { toDocSearchParams } from '@affine/core/modules/navigation';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { copyTextToClipboard } from '@affine/core/utils/clipboard';
-import { i18nTime, useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/comment/types';
+import { DocService } from '@madoc/core/modules/doc';
+import { toDocSearchParams } from '@madoc/core/modules/navigation';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { copyTextToClipboard } from '@madoc/core/utils/clipboard';
+import { i18nTime, useI18n } from '@madoc/i18n';
 import type { DocSnapshot, Store } from '@blocksuite/affine/store';
 import { DoneIcon, FilterIcon, MoreHorizontalIcon } from '@blocksuite/icons/rc';
 import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -93,7 +93,7 @@ const SortFilterButton = ({
 };
 
 // ---------------------------------------------------------------------------
-// ActionMenu â€“ reusable dropdown for comment / reply rows
+// ActionMenu â€?reusable dropdown for comment / reply rows
 // ---------------------------------------------------------------------------
 
 const ActionMenu = ({

@@ -1,9 +1,9 @@
-import { MenuItem } from '@affine/core/modules/app-sidebar/views';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+import { MenuItem } from '@madoc/core/modules/app-sidebar/views';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import { CollaborationIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 export const InviteMembersButton = () => {

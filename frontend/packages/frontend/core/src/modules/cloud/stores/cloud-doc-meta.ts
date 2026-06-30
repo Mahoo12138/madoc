@@ -1,5 +1,5 @@
-import { getWorkspacePageMetaByIdQuery } from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+import { getWorkspacePageMetaByIdQuery } from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 
 import { type CloudDocMetaType } from '../entities/cloud-doc-meta';
 import type { WorkspaceServerService } from '../services/workspace-server';

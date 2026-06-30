@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { eases, waapi, type WAAPIAnimation } from 'animejs';
 import clsx from 'clsx';
 import {
@@ -254,11 +254,9 @@ export const PeekViewModalContainer = forwardRef<
    * ### Animation timeline:
    * ```plain
    *                                      150ms
-   *                                   âŽ® - - - - âŽ®
-   * dialog:     +--------400ms--------+
+   *                                   âŽ?- - - - âŽ?   * dialog:     +--------400ms--------+
    * controls:               +-------230ms-------+
-   *             âŽ® - - - - - âŽ®
-   *            controls delay =
+   *             âŽ?- - - - - âŽ?   *            controls delay =
    *             400 - 230 + 150
    * ```
    */

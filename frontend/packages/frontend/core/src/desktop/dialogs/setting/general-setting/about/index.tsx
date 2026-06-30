@@ -1,15 +1,15 @@
-import { Switch } from '@affine/component';
+import { Switch } from '@madoc/component';
 import {
   SettingHeader,
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { useAppUpdater } from '@affine/core/components/hooks/use-app-updater';
-import { UrlService } from '@affine/core/modules/url';
-import { appIconMap, appNames } from '@affine/core/utils/channel';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component/setting-components';
+import { useAppUpdater } from '@madoc/core/components/hooks/use-app-updater';
+import { UrlService } from '@madoc/core/modules/url';
+import { appIconMap, appNames } from '@madoc/core/utils/channel';
+import { useI18n } from '@madoc/i18n';
 import { ArrowRightSmallIcon, OpenInNewIcon } from '@blocksuite/icons/rc';
-import { useServices } from '@toeverything/infra';
+import { useServices } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { useAppSettingHelper } from '../../../../../components/hooks/affine/use-app-setting-helper';

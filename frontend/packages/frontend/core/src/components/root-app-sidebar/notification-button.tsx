@@ -1,10 +1,10 @@
-import { Menu } from '@affine/component';
-import { MenuItem } from '@affine/core/modules/app-sidebar/views';
-import { NotificationCountService } from '@affine/core/modules/notification';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { Menu } from '@madoc/component';
+import { MenuItem } from '@madoc/core/modules/app-sidebar/views';
+import { NotificationCountService } from '@madoc/core/modules/notification';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { NotificationIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useState } from 'react';
 
 import { NotificationList } from '../notification/list';

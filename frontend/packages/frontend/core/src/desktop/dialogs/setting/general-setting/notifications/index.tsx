@@ -1,5 +1,5 @@
-import { SettingHeader, SettingWrapper } from '@affine/component/setting-components';
-import { useI18n } from '@affine/i18n';
+import { SettingHeader, SettingWrapper } from '@madoc/component/setting-components';
+import { useI18n } from '@madoc/i18n';
 
 export const NotificationSettings = () => {
   const t = useI18n();

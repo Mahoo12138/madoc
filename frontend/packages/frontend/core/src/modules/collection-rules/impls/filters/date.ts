@@ -1,6 +1,6 @@
-import type { DocsService } from '@affine/core/modules/doc';
-import type { WorkspacePropertyFilter } from '@affine/core/modules/workspace-property';
-import { Service } from '@toeverything/infra';
+import type { DocsService } from '@madoc/core/modules/doc';
+import type { WorkspacePropertyFilter } from '@madoc/core/modules/workspace-property';
+import { Service } from '@madoc/infra';
 import dayjs, { type Dayjs, isDayjs } from 'dayjs';
 import { map, type Observable } from 'rxjs';
 

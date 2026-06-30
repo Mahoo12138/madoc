@@ -1,17 +1,17 @@
-import type { ConfirmModalProps, ElementOrFactory } from '@affine/component';
+import type { ConfirmModalProps, ElementOrFactory } from '@madoc/component';
 import {
   AffinePageReference,
   AffineSharedPageReference,
-} from '@affine/core/components/affine/reference-link';
-import { DocService, DocsService } from '@affine/core/modules/doc';
-import { EditorService } from '@affine/core/modules/editor';
-import { toDocSearchParams } from '@affine/core/modules/navigation';
-import { WorkspaceService } from '@affine/core/modules/workspace';
+} from '@madoc/core/components/affine/reference-link';
+import { DocService, DocsService } from '@madoc/core/modules/doc';
+import { EditorService } from '@madoc/core/modules/editor';
+import { toDocSearchParams } from '@madoc/core/modules/navigation';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
 import {
   type ViewExtensionContext,
   ViewExtensionProvider,
 } from '@blocksuite/affine/ext-loader';
-import { FrameworkProvider } from '@toeverything/infra';
+import { FrameworkProvider } from '@madoc/infra';
 import type { TemplateResult } from 'lit';
 import { z } from 'zod';
 

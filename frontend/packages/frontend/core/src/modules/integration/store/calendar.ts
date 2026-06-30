@@ -8,8 +8,8 @@ import {
   type WorkspaceCalendarItemInput,
   type WorkspaceCalendarsQuery,
   workspaceCalendarsQuery,
-} from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 
 import type { WorkspaceServerService } from '../../cloud';
 import type { WorkspaceService } from '../../workspace';

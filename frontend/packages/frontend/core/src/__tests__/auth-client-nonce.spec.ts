@@ -1,11 +1,11 @@
-import { AuthSession } from '@affine/core/modules/cloud/entities/session';
-import { AuthService } from '@affine/core/modules/cloud/services/auth';
-import { FetchService } from '@affine/core/modules/cloud/services/fetch';
-import { AuthStore } from '@affine/core/modules/cloud/stores/auth';
-import { GlobalDialogService } from '@affine/core/modules/dialogs/services/dialog';
-import { NbstoreService } from '@affine/core/modules/storage';
-import { UrlService } from '@affine/core/modules/url/services/url';
-import { Framework } from '@toeverything/infra';
+import { AuthSession } from '@madoc/core/modules/cloud/entities/session';
+import { AuthService } from '@madoc/core/modules/cloud/services/auth';
+import { FetchService } from '@madoc/core/modules/cloud/services/fetch';
+import { AuthStore } from '@madoc/core/modules/cloud/stores/auth';
+import { GlobalDialogService } from '@madoc/core/modules/dialogs/services/dialog';
+import { NbstoreService } from '@madoc/core/modules/storage';
+import { UrlService } from '@madoc/core/modules/url/services/url';
+import { Framework } from '@madoc/infra';
 import { of } from 'rxjs';
 import { describe, expect, test, vi } from 'vitest';
 

@@ -1,4 +1,4 @@
-import { type Framework } from '@toeverything/infra';
+import { type Framework } from '@madoc/infra';
 
 import { WorkspacesService } from '../workspace';
 import { TemplateDownloader } from './entities/downloader';

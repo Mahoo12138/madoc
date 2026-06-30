@@ -10,7 +10,7 @@ import type {
 } from '@blocksuite/affine/model';
 import type { BlockComponent, EditorHost } from '@blocksuite/affine/std';
 import type { Block, BlockModel } from '@blocksuite/affine/store';
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import type { TemplateResult } from 'lit';
 import { firstValueFrom, map, race } from 'rxjs';
 

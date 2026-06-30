@@ -1,15 +1,15 @@
 import {
   NoPermissionOrNotFound,
   NotFoundPage,
-} from '@affine/component/not-found-page';
-import { useSignOut } from '@affine/core/components/hooks/affine/use-sign-out';
-import { DesktopApiService } from '@affine/core/modules/desktop-api';
+} from '@madoc/component/not-found-page';
+import { useSignOut } from '@madoc/core/components/hooks/affine/use-sign-out';
+import { DesktopApiService } from '@madoc/core/modules/desktop-api';
 import {
   FrameworkScope,
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import type { ReactElement } from 'react';
 import { useCallback, useEffect } from 'react';
 

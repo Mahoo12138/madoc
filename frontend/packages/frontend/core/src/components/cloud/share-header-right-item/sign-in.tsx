@@ -1,7 +1,7 @@
-import { Button } from '@affine/component/ui/button';
-import { GlobalDialogService } from '@affine/core/modules/dialogs';
-import { useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+import { Button } from '@madoc/component/ui/button';
+import { GlobalDialogService } from '@madoc/core/modules/dialogs';
+import { useI18n } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import * as styles from './styles.css';

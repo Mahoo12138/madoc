@@ -1,8 +1,8 @@
-import { SettingHeader } from '@affine/component/setting-components';
-import { useWorkspaceInfo } from '@affine/core/components/hooks/use-workspace-info';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+import { SettingHeader } from '@madoc/component/setting-components';
+import { useWorkspaceInfo } from '@madoc/core/components/hooks/use-workspace-info';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import {
   type ReactNode,
   useCallback,

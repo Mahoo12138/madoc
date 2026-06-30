@@ -2,14 +2,14 @@ import {
   SettingHeader,
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { useWorkspaceInfo } from '@affine/core/components/hooks/use-workspace-info';
-import { WorkspaceServerService } from '@affine/core/modules/cloud';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { UNTITLED_WORKSPACE_NAME } from '@affine/env/constant';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component/setting-components';
+import { useWorkspaceInfo } from '@madoc/core/components/hooks/use-workspace-info';
+import { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { UNTITLED_WORKSPACE_NAME } from '@madoc/env/constant';
+import { useI18n } from '@madoc/i18n';
 import { ArrowRightSmallIcon } from '@blocksuite/icons/rc';
-import { FrameworkScope, useService } from '@toeverything/infra';
+import { FrameworkScope, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { DeleteLeaveWorkspace } from './delete-leave-workspace';

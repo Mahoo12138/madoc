@@ -1,28 +1,28 @@
-import type { ReactToLit } from '@affine/component';
-import { CodeBlockPreviewViewExtension } from '@affine/core/blocksuite/view-extensions/code-block-preview';
-import { CommentViewExtension } from '@affine/core/blocksuite/view-extensions/comment';
-import { AffineDatabaseViewExtension } from '@affine/core/blocksuite/view-extensions/database';
+import type { ReactToLit } from '@madoc/component';
+import { CodeBlockPreviewViewExtension } from '@madoc/core/blocksuite/view-extensions/code-block-preview';
+import { CommentViewExtension } from '@madoc/core/blocksuite/view-extensions/comment';
+import { AffineDatabaseViewExtension } from '@madoc/core/blocksuite/view-extensions/database';
 import {
   EdgelessBlockHeaderConfigViewExtension,
   type EdgelessBlockHeaderViewOptions,
-} from '@affine/core/blocksuite/view-extensions/edgeless-block-header';
-import { AffineEditorConfigViewExtension } from '@affine/core/blocksuite/view-extensions/editor-config';
-import { createDatabaseOptionsConfig } from '@affine/core/blocksuite/view-extensions/editor-config/database';
-import { createLinkedWidgetConfig } from '@affine/core/blocksuite/view-extensions/editor-config/linked';
+} from '@madoc/core/blocksuite/view-extensions/edgeless-block-header';
+import { AffineEditorConfigViewExtension } from '@madoc/core/blocksuite/view-extensions/editor-config';
+import { createDatabaseOptionsConfig } from '@madoc/core/blocksuite/view-extensions/editor-config/database';
+import { createLinkedWidgetConfig } from '@madoc/core/blocksuite/view-extensions/editor-config/linked';
 import {
   AffineEditorViewExtension,
   type AffineEditorViewOptions,
-} from '@affine/core/blocksuite/view-extensions/editor-view/editor-view';
-import { ElectronViewExtension } from '@affine/core/blocksuite/view-extensions/electron';
-import { AffineIconPickerExtension } from '@affine/core/blocksuite/view-extensions/icon-picker';
-import { AffineLinkPreviewExtension } from '@affine/core/blocksuite/view-extensions/link-preview-service';
-import { MobileViewExtension } from '@affine/core/blocksuite/view-extensions/mobile';
-import { PdfViewExtension } from '@affine/core/blocksuite/view-extensions/pdf';
-import { AffineThemeViewExtension } from '@affine/core/blocksuite/view-extensions/theme';
-import { TurboRendererViewExtension } from '@affine/core/blocksuite/view-extensions/turbo-renderer';
-import { PeekViewService } from '@affine/core/modules/peek-view';
-import { DebugLogger } from '@affine/debug';
-import { tracker } from '@affine/track';
+} from '@madoc/core/blocksuite/view-extensions/editor-view/editor-view';
+import { ElectronViewExtension } from '@madoc/core/blocksuite/view-extensions/electron';
+import { AffineIconPickerExtension } from '@madoc/core/blocksuite/view-extensions/icon-picker';
+import { AffineLinkPreviewExtension } from '@madoc/core/blocksuite/view-extensions/link-preview-service';
+import { MobileViewExtension } from '@madoc/core/blocksuite/view-extensions/mobile';
+import { PdfViewExtension } from '@madoc/core/blocksuite/view-extensions/pdf';
+import { AffineThemeViewExtension } from '@madoc/core/blocksuite/view-extensions/theme';
+import { TurboRendererViewExtension } from '@madoc/core/blocksuite/view-extensions/turbo-renderer';
+import { PeekViewService } from '@madoc/core/modules/peek-view';
+import { DebugLogger } from '@madoc/debug';
+import { tracker } from '@madoc/track';
 import { DatabaseViewExtension } from '@blocksuite/affine/blocks/database/view';
 import { ParagraphViewExtension } from '@blocksuite/affine/blocks/paragraph/view';
 import type {
@@ -34,7 +34,7 @@ import { getInternalViewExtensions } from '@blocksuite/affine/extensions/view';
 import { FoundationViewExtension } from '@blocksuite/affine/foundation/view';
 import { AffineCanvasTextFonts } from '@blocksuite/affine/shared/services';
 import { LinkedDocViewExtension } from '@blocksuite/affine/widgets/linked-doc/view';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 import type { TemplateResult } from 'lit';
 
 type Configure = {

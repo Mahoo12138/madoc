@@ -1,0 +1,6 @@
+packages:
+  - 'packages/common'
+  - 'packages/common/*'
+  - 'packages/frontend/*'
+  - 'tools'
+  - 'tools/*'

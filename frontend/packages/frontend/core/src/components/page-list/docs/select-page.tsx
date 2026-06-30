@@ -1,12 +1,12 @@
-import { IconButton, Menu } from '@affine/component';
+import { IconButton, Menu } from '@madoc/component';
 import {
   CollectionRulesService,
   type FilterParams,
-} from '@affine/core/modules/collection-rules';
-import { ShareDocsListService } from '@affine/core/modules/share-doc';
-import { Trans, useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/collection-rules';
+import { ShareDocsListService } from '@madoc/core/modules/share-doc';
+import { Trans, useI18n } from '@madoc/i18n';
 import { FilterIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { memo, type ReactNode, useCallback, useEffect, useState } from 'react';
 
 import {

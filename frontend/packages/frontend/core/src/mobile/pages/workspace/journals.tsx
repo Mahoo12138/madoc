@@ -1,11 +1,11 @@
 import {
   getDateFromUrl,
   JournalPlaceholder,
-} from '@affine/core/desktop/pages/workspace/journals';
-import { JournalService } from '@affine/core/modules/journal';
-import { ViewService, WorkbenchService } from '@affine/core/modules/workbench';
-import { i18nTime } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/desktop/pages/workspace/journals';
+import { JournalService } from '@madoc/core/modules/journal';
+import { ViewService, WorkbenchService } from '@madoc/core/modules/workbench';
+import { i18nTime } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import dayjs from 'dayjs';
 import { useCallback, useLayoutEffect, useState } from 'react';

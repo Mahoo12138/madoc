@@ -1,6 +1,6 @@
-import { NotificationCenter } from '@affine/component';
-import { DefaultServerService } from '@affine/core/modules/cloud';
-import { FrameworkScope, useService } from '@toeverything/infra';
+import { NotificationCenter } from '@madoc/component';
+import { DefaultServerService } from '@madoc/core/modules/cloud';
+import { FrameworkScope, useService } from '@madoc/infra';
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 

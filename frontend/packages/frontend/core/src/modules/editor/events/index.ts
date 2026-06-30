@@ -1,4 +1,4 @@
-import { createEvent } from '@toeverything/infra';
+import { createEvent } from '@madoc/infra';
 
 import type { Editor } from '../entities/editor';
 

@@ -1,6 +1,6 @@
-import { RadioGroup, Scrollable } from '@affine/component';
-import { ThemeEditorService } from '@affine/core/modules/theme-editor';
-import { useService } from '@toeverything/infra';
+import { RadioGroup, Scrollable } from '@madoc/component';
+import { ThemeEditorService } from '@madoc/core/modules/theme-editor';
+import { useService } from '@madoc/infra';
 import { useCallback, useEffect, useState } from 'react';
 
 import { ThemeEmpty } from './components/empty';

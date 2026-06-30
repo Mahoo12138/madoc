@@ -1,53 +1,34 @@
-import type {
-  events as helperEvents,
-  handlers as helperHandlers,
-} from '@affine/electron/helper/exposed';
-import type {
-  events as mainEvents,
-  handlers as mainHandlers,
-} from '@affine/electron/main/exposed';
-import type { AppInfo } from '@affine/electron/preload/electron-api';
-import type { SharedStorage } from '@affine/electron/preload/shared-storage';
+export const appInfo: Record<string, unknown> | null = null;
 
-type MainHandlers = typeof mainHandlers;
-type HelperHandlers = typeof helperHandlers;
-type HelperEvents = typeof helperEvents;
-type MainEvents = typeof mainEvents;
-export type ClientHandler = {
-  [namespace in keyof MainHandlers]: {
-    [method in keyof MainHandlers[namespace]]: MainHandlers[namespace][method] extends (
-      arg0: any,
-      ...rest: infer A
-    ) => any
-      ? (
-          ...args: A
-        ) => ReturnType<MainHandlers[namespace][method]> extends Promise<any>
-          ? ReturnType<MainHandlers[namespace][method]>
-          : Promise<ReturnType<MainHandlers[namespace][method]>>
-      : never;
-  };
-} & HelperHandlers;
-export type ClientEvents = MainEvents & HelperEvents;
+export const apis: Record<string, unknown> | undefined = undefined;
 
-export const appInfo = (globalThis as any).__appInfo as AppInfo | null;
-export const apis = (globalThis as any).__apis as ClientHandler | undefined;
-export const events = (globalThis as any).__events as ClientEvents | undefined;
+export const events: Record<string, unknown> | undefined = undefined;
 
-export const sharedStorage = (globalThis as any).__sharedStorage as
-  | SharedStorage
-  | undefined;
+export const sharedStorage: Record<string, unknown> | undefined = undefined;
 
-export type { AppInfo, SharedStorage };
+export type ClientHandler = Record<string, Record<string, (...args: unknown[]) => Promise<unknown>>>;
 
-export {
-  type SpellCheckStateSchema,
-  type TabViewsMetaSchema,
-  type WorkbenchMeta,
-  type WorkbenchViewMeta,
-  type WorkbenchViewModule,
-} from '@affine/electron/main/shared-state-schema';
-export type { UpdateMeta } from '@affine/electron/main/updater/event';
-export type {
-  AddTabOption,
-  TabAction,
-} from '@affine/electron/main/windows-manager';
+export type ClientEvents = Record<string, unknown>;
+
+export type AppInfo = Record<string, unknown>;
+
+export type SharedStorage = Record<string, unknown>;
+
+export type SpellCheckStateSchema = Record<string, unknown>;
+
+export type TabViewsMetaSchema = Record<string, unknown>;
+
+export type WorkbenchMeta = Record<string, unknown>;
+
+export type WorkbenchViewMeta = Record<string, unknown>;
+
+export type WorkbenchViewModule = Record<string, unknown>;
+
+export type UpdateMeta = {
+  version?: string;
+  allowPrerelease?: boolean;
+};
+
+export type AddTabOption = Record<string, unknown>;
+
+export type TabAction = Record<string, unknown>;

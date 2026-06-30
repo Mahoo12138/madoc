@@ -1,5 +1,5 @@
-import { DesktopApiService } from '@affine/core/modules/desktop-api';
-import { useServiceOptional } from '@toeverything/infra';
+import { DesktopApiService } from '@madoc/core/modules/desktop-api';
+import { useServiceOptional } from '@madoc/infra';
 import { useCallback } from 'react';
 import { redirect } from 'react-router-dom';
 

@@ -6,11 +6,11 @@ import {
   type MenuRef,
   RowInput,
   Scrollable,
-} from '@affine/component';
-import { TagService, useDeleteTagConfirmModal } from '@affine/core/modules/tag';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import { TagService, useDeleteTagConfirmModal } from '@madoc/core/modules/tag';
+import { useI18n } from '@madoc/i18n';
 import { DoneIcon, MoreHorizontalIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import { clamp } from 'lodash-es';
 import type { KeyboardEvent, ReactNode } from 'react';

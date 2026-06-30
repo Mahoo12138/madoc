@@ -21,7 +21,7 @@ const editorSettingService = {
   },
 };
 
-vi.mock('@affine/i18n', () => {
+vi.mock('@madoc/i18n', () => {
   const translations: Record<string, string> = {
     'com.affine.settings.editorSettings.general.auto-date-title.title':
       'Auto-title new docs with current date',
@@ -65,7 +65,7 @@ vi.mock('@affine/i18n', () => {
   };
 });
 
-vi.mock('@toeverything/infra', async importOriginal => {
+vi.mock('@madoc/infra', async importOriginal => {
   const actual = (await importOriginal()) as Record<string, unknown>;
 
   return {

@@ -1,18 +1,18 @@
-import { useDocMetaHelper } from '@affine/core/components/hooks/use-block-suite-page-meta';
-import { useDocCollectionPage } from '@affine/core/components/hooks/use-block-suite-workspace-page';
-import { FetchService, GraphQLService } from '@affine/core/modules/cloud';
+import { useDocMetaHelper } from '@madoc/core/components/hooks/use-block-suite-page-meta';
+import { useDocCollectionPage } from '@madoc/core/components/hooks/use-block-suite-workspace-page';
+import { FetchService, GraphQLService } from '@madoc/core/modules/cloud';
 import {
   type WorkspaceFlavourProvider,
   WorkspaceService,
   WorkspacesService,
-} from '@affine/core/modules/workspace';
-import { WorkspaceImpl } from '@affine/core/modules/workspace/impls/workspace';
-import { DebugLogger } from '@affine/debug';
-import type { ListHistoryQuery } from '@affine/graphql';
-import { listHistoryQuery, recoverDocMutation } from '@affine/graphql';
-import { i18nTime } from '@affine/i18n';
+} from '@madoc/core/modules/workspace';
+import { WorkspaceImpl } from '@madoc/core/modules/workspace/impls/workspace';
+import { DebugLogger } from '@madoc/debug';
+import type { ListHistoryQuery } from '@madoc/graphql';
+import { listHistoryQuery, recoverDocMutation } from '@madoc/graphql';
+import { i18nTime } from '@madoc/i18n';
 import type { Workspace } from '@blocksuite/affine/store';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useEffect, useMemo } from 'react';
 import useSWRImmutable from 'swr/immutable';
 import {

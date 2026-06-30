@@ -1,6 +1,6 @@
-import type { DocsService } from '@affine/core/modules/doc';
-import type { ShareDocsListService } from '@affine/core/modules/share-doc';
-import { onStart, Service } from '@toeverything/infra';
+import type { DocsService } from '@madoc/core/modules/doc';
+import type { ShareDocsListService } from '@madoc/core/modules/share-doc';
+import { onStart, Service } from '@madoc/infra';
 import { combineLatest, map, type Observable, of } from 'rxjs';
 
 import type { FilterProvider } from '../../provider';

@@ -1,6 +1,6 @@
-import { Avatar } from '@affine/component';
-import { AuthService } from '@affine/core/modules/cloud';
-import { useLiveData, useService } from '@toeverything/infra';
+import { Avatar } from '@madoc/component';
+import { AuthService } from '@madoc/core/modules/cloud';
+import { useLiveData, useService } from '@madoc/infra';
 
 import * as styles from './index.css';
 

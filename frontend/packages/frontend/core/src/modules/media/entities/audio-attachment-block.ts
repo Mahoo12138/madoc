@@ -1,12 +1,12 @@
-import { insertFromMarkdown } from '@affine/core/blocksuite/utils';
-import { preprocessAudioBlobForTranscription } from '@affine/core/utils/opus-encoding';
-import { DebugLogger } from '@affine/debug';
-import track from '@affine/track';
+import { insertFromMarkdown } from '@madoc/core/blocksuite/utils';
+import { preprocessAudioBlobForTranscription } from '@madoc/core/utils/opus-encoding';
+import { DebugLogger } from '@madoc/debug';
+import track from '@madoc/track';
 import type { AttachmentBlockModel } from '@blocksuite/affine/model';
 import type { AffineTextAttributes } from '@blocksuite/affine/shared/types';
 import { type DeltaInsert, Text } from '@blocksuite/affine/store';
 import { computed } from '@preact/signals-core';
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 
 import type { WorkspaceService } from '../../workspace';

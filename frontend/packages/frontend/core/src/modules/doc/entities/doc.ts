@@ -1,5 +1,5 @@
 import type { DocMode, RootBlockModel } from '@blocksuite/affine/model';
-import { Entity } from '@toeverything/infra';
+import { Entity } from '@madoc/infra';
 import { throttle } from 'lodash-es';
 import type { Transaction } from 'yjs';
 

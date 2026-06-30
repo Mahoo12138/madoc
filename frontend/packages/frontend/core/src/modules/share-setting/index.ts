@@ -1,6 +1,6 @@
 export { WorkspaceShareSettingService } from './services/share-setting';
 
-import { type Framework } from '@toeverything/infra';
+import { type Framework } from '@madoc/infra';
 
 import { WorkspaceServerService } from '../cloud';
 import { NbstoreService } from '../storage';

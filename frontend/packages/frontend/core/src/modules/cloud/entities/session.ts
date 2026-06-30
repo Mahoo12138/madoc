@@ -1,4 +1,4 @@
-import { UserFriendlyError } from '@affine/error';
+import { UserFriendlyError } from '@madoc/error';
 import {
   backoffRetry,
   effect,
@@ -8,7 +8,7 @@ import {
   LiveData,
   onComplete,
   onStart,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { isEqual } from 'lodash-es';
 import { tap } from 'rxjs';
 

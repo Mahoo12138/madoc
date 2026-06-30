@@ -1,12 +1,12 @@
-import { ConfirmModal, notify, useConfirmModal } from '@affine/component';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { AuthService } from '@affine/core/modules/cloud';
-import { WorkspacesService } from '@affine/core/modules/workspace';
-import { UserFriendlyError } from '@affine/error';
-import { Trans, useI18n } from '@affine/i18n';
-import track from '@affine/track';
+import { ConfirmModal, notify, useConfirmModal } from '@madoc/component';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { AuthService } from '@madoc/core/modules/cloud';
+import { WorkspacesService } from '@madoc/core/modules/workspace';
+import { UserFriendlyError } from '@madoc/error';
+import { Trans, useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import { ArrowRightSmallIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

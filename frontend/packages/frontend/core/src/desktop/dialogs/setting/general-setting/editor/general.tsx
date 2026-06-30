@@ -12,14 +12,14 @@ import {
   Slider,
   Switch,
   useConfirmModal,
-} from '@affine/component';
+} from '@madoc/component';
 import {
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { ServerService } from '@affine/core/modules/cloud';
-import { DesktopApiService } from '@affine/core/modules/desktop-api';
+} from '@madoc/component/setting-components';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { ServerService } from '@madoc/core/modules/cloud';
+import { DesktopApiService } from '@madoc/core/modules/desktop-api';
 import {
   type EditorSettingSchema,
   EditorSettingService,
@@ -27,16 +27,16 @@ import {
   fontStyleOptions,
   type NewDocDateTitleFormat,
   newDocDateTitleFormatOptions,
-} from '@affine/core/modules/editor-setting';
-import { SpellCheckSettingService } from '@affine/core/modules/editor-setting/services/spell-check-setting';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
+} from '@madoc/core/modules/editor-setting';
+import { SpellCheckSettingService } from '@madoc/core/modules/editor-setting/services/spell-check-setting';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
 import {
   type FontData,
   SystemFontFamilyService,
-} from '@affine/core/modules/system-font-family';
-import { Trans, useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/system-font-family';
+import { Trans, useI18n } from '@madoc/i18n';
 import { DoneIcon, SearchIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+import { useLiveData, useService, useServices } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   forwardRef,

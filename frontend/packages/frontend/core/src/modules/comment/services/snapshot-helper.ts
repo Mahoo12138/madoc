@@ -1,5 +1,5 @@
-import { getStoreManager } from '@affine/core/blocksuite/manager/store';
-import { toArrayBuffer } from '@affine/core/utils/array-buffer';
+import { getStoreManager } from '@madoc/core/blocksuite/manager/store';
+import { toArrayBuffer } from '@madoc/core/utils/array-buffer';
 import { Container } from '@blocksuite/affine/global/di';
 import {
   customImageProxyMiddleware,
@@ -13,7 +13,7 @@ import {
   Text,
   Transformer,
 } from '@blocksuite/affine/store';
-import { Service } from '@toeverything/infra';
+import { Service } from '@madoc/infra';
 import { Doc as YDoc } from 'yjs';
 
 import type { DefaultServerService, WorkspaceServerService } from '../../cloud';

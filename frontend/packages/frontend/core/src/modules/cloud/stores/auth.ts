@@ -4,9 +4,9 @@ import {
   ServerDeploymentType,
   updateUserProfileMutation,
   uploadAvatarMutation,
-} from '@affine/graphql';
-import type { CurrentUserProfileSnapshot } from '@affine/realtime';
-import { Store } from '@toeverything/infra';
+} from '@madoc/graphql';
+import type { CurrentUserProfileSnapshot } from '@madoc/realtime';
+import { Store } from '@madoc/infra';
 
 import type { GlobalState, NbstoreService } from '../../storage';
 import type { AuthSessionInfo } from '../entities/session';

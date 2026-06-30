@@ -1,4 +1,4 @@
-import { Service } from '@toeverything/infra';
+import { Service } from '@madoc/infra';
 import { map, type Observable } from 'rxjs';
 
 import type { GlobalState } from '../../storage';

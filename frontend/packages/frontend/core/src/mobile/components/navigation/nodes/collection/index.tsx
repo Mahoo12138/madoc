@@ -1,17 +1,17 @@
-import { MenuItem, notify } from '@affine/component';
-import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
+import { MenuItem, notify } from '@madoc/component';
+import type { NodeOperation } from '@madoc/core/desktop/components/navigation-panel';
 import {
   type Collection,
   CollectionService,
-} from '@affine/core/modules/collection';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
-import { ShareDocsListService } from '@affine/core/modules/share-doc';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/core/modules/collection';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
+import { ShareDocsListService } from '@madoc/core/modules/share-doc';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import { FilterMinusIcon, ViewLayersIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+import { useLiveData, useService, useServices } from '@madoc/infra';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AddItemPlaceholder } from '../../layouts/add-item-placeholder';

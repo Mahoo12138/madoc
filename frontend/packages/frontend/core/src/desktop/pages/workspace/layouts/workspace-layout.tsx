@@ -1,13 +1,13 @@
-import { uniReactRoot } from '@affine/component';
-import { useResponsiveSidebar } from '@affine/core/components/hooks/use-responsive-siedebar';
-import { SWRConfigProvider } from '@affine/core/components/providers/swr-config-provider';
-import { WorkspaceSideEffects } from '@affine/core/components/providers/workspace-side-effects';
-import { AppContainer } from '@affine/core/desktop/components/app-container';
-import { DocumentTitle } from '@affine/core/desktop/components/document-title';
-import { WorkspaceDialogs } from '@affine/core/desktop/dialogs';
-import { PeekViewManagerModal } from '@affine/core/modules/peek-view';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { LiveData, useLiveData, useService } from '@toeverything/infra';
+import { uniReactRoot } from '@madoc/component';
+import { useResponsiveSidebar } from '@madoc/core/components/hooks/use-responsive-siedebar';
+import { SWRConfigProvider } from '@madoc/core/components/providers/swr-config-provider';
+import { WorkspaceSideEffects } from '@madoc/core/components/providers/workspace-side-effects';
+import { AppContainer } from '@madoc/core/desktop/components/app-container';
+import { DocumentTitle } from '@madoc/core/desktop/components/document-title';
+import { WorkspaceDialogs } from '@madoc/core/desktop/dialogs';
+import { PeekViewManagerModal } from '@madoc/core/modules/peek-view';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { LiveData, useLiveData, useService } from '@madoc/infra';
 import type { PropsWithChildren } from 'react';
 
 export const WorkspaceLayout = function WorkspaceLayout({

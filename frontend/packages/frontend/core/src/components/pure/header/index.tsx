@@ -1,5 +1,5 @@
-import { AppSidebarService } from '@affine/core/modules/app-sidebar';
-import { useLiveData, useService } from '@toeverything/infra';
+import { AppSidebarService } from '@madoc/core/modules/app-sidebar';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 

@@ -1,4 +1,4 @@
-import { LiveData, OnEvent, Service } from '@toeverything/infra';
+import { LiveData, OnEvent, Service } from '@madoc/infra';
 
 import { AccountChanged, type AuthService } from '../../cloud';
 import { ServerStarted } from '../../cloud/events/server-started';

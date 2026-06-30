@@ -1,4 +1,4 @@
-import { createEvent, Service } from '@toeverything/infra';
+import { createEvent, Service } from '@madoc/infra';
 
 /**
  * Event that is emitted when application is started.

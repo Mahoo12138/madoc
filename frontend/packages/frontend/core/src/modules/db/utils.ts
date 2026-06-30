@@ -1,4 +1,4 @@
-import type { DocStorage } from '@affine/nbstore';
+import type { DocStorage } from '@madoc/nbstore';
 
 import {
   AFFiNE_WORKSPACE_DB_SCHEMA,

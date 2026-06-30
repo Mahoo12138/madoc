@@ -1,4 +1,4 @@
-import { Service } from '@toeverything/infra';
+import { Service } from '@madoc/infra';
 import type { Observable } from 'rxjs';
 
 import { GroupByProvider } from '../../provider';

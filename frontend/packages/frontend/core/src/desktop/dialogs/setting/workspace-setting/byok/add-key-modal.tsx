@@ -1,11 +1,11 @@
-import { Button, Modal, notify } from '@affine/component';
+import { Button, Modal, notify } from '@madoc/component';
 import {
   ByokKeyStorage,
   ByokProvider,
   testWorkspaceByokConfigMutation as testByokMutation,
   upsertWorkspaceByokConfigMutation as upsertByokMutation,
-} from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
 import { useCallback, useEffect, useState } from 'react';
 
 import { logByokError } from './errors';

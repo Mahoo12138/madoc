@@ -3,7 +3,7 @@ import {
   ExternalGroupByConfigProvider,
 } from '@blocksuite/affine/blocks/database';
 import type { ExtensionType } from '@blocksuite/affine/store';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 import { groupByConfigList } from '../../database-block/group-by';
 import { propertiesPresets } from '../../database-block/properties';
 

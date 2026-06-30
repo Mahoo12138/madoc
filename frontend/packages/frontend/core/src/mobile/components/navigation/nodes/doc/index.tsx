@@ -1,22 +1,22 @@
-import { Loading } from '@affine/component';
-import { Guard } from '@affine/core/components/guard';
-import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { DocsService } from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { DocsSearchService } from '@affine/core/modules/docs-search';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+import { Loading } from '@madoc/component';
+import { Guard } from '@madoc/core/components/guard';
+import type { NodeOperation } from '@madoc/core/desktop/components/navigation-panel';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { DocsService } from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { DocsSearchService } from '@madoc/core/modules/docs-search';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import {
   LiveData,
   MANUALLY_STOP,
   useLiveData,
   useService,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 
 import { AddItemPlaceholder } from '../../layouts/add-item-placeholder';

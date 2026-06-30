@@ -1,4 +1,4 @@
-import { type UserFriendlyError } from '@affine/error';
+import { type UserFriendlyError } from '@madoc/error';
 import {
   catchErrorInto,
   effect,
@@ -8,7 +8,7 @@ import {
   onStart,
   Service,
   smartRetry,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { exhaustMap, tap } from 'rxjs';
 
 import type { SelfhostGenerateLicenseStore } from '../stores/selfhost-generate-license';

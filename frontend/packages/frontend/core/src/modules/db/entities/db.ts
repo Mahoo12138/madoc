@@ -2,7 +2,7 @@ import {
   type DBSchemaBuilder,
   Entity,
   type TableMap,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 
 import { WorkspaceDBTable } from './table';
 

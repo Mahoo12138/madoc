@@ -1,9 +1,9 @@
-import { IconButton } from '@affine/component';
-import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import type { Tag } from '@affine/core/modules/tag';
-import { WorkbenchLink } from '@affine/core/modules/workbench';
-import { useLiveData, useService } from '@toeverything/infra';
+import { IconButton } from '@madoc/component';
+import { IsFavoriteIcon } from '@madoc/core/components/pure/icons';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import type { Tag } from '@madoc/core/modules/tag';
+import { WorkbenchLink } from '@madoc/core/modules/workbench';
+import { useLiveData, useService } from '@madoc/infra';
 import { type MouseEvent, useCallback } from 'react';
 
 import { content, item, prefixIcon, suffixIcon } from './styles.css';

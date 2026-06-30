@@ -1,9 +1,9 @@
-import type { DocRole, PublicDocMode } from '@affine/graphql';
+import type { DocRole, PublicDocMode } from '@madoc/graphql';
 import type {
   DocShareStateSnapshot,
   RealtimeTopicEventOf,
-} from '@affine/realtime';
-import { Entity, LiveData } from '@toeverything/infra';
+} from '@madoc/realtime';
+import { Entity, LiveData } from '@madoc/infra';
 
 import { RealtimeLiveQuery } from '../../cloud/realtime/live-query';
 import type { DocService } from '../../doc';

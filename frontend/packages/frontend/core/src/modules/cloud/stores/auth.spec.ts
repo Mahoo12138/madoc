@@ -1,10 +1,10 @@
-import { AuthProvider } from '@affine/core/modules/cloud/provider/auth';
-import { FetchService } from '@affine/core/modules/cloud/services/fetch';
-import { GraphQLService } from '@affine/core/modules/cloud/services/graphql';
-import { ServerService } from '@affine/core/modules/cloud/services/server';
-import { AuthStore } from '@affine/core/modules/cloud/stores/auth';
-import { GlobalState, NbstoreService } from '@affine/core/modules/storage';
-import { Framework } from '@toeverything/infra';
+import { AuthProvider } from '@madoc/core/modules/cloud/provider/auth';
+import { FetchService } from '@madoc/core/modules/cloud/services/fetch';
+import { GraphQLService } from '@madoc/core/modules/cloud/services/graphql';
+import { ServerService } from '@madoc/core/modules/cloud/services/server';
+import { AuthStore } from '@madoc/core/modules/cloud/stores/auth';
+import { GlobalState, NbstoreService } from '@madoc/core/modules/storage';
+import { Framework } from '@madoc/infra';
 import { describe, expect, test, vi } from 'vitest';
 
 function createStore({

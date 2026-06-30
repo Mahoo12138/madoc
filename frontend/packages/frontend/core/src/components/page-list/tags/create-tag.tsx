@@ -1,7 +1,7 @@
-import { Button, Input, Menu, toast } from '@affine/component';
-import { TagService } from '@affine/core/modules/tag';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { Button, Input, Menu, toast } from '@madoc/component';
+import { TagService } from '@madoc/core/modules/tag';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import type { MouseEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';

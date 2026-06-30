@@ -1,20 +1,20 @@
-import { Button, usePromptModal } from '@affine/component';
+import { Button, usePromptModal } from '@madoc/component';
 import {
   createDocExplorerContext,
   DocExplorerContext,
-} from '@affine/core/components/explorer/context';
-import { DocsExplorer } from '@affine/core/components/explorer/docs-view/docs-list';
-import type { ExplorerDisplayPreference } from '@affine/core/components/explorer/types';
-import { Filters } from '@affine/core/components/filter';
+} from '@madoc/core/components/explorer/context';
+import { DocsExplorer } from '@madoc/core/components/explorer/docs-view/docs-list';
+import type { ExplorerDisplayPreference } from '@madoc/core/components/explorer/types';
+import { Filters } from '@madoc/core/components/filter';
 import {
   CollectionService,
   PinnedCollectionService,
-} from '@affine/core/modules/collection';
-import { CollectionRulesService } from '@affine/core/modules/collection-rules';
-import type { FilterParams } from '@affine/core/modules/collection-rules/types';
-import { WorkspaceLocalState } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/collection';
+import { CollectionRulesService } from '@madoc/core/modules/collection-rules';
+import type { FilterParams } from '@madoc/core/modules/collection-rules/types';
+import { WorkspaceLocalState } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useState } from 'react';
 
 import {

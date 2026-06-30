@@ -1,17 +1,17 @@
-import { Button, notify, Switch, Tooltip } from '@affine/component';
+import { Button, notify, Switch, Tooltip } from '@madoc/component';
 import {
   SettingHeader,
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { Upload } from '@affine/core/components/pure/file-upload';
-import { EnableCloudPanel } from '@affine/core/desktop/dialogs/setting/workspace-setting/preference/enable-cloud';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { UserFriendlyError } from '@affine/error';
-import { ServerFeature } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/component/setting-components';
+import { Upload } from '@madoc/core/components/pure/file-upload';
+import { EnableCloudPanel } from '@madoc/core/desktop/dialogs/setting/workspace-setting/preference/enable-cloud';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { UserFriendlyError } from '@madoc/error';
+import { ServerFeature } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
+import { useLiveData, useService } from '@madoc/infra';
 import type React from 'react';
 import { useCallback, useEffect } from 'react';
 

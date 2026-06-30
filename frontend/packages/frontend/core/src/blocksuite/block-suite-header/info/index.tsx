@@ -1,9 +1,9 @@
-import { IconButton } from '@affine/component';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { IconButton } from '@madoc/component';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { InformationIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 export const InfoButton = ({ docId }: { docId: string }) => {

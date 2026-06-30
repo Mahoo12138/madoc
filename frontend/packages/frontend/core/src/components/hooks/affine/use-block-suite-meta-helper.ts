@@ -1,7 +1,7 @@
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { DocsService } from '@affine/core/modules/doc';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useService } from '@toeverything/infra';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { DocsService } from '@madoc/core/modules/doc';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { useNavigateHelper } from '../use-navigate-helper';

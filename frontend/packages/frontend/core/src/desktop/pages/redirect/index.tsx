@@ -1,5 +1,5 @@
-import { DebugLogger } from '@affine/debug';
-import { isAllowedRedirectTarget } from '@toeverything/infra';
+import { DebugLogger } from '@madoc/debug';
+import { isAllowedRedirectTarget } from '@madoc/infra';
 import { type LoaderFunction, Navigate, useLoaderData } from 'react-router-dom';
 
 const logger = new DebugLogger('redirect_proxy');

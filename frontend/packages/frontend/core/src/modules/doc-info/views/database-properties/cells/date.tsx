@@ -1,6 +1,6 @@
-import { DateValue } from '@affine/core/components/workspace-property-types/date';
-import type { LiveData } from '@toeverything/infra';
-import { useLiveData } from '@toeverything/infra';
+import { DateValue } from '@madoc/core/components/workspace-property-types/date';
+import type { LiveData } from '@madoc/infra';
+import { useLiveData } from '@madoc/infra';
 import dayjs from 'dayjs';
 
 import type { DatabaseCellRendererProps } from '../../../types';

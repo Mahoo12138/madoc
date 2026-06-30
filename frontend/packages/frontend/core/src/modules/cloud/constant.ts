@@ -2,7 +2,7 @@ import {
   OAuthProviderType,
   ServerDeploymentType,
   ServerFeature,
-} from '@affine/graphql';
+} from '@madoc/graphql';
 
 import type { ServerConfig, ServerMetadata } from './types';
 

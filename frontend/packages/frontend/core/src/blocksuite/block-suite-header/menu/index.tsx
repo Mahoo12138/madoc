@@ -1,27 +1,27 @@
-import { notify, toast, useConfirmModal } from '@affine/component';
+import { notify, toast, useConfirmModal } from '@madoc/component';
 import {
   Menu,
   MenuItem,
   MenuSeparator,
   MenuSub,
-} from '@affine/component/ui/menu';
-import { PageHistoryModal } from '@affine/core/components/affine/page-history-modal';
-import { useGuard } from '@affine/core/components/guard';
-import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
-import { useEnableCloud } from '@affine/core/components/hooks/affine/use-enable-cloud';
-import { useExportPage } from '@affine/core/components/hooks/affine/use-export-page';
-import { Export, MoveToTrash } from '@affine/core/components/page-list';
-import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
-import { useDetailPageHeaderResponsive } from '@affine/core/desktop/pages/workspace/detail-page/use-header-responsive';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { EditorService } from '@affine/core/modules/editor';
-import { OpenInAppService } from '@affine/core/modules/open-in-app/services';
-import { ShareMenuContent } from '@affine/core/modules/share-menu';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { ViewService } from '@affine/core/modules/workbench/services/view';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/component/ui/menu';
+import { PageHistoryModal } from '@madoc/core/components/affine/page-history-modal';
+import { useGuard } from '@madoc/core/components/guard';
+import { useBlockSuiteMetaHelper } from '@madoc/core/components/hooks/affine/use-block-suite-meta-helper';
+import { useEnableCloud } from '@madoc/core/components/hooks/affine/use-enable-cloud';
+import { useExportPage } from '@madoc/core/components/hooks/affine/use-export-page';
+import { Export, MoveToTrash } from '@madoc/core/components/page-list';
+import { IsFavoriteIcon } from '@madoc/core/components/pure/icons';
+import { useDetailPageHeaderResponsive } from '@madoc/core/desktop/pages/workspace/detail-page/use-header-responsive';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { EditorService } from '@madoc/core/modules/editor';
+import { OpenInAppService } from '@madoc/core/modules/open-in-app/services';
+import { ShareMenuContent } from '@madoc/core/modules/share-menu';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { ViewService } from '@madoc/core/modules/workbench/services/view';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import type { Store } from '@blocksuite/affine/store';
 import {
   DuplicateIcon,
@@ -42,7 +42,7 @@ import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useCallback, useState } from 'react';
 
 import { HeaderDropDownButton } from '../../../components/pure/header-drop-down-button';

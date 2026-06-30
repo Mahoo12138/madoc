@@ -3,14 +3,14 @@ import {
   PropertyCollapsibleContent,
   PropertyCollapsibleSection,
   PropertyName,
-} from '@affine/component';
-import { AffinePageReference } from '@affine/core/components/affine/reference-link';
-import { DocService } from '@affine/core/modules/doc';
-import { TemplateDocService } from '@affine/core/modules/template-doc';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import { AffinePageReference } from '@madoc/core/components/affine/reference-link';
+import { DocService } from '@madoc/core/modules/doc';
+import { TemplateDocService } from '@madoc/core/modules/template-doc';
+import { useI18n } from '@madoc/i18n';
 import type { DatabaseBlockDataSource } from '@blocksuite/affine/blocks/database';
 import { DatabaseTableViewIcon, PageIcon } from '@blocksuite/icons/rc';
-import { LiveData, useLiveData, useService } from '@toeverything/infra';
+import { LiveData, useLiveData, useService } from '@madoc/infra';
 import { useMemo } from 'react';
 import type { Observable } from 'rxjs';
 

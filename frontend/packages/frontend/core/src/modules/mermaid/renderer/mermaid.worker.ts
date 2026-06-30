@@ -1,5 +1,5 @@
-import type { MessageCommunicapable } from '@toeverything/infra/op';
-import { OpConsumer } from '@toeverything/infra/op';
+import type { MessageCommunicapable } from '@madoc/infra/op';
+import { OpConsumer } from '@madoc/infra/op';
 import initMmdr, { render_mermaid_svg } from '@toeverything/mermaid-wasm';
 
 import type {

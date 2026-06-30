@@ -7,7 +7,7 @@ import {
 } from '@blocksuite/affine/shared/services';
 import { type ExtensionType } from '@blocksuite/affine/store';
 import type { Container } from '@blocksuite/global/di';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 import { ServerService } from '../../../modules/cloud/services/server';
 

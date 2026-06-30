@@ -1,6 +1,6 @@
-import { notify } from '@affine/component';
-import { I18n } from '@affine/i18n';
-import { OnEvent, Service } from '@toeverything/infra';
+import { notify } from '@madoc/component';
+import { I18n } from '@madoc/i18n';
+import { OnEvent, Service } from '@madoc/infra';
 import type { To } from 'history';
 import { debounce } from 'lodash-es';
 

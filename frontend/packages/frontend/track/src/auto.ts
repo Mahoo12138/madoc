@@ -1,4 +1,4 @@
-import { DebugLogger } from '@affine/debug';
+import { DebugLogger } from '@madoc/debug';
 
 import type { CallableEventsChain, EventsUnion } from './types';
 

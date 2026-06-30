@@ -1,12 +1,12 @@
-import { notify } from '@affine/component';
-import { DebugLogger } from '@affine/debug';
+import { notify } from '@madoc/component';
+import { DebugLogger } from '@madoc/debug';
 import {
   getOrCreateI18n,
   i18nCompletenesses,
   type Language,
   SUPPORTED_LANGUAGES,
-} from '@affine/i18n';
-import { effect, Entity, fromPromise, LiveData } from '@toeverything/infra';
+} from '@madoc/i18n';
+import { effect, Entity, fromPromise, LiveData } from '@madoc/infra';
 import { catchError, EMPTY, exhaustMap } from 'rxjs';
 
 import type { GlobalCache } from '../../storage';

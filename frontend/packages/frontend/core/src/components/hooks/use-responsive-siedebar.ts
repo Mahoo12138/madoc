@@ -1,7 +1,7 @@
-import { observeResize } from '@affine/component';
-import { AppSidebarService } from '@affine/core/modules/app-sidebar';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { useService } from '@toeverything/infra';
+import { observeResize } from '@madoc/component';
+import { AppSidebarService } from '@madoc/core/modules/app-sidebar';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { useService } from '@madoc/infra';
 import { useCallback, useEffect, useRef } from 'react';
 
 let OBSERVED = false;

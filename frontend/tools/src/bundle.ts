@@ -1,8 +1,8 @@
 import { rmSync } from 'node:fs';
 import { cpus } from 'node:os';
 
-import { Logger } from '@affine-tools/utils/logger';
-import { Package } from '@affine-tools/utils/workspace';
+import { Logger } from '@madoc-tools/utils/logger';
+import { Package } from '@madoc-tools/utils/workspace';
 import rspack, { type MultiRspackOptions } from '@rspack/core';
 import {
   type Configuration as RspackDevServerConfiguration,
@@ -55,7 +55,7 @@ function getBaseWorkerConfigs(
   createWorkerTargetConfig: CreateWorkerTargetConfig,
   options: BaseWorkerOptions = {}
 ) {
-  const core = new Package('@affine/core');
+  const core = new Package('@madoc/core');
   const includeMermaidAndTypst = options.includeMermaidAndTypst ?? true;
 
   const workerConfigs = [
@@ -97,15 +97,15 @@ function getRspackBundleConfigs(pkg: Package): MultiRspackOptions {
   assertRspackSupportedPackage(pkg);
 
   switch (pkg.name) {
-    case '@affine/admin': {
+    case '@madoc/admin': {
       return [
         createRspackHTMLTargetConfig(pkg, pkg.srcPath.join('index.tsx').value, {
           selfhostPublicPath: '/admin/',
         }),
       ] as MultiRspackOptions;
     }
-    case '@affine/web':
-    case '@affine/mobile': {
+    case '@madoc/web':
+    case '@madoc/mobile': {
       const workerConfigs = getBaseWorkerConfigs(
         pkg,
         createRspackWorkerTargetConfig
@@ -127,8 +127,8 @@ function getRspackBundleConfigs(pkg: Package): MultiRspackOptions {
         ...workerConfigs,
       ] as MultiRspackOptions;
     }
-    case '@affine/ios':
-    case '@affine/android': {
+    case '@madoc/ios':
+    case '@madoc/android': {
       const workerConfigs = getBaseWorkerConfigs(
         pkg,
         createRspackWorkerTargetConfig,
@@ -151,7 +151,7 @@ function getRspackBundleConfigs(pkg: Package): MultiRspackOptions {
         ...workerConfigs,
       ] as MultiRspackOptions;
     }
-    case '@affine/electron-renderer': {
+    case '@madoc/electron-renderer': {
       const workerConfigs = getBaseWorkerConfigs(
         pkg,
         createRspackWorkerTargetConfig,
@@ -178,12 +178,12 @@ function getRspackBundleConfigs(pkg: Package): MultiRspackOptions {
         ...workerConfigs,
       ] as MultiRspackOptions;
     }
-    case '@affine/server': {
+    case '@madoc/server': {
       return [
         createRspackNodeTargetConfig(pkg, pkg.srcPath.join('index.ts').value),
       ] as MultiRspackOptions;
     }
-    case '@affine/reader': {
+    case '@madoc/reader': {
       return [
         createRspackNodeTargetConfig(pkg, pkg.srcPath.join('index.ts').value, {
           outputFilename: 'index.js',
@@ -194,7 +194,7 @@ function getRspackBundleConfigs(pkg: Package): MultiRspackOptions {
         }),
       ] as MultiRspackOptions;
     }
-    case '@affine/media-capture-playground': {
+    case '@madoc/media-capture-playground': {
       return [
         createRspackHTMLTargetConfig(pkg, pkg.join('web/main.tsx').value, {
           template: pkg.join('web/index.html').value,
@@ -213,7 +213,7 @@ function getRspackBundleConfigs(pkg: Package): MultiRspackOptions {
 function getRspackDevServerConfig(
   pkg: Package
 ): RspackDevServerConfiguration | undefined {
-  if (pkg.name !== '@affine/media-capture-playground') {
+  if (pkg.name !== '@madoc/media-capture-playground') {
     return;
   }
 

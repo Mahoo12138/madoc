@@ -1,5 +1,5 @@
-import { getWorkerUrl } from '@affine/env/worker';
-import { OpClient, type OpSchema } from '@toeverything/infra/op';
+import { getWorkerUrl } from '@madoc/env/worker';
+import { OpClient, type OpSchema } from '@madoc/infra/op';
 
 type InitTask = () => Promise<unknown>;
 

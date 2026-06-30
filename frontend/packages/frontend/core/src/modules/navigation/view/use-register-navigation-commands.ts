@@ -1,9 +1,9 @@
 import {
   PreconditionStrategy,
   registerAffineCommand,
-} from '@affine/core/commands';
-import { track } from '@affine/track';
-import { useService } from '@toeverything/infra';
+} from '@madoc/core/commands';
+import { track } from '@madoc/track';
+import { useService } from '@madoc/infra';
 import { useEffect } from 'react';
 
 import { NavigatorService } from '../services/navigator';

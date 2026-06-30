@@ -1,3 +1,3 @@
-import { createEvent } from '@toeverything/infra';
+import { createEvent } from '@madoc/infra';
 
 export const ServerStarted = createEvent('ServerStarted');

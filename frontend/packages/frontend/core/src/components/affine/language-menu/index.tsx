@@ -1,7 +1,7 @@
-import { Menu, MenuItem, MenuTrigger } from '@affine/component/ui/menu';
-import { type I18n, I18nService } from '@affine/core/modules/i18n';
+import { Menu, MenuItem, MenuTrigger } from '@madoc/component/ui/menu';
+import { type I18n, I18nService } from '@madoc/core/modules/i18n';
 import { DoneIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import type { ReactElement } from 'react';
 import { memo } from 'react';
 

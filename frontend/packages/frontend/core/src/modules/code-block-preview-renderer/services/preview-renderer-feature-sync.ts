@@ -1,4 +1,4 @@
-import { OnEvent, Service } from '@toeverything/infra';
+import { OnEvent, Service } from '@madoc/infra';
 import { distinctUntilChanged } from 'rxjs';
 
 import type { FeatureFlagService } from '../../feature-flag';

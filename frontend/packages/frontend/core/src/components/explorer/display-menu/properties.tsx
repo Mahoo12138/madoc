@@ -1,8 +1,8 @@
-import { Button, Divider } from '@affine/component';
-import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
-import { useLiveData, useService } from '@toeverything/infra';
+import { Button, Divider } from '@madoc/component';
+import { WorkspacePropertyService } from '@madoc/core/modules/workspace-property';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { WorkspacePropertyName } from '../../properties';

@@ -1,5 +1,5 @@
-import { Permission } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
+import { Permission } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
 import { useCallback, useEffect, useState } from 'react';
 
 import { ConfirmModal } from '../../ui/modal';

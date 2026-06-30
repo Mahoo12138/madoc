@@ -4,28 +4,28 @@ import {
   Loading,
   toast,
   Tooltip,
-} from '@affine/component';
-import { Guard } from '@affine/core/components/guard';
-import { useAppSettingHelper } from '@affine/core/components/hooks/affine/use-app-setting-helper';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { DocsService } from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { DocsSearchService } from '@affine/core/modules/docs-search';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/component';
+import { Guard } from '@madoc/core/components/guard';
+import { useAppSettingHelper } from '@madoc/core/components/hooks/affine/use-app-setting-helper';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { DocsService } from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { DocsSearchService } from '@madoc/core/modules/docs-search';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import {
   LiveData,
   MANUALLY_STOP,
   useLiveData,
   useService,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { NEVER } from 'rxjs';
 

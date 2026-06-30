@@ -1,6 +1,6 @@
-import { type DropTargetDropEvent, useDropTarget } from '@affine/component';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
+import { type DropTargetDropEvent, useDropTarget } from '@madoc/component';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
 
 import { EmptyNodeChildren } from '../../layouts/empty-node-children';
 

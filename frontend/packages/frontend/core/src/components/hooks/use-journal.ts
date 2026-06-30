@@ -1,14 +1,14 @@
-import { DocsService } from '@affine/core/modules/doc';
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
+import { DocsService } from '@madoc/core/modules/doc';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
 import {
   JOURNAL_DATE_FORMAT,
   JournalService,
   type MaybeDate,
-} from '@affine/core/modules/journal';
-import type { WorkbenchOpenOptions } from '@affine/core/modules/workbench/entities/workbench';
-import { i18nTime } from '@affine/i18n';
-import { track } from '@affine/track';
-import { useService, useServices } from '@toeverything/infra';
+} from '@madoc/core/modules/journal';
+import type { WorkbenchOpenOptions } from '@madoc/core/modules/workbench/entities/workbench';
+import { i18nTime } from '@madoc/i18n';
+import { track } from '@madoc/track';
+import { useService, useServices } from '@madoc/infra';
 import dayjs from 'dayjs';
 import { useCallback, useMemo } from 'react';
 

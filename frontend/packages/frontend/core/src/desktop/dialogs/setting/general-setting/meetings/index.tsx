@@ -5,23 +5,23 @@ import {
   MenuItem,
   MenuTrigger,
   Switch,
-} from '@affine/component';
+} from '@madoc/component';
 import {
   SettingHeader,
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { DesktopApiService } from '@affine/core/modules/desktop-api';
-import { MeetingSettingsService } from '@affine/core/modules/media/services/meeting-settings';
-import type { MeetingSettingsSchema } from '@affine/electron/main/shared-state-schema';
-import { Trans, useI18n } from '@affine/i18n';
+} from '@madoc/component/setting-components';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { DesktopApiService } from '@madoc/core/modules/desktop-api';
+import { MeetingSettingsService } from '@madoc/core/modules/media/services/meeting-settings';
+import type { MeetingSettingsSchema } from '@madoc/electron/main/shared-state-schema';
+import { Trans, useI18n } from '@madoc/i18n';
 import {
   ArrowRightSmallIcon,
   DoneIcon,
   InformationFillDuotoneIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import * as styles from './styles.css';

@@ -1,5 +1,5 @@
-import { getViewManager } from '@affine/core/blocksuite/manager/view';
-import { DebugLogger } from '@affine/debug';
+import { getViewManager } from '@madoc/core/blocksuite/manager/view';
+import { DebugLogger } from '@madoc/debug';
 import { BlockStdScope } from '@blocksuite/affine/std';
 import type { Store } from '@blocksuite/affine/store';
 import { useMemo } from 'react';

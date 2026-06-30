@@ -12,21 +12,21 @@ import {
   MenuItem,
   useDraggable,
   useDropTarget,
-} from '@affine/component';
-import { Guard } from '@affine/core/components/guard';
-import { AppSidebarService } from '@affine/core/modules/app-sidebar';
-import { ExplorerIconService } from '@affine/core/modules/explorer-icon/services/explorer-icon';
-import type { ExplorerType } from '@affine/core/modules/explorer-icon/store/explorer-icon';
-import { WorkbenchLink } from '@affine/core/modules/workbench';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import { Guard } from '@madoc/core/components/guard';
+import { AppSidebarService } from '@madoc/core/modules/app-sidebar';
+import { ExplorerIconService } from '@madoc/core/modules/explorer-icon/services/explorer-icon';
+import type { ExplorerType } from '@madoc/core/modules/explorer-icon/store/explorer-icon';
+import { WorkbenchLink } from '@madoc/core/modules/workbench';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
 import {
   ArrowDownSmallIcon,
   EditIcon,
   MoreHorizontalIcon,
 } from '@blocksuite/icons/rc';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { assignInlineVars } from '@vanilla-extract/dynamic';
 import clsx from 'clsx';
 import type { To } from 'history';

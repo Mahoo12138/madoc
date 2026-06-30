@@ -1,4 +1,4 @@
-import type { ServerFeature } from '@affine/graphql';
+import type { ServerFeature } from '@madoc/graphql';
 import {
   backoffRetry,
   effect,
@@ -7,7 +7,7 @@ import {
   LiveData,
   onComplete,
   onStart,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { exhaustMap, map, tap } from 'rxjs';
 
 import { ServerScope } from '../scopes/server';

@@ -1,5 +1,5 @@
-import { tracker } from '@affine/track';
-import { createEvent, Service } from '@toeverything/infra';
+import { tracker } from '@madoc/track';
+import { createEvent, Service } from '@madoc/infra';
 import { combineLatest, distinctUntilChanged, map, skip } from 'rxjs';
 
 import { Workbench } from '../entities/workbench';

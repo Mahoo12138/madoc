@@ -5,8 +5,8 @@ import {
   monitorForElements,
   type MonitorGetFeedback,
   type toExternalData,
-} from '@affine/component';
-import type { AffineDNDData } from '@affine/core/types/dnd';
+} from '@madoc/component';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
 import {
   DNDAPIExtension,
   DndApiExtensionIdentifier,
@@ -14,7 +14,7 @@ import {
 import { BlockStdScope } from '@blocksuite/affine/std';
 import type { SliceSnapshot } from '@blocksuite/affine/store';
 import type { DragBlockPayload } from '@blocksuite/affine/widgets/drag-handle';
-import { Service } from '@toeverything/infra';
+import { Service } from '@madoc/infra';
 
 import type { DocsService } from '../../doc';
 import type { EditorSettingService } from '../../editor-setting';

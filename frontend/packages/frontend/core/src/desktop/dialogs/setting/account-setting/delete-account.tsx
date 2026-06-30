@@ -1,15 +1,15 @@
-import { ConfirmModal, Input, notify } from '@affine/component';
+import { ConfirmModal, Input, notify } from '@madoc/component';
 import {
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { AuthService, ServerService } from '@affine/core/modules/cloud';
-import { WorkspacesService } from '@affine/core/modules/workspace';
-import { UserFriendlyError } from '@affine/error';
-import { Trans, useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/component/setting-components';
+import { AuthService, ServerService } from '@madoc/core/modules/cloud';
+import { WorkspacesService } from '@madoc/core/modules/workspace';
+import { UserFriendlyError } from '@madoc/error';
+import { Trans, useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { ArrowRightSmallIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { useCallback, useState } from 'react';
 

@@ -1,22 +1,22 @@
-import { IconButton, observeIntersection } from '@affine/component';
+import { IconButton, observeIntersection } from '@madoc/component';
 import {
   type PDF,
   type PDFPage,
   PDFService,
   PDFStatus,
-} from '@affine/core/modules/pdf';
-import type { PDFMeta } from '@affine/core/modules/pdf/renderer';
-import type { PageSize } from '@affine/core/modules/pdf/renderer/types';
-import { LoadingSvg, PDFPageCanvas } from '@affine/core/modules/pdf/views';
-import { PeekViewService } from '@affine/core/modules/peek-view/services/peek-view';
-import { stopPropagation } from '@affine/core/utils';
+} from '@madoc/core/modules/pdf';
+import type { PDFMeta } from '@madoc/core/modules/pdf/renderer';
+import type { PageSize } from '@madoc/core/modules/pdf/renderer/types';
+import { LoadingSvg, PDFPageCanvas } from '@madoc/core/modules/pdf/views';
+import { PeekViewService } from '@madoc/core/modules/peek-view/services/peek-view';
+import { stopPropagation } from '@madoc/core/utils';
 import {
   ArrowDownSmallIcon,
   ArrowUpSmallIcon,
   AttachmentIcon,
   CenterPeekIcon,
 } from '@blocksuite/icons/rc';
-import { LiveData, useLiveData, useService } from '@toeverything/infra';
+import { LiveData, useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import { debounce } from 'lodash-es';
 import {

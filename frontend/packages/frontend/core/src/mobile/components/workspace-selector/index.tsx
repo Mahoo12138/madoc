@@ -1,7 +1,7 @@
-import { MobileMenu } from '@affine/component';
-import { WorkspacesService } from '@affine/core/modules/workspace';
-import { track } from '@affine/track';
-import { useServiceOptional } from '@toeverything/infra';
+import { MobileMenu } from '@madoc/component';
+import { WorkspacesService } from '@madoc/core/modules/workspace';
+import { track } from '@madoc/track';
+import { useServiceOptional } from '@madoc/infra';
 import {
   forwardRef,
   type HTMLAttributes,

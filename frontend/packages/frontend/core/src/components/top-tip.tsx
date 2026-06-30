@@ -1,6 +1,6 @@
-import { BrowserWarning, LocalDemoTips } from '@affine/component/affine-banner';
-import { Trans, useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { BrowserWarning, LocalDemoTips } from '@madoc/component/affine-banner';
+import { Trans, useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useState } from 'react';
 
 import { useEnableCloud } from '../components/hooks/affine/use-enable-cloud';

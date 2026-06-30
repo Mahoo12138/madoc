@@ -1,11 +1,11 @@
-import { DebugLogger } from '@affine/debug';
+import { DebugLogger } from '@madoc/debug';
 import {
   catchErrorInto,
   effect,
   Entity,
   LiveData,
   mapInto,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { filter, map, switchMap } from 'rxjs';
 
 import type { RenderPageOpts } from '../renderer';

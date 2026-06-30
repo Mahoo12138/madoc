@@ -3,8 +3,8 @@ import type {
   CalendarEventsQuery,
   WorkspaceCalendarItemInput,
   WorkspaceCalendarsQuery,
-} from '@affine/graphql';
-import { Entity, LiveData } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Entity, LiveData } from '@madoc/infra';
 import dayjs, { type Dayjs } from 'dayjs';
 
 import type { CalendarStore } from '../store/calendar';

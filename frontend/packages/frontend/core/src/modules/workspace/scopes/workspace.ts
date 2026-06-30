@@ -1,5 +1,5 @@
-import type { WorkerInitOptions } from '@affine/nbstore/worker/client';
-import { Scope } from '@toeverything/infra';
+import type { WorkerInitOptions } from '@madoc/nbstore/worker/client';
+import { Scope } from '@madoc/infra';
 
 import type { WorkspaceOpenOptions } from '../open-options';
 

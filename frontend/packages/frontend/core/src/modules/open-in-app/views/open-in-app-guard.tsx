@@ -1,4 +1,4 @@
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { Fragment, useCallback, useEffect } from 'react';
 
 import { OpenInAppService } from '../services';

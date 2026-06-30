@@ -1,9 +1,9 @@
-import { Menu, MenuItem, MenuTrigger, Switch } from '@affine/component';
-import { SettingRow } from '@affine/component/setting-components';
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
-import type { EdgelessDefaultTheme } from '@affine/core/modules/editor-setting/schema';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { Menu, MenuItem, MenuTrigger, Switch } from '@madoc/component';
+import { SettingRow } from '@madoc/component/setting-components';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
+import type { EdgelessDefaultTheme } from '@madoc/core/modules/editor-setting/schema';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { menuTrigger } from '../style.css';

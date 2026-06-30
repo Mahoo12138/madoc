@@ -1,6 +1,6 @@
-import { DesktopApiService } from '@affine/core/modules/desktop-api';
+import { DesktopApiService } from '@madoc/core/modules/desktop-api';
 import { NativeClipboardExtension } from '@blocksuite/affine/shared/services';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 export function patchForClipboardInElectron(framework: FrameworkProvider) {
   const desktopApi = framework.get(DesktopApiService);

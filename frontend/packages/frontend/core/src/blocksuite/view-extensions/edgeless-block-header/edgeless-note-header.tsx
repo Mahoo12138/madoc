@@ -1,10 +1,10 @@
-import { IconButton } from '@affine/component';
-import { DocService } from '@affine/core/modules/doc';
-import { EditorService } from '@affine/core/modules/editor';
-import { useInsidePeekView } from '@affine/core/modules/peek-view/view/modal-container';
-import { extractEmojiIcon } from '@affine/core/utils';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { IconButton } from '@madoc/component';
+import { DocService } from '@madoc/core/modules/doc';
+import { EditorService } from '@madoc/core/modules/editor';
+import { useInsidePeekView } from '@madoc/core/modules/peek-view/view/modal-container';
+import { extractEmojiIcon } from '@madoc/core/utils';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { Bound } from '@blocksuite/affine/global/gfx';
 import { type NoteBlockModel } from '@blocksuite/affine/model';
 import { GfxControllerIdentifier } from '@blocksuite/affine/std/gfx';
@@ -13,7 +13,7 @@ import {
   ToggleDownIcon,
   ToggleRightIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { CopyLinkButton, DocInfoButton } from './common';

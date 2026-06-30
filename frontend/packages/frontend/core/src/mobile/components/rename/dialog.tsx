@@ -1,4 +1,4 @@
-import { IconButton, Modal } from '@affine/component';
+import { IconButton, Modal } from '@madoc/component';
 import { CloseIcon } from '@blocksuite/icons/rc';
 import { useCallback } from 'react';
 

@@ -1,6 +1,6 @@
 import type { ReferenceParams } from '@blocksuite/affine/model';
 import { BlockLinkIcon, EdgelessIcon, PageIcon } from '@blocksuite/icons/rc';
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import { omit, truncate } from 'lodash-es';
 
 import type { DocsService } from '../../doc';

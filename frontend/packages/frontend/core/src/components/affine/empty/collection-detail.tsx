@@ -1,8 +1,8 @@
-import type { Collection } from '@affine/core/modules/collection';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { useI18n } from '@affine/i18n';
+import type { Collection } from '@madoc/core/modules/collection';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { useI18n } from '@madoc/i18n';
 import { AllDocsIcon, FilterIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { ActionButton } from './action-button';

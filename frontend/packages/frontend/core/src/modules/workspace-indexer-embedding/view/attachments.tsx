@@ -1,6 +1,6 @@
-import { Loading, Tooltip, useConfirmModal } from '@affine/component';
-import { Pagination } from '@affine/component/setting-components';
-import { useI18n } from '@affine/i18n';
+import { Loading, Tooltip, useConfirmModal } from '@madoc/component';
+import { Pagination } from '@madoc/component/setting-components';
+import { useI18n } from '@madoc/i18n';
 import { getAttachmentFileIconRC } from '@blocksuite/affine/components/icons';
 import { cssVarV2 } from '@blocksuite/affine/shared/theme';
 import { CloseIcon, WarningIcon } from '@blocksuite/icons/rc';

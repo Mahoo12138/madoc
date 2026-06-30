@@ -1,5 +1,5 @@
 import { WriterInfoServiceExtension } from '@blocksuite/affine/shared/services';
-import { OnEvent, Service } from '@toeverything/infra';
+import { OnEvent, Service } from '@madoc/infra';
 
 import { type Workspace, WorkspaceInitialized } from '../../workspace';
 import type { DocImpl } from '../../workspace/impls/doc';

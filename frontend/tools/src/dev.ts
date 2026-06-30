@@ -1,4 +1,4 @@
-import type { PackageName } from '@affine-tools/utils/workspace';
+import type { PackageName } from '@madoc-tools/utils/workspace';
 
 import { Option, PackageSelectorCommand } from './command';
 
@@ -6,14 +6,14 @@ export class DevCommand extends PackageSelectorCommand {
   static override paths = [['dev'], ['d']];
 
   protected override availablePackages: PackageName[] = [
-    '@affine/web',
-    '@affine/server',
-    '@affine/electron',
-    '@affine/electron-renderer',
-    '@affine/mobile',
-    '@affine/ios',
-    '@affine/android',
-    '@affine/admin',
+    '@madoc/web',
+    '@madoc/server',
+    '@madoc/electron',
+    '@madoc/electron-renderer',
+    '@madoc/mobile',
+    '@madoc/ios',
+    '@madoc/android',
+    '@madoc/admin',
   ];
 
   protected deps = Option.Boolean('--deps', {

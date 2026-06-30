@@ -1,10 +1,10 @@
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import type { Tag } from '@affine/core/modules/tag';
-import { TagService } from '@affine/core/modules/tag';
-import { useI18n } from '@affine/i18n';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import type { Tag } from '@madoc/core/modules/tag';
+import { TagService } from '@madoc/core/modules/tag';
+import { useI18n } from '@madoc/i18n';
 import type { DocMeta } from '@blocksuite/affine/store';
 import { FavoritedIcon, FavoriteIcon } from '@blocksuite/icons/rc';
-import { LiveData, useLiveData, useService } from '@toeverything/infra';
+import { LiveData, useLiveData, useService } from '@madoc/infra';
 import { type ReactNode, useMemo } from 'react';
 
 import * as styles from './group-definitions.css';

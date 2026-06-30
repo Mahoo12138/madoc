@@ -1,16 +1,16 @@
-import { DefaultServerService } from '@affine/core/modules/cloud';
-import { DesktopApiService } from '@affine/core/modules/desktop-api';
-import { WorkspacesService } from '@affine/core/modules/workspace';
+import { DefaultServerService } from '@madoc/core/modules/cloud';
+import { DesktopApiService } from '@madoc/core/modules/desktop-api';
+import { WorkspacesService } from '@madoc/core/modules/workspace';
 import {
   buildShowcaseWorkspace,
   createFirstAppData,
-} from '@affine/core/utils/first-app-data';
-import { ServerFeature } from '@affine/graphql';
+} from '@madoc/core/utils/first-app-data';
+import { ServerFeature } from '@madoc/graphql';
 import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import {
   type ReactNode,
   useCallback,

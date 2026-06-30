@@ -1,9 +1,9 @@
-import { notify } from '@affine/component';
-import { ServerService } from '@affine/core/modules/cloud';
-import { toDocSearchParams } from '@affine/core/modules/navigation';
-import { copyTextToClipboard } from '@affine/core/utils/clipboard';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { notify } from '@madoc/component';
+import { ServerService } from '@madoc/core/modules/cloud';
+import { toDocSearchParams } from '@madoc/core/modules/navigation';
+import { copyTextToClipboard } from '@madoc/core/utils/clipboard';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import type { SerializedXYWH } from '@blocksuite/affine/global/gfx';
 import { type DocMode } from '@blocksuite/affine/model';
 import {
@@ -17,7 +17,7 @@ import {
   GfxBlockElementModel,
   GfxControllerIdentifier,
 } from '@blocksuite/affine/std/gfx';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 export type UseSharingUrl = {

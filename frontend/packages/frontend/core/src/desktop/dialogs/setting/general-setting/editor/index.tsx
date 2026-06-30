@@ -1,5 +1,5 @@
-import { SettingHeader } from '@affine/component/setting-components';
-import { useI18n } from '@affine/i18n';
+import { SettingHeader } from '@madoc/component/setting-components';
+import { useI18n } from '@madoc/i18n';
 
 import { Edgeless } from './edgeless';
 import { General } from './general';

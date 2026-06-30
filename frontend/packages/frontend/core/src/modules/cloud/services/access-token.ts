@@ -1,4 +1,4 @@
-import { LiveData, OnEvent, Service } from '@toeverything/infra';
+import { LiveData, OnEvent, Service } from '@madoc/infra';
 
 import { AccountChanged } from '../events/account-changed';
 import { RealtimeLiveQuery } from '../realtime/live-query';

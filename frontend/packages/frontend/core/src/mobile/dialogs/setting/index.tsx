@@ -1,10 +1,10 @@
-import { AuthService } from '@affine/core/modules/cloud';
+import { AuthService } from '@madoc/core/modules/cloud';
 import type {
   DialogComponentProps,
   WORKSPACE_DIALOG_SCHEMA,
-} from '@affine/core/modules/dialogs';
-import { useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+} from '@madoc/core/modules/dialogs';
+import { useI18n } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import { useEffect } from 'react';
 
 import { AboutGroup } from './about';

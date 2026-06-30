@@ -1,10 +1,10 @@
-import { MenuItem } from '@affine/component';
-import { ServerService } from '@affine/core/modules/cloud';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { MenuItem } from '@madoc/component';
+import { ServerService } from '@madoc/core/modules/cloud';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { AccountIcon, SignOutIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { useSignOut } from '../../hooks/affine/use-sign-out';

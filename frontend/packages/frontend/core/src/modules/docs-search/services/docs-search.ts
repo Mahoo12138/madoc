@@ -1,7 +1,7 @@
-import { toDocSearchParams } from '@affine/core/modules/navigation';
-import type { IndexerPreferOptions, IndexerSyncState } from '@affine/nbstore';
+import { toDocSearchParams } from '@madoc/core/modules/navigation';
+import type { IndexerPreferOptions, IndexerSyncState } from '@madoc/nbstore';
 import type { ReferenceParams } from '@blocksuite/affine/model';
-import { fromPromise, LiveData, Service } from '@toeverything/infra';
+import { fromPromise, LiveData, Service } from '@madoc/infra';
 import { isEmpty, omit } from 'lodash-es';
 import {
   distinctUntilChanged,

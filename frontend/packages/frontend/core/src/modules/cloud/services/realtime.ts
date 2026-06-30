@@ -1,6 +1,6 @@
-import { shallowEqual } from '@affine/component';
-import { ServerDeploymentType } from '@affine/graphql';
-import { LiveData, OnEvent, Service } from '@toeverything/infra';
+import { shallowEqual } from '@madoc/component';
+import { ServerDeploymentType } from '@madoc/graphql';
+import { LiveData, OnEvent, Service } from '@madoc/infra';
 
 import type { GlobalContextService } from '../../global-context';
 import { ApplicationStarted } from '../../lifecycle';

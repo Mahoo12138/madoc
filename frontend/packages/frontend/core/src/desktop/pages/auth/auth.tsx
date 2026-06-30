@@ -1,4 +1,4 @@
-import { notify } from '@affine/component';
+import { notify } from '@madoc/component';
 import {
   ChangeEmailPage,
   ChangePasswordPage,
@@ -6,13 +6,13 @@ import {
   SetPasswordPage,
   SignInSuccessPage,
   SignUpPage,
-} from '@affine/component/auth-components';
+} from '@madoc/component/auth-components';
 import {
   changePasswordMutation,
   sendVerifyChangeEmailMutation,
-} from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 import type { LoaderFunction } from 'react-router-dom';
 import { redirect, useParams, useSearchParams } from 'react-router-dom';

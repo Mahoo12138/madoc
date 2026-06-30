@@ -1,6 +1,6 @@
-import type { DocsService } from '@affine/core/modules/doc';
-import type { FavoriteService } from '@affine/core/modules/favorite';
-import { Service } from '@toeverything/infra';
+import type { DocsService } from '@madoc/core/modules/doc';
+import type { FavoriteService } from '@madoc/core/modules/favorite';
+import { Service } from '@madoc/infra';
 import { combineLatest, map, type Observable } from 'rxjs';
 
 import type { FilterProvider } from '../../provider';

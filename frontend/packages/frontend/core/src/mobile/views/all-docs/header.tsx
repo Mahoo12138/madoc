@@ -1,4 +1,4 @@
-import { IconButton, MobileMenu, SafeArea } from '@affine/component';
+import { IconButton, MobileMenu, SafeArea } from '@madoc/component';
 import { MoreHorizontalIcon } from '@blocksuite/icons/rc';
 
 import { header, headerContent, headerSpace } from './style.css';

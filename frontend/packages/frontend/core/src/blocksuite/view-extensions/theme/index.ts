@@ -1,10 +1,10 @@
-import { getPreviewThemeExtension } from '@affine/core/blocksuite/view-extensions/theme/preview-theme';
-import { getThemeExtension } from '@affine/core/blocksuite/view-extensions/theme/theme';
+import { getPreviewThemeExtension } from '@madoc/core/blocksuite/view-extensions/theme/preview-theme';
+import { getThemeExtension } from '@madoc/core/blocksuite/view-extensions/theme/theme';
 import {
   type ViewExtensionContext,
   ViewExtensionProvider,
 } from '@blocksuite/affine/ext-loader';
-import { FrameworkProvider } from '@toeverything/infra';
+import { FrameworkProvider } from '@madoc/infra';
 import { z } from 'zod';
 
 const optionsSchema = z.object({

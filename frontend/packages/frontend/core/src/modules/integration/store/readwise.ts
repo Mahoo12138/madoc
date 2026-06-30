@@ -1,4 +1,4 @@
-import { LiveData, Store } from '@toeverything/infra';
+import { LiveData, Store } from '@madoc/infra';
 import { exhaustMap } from 'rxjs';
 
 import { AuthService, type WorkspaceServerService } from '../../cloud';

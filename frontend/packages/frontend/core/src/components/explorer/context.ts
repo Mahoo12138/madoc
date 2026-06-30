@@ -1,4 +1,4 @@
-import { LiveData } from '@toeverything/infra';
+import { LiveData } from '@madoc/infra';
 import { createContext } from 'react';
 
 import type { ExplorerDisplayPreference } from './types';

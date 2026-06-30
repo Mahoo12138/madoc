@@ -1,8 +1,8 @@
 import {
   WorkbenchLink,
   WorkbenchService,
-} from '@affine/core/modules/workbench';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/workbench';
+import { useLiveData, useService } from '@madoc/infra';
 
 import * as styles from './style.css';
 

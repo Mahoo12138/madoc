@@ -3,27 +3,27 @@
 export const PackageList = [
   {
     location: 'packages/common',
-    name: '@affine/debug',
+    name: '@madoc/debug',
     workspaceDependencies: [],
   },
   {
     location: 'packages/common/env',
-    name: '@affine/env',
+    name: '@madoc/env',
     workspaceDependencies: [],
   },
   {
     location: 'packages/common/error',
-    name: '@affine/error',
+    name: '@madoc/error',
     workspaceDependencies: [],
   },
   {
     location: 'packages/common/graphql',
-    name: '@affine/graphql',
+    name: '@madoc/graphql',
     workspaceDependencies: ['packages/common', 'packages/common/error'],
   },
   {
     location: 'packages/common/infra',
-    name: '@toeverything/infra',
+    name: '@madoc/infra',
     workspaceDependencies: [
       'packages/common',
       'packages/common/env',
@@ -33,7 +33,7 @@ export const PackageList = [
   },
   {
     location: 'packages/common/nbstore',
-    name: '@affine/nbstore',
+    name: '@madoc/nbstore',
     workspaceDependencies: [
       'packages/common/reader',
       'packages/common/realtime',
@@ -44,22 +44,22 @@ export const PackageList = [
   },
   {
     location: 'packages/common/reader',
-    name: '@affine/reader',
+    name: '@madoc/reader',
     workspaceDependencies: [],
   },
   {
     location: 'packages/common/realtime',
-    name: '@affine/realtime',
+    name: '@madoc/realtime',
     workspaceDependencies: ['packages/common/graphql'],
   },
   {
     location: 'packages/common/s3-compat',
-    name: '@affine/s3-compat',
+    name: '@madoc/s3-compat',
     workspaceDependencies: [],
   },
   {
-    location: 'packages/frontend/apps/web',
-    name: '@affine/web',
+    location: '.',
+    name: '@madoc/web',
     workspaceDependencies: [
       'packages/frontend/component',
       'packages/frontend/core',
@@ -71,7 +71,7 @@ export const PackageList = [
   },
   {
     location: 'packages/frontend/component',
-    name: '@affine/component',
+    name: '@madoc/component',
     workspaceDependencies: [
       'packages/common',
       'packages/common/error',
@@ -82,7 +82,7 @@ export const PackageList = [
   },
   {
     location: 'packages/frontend/core',
-    name: '@affine/core',
+    name: '@madoc/core',
     workspaceDependencies: [
       'packages/frontend/component',
       'packages/common',
@@ -100,58 +100,58 @@ export const PackageList = [
   },
   {
     location: 'packages/frontend/electron-api',
-    name: '@affine/electron-api',
+    name: '@madoc/electron-api',
     workspaceDependencies: [],
   },
   {
     location: 'packages/frontend/i18n',
-    name: '@affine/i18n',
+    name: '@madoc/i18n',
     workspaceDependencies: ['packages/common', 'tools', 'tools/utils'],
   },
   {
     location: 'packages/frontend/routes',
-    name: '@affine/routes',
+    name: '@madoc/routes',
     workspaceDependencies: ['tools', 'tools/utils'],
   },
   {
     location: 'packages/frontend/templates',
-    name: '@affine/templates',
+    name: '@madoc/templates',
     workspaceDependencies: [],
   },
   {
     location: 'packages/frontend/track',
-    name: '@affine/track',
+    name: '@madoc/track',
     workspaceDependencies: ['packages/common'],
   },
   {
     location: 'tools',
-    name: '@affine-tools/cli',
+    name: '@madoc-tools/cli',
     workspaceDependencies: ['tools/utils', 'packages/common/s3-compat'],
   },
   {
     location: 'tools/utils',
-    name: '@affine-tools/utils',
+    name: '@madoc-tools/utils',
     workspaceDependencies: [],
   },
 ];
 
 export type PackageName =
-  | '@affine/debug'
-  | '@affine/env'
-  | '@affine/error'
-  | '@affine/graphql'
-  | '@toeverything/infra'
-  | '@affine/nbstore'
-  | '@affine/reader'
-  | '@affine/realtime'
-  | '@affine/s3-compat'
-  | '@affine/web'
-  | '@affine/component'
-  | '@affine/core'
-  | '@affine/electron-api'
-  | '@affine/i18n'
-  | '@affine/routes'
-  | '@affine/templates'
-  | '@affine/track'
-  | '@affine-tools/cli'
-  | '@affine-tools/utils';
+  | '@madoc/debug'
+  | '@madoc/env'
+  | '@madoc/error'
+  | '@madoc/graphql'
+  | '@madoc/infra'
+  | '@madoc/nbstore'
+  | '@madoc/reader'
+  | '@madoc/realtime'
+  | '@madoc/s3-compat'
+  | '@madoc/web'
+  | '@madoc/component'
+  | '@madoc/core'
+  | '@madoc/electron-api'
+  | '@madoc/i18n'
+  | '@madoc/routes'
+  | '@madoc/templates'
+  | '@madoc/track'
+  | '@madoc-tools/cli'
+  | '@madoc-tools/utils';

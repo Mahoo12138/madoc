@@ -1,5 +1,5 @@
 {
-  "name": "@affine/nbstore",
+  "name": "@madoc/nbstore",
   "type": "module",
   "version": "0.26.3",
   "private": true,
@@ -18,9 +18,9 @@
     "./frontend": "./src/frontend/index.ts"
   },
   "dependencies": {
-    "@affine/reader": "workspace:*",
-    "@affine/realtime": "workspace:*",
-    "@toeverything/infra": "workspace:*",
+    "@madoc/reader": "workspace:*",
+    "@madoc/realtime": "workspace:*",
+    "@madoc/infra": "workspace:*",
     "eventemitter2": "^6.4.9",
     "graphemer": "^1.4.0",
     "lodash-es": "^4.17.23",
@@ -31,9 +31,9 @@
     "yjs": "^13.6.27"
   },
   "devDependencies": {
-    "@affine/error": "workspace:*",
-    "@affine/graphql": "workspace:*",
-    "@affine/realtime": "workspace:*",
+    "@madoc/error": "workspace:*",
+    "@madoc/graphql": "workspace:*",
+    "@madoc/realtime": "workspace:*",
     "@blocksuite/affine": "0.22.4",
     "fake-indexeddb": "^6.0.0",
     "idb": "^8.0.0",
@@ -41,9 +41,9 @@
     "vitest": "^4.1.8"
   },
   "peerDependencies": {
-    "@affine/error": "workspace:*",
-    "@affine/graphql": "workspace:*",
-    "@affine/realtime": "workspace:*",
+    "@madoc/error": "workspace:*",
+    "@madoc/graphql": "workspace:*",
+    "@madoc/realtime": "workspace:*",
     "@blocksuite/affine": "0.22.4",
     "idb": "^8.0.0",
     "socket.io-client": "^4.8.3"

@@ -1,12 +1,12 @@
 import {
   AuthPageContainer,
   type User,
-} from '@affine/component/auth-components';
+} from '@madoc/component/auth-components';
 import {
   type GetInviteInfoQuery,
   WorkspaceMemberStatus,
-} from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
 import { SignOutIcon } from '@blocksuite/icons/rc';
 
 import { Avatar } from '../../ui/avatar';

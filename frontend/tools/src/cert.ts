@@ -1,4 +1,4 @@
-import { type Path, ProjectRoot } from '@affine-tools/utils/path';
+import { type Path, ProjectRoot } from '@madoc-tools/utils/path';
 
 import { Command, Option } from './command';
 
@@ -41,7 +41,7 @@ export class CertCommand extends Command {
   private createCert(domain: string) {
     if (!this.checkInstalled(CA_PEM_PATH)) {
       this.logger.error(
-        'CA not installed. Please run `yarn affine cert --install` first.'
+        'CA not installed. Please run `pnpm affine cert --install` first.'
       );
       process.exit(1);
     }

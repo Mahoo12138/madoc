@@ -1,13 +1,13 @@
-import { Switch } from '@affine/component';
+import { Switch } from '@madoc/component';
 import {
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { WorkspaceShareSettingService } from '@affine/core/modules/share-setting';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/component/setting-components';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { WorkspaceShareSettingService } from '@madoc/core/modules/share-setting';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 
 export const SharingPanel = () => {
   const workspace = useService(WorkspaceService).workspace;

@@ -3,9 +3,9 @@ import {
   type DropTargetDropEvent,
   Skeleton,
   useDropTarget,
-} from '@affine/component';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
 
 import { NavigationPanelEmptySection } from '../../layouts/empty-section';
 import { DropEffect } from '../../tree';

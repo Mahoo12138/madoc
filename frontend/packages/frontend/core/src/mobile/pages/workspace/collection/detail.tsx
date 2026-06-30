@@ -1,7 +1,7 @@
-import { useThemeColorV2 } from '@affine/component';
-import { CollectionService } from '@affine/core/modules/collection';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useThemeColorV2 } from '@madoc/component';
+import { CollectionService } from '@madoc/core/modules/collection';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 

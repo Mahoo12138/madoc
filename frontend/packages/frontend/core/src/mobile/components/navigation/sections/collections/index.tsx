@@ -1,12 +1,12 @@
-import { usePromptModal } from '@affine/component';
-import { NavigationPanelTreeRoot } from '@affine/core/desktop/components/navigation-panel';
-import { CollectionService } from '@affine/core/modules/collection';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { usePromptModal } from '@madoc/component';
+import { NavigationPanelTreeRoot } from '@madoc/core/desktop/components/navigation-panel';
+import { CollectionService } from '@madoc/core/modules/collection';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { AddCollectionIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { AddItemPlaceholder } from '../../layouts/add-item-placeholder';

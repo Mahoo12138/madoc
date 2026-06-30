@@ -1,16 +1,16 @@
-import { toast, useConfirmModal } from '@affine/component';
+import { toast, useConfirmModal } from '@madoc/component';
 import {
   createDocExplorerContext,
   DocExplorerContext,
-} from '@affine/core/components/explorer/context';
-import { DocsExplorer } from '@affine/core/components/explorer/docs-view/docs-list';
-import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
-import { Header } from '@affine/core/components/pure/header';
-import { CollectionRulesService } from '@affine/core/modules/collection-rules';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/components/explorer/context';
+import { DocsExplorer } from '@madoc/core/components/explorer/docs-view/docs-list';
+import { useBlockSuiteMetaHelper } from '@madoc/core/components/hooks/affine/use-block-suite-meta-helper';
+import { Header } from '@madoc/core/components/pure/header';
+import { CollectionRulesService } from '@madoc/core/modules/collection-rules';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { useI18n } from '@madoc/i18n';
 import { DeleteIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useState } from 'react';
 
 import {

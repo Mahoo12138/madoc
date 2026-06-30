@@ -1,12 +1,12 @@
-import { MenuItem, MenuSeparator } from '@affine/component';
-import type { DocCustomPropertyInfo } from '@affine/core/modules/db';
+import { MenuItem, MenuSeparator } from '@madoc/component';
+import type { DocCustomPropertyInfo } from '@madoc/core/modules/db';
 import {
   WorkspacePropertyService,
   type WorkspacePropertyType,
-} from '@affine/core/modules/workspace-property';
-import { generateUniqueNameInSequence } from '@affine/core/utils/unique-name';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/workspace-property';
+import { generateUniqueNameInSequence } from '@madoc/core/utils/unique-name';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import {

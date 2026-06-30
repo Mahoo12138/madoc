@@ -1,13 +1,13 @@
-import { ScrollableContainer } from '@affine/component';
-import { MenuItem } from '@affine/component/ui/menu';
-import { AuthService, DefaultServerService } from '@affine/core/modules/cloud';
-import { GlobalDialogService } from '@affine/core/modules/dialogs';
-import { type WorkspaceMetadata } from '@affine/core/modules/workspace';
-import { ServerFeature } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { ScrollableContainer } from '@madoc/component';
+import { MenuItem } from '@madoc/component/ui/menu';
+import { AuthService, DefaultServerService } from '@madoc/core/modules/cloud';
+import { GlobalDialogService } from '@madoc/core/modules/dialogs';
+import { type WorkspaceMetadata } from '@madoc/core/modules/workspace';
+import { ServerFeature } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { Logo1Icon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { AddWorkspace } from './add-workspace';

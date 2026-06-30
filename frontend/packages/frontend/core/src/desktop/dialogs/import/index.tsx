@@ -4,27 +4,27 @@ import {
   type IconData,
   IconType,
   Modal,
-} from '@affine/component';
-import { getStoreManager } from '@affine/core/blocksuite/manager/store';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
+} from '@madoc/component';
+import { getStoreManager } from '@madoc/core/blocksuite/manager/store';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { useNavigateHelper } from '@madoc/core/components/hooks/use-navigate-helper';
 import {
   type DialogComponentProps,
   GlobalDialogService,
   type WORKSPACE_DIALOG_SCHEMA,
-} from '@affine/core/modules/dialogs';
-import { ExplorerIconService } from '@affine/core/modules/explorer-icon/services/explorer-icon';
-import { OrganizeService } from '@affine/core/modules/organize';
-import { TagService } from '@affine/core/modules/tag';
-import { UrlService } from '@affine/core/modules/url';
+} from '@madoc/core/modules/dialogs';
+import { ExplorerIconService } from '@madoc/core/modules/explorer-icon/services/explorer-icon';
+import { OrganizeService } from '@madoc/core/modules/organize';
+import { TagService } from '@madoc/core/modules/tag';
+import { UrlService } from '@madoc/core/modules/url';
 import {
   getAFFiNEWorkspaceSchema,
   type WorkspaceMetadata,
   WorkspaceService,
-} from '@affine/core/modules/workspace';
-import { DebugLogger } from '@affine/debug';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/core/modules/workspace';
+import { DebugLogger } from '@madoc/debug';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import { openFilesWith } from '@blocksuite/affine/shared/utils';
 import type { Workspace } from '@blocksuite/affine/store';
 import {
@@ -43,7 +43,7 @@ import {
   SaveIcon,
   ZipIcon,
 } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { cssVar } from '@toeverything/theme';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import {

@@ -1,6 +1,6 @@
-import type { DefaultOpenProperty } from '@affine/core/components/properties';
+import type { DefaultOpenProperty } from '@madoc/core/components/properties';
 import type { DocMode } from '@blocksuite/affine/model';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import type { Doc } from '../../doc';

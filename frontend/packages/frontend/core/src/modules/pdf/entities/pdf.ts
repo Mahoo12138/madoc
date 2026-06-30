@@ -1,5 +1,5 @@
-import { toArrayBuffer } from '@affine/core/utils/array-buffer';
-import { Entity, LiveData, ObjectPool } from '@toeverything/infra';
+import { toArrayBuffer } from '@madoc/core/utils/array-buffer';
+import { Entity, LiveData, ObjectPool } from '@madoc/infra';
 import { catchError, from, map, of, startWith, switchMap } from 'rxjs';
 
 import type { WorkspaceService } from '../../workspace';

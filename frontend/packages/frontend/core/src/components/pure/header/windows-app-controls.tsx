@@ -1,5 +1,5 @@
-import { DesktopApiService } from '@affine/core/modules/desktop-api';
-import { useService } from '@toeverything/infra';
+import { DesktopApiService } from '@madoc/core/modules/desktop-api';
+import { useService } from '@madoc/infra';
 import { useCallback, useEffect, useState } from 'react';
 
 import * as style from './style.css';

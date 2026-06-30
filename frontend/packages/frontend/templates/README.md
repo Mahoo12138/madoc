@@ -27,4 +27,4 @@ Before we offer a better solution, to update the onboarding templates:
    })();
    ```
 4. unzip the file, replace the json files into onboarding folder (no need to include the `assets`)
-5. run `yarn postinstall` to update the `templates.gen.ts` file
+5. run `pnpm postinstall` to update the `templates.gen.ts` file

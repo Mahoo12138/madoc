@@ -1,4 +1,4 @@
-import type { Framework } from '@toeverything/infra';
+import type { Framework } from '@madoc/infra';
 
 import { FeatureFlagService } from '../feature-flag';
 import { PreviewRendererFeatureSyncService } from './services/preview-renderer-feature-sync';

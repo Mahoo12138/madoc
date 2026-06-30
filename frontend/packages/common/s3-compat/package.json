@@ -1,5 +1,5 @@
 {
-  "name": "@affine/s3-compat",
+  "name": "@madoc/s3-compat",
   "private": true,
   "type": "module",
   "exports": {

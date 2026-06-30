@@ -1,18 +1,18 @@
-import { Wrapper } from '@affine/component';
+import { Wrapper } from '@madoc/component';
 import {
   EmptyCollectionDetail,
   EmptyDocs,
-} from '@affine/core/components/affine/empty';
+} from '@madoc/core/components/affine/empty';
 import {
   createDocExplorerContext,
   DocExplorerContext,
-} from '@affine/core/components/explorer/context';
-import { DocsExplorer } from '@affine/core/components/explorer/docs-view/docs-list';
-import { PageHeader } from '@affine/core/mobile/components';
-import { Page } from '@affine/core/mobile/components/page';
-import type { Collection } from '@affine/core/modules/collection';
+} from '@madoc/core/components/explorer/context';
+import { DocsExplorer } from '@madoc/core/components/explorer/docs-view/docs-list';
+import { PageHeader } from '@madoc/core/mobile/components';
+import { Page } from '@madoc/core/mobile/components/page';
+import type { Collection } from '@madoc/core/modules/collection';
 import { ViewLayersIcon } from '@blocksuite/icons/rc';
-import { useLiveData } from '@toeverything/infra';
+import { useLiveData } from '@madoc/infra';
 import { useEffect, useState } from 'react';
 
 import * as styles from './detail.css';

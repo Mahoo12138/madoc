@@ -16,15 +16,15 @@ const WorkspaceDialogServiceToken = vi.hoisted(
 );
 const WorkbenchServiceToken = vi.hoisted(() => class WorkbenchService {});
 
-vi.mock('@affine/core/modules/dialogs', () => ({
+vi.mock('@madoc/core/modules/dialogs', () => ({
   WorkspaceDialogService: WorkspaceDialogServiceToken,
 }));
 
-vi.mock('@affine/core/modules/workbench', () => ({
+vi.mock('@madoc/core/modules/workbench', () => ({
   WorkbenchService: WorkbenchServiceToken,
 }));
 
-vi.mock('@toeverything/infra', () => ({
+vi.mock('@madoc/infra', () => ({
   useService: (token: unknown) => {
     if (token === WorkbenchServiceToken) {
       return {

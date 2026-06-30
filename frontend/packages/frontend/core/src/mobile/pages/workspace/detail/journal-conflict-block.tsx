@@ -1,11 +1,11 @@
-import { IconButton, Menu } from '@affine/component';
-import { type DocRecord, DocsService } from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { JournalService } from '@affine/core/modules/journal';
-import { WorkbenchLink } from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
+import { IconButton, Menu } from '@madoc/component';
+import { type DocRecord, DocsService } from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { JournalService } from '@madoc/core/modules/journal';
+import { WorkbenchLink } from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
 import { EditIcon, TodayIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useMemo } from 'react';
 
 import * as styles from './journal-conflict-block.css';

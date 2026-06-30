@@ -1,22 +1,22 @@
-import { Button, notify } from '@affine/component';
+import { Button, notify } from '@madoc/component';
 import {
   AuthContainer,
   AuthContent,
   AuthFooter,
   AuthHeader,
   AuthInput,
-} from '@affine/component/auth-components';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { AuthService, ServerService } from '@affine/core/modules/cloud';
-import type { AuthSessionStatus } from '@affine/core/modules/cloud/entities/session';
-import { ServerDeploymentType } from '@affine/graphql';
-import { Trans, useI18n } from '@affine/i18n';
+} from '@madoc/component/auth-components';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { AuthService, ServerService } from '@madoc/core/modules/cloud';
+import type { AuthSessionStatus } from '@madoc/core/modules/cloud/entities/session';
+import { ServerDeploymentType } from '@madoc/graphql';
+import { Trans, useI18n } from '@madoc/i18n';
 import {
   ArrowRightBigIcon,
   LocalWorkspaceIcon,
   PublishIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVar } from '@toeverything/theme';
 import {
   type Dispatch,

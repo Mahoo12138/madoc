@@ -2,7 +2,7 @@ import {
   type ViewExtensionContext,
   ViewExtensionProvider,
 } from '@blocksuite/affine/ext-loader';
-import { FrameworkProvider } from '@toeverything/infra';
+import { FrameworkProvider } from '@madoc/infra';
 import { z } from 'zod';
 
 import { patchIconPickerService } from './icon-picker-service';

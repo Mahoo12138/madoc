@@ -1,12 +1,12 @@
-import { notify } from '@affine/component';
-import { UserFriendlyError } from '@affine/error';
+import { notify } from '@madoc/component';
+import { UserFriendlyError } from '@madoc/error';
 import {
   type DocMode as GraphqlDocMode,
   DocRole,
   ErrorNames,
-} from '@affine/graphql';
-import { I18n, i18nTime } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/graphql';
+import { I18n, i18nTime } from '@madoc/i18n';
+import track from '@madoc/track';
 import type { DocMode } from '@blocksuite/affine/model';
 import { DocModeProvider } from '@blocksuite/affine/shared/services';
 import type { AffineInlineEditor } from '@blocksuite/affine/shared/types';
@@ -30,7 +30,7 @@ import {
   UserIcon,
 } from '@blocksuite/icons/lit';
 import { computed, Signal } from '@preact/signals-core';
-import { Service } from '@toeverything/infra';
+import { Service } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import type { FuseResultMatch } from 'fuse.js';
 import Fuse from 'fuse.js';

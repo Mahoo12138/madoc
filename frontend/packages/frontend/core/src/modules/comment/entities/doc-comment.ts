@@ -1,5 +1,5 @@
-import { type CommentChangeAction, DocMode } from '@affine/graphql';
-import { track } from '@affine/track';
+import { type CommentChangeAction, DocMode } from '@madoc/graphql';
+import { track } from '@madoc/track';
 import type {
   BaseSelection,
   DocSnapshot,
@@ -13,7 +13,7 @@ import {
   LiveData,
   onComplete,
   onStart,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { nanoid } from 'nanoid';
 import { catchError, filter, first, of, Subject, switchMap, tap } from 'rxjs';
 

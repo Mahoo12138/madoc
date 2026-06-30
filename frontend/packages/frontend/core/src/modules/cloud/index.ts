@@ -30,7 +30,7 @@ export { WorkspaceServerService } from './services/workspace-server';
 export type { ServerConfig } from './types';
 
 // oxlint-disable-next-line simple-import-sort/imports
-import { type Framework } from '@toeverything/infra';
+import { type Framework } from '@madoc/infra';
 
 import { GlobalCache, GlobalState } from '../storage/providers/global';
 import { GlobalStateService } from '../storage/services/global';

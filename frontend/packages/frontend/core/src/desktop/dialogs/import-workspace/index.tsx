@@ -1,13 +1,13 @@
-import { toast } from '@affine/component';
+import { toast } from '@madoc/component';
 import {
   type DialogComponentProps,
   type GLOBAL_DIALOG_SCHEMA,
-} from '@affine/core/modules/dialogs';
-import { WorkspacesService } from '@affine/core/modules/workspace';
-import { DebugLogger } from '@affine/debug';
-import { apis } from '@affine/electron-api';
-import { useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+} from '@madoc/core/modules/dialogs';
+import { WorkspacesService } from '@madoc/core/modules/workspace';
+import { DebugLogger } from '@madoc/debug';
+import { apis } from '@madoc/electron-api';
+import { useI18n } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import { useLayoutEffect, useRef } from 'react';
 
 const logger = new DebugLogger('ImportWorkspaceDialog');

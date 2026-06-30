@@ -4,17 +4,17 @@ import {
   Menu,
   MenuItem,
   Tooltip,
-} from '@affine/component';
-import { AddFilterMenu } from '@affine/core/components/filter/add-filter';
+} from '@madoc/component';
+import { AddFilterMenu } from '@madoc/core/components/filter/add-filter';
 import {
   CollectionService,
   type PinnedCollectionRecord,
   PinnedCollectionService,
-} from '@affine/core/modules/collection';
-import type { FilterParams } from '@affine/core/modules/collection-rules';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/core/modules/collection';
+import type { FilterParams } from '@madoc/core/modules/collection-rules';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import {
   CloseIcon,
   CollectionsIcon,
@@ -22,7 +22,7 @@ import {
   FilterIcon,
   PlusIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useMemo, useState } from 'react';
 
 import * as styles from './pinned-collections.css';

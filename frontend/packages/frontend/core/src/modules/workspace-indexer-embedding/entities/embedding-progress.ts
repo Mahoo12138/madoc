@@ -1,8 +1,8 @@
-import { RealtimeLiveQuery } from '@affine/core/modules/cloud/realtime/live-query';
-import type { WorkspaceService } from '@affine/core/modules/workspace';
-import type { RealtimeTopicEventOf } from '@affine/realtime';
+import { RealtimeLiveQuery } from '@madoc/core/modules/cloud/realtime/live-query';
+import type { WorkspaceService } from '@madoc/core/modules/workspace';
+import type { RealtimeTopicEventOf } from '@madoc/realtime';
 import { logger } from '@sentry/react';
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 
 import type { EmbeddingStore } from '../stores/embedding';
 import type { LocalAttachmentFile } from '../types';

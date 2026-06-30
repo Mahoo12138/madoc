@@ -1,14 +1,14 @@
-import { Scrollable } from '@affine/component';
-import { Avatar } from '@affine/component/ui/avatar';
-import { useCatchEventCallback } from '@affine/core/components/hooks/use-catch-event-hook';
-import { AuthService } from '@affine/core/modules/cloud';
-import { GlobalDialogService } from '@affine/core/modules/dialogs';
-import type { SettingTab } from '@affine/core/modules/dialogs/constant';
-import { type WorkspaceMetadata } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { Scrollable } from '@madoc/component';
+import { Avatar } from '@madoc/component/ui/avatar';
+import { useCatchEventCallback } from '@madoc/core/components/hooks/use-catch-event-hook';
+import { AuthService } from '@madoc/core/modules/cloud';
+import { GlobalDialogService } from '@madoc/core/modules/dialogs';
+import type { SettingTab } from '@madoc/core/modules/dialogs/constant';
+import { type WorkspaceMetadata } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { Logo1Icon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   type HTMLAttributes,

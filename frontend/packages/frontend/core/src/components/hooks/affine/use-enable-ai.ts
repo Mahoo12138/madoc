@@ -1,6 +1,6 @@
-import { ServerService } from '@affine/core/modules/cloud';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { useLiveData, useService } from '@toeverything/infra';
+import { ServerService } from '@madoc/core/modules/cloud';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { useLiveData, useService } from '@madoc/infra';
 
 export const useEnableAI = () => {
   const featureFlagService = useService(FeatureFlagService);

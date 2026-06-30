@@ -1,4 +1,4 @@
-import { Entity } from '@toeverything/infra';
+import { Entity } from '@madoc/infra';
 
 import type { TemplateDocSettingStore } from '../store/setting';
 

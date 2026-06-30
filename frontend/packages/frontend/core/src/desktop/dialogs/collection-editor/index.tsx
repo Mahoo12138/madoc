@@ -1,12 +1,12 @@
-import { Modal } from '@affine/component';
+import { Modal } from '@madoc/component';
 import {
   type CollectionInfo,
   CollectionService,
-} from '@affine/core/modules/collection';
-import type { DialogComponentProps } from '@affine/core/modules/dialogs';
-import type { WORKSPACE_DIALOG_SCHEMA } from '@affine/core/modules/dialogs/constant';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/collection';
+import type { DialogComponentProps } from '@madoc/core/modules/dialogs';
+import type { WORKSPACE_DIALOG_SCHEMA } from '@madoc/core/modules/dialogs/constant';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { EditCollection } from './edit-collection';

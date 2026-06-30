@@ -1,4 +1,4 @@
-import { DebugLogger } from '@affine/debug';
+import { DebugLogger } from '@madoc/debug';
 import { nanoid } from 'nanoid';
 
 import { type Middleware, trackerState, type TrackProperties } from './state';

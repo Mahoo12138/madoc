@@ -1,6 +1,6 @@
-import { AffineEditorViewExtension } from '@affine/core/blocksuite/view-extensions/editor-view/editor-view';
-import { AffineThemeViewExtension } from '@affine/core/blocksuite/view-extensions/theme';
-import { I18n } from '@affine/i18n';
+import { AffineEditorViewExtension } from '@madoc/core/blocksuite/view-extensions/editor-view/editor-view';
+import { AffineThemeViewExtension } from '@madoc/core/blocksuite/view-extensions/theme';
+import { I18n } from '@madoc/i18n';
 import { CodeBlockViewExtension } from '@blocksuite/affine/blocks/code/view';
 import { DividerViewExtension } from '@blocksuite/affine/blocks/divider/view';
 import { LatexViewExtension as LatexBlockViewExtension } from '@blocksuite/affine/blocks/latex/view';
@@ -52,7 +52,7 @@ import { InlineManagerExtension } from '@blocksuite/affine/std/inline';
 import { LinkedDocViewExtension } from '@blocksuite/affine/widgets/linked-doc/view';
 import { ToolbarViewExtension } from '@blocksuite/affine/widgets/toolbar/view';
 import { ViewportOverlayViewExtension } from '@blocksuite/affine/widgets/viewport-overlay/view';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 import { z } from 'zod';
 
 import { createCommentLinkedWidgetConfig } from './linked-widget-config';

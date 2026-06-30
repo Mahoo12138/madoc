@@ -1,6 +1,6 @@
-import { WorkbenchService } from '@affine/core/modules/workbench';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
 import { SidebarExtension } from '@blocksuite/affine/shared/services';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 export function patchSideBarService(framework: FrameworkProvider) {
   const { workbench } = framework.get(WorkbenchService);

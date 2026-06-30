@@ -1,4 +1,4 @@
-import type { OpSchema } from '@toeverything/infra/op';
+import type { OpSchema } from '@madoc/infra/op';
 
 export type MermaidTextMetrics = {
   ascii: number;

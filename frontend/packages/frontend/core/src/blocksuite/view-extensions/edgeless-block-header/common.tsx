@@ -1,11 +1,11 @@
-import { IconButton } from '@affine/component';
-import { useSharingUrl } from '@affine/core/components/hooks/affine/use-share-url';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+import { IconButton } from '@madoc/component';
+import { useSharingUrl } from '@madoc/core/components/hooks/affine/use-share-url';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import { type DocMode } from '@blocksuite/affine/model';
 import { InformationIcon, LinkIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import * as styles from './edgeless-block-header.css';

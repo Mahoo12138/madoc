@@ -1,4 +1,4 @@
-import type { GetInviteInfoQuery } from '@affine/graphql';
+import type { GetInviteInfoQuery } from '@madoc/graphql';
 import {
   catchErrorInto,
   effect,
@@ -8,7 +8,7 @@ import {
   onStart,
   Service,
   smartRetry,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { EMPTY, switchMap, tap } from 'rxjs';
 
 import type { AcceptInviteStore } from '../stores/accept-invite';

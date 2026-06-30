@@ -1,6 +1,6 @@
 /* oxlint-disable @typescript-eslint/no-non-null-assertion */
-import { apis, appInfo, events, sharedStorage } from '@affine/electron-api';
-import { Service } from '@toeverything/infra';
+import { apis, appInfo, events, sharedStorage } from '@madoc/electron-api';
+import { Service } from '@madoc/infra';
 
 import type { DesktopApiProvider } from '../provider';
 

@@ -1,12 +1,12 @@
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import track from '@affine/track';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import track from '@madoc/track';
 import type { Container } from '@blocksuite/affine/global/di';
 import {
   FileSizeLimitProvider,
   type IFileSizeLimitService,
 } from '@blocksuite/affine/shared/services';
 import { Extension } from '@blocksuite/affine/store';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 export function patchFileSizeLimitExtension(framework: FrameworkProvider) {
   const workspaceDialogService = framework.get(WorkspaceDialogService);

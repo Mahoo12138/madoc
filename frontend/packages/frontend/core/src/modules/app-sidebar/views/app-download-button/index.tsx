@@ -1,5 +1,5 @@
-import { useCatchEventCallback } from '@affine/core/components/hooks/use-catch-event-hook';
-import { track } from '@affine/track';
+import { useCatchEventCallback } from '@madoc/core/components/hooks/use-catch-event-hook';
+import { track } from '@madoc/track';
 import { CloseIcon, DownloadIcon } from '@blocksuite/icons/rc';
 import clsx from 'clsx';
 import { useCallback, useState } from 'react';

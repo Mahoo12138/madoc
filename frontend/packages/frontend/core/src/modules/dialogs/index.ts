@@ -1,4 +1,4 @@
-import type { Framework } from '@toeverything/infra';
+import type { Framework } from '@madoc/infra';
 
 import { WorkspaceScope } from '../workspace';
 import { GlobalDialogService } from './services/dialog';

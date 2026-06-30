@@ -1,5 +1,5 @@
-import { MenuItem } from '@affine/component';
-import type { FilterParams } from '@affine/core/modules/collection-rules';
+import { MenuItem } from '@madoc/component';
+import type { FilterParams } from '@madoc/core/modules/collection-rules';
 
 import { FilterValueMenu } from '../filter/filter-value-menu';
 

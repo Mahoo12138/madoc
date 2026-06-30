@@ -4,26 +4,26 @@ import {
   MenuSeparator,
   toast,
   useConfirmModal,
-} from '@affine/component';
-import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
-import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
-import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { DocsService } from '@affine/core/modules/doc';
-import { FavoriteService } from '@affine/core/modules/favorite';
-import { GlobalCacheService } from '@affine/core/modules/storage';
-import { TagService } from '@affine/core/modules/tag';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/component';
+import { usePageHelper } from '@madoc/core/blocksuite/block-suite-page-list/utils';
+import { IsFavoriteIcon } from '@madoc/core/components/pure/icons';
+import type { NodeOperation } from '@madoc/core/desktop/components/navigation-panel';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { DocsService } from '@madoc/core/modules/doc';
+import { FavoriteService } from '@madoc/core/modules/favorite';
+import { GlobalCacheService } from '@madoc/core/modules/storage';
+import { TagService } from '@madoc/core/modules/tag';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import {
   DeleteIcon,
   FolderIcon,
   PlusIcon,
   SplitViewIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { TagRenameSubMenu } from './dialog';

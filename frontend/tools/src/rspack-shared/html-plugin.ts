@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-import { Path, ProjectRoot } from '@affine-tools/utils/path';
+import { Path, ProjectRoot } from '@madoc-tools/utils/path';
 import { Repository } from '@napi-rs/simple-git';
 import { HtmlRspackPlugin, type HtmlRspackPluginOptions } from '@rspack/core';
 import { once } from 'lodash-es';
@@ -68,11 +68,13 @@ const gitShortHash = once(() => {
   if (GITHUB_SHA) {
     return GITHUB_SHA.substring(0, 9);
   }
-  const repo = new Repository(ProjectRoot.value);
-  const shortSha = repo.head().target()?.substring(0, 9);
-  if (shortSha) {
-    return shortSha;
-  }
+  try {
+    const repo = new Repository(ProjectRoot.value);
+    const shortSha = repo.head().target()?.substring(0, 9);
+    if (shortSha) {
+      return shortSha;
+    }
+  } catch { /* ProjectRoot may not be a git root; fall through */ }
   const sha = execSync(`git rev-parse --short HEAD`, {
     encoding: 'utf-8',
   }).trim();

@@ -1,11 +1,11 @@
-import { I18n } from '@affine/i18n';
+import { I18n } from '@madoc/i18n';
 import type { AffineInlineEditor } from '@blocksuite/affine/shared/types';
 import type {
   LinkedMenuItem,
   LinkedWidgetConfig,
 } from '@blocksuite/affine/widgets/linked-doc';
 import { computed } from '@preact/signals-core';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 export const createCommentLinkedWidgetConfig = (
   framework: FrameworkProvider

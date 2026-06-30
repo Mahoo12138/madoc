@@ -4,12 +4,12 @@ import {
   Input,
   Modal,
   notify,
-} from '@affine/component';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { IntegrationService } from '@affine/core/modules/integration';
-import { Trans, useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { IntegrationService } from '@madoc/core/modules/integration';
+import { Trans, useI18n } from '@madoc/i18n';
 import { ReadwiseLogoDuotoneIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   type FormEvent,

@@ -1,8 +1,8 @@
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { JournalService } from '@affine/core/modules/journal';
-import { WorkbenchService } from '@affine/core/modules/workbench';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { JournalService } from '@madoc/core/modules/journal';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
 import { TodayIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { TabItem } from './tab-item';

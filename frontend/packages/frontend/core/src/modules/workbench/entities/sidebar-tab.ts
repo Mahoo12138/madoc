@@ -1,4 +1,4 @@
-import { Entity } from '@toeverything/infra';
+import { Entity } from '@madoc/infra';
 
 export class SidebarTab extends Entity<{ id: string }> {
   readonly id = this.props.id;

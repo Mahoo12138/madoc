@@ -1,19 +1,19 @@
-import { notify } from '@affine/component';
+import { notify } from '@madoc/component';
 import {
   AuthContainer,
   AuthContent,
   AuthFooter,
   AuthHeader,
   AuthInput,
-} from '@affine/component/auth-components';
-import { Button } from '@affine/component/ui/button';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { AuthService, CaptchaService } from '@affine/core/modules/cloud';
-import type { AuthSessionStatus } from '@affine/core/modules/cloud/entities/session';
-import { Unreachable } from '@affine/env/constant';
-import { UserFriendlyError } from '@affine/error';
-import { Trans, useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/component/auth-components';
+import { Button } from '@madoc/component/ui/button';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { AuthService, CaptchaService } from '@madoc/core/modules/cloud';
+import type { AuthSessionStatus } from '@madoc/core/modules/cloud/entities/session';
+import { Unreachable } from '@madoc/env/constant';
+import { UserFriendlyError } from '@madoc/error';
+import { Trans, useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import {
   type Dispatch,
   type SetStateAction,

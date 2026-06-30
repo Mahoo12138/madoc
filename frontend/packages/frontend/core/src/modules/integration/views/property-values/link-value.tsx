@@ -1,4 +1,4 @@
-import { PropertyValue } from '@affine/component';
+import { PropertyValue } from '@madoc/component';
 
 import * as styles from './styles.css';
 import type { PropertyValueProps } from './type';

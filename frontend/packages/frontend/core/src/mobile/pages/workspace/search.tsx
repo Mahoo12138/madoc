@@ -3,15 +3,15 @@ import {
   SafeArea,
   startScopedViewTransition,
   useThemeColorV2,
-} from '@affine/component';
-import { CollectionService } from '@affine/core/modules/collection';
+} from '@madoc/component';
+import { CollectionService } from '@madoc/core/modules/collection';
 import {
   type QuickSearchItem,
   QuickSearchTagIcon,
-} from '@affine/core/modules/quicksearch';
-import { TagService } from '@affine/core/modules/tag';
-import { UserFriendlyError } from '@affine/error';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/quicksearch';
+import { TagService } from '@madoc/core/modules/tag';
+import { UserFriendlyError } from '@madoc/error';
+import { useI18n } from '@madoc/i18n';
 import { sleep } from '@blocksuite/affine/global/utils';
 import { ViewLayersIcon } from '@blocksuite/icons/rc';
 import {
@@ -19,7 +19,7 @@ import {
   useLiveData,
   useService,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { bodyEmphasized } from '@toeverything/theme/typography';
 import { useCallback, useMemo } from 'react';
 

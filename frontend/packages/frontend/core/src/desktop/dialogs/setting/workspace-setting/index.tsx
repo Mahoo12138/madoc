@@ -1,16 +1,16 @@
-import { useWorkspaceInfo } from '@affine/core/components/hooks/use-workspace-info';
-import { ServerService } from '@affine/core/modules/cloud';
-import type { SettingTab } from '@affine/core/modules/dialogs/constant';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { EmbeddingSettings } from '@affine/core/modules/workspace-indexer-embedding';
-import { useI18n } from '@affine/i18n';
+import { useWorkspaceInfo } from '@madoc/core/components/hooks/use-workspace-info';
+import { ServerService } from '@madoc/core/modules/cloud';
+import type { SettingTab } from '@madoc/core/modules/dialogs/constant';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { EmbeddingSettings } from '@madoc/core/modules/workspace-indexer-embedding';
+import { useI18n } from '@madoc/i18n';
 import {
   AiEmbeddingIcon,
   IntegrationsIcon,
   PropertyIcon,
   SettingsIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useMemo } from 'react';
 
 import type { SettingSidebarItem, SettingState } from '../types';

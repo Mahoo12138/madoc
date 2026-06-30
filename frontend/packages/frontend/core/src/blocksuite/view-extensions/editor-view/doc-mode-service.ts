@@ -1,5 +1,5 @@
-import type { DocService, DocsService } from '@affine/core/modules/doc';
-import type { EditorService } from '@affine/core/modules/editor';
+import type { DocService, DocsService } from '@madoc/core/modules/doc';
+import type { EditorService } from '@madoc/core/modules/editor';
 import type { DocMode } from '@blocksuite/affine/model';
 import {
   DocModeExtension,

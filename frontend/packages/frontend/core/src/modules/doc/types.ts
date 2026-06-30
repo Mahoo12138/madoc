@@ -1,4 +1,4 @@
-import type { DocProps } from '@affine/core/blocksuite/initialization';
+import type { DocProps } from '@madoc/core/blocksuite/initialization';
 import type { DocMode } from '@blocksuite/affine/model';
 
 export interface DocCreateOptions {

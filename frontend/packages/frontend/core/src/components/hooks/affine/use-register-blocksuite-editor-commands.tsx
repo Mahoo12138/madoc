@@ -1,18 +1,18 @@
-import { toast, useConfirmModal } from '@affine/component';
+import { toast, useConfirmModal } from '@madoc/component';
 import {
   PreconditionStrategy,
   registerAffineCommand,
-} from '@affine/core/commands';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { DocService } from '@affine/core/modules/doc';
-import type { Editor } from '@affine/core/modules/editor';
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { OpenInAppService } from '@affine/core/modules/open-in-app';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { UserFriendlyError } from '@affine/error';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/core/commands';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { DocService } from '@madoc/core/modules/doc';
+import type { Editor } from '@madoc/core/modules/editor';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { OpenInAppService } from '@madoc/core/modules/open-in-app';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { UserFriendlyError } from '@madoc/error';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import {
   EdgelessIcon,
   HistoryIcon,
@@ -23,7 +23,7 @@ import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useSetAtom } from 'jotai';
 import { useCallback, useEffect } from 'react';
 

@@ -1,11 +1,11 @@
-import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
-import { NavigationPanelTreeRoot } from '@affine/core/desktop/components/navigation-panel';
-import type { FavoriteSupportTypeUnion } from '@affine/core/modules/favorite';
-import { FavoriteService } from '@affine/core/modules/favorite';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { usePageHelper } from '@madoc/core/blocksuite/block-suite-page-list/utils';
+import { NavigationPanelTreeRoot } from '@madoc/core/desktop/components/navigation-panel';
+import type { FavoriteSupportTypeUnion } from '@madoc/core/modules/favorite';
+import { FavoriteService } from '@madoc/core/modules/favorite';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { AddItemPlaceholder } from '../../layouts/add-item-placeholder';

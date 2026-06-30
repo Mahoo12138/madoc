@@ -1,5 +1,5 @@
 import type { DocMode } from '@blocksuite/affine/model';
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import { map } from 'rxjs';
 
 import type { DocsStore } from '../stores/docs';

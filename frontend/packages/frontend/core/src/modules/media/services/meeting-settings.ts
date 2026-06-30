@@ -1,8 +1,8 @@
 import type {
   MeetingSettingsKey,
   MeetingSettingsSchema,
-} from '@affine/electron/main/shared-state-schema';
-import { LiveData, Service } from '@toeverything/infra';
+} from '@madoc/electron/main/shared-state-schema';
+import { LiveData, Service } from '@madoc/infra';
 import { defaults } from 'lodash-es';
 
 import { DesktopApiService } from '../../desktop-api';

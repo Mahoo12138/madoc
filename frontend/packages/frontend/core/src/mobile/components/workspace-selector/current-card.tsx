@@ -1,10 +1,10 @@
-import { Avatar } from '@affine/component';
-import { useWorkspaceInfo } from '@affine/core/components/hooks/use-workspace-info';
-import { WorkspaceAvatar } from '@affine/core/components/workspace-avatar';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { UNTITLED_WORKSPACE_NAME } from '@affine/env/constant';
+import { Avatar } from '@madoc/component';
+import { useWorkspaceInfo } from '@madoc/core/components/hooks/use-workspace-info';
+import { WorkspaceAvatar } from '@madoc/core/components/workspace-avatar';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { UNTITLED_WORKSPACE_NAME } from '@madoc/env/constant';
 import { ArrowDownSmallIcon } from '@blocksuite/icons/rc';
-import { useServiceOptional } from '@toeverything/infra';
+import { useServiceOptional } from '@madoc/infra';
 import clsx from 'clsx';
 import { forwardRef, type HTMLAttributes } from 'react';
 

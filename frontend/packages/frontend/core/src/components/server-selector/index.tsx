@@ -4,8 +4,8 @@ import {
   type MenuProps,
   MenuTrigger,
   Tooltip,
-} from '@affine/component';
-import type { Server } from '@affine/core/modules/cloud';
+} from '@madoc/component';
+import type { Server } from '@madoc/core/modules/cloud';
 import { useMemo } from 'react';
 
 import { triggerStyle } from './style.css';

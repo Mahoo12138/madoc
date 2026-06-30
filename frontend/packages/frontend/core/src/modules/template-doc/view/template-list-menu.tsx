@@ -4,16 +4,16 @@ import {
   MenuItem,
   type MenuProps,
   Scrollable,
-} from '@affine/component';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { inferOpenMode } from '@affine/core/utils';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { inferOpenMode } from '@madoc/core/utils';
+import { useI18n } from '@madoc/i18n';
 import {
   DualLinkIcon,
   InformationIcon,
   TemplateIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useState } from 'react';
 
 import { type DocRecord, DocsService } from '../../doc';

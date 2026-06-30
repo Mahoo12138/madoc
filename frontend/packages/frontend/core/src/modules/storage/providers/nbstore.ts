@@ -2,8 +2,8 @@ import type {
   StoreClient,
   StoreManagerClient,
   WorkerInitOptions,
-} from '@affine/nbstore/worker/client';
-import { createIdentifier } from '@toeverything/infra';
+} from '@madoc/nbstore/worker/client';
+import { createIdentifier } from '@madoc/infra';
 
 export interface NbstoreProvider {
   readonly realtime: StoreManagerClient['realtime'];

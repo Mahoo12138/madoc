@@ -1,14 +1,14 @@
-import { Wrapper } from '@affine/component';
-import { EmptyDocs } from '@affine/core/components/affine/empty';
+import { Wrapper } from '@madoc/component';
+import { EmptyDocs } from '@madoc/core/components/affine/empty';
 import {
   createDocExplorerContext,
   DocExplorerContext,
-} from '@affine/core/components/explorer/context';
-import { DocsExplorer } from '@affine/core/components/explorer/docs-view/docs-list';
-import { Page } from '@affine/core/mobile/components/page';
-import { CollectionRulesService } from '@affine/core/modules/collection-rules';
-import type { Tag } from '@affine/core/modules/tag';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/components/explorer/context';
+import { DocsExplorer } from '@madoc/core/components/explorer/docs-view/docs-list';
+import { Page } from '@madoc/core/mobile/components/page';
+import { CollectionRulesService } from '@madoc/core/modules/collection-rules';
+import type { Tag } from '@madoc/core/modules/tag';
+import { useLiveData, useService } from '@madoc/infra';
 import { useEffect, useState } from 'react';
 
 import { TagDetailHeader } from './detail-header';

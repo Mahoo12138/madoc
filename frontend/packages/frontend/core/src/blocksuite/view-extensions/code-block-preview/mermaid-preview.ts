@@ -1,5 +1,5 @@
-import { renderMermaidSvg } from '@affine/core/modules/code-block-preview-renderer/bridge';
-import type { MermaidRenderTheme } from '@affine/core/modules/mermaid/renderer';
+import { renderMermaidSvg } from '@madoc/core/modules/code-block-preview-renderer/bridge';
+import type { MermaidRenderTheme } from '@madoc/core/modules/mermaid/renderer';
 import { CodeBlockPreviewExtension } from '@blocksuite/affine/blocks/code';
 import { SignalWatcher, WithDisposable } from '@blocksuite/affine/global/lit';
 import type { CodeBlockModel } from '@blocksuite/affine/model';
@@ -504,15 +504,13 @@ export class MermaidPreview extends SignalWatcher(
                     @click=${this._zoomOut}
                     title="Zoom out"
                   >
-                    ‚àí
-                  </button>
+                    ‚à?                  </button>
                   <button
                     class="mermaid-control-button"
                     @click=${this._resetTransform}
                     title="Reset view"
                   >
-                    ‚ü≥
-                  </button>
+                    ‚ü?                  </button>
                 </div>
                 <div class="mermaid-scale-info">
                   ${Math.round(this.scale * 100)}%

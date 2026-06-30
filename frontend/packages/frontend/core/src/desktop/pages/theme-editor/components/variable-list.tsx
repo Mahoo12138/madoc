@@ -1,6 +1,6 @@
-import { Scrollable } from '@affine/component';
-import { ThemeEditorService } from '@affine/core/modules/theme-editor';
-import { useLiveData, useService } from '@toeverything/infra';
+import { Scrollable } from '@madoc/component';
+import { ThemeEditorService } from '@madoc/core/modules/theme-editor';
+import { useLiveData, useService } from '@madoc/infra';
 
 import type { TreeNode } from '../resource';
 import * as styles from '../theme-editor.css';

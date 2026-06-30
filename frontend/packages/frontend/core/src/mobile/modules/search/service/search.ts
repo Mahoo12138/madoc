@@ -3,8 +3,8 @@ import {
   DocsQuickSearchSession,
   RecentDocsQuickSearchSession,
   TagsQuickSearchSession,
-} from '@affine/core/modules/quicksearch';
-import { Service } from '@toeverything/infra';
+} from '@madoc/core/modules/quicksearch';
+import { Service } from '@madoc/infra';
 
 export class MobileSearchService extends Service {
   readonly recentDocs = this.framework.createEntity(

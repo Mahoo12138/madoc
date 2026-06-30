@@ -1,4 +1,4 @@
-import { useI18n } from '@affine/i18n';
+import { useI18n } from '@madoc/i18n';
 import { useCallback, useMemo } from 'react';
 
 type KeyboardShortcutsI18NKeys =
@@ -99,15 +99,16 @@ export const useMacGeneralKeyboardShortcuts = (): ShortcutMap => {
       [t('quickSearch')]: ['⌘', 'K'],
       [t('newPage')]: ['⌘', 'N'],
       // not implement yet
-      // [t('appendDailyNote')]: ['⌘', '⌥', 'A'],
+      // [t('appendDailyNote')]: '⌘ + ⌥ + A',
       [t('expandOrCollapseSidebar')]: ['⌘', '/'],
-      [t('goBack')]: ['⌘', '['],
-      [t('goForward')]: ['⌘', ']'],
+      [t('goBack')]: ['⌘ ', '['],
+      [t('goForward')]: ['⌘ ', ']'],
       [t('copy-private-link')]: ['⌘', '⇧', 'C'],
     }),
     [t]
   );
 };
+
 
 export const useMacEdgelessKeyboardShortcuts = (): ShortcutMap => {
   const t = useKeyboardShortcutsI18N();
@@ -118,9 +119,9 @@ export const useMacEdgelessKeyboardShortcuts = (): ShortcutMap => {
       [t('redo')]: ['⌘', '⇧', 'Z'],
       [t('zoomIn')]: ['⌘', '+'],
       [t('zoomOut')]: ['⌘', '-'],
-      [t('zoomTo100')]: ['⌥', '0'],
-      [t('zoomToFit')]: ['⌥', '1'],
-      [t('zoomToSelection')]: ['⌥', '2'],
+      [t('zoomTo100')]: ['Alt', '0'],
+      [t('zoomToFit')]: ['Alt', '1'],
+      [t('zoomToSelection')]: ['Alt', '2'],
       [t('select')]: ['V'],
       [t('text')]: ['T'],
       [t('shape')]: ['S'],
@@ -129,9 +130,9 @@ export const useMacEdgelessKeyboardShortcuts = (): ShortcutMap => {
       [t('pen')]: ['P'],
       [t('hand')]: ['H'],
       [t('note')]: ['N'],
-      [t('switch')]: ['⌥', 'S'],
-      [t('group')]: ['⌘', 'G'],
-      [t('unGroup')]: ['⌘', '⇧', 'G'],
+      // not implement yet
+      // [t('group')]: '⌘ + G',
+      // [t('unGroup')]: '⌘ + ⇧ + G',
     }),
     [t]
   );
@@ -187,18 +188,16 @@ export const useMacPageKeyboardShortcuts = (): ShortcutMap => {
       [tH('6')]: ['⌘', '⌥', '6'],
       [t('increaseIndent')]: ['Tab'],
       [t('reduceIndent')]: ['⇧', 'Tab'],
-      [t('alignLeft')]: ['⌘', '⇧', 'L'],
-      [t('alignCenter')]: ['⌘', '⇧', 'E'],
-      [t('alignRight')]: ['⌘', '⇧', 'R'],
       [t('groupDatabase')]: ['⌘', 'G'],
       [t('switch')]: ['⌥', 'S'],
       // not implement yet
-      // [t('moveUp')]: ['⌘', '⌥', '↑'],
-      // [t('moveDown')]: ['⌘', '⌥', '↓'],
+      // [t('moveUp')]: '⌘ + ⌥ + ↑',
+      // [t('moveDown')]: '⌘ + ⌥ + ↓',
     }),
     [t, tH]
   );
 };
+
 
 export const useMacMarkdownShortcuts = (): ShortcutMap => {
   const t = useKeyboardShortcutsI18N();
@@ -253,8 +252,8 @@ export const useWinPageKeyboardShortcuts = (): ShortcutMap => {
       [t('groupDatabase')]: ['Ctrl', 'G'],
       [t('switch')]: ['Alt', 'S'],
       // not implement yet
-      // [t('moveUp')]: ['Ctrl', 'Alt', '↑'],
-      // [t('moveDown')]: ['Ctrl', 'Alt', '↓'],
+      // [t('moveUp')]: ['Ctrl', 'Alt', '�?],
+      // [t('moveDown')]: ['Ctrl', 'Alt', '�?],
     }),
     [t, tH]
   );

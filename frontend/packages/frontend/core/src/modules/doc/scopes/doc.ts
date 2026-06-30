@@ -1,5 +1,5 @@
 import type { Store } from '@blocksuite/affine/store';
-import { Scope } from '@toeverything/infra';
+import { Scope } from '@madoc/infra';
 
 import type { DocRecord } from '../entities/record';
 

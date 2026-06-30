@@ -1,24 +1,24 @@
-import { notify } from '@affine/component';
+import { notify } from '@madoc/component';
 import {
   AuthContainer,
   AuthContent,
   AuthFooter,
   AuthHeader,
   AuthInput,
-} from '@affine/component/auth-components';
-import { Button } from '@affine/component/ui/button';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
+} from '@madoc/component/auth-components';
+import { Button } from '@madoc/component/ui/button';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
 import {
   AuthService,
   CaptchaService,
   ServerService,
-} from '@affine/core/modules/cloud';
-import type { AuthSessionStatus } from '@affine/core/modules/cloud/entities/session';
-import { Unreachable } from '@affine/env/constant';
-import { UserFriendlyError } from '@affine/error';
-import { ServerDeploymentType } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/cloud';
+import type { AuthSessionStatus } from '@madoc/core/modules/cloud/entities/session';
+import { Unreachable } from '@madoc/env/constant';
+import { UserFriendlyError } from '@madoc/error';
+import { ServerDeploymentType } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import type { Dispatch, SetStateAction } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 

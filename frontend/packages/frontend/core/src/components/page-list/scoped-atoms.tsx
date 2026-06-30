@@ -1,5 +1,5 @@
-import { shallowEqual } from '@affine/component';
-import { DEFAULT_SORT_KEY } from '@affine/env/constant';
+import { shallowEqual } from '@madoc/component';
+import { DEFAULT_SORT_KEY } from '@madoc/env/constant';
 import { atom } from 'jotai';
 import { selectAtom } from 'jotai/utils';
 import { createIsolation } from 'jotai-scope';

@@ -1,4 +1,4 @@
-import { createIdentifier } from '@toeverything/infra';
+import { createIdentifier } from '@madoc/infra';
 import type { Observable } from 'rxjs';
 
 import type { FilterParams, GroupByParams, OrderByParams } from '../types';

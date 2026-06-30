@@ -1,6 +1,6 @@
-import { NotificationCountService } from '@affine/core/modules/notification';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { useLiveData, useService } from '@toeverything/infra';
+import { NotificationCountService } from '@madoc/core/modules/notification';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { useLiveData, useService } from '@madoc/infra';
 import { useEffect } from 'react';
 
 export const DocumentTitle = () => {

@@ -1,8 +1,8 @@
-import { Button } from '@affine/component';
-import { AuthService, ServerService } from '@affine/core/modules/cloud';
-import { NativePaywallService } from '@affine/core/modules/paywall';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { Button } from '@madoc/component';
+import { AuthService, ServerService } from '@madoc/core/modules/cloud';
+import { NativePaywallService } from '@madoc/core/modules/paywall';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 
 import * as styles from './styles.css';
 

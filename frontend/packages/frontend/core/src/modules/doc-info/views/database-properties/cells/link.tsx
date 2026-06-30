@@ -1,11 +1,11 @@
-import { PropertyValue } from '@affine/component';
-import { AffinePageReference } from '@affine/core/components/affine/reference-link';
-import { ConfigModal } from '@affine/core/components/mobile';
-import { resolveLinkToDoc } from '@affine/core/modules/navigation';
-import { useI18n } from '@affine/i18n';
+import { PropertyValue } from '@madoc/component';
+import { AffinePageReference } from '@madoc/core/components/affine/reference-link';
+import { ConfigModal } from '@madoc/core/components/mobile';
+import { resolveLinkToDoc } from '@madoc/core/modules/navigation';
+import { useI18n } from '@madoc/i18n';
 import { LinkIcon } from '@blocksuite/icons/rc';
-import type { LiveData } from '@toeverything/infra';
-import { useLiveData } from '@toeverything/infra';
+import type { LiveData } from '@madoc/infra';
+import { useLiveData } from '@madoc/infra';
 import {
   type ChangeEventHandler,
   type KeyboardEvent,

@@ -1,6 +1,6 @@
-import { DocsService } from '@affine/core/modules/doc';
+import { DocsService } from '@madoc/core/modules/doc';
 import type { DocMeta, Workspace } from '@blocksuite/affine/store';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { useAsyncCallback } from './affine-async-hooks';

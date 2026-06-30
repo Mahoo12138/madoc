@@ -1,8 +1,8 @@
-import { Skeleton } from '@affine/component';
-import { AttachmentViewerView } from '@affine/core/blocksuite/attachment-viewer';
-import { type Doc, DocsService } from '@affine/core/modules/doc';
+import { Skeleton } from '@madoc/component';
+import { AttachmentViewerView } from '@madoc/core/blocksuite/attachment-viewer';
+import { type Doc, DocsService } from '@madoc/core/modules/doc';
 import { type AttachmentBlockModel } from '@blocksuite/affine/model';
-import { FrameworkScope, useLiveData, useService } from '@toeverything/infra';
+import { FrameworkScope, useLiveData, useService } from '@madoc/infra';
 import { type ReactElement, useLayoutEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 

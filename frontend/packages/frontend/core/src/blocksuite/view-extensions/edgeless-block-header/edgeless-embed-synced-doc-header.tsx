@@ -1,8 +1,8 @@
-import { Button, IconButton, Menu, MenuItem } from '@affine/component';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { stopPropagation } from '@affine/core/utils';
-import { useI18n } from '@affine/i18n';
+import { Button, IconButton, Menu, MenuItem } from '@madoc/component';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { stopPropagation } from '@madoc/core/utils';
+import { useI18n } from '@madoc/i18n';
 import { EmbedSyncedDocBlockComponent } from '@blocksuite/affine/blocks/embed-doc';
 import { isPeekable, peek } from '@blocksuite/affine/components/peek';
 import type { EmbedSyncedDocModel } from '@blocksuite/affine-model';
@@ -18,7 +18,7 @@ import {
 } from '@blocksuite/icons/rc';
 import type { BlockStdScope } from '@blocksuite/std';
 import { batch } from '@preact/signals-core';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { CopyLinkButton, DocInfoButton } from './common';

@@ -1,19 +1,19 @@
-import { AppSidebarService } from '@affine/core/modules/app-sidebar';
-import { DesktopApiService } from '@affine/core/modules/desktop-api';
+import { AppSidebarService } from '@madoc/core/modules/app-sidebar';
+import { DesktopApiService } from '@madoc/core/modules/desktop-api';
 import {
   GlobalDialogService,
   WorkspaceDialogService,
-} from '@affine/core/modules/dialogs';
-import { I18nService } from '@affine/core/modules/i18n';
-import { UrlService } from '@affine/core/modules/url';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/dialogs';
+import { I18nService } from '@madoc/core/modules/i18n';
+import { UrlService } from '@madoc/core/modules/url';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import {
   useService,
   useServiceOptional,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useStore } from 'jotai';
 import { useTheme } from 'next-themes';
 import { useEffect } from 'react';

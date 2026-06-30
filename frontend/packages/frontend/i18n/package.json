@@ -1,5 +1,5 @@
 {
-  "name": "@affine/i18n",
+  "name": "@madoc/i18n",
   "version": "0.26.3",
   "description": "",
   "type": "module",
@@ -18,7 +18,7 @@
     "url": "git+https://github.com/toeverything/AFFiNE.git"
   },
   "dependencies": {
-    "@affine/debug": "workspace:*",
+    "@madoc/debug": "workspace:*",
     "@magic-works/i18n-codegen": "^0.6.1",
     "dayjs": "^1.11.13",
     "i18next": "^25.0.0",
@@ -26,8 +26,8 @@
     "react-i18next": "^15.2.0"
   },
   "devDependencies": {
-    "@affine-tools/cli": "workspace:*",
-    "@affine-tools/utils": "workspace:*",
+    "@madoc-tools/cli": "workspace:*",
+    "@madoc-tools/utils": "workspace:*",
     "glob": "^11.0.0",
     "vitest": "^4.1.8"
   }

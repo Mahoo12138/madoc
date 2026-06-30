@@ -1,6 +1,6 @@
-import { PropertyCollapsibleSection } from '@affine/component';
-import { AffinePageReference } from '@affine/core/components/affine/reference-link';
-import type { Backlink, Link } from '@affine/core/modules/doc-link';
+import { PropertyCollapsibleSection } from '@madoc/component';
+import { AffinePageReference } from '@madoc/core/components/affine/reference-link';
+import type { Backlink, Link } from '@madoc/core/modules/doc-link';
 import type { MouseEvent, ReactNode } from 'react';
 
 import * as styles from './links-row.css';

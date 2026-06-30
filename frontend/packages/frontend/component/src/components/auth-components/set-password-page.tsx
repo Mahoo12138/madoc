@@ -1,5 +1,5 @@
-import type { PasswordLimitsFragment } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
+import type { PasswordLimitsFragment } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
 import type { FC } from 'react';
 import { useCallback, useState } from 'react';
 

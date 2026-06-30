@@ -1,4 +1,4 @@
-import { type Framework } from '@toeverything/infra';
+import { type Framework } from '@madoc/infra';
 
 import { ServersService } from '../cloud';
 import { DesktopApiService } from '../desktop-api';

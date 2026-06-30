@@ -1,10 +1,10 @@
-import { MenuItem } from '@affine/component';
-import type { OrderByParams } from '@affine/core/modules/collection-rules/types';
-import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+import { MenuItem } from '@madoc/component';
+import type { OrderByParams } from '@madoc/core/modules/collection-rules/types';
+import { WorkspacePropertyService } from '@madoc/core/modules/workspace-property';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import { SortDownIcon, SortUpIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { useMemo } from 'react';
 

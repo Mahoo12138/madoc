@@ -1,11 +1,11 @@
-import { Button, IconButton, Modal } from '@affine/component';
-import { useBlurRoot } from '@affine/core/components/hooks/use-blur-root';
-import { AuthService, SubscriptionService } from '@affine/core/modules/cloud';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { Trans, useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { Button, IconButton, Modal } from '@madoc/component';
+import { useBlurRoot } from '@madoc/core/components/hooks/use-blur-root';
+import { AuthService, SubscriptionService } from '@madoc/core/modules/cloud';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { Trans, useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { ArrowLeftSmallIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+import { useLiveData, useService, useServices } from '@madoc/infra';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 

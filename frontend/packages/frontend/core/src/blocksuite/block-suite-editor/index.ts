@@ -1,4 +1,4 @@
-import { editorEffects } from '@affine/core/blocksuite/editors';
+import { editorEffects } from '@madoc/core/blocksuite/editors';
 
 import { registerTemplates } from './register-templates';
 

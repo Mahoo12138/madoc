@@ -1,4 +1,4 @@
-import { Modal, toast } from '@affine/component';
+import { Modal, toast } from '@madoc/component';
 import {
   collectionHeaderColsDef,
   CollectionListItemRenderer,
@@ -6,18 +6,18 @@ import {
   type ListItem,
   ListTableHeader,
   VirtualizedList,
-} from '@affine/core/components/page-list';
-import { SelectorLayout } from '@affine/core/components/page-list/selector/selector-layout';
+} from '@madoc/core/components/page-list';
+import { SelectorLayout } from '@madoc/core/components/page-list/selector/selector-layout';
 import {
   type CollectionMeta,
   CollectionService,
-} from '@affine/core/modules/collection';
-import type { DialogComponentProps } from '@affine/core/modules/dialogs';
-import type { WORKSPACE_DIALOG_SCHEMA } from '@affine/core/modules/dialogs/constant';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/collection';
+import type { DialogComponentProps } from '@madoc/core/modules/dialogs';
+import type { WORKSPACE_DIALOG_SCHEMA } from '@madoc/core/modules/dialogs/constant';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVar } from '@toeverything/theme';
 import { useCallback, useMemo, useState } from 'react';
 

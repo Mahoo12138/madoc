@@ -1,4 +1,4 @@
-import { ServerService } from '@affine/core/modules/cloud';
+import { ServerService } from '@madoc/core/modules/cloud';
 import { AdapterPanel } from '@blocksuite/affine/fragments/adapter-panel';
 import {
   customImageProxyMiddleware,
@@ -8,7 +8,7 @@ import {
 } from '@blocksuite/affine/shared/adapters';
 import type { EditorHost } from '@blocksuite/affine/std';
 import type { TransformerMiddleware } from '@blocksuite/affine/store';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback, useEffect, useRef } from 'react';
 
 import * as styles from './adapter.css';

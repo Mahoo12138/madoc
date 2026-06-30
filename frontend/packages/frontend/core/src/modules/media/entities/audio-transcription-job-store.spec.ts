@@ -2,8 +2,8 @@ import {
   retryTranscriptTaskMutation,
   settleTranscriptTaskMutation,
   submitTranscriptTaskMutation,
-} from '@affine/graphql';
-import { Framework } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Framework } from '@madoc/infra';
 import { describe, expect, test, vi } from 'vitest';
 
 import { DefaultServerService } from '../../cloud/services/default-server';

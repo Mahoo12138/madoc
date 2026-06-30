@@ -4,19 +4,19 @@ import {
   MenuSeparator,
   toast,
   useConfirmModal,
-} from '@affine/component';
-import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
-import { Guard } from '@affine/core/components/guard';
-import { useAppSettingHelper } from '@affine/core/components/hooks/affine/use-app-setting-helper';
-import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
-import { DocsService } from '@affine/core/modules/doc';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/component';
+import { usePageHelper } from '@madoc/core/blocksuite/block-suite-page-list/utils';
+import { Guard } from '@madoc/core/components/guard';
+import { useAppSettingHelper } from '@madoc/core/components/hooks/affine/use-app-setting-helper';
+import { useBlockSuiteMetaHelper } from '@madoc/core/components/hooks/affine/use-block-suite-meta-helper';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { IsFavoriteIcon } from '@madoc/core/components/pure/icons';
+import { DocsService } from '@madoc/core/modules/doc';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import {
   DeleteIcon,
   DuplicateIcon,
@@ -26,7 +26,7 @@ import {
   PlusIcon,
   SplitViewIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useMemo, useState } from 'react';
 
 import type { NodeOperation } from '../../tree/types';

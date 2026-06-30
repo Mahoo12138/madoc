@@ -3,8 +3,8 @@ import {
   settleTranscriptTaskMutation,
   submitTranscriptTaskMutation,
   type TranscriptionResultType,
-} from '@affine/graphql';
-import { Entity } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Entity } from '@madoc/infra';
 
 import type { DefaultServerService, WorkspaceServerService } from '../../cloud';
 import { GraphQLService } from '../../cloud/services/graphql';

@@ -1,4 +1,4 @@
-import { UserFriendlyError } from '@affine/error';
+import { UserFriendlyError } from '@madoc/error';
 import { TimeoutError } from 'rxjs';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 

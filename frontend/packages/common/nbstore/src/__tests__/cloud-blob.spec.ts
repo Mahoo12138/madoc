@@ -6,7 +6,7 @@ import {
   getBlobUploadPartUrlQuery,
   setBlobMutation,
   workspaceBlobQuotaQuery,
-} from '@affine/graphql';
+} from '@madoc/graphql';
 import { afterEach, expect, test, vi } from 'vitest';
 
 import { CloudBlobStorage } from '../impls/cloud/blob';

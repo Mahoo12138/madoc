@@ -1,9 +1,9 @@
-import { emailRegex } from '@affine/component/auth-components';
+import { emailRegex } from '@madoc/component/auth-components';
 import type {
   InviteLink,
   WorkspaceInviteLinkExpireTime,
-} from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
 import { useCallback, useEffect, useState } from 'react';
 
 import { ConfirmModal } from '../../../ui/modal';

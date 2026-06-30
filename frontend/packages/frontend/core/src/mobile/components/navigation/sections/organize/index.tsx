@@ -1,11 +1,11 @@
-import { Skeleton } from '@affine/component';
-import { NavigationPanelTreeRoot } from '@affine/core/desktop/components/navigation-panel';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
-import { OrganizeService } from '@affine/core/modules/organize';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+import { Skeleton } from '@madoc/component';
+import { NavigationPanelTreeRoot } from '@madoc/core/desktop/components/navigation-panel';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
+import { OrganizeService } from '@madoc/core/modules/organize';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import { AddOrganizeIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useMemo, useState } from 'react';
 
 import { AddItemPlaceholder } from '../../layouts/add-item-placeholder';

@@ -1,14 +1,14 @@
-import '@affine/core/bootstrap/browser';
+import '@madoc/core/bootstrap/browser';
 
-import { broadcastChannelStorages } from '@affine/nbstore/broadcast-channel';
-import { cloudStorages } from '@affine/nbstore/cloud';
-import { idbStorages } from '@affine/nbstore/idb';
-import { idbV1Storages } from '@affine/nbstore/idb/v1';
+import { broadcastChannelStorages } from '@madoc/nbstore/broadcast-channel';
+import { cloudStorages } from '@madoc/nbstore/cloud';
+import { idbStorages } from '@madoc/nbstore/idb';
+import { idbV1Storages } from '@madoc/nbstore/idb/v1';
 import {
   StoreManagerConsumer,
   type WorkerManagerOps,
-} from '@affine/nbstore/worker/consumer';
-import { type MessageCommunicapable, OpConsumer } from '@toeverything/infra/op';
+} from '@madoc/nbstore/worker/consumer';
+import { type MessageCommunicapable, OpConsumer } from '@madoc/infra/op';
 
 const consumer = new StoreManagerConsumer([
   ...idbStorages,

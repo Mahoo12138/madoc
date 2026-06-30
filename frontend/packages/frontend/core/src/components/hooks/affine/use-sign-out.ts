@@ -2,12 +2,12 @@ import {
   type ConfirmModalProps,
   notify,
   useConfirmModal,
-} from '@affine/component';
-import { AuthService, DefaultServerService } from '@affine/core/modules/cloud';
-import { UserFriendlyError } from '@affine/error';
-import { ServerFeature } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
-import { useService, useServices } from '@toeverything/infra';
+} from '@madoc/component';
+import { AuthService, DefaultServerService } from '@madoc/core/modules/cloud';
+import { UserFriendlyError } from '@madoc/error';
+import { ServerFeature } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
+import { useService, useServices } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { useNavigateHelper } from '../use-navigate-helper';

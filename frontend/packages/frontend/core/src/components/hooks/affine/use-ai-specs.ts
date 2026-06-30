@@ -1,8 +1,8 @@
-import { useConfirmModal, useLitPortalFactory } from '@affine/component';
-import { getViewManager } from '@affine/core/blocksuite/manager/view';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useFramework, useLiveData, useServices } from '@toeverything/infra';
+import { useConfirmModal, useLitPortalFactory } from '@madoc/component';
+import { getViewManager } from '@madoc/core/blocksuite/manager/view';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useFramework, useLiveData, useServices } from '@madoc/infra';
 import { useMemo } from 'react';
 
 import { useEnableAI } from './use-enable-ai';

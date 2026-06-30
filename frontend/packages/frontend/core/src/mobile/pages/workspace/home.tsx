@@ -1,4 +1,4 @@
-import { SafeArea, useThemeColorV2 } from '@affine/component';
+import { SafeArea, useThemeColorV2 } from '@madoc/component';
 
 import { AppTabs } from '../../components';
 import {

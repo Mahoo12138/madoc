@@ -1,11 +1,11 @@
-import type { IconData } from '@affine/component';
+import type { IconData } from '@madoc/component';
 import {
   type DBSchemaBuilder,
   f,
   type FieldSchemaBuilder,
   type ORMEntity,
   t,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { nanoid } from 'nanoid';
 
 import type { WorkspacePropertyType } from '../../workspace-property';

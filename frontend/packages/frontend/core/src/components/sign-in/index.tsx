@@ -1,6 +1,6 @@
-import { DefaultServerService, type Server } from '@affine/core/modules/cloud';
-import type { AuthSessionStatus } from '@affine/core/modules/cloud/entities/session';
-import { FrameworkScope, useService } from '@toeverything/infra';
+import { DefaultServerService, type Server } from '@madoc/core/modules/cloud';
+import type { AuthSessionStatus } from '@madoc/core/modules/cloud/entities/session';
+import { FrameworkScope, useService } from '@madoc/infra';
 import { useState } from 'react';
 
 import { AddSelfhostedStep } from './add-selfhosted';

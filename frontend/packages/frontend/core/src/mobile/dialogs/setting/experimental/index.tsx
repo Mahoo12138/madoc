@@ -1,12 +1,12 @@
-import { Switch } from '@affine/component';
+import { Switch } from '@madoc/component';
 import {
   AFFINE_FLAGS,
   FeatureFlagService,
   type Flag,
-} from '@affine/core/modules/feature-flag';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/feature-flag';
+import { useI18n } from '@madoc/i18n';
 import { ArrowRightSmallIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useState } from 'react';
 
 import { SettingGroup } from '../group';

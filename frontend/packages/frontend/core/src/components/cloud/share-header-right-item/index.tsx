@@ -1,6 +1,6 @@
-import { AuthService } from '@affine/core/modules/cloud';
+import { AuthService } from '@madoc/core/modules/cloud';
 import type { DocMode } from '@blocksuite/affine/model';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 
 import { ImportTemplateButton } from './import-template';
 import { PresentButton } from './present';

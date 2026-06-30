@@ -3,9 +3,9 @@ import {
   PropertyCollapsibleSection,
   PropertyName,
   PropertyRoot,
-} from '@affine/component';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { type ReactNode, useMemo } from 'react';
 
 import { IntegrationPropertyService } from '../services/integration-property';

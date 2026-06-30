@@ -1,10 +1,10 @@
-import { usePromptModal } from '@affine/component';
-import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
-import { CollectionService } from '@affine/core/modules/collection';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+import { usePromptModal } from '@madoc/component';
+import { useNavigateHelper } from '@madoc/core/components/hooks/use-navigate-helper';
+import { CollectionService } from '@madoc/core/modules/collection';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import { ViewLayersIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { ActionButton } from './action-button';

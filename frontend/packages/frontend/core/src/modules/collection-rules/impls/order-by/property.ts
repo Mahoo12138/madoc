@@ -1,5 +1,5 @@
-import type { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
-import { Service } from '@toeverything/infra';
+import type { WorkspacePropertyService } from '@madoc/core/modules/workspace-property';
+import { Service } from '@madoc/infra';
 import { type Observable, switchMap } from 'rxjs';
 
 import { OrderByProvider } from '../../provider';

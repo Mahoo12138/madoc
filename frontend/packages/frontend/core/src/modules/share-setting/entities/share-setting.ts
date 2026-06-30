@@ -1,10 +1,10 @@
-import { DebugLogger } from '@affine/debug';
+import { DebugLogger } from '@madoc/debug';
 import type {
   RealtimeTopicEventOf,
   WorkspaceConfigSnapshot,
   WorkspaceInviteLinkSnapshot,
-} from '@affine/realtime';
-import { Entity, LiveData } from '@toeverything/infra';
+} from '@madoc/realtime';
+import { Entity, LiveData } from '@madoc/infra';
 
 import { RealtimeLiveQuery } from '../../cloud/realtime/live-query';
 import type { WorkspaceService } from '../../workspace';

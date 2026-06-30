@@ -1,6 +1,6 @@
-import { TagItem as TagItemComponent } from '@affine/core/components/tags';
-import type { Tag } from '@affine/core/modules/tag';
-import { useLiveData } from '@toeverything/infra';
+import { TagItem as TagItemComponent } from '@madoc/core/components/tags';
+import type { Tag } from '@madoc/core/modules/tag';
+import { useLiveData } from '@madoc/infra';
 
 export interface PageTagsProps {
   tags: Tag[];

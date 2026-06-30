@@ -1,4 +1,4 @@
-import { renderTypstSvg } from '@affine/core/modules/code-block-preview-renderer/bridge';
+import { renderTypstSvg } from '@madoc/core/modules/code-block-preview-renderer/bridge';
 import { CodeBlockPreviewExtension } from '@blocksuite/affine/blocks/code';
 import { SignalWatcher, WithDisposable } from '@blocksuite/affine/global/lit';
 import type { CodeBlockModel } from '@blocksuite/affine/model';
@@ -234,15 +234,13 @@ ${this.errorMessage}</pre
               @click=${this._zoomOut}
               title="Zoom out"
             >
-              ‚àí
-            </button>
+              ‚à?            </button>
             <button
               class="typst-control-button"
               @click=${this._resetView}
               title="Reset view"
             >
-              ‚ü≥
-            </button>
+              ‚ü?            </button>
             <button
               class="typst-control-button"
               @click=${this._zoomIn}

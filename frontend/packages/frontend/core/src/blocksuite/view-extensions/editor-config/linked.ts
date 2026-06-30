@@ -1,6 +1,6 @@
-import { AtMenuConfigService } from '@affine/core/modules/at-menu-config/services';
+import { AtMenuConfigService } from '@madoc/core/modules/at-menu-config/services';
 import type { LinkedWidgetConfig } from '@blocksuite/affine/widgets/linked-doc';
-import { type FrameworkProvider } from '@toeverything/infra';
+import { type FrameworkProvider } from '@madoc/infra';
 
 export function createLinkedWidgetConfig(
   framework: FrameworkProvider

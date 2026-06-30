@@ -1,11 +1,11 @@
-import { Tooltip } from '@affine/component/ui/tooltip';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import type { SettingTab } from '@affine/core/modules/dialogs/constant';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { UrlService } from '@affine/core/modules/url';
-import { useI18n } from '@affine/i18n';
+import { Tooltip } from '@madoc/component/ui/tooltip';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import type { SettingTab } from '@madoc/core/modules/dialogs/constant';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { UrlService } from '@madoc/core/modules/url';
+import { useI18n } from '@madoc/i18n';
 import { CloseIcon, NewIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+import { useLiveData, useService, useServices } from '@madoc/infra';
 import { useCallback, useState } from 'react';
 
 import { ContactIcon, HelpIcon, KeyboardIcon } from './icons';

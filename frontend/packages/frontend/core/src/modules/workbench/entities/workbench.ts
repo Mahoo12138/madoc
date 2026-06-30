@@ -1,7 +1,7 @@
-import { toDocSearchParams } from '@affine/core/modules/navigation/utils';
-import { Unreachable } from '@affine/env/constant';
+import { toDocSearchParams } from '@madoc/core/modules/navigation/utils';
+import { Unreachable } from '@madoc/env/constant';
 import type { ReferenceParams } from '@blocksuite/affine/model';
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import { type To } from 'history';
 import { omit } from 'lodash-es';
 import { nanoid } from 'nanoid';

@@ -1,17 +1,17 @@
-import { Menu, type MenuProps } from '@affine/component';
-import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { WorkbenchService } from '@affine/core/modules/workbench';
+import { Menu, type MenuProps } from '@madoc/component';
+import { useNavigateHelper } from '@madoc/core/components/hooks/use-navigate-helper';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
 import {
   type WorkspaceMetadata,
   WorkspacesService,
-} from '@affine/core/modules/workspace';
-import { track } from '@affine/track';
+} from '@madoc/core/modules/workspace';
+import { track } from '@madoc/track';
 import {
   useLiveData,
   useServiceOptional,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useCallback, useEffect, useState } from 'react';
 
 import { UserWithWorkspaceList } from './user-with-workspace-list';

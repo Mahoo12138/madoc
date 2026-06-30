@@ -1,9 +1,9 @@
-import { Avatar } from '@affine/component/ui/avatar';
-import { Menu, MenuItem, MenuSeparator } from '@affine/component/ui/menu';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { useI18n } from '@affine/i18n';
+import { Avatar } from '@madoc/component/ui/avatar';
+import { Menu, MenuItem, MenuSeparator } from '@madoc/component/ui/menu';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { useI18n } from '@madoc/i18n';
 import { SignOutIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useMemo } from 'react';
 
 import { AuthService } from '../../../modules/cloud';

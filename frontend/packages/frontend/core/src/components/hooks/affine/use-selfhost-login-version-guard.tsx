@@ -1,5 +1,5 @@
-import type { Server } from '@affine/core/modules/cloud';
-import { useLiveData } from '@toeverything/infra';
+import type { Server } from '@madoc/core/modules/cloud';
+import { useLiveData } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import semver from 'semver';
 

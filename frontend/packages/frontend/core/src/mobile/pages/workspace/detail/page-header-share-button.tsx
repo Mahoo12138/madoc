@@ -1,10 +1,10 @@
-import { IconButton, MobileMenu } from '@affine/component';
-import { useEnableCloud } from '@affine/core/components/hooks/affine/use-enable-cloud';
-import { DocService } from '@affine/core/modules/doc';
-import { ShareMenuContent } from '@affine/core/modules/share-menu';
-import { WorkspaceService } from '@affine/core/modules/workspace';
+import { IconButton, MobileMenu } from '@madoc/component';
+import { useEnableCloud } from '@madoc/core/components/hooks/affine/use-enable-cloud';
+import { DocService } from '@madoc/core/modules/doc';
+import { ShareMenuContent } from '@madoc/core/modules/share-menu';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
 import { ShareiOsIcon } from '@blocksuite/icons/rc';
-import { useServices } from '@toeverything/infra';
+import { useServices } from '@madoc/infra';
 
 import * as styles from './page-header-share-button.css';
 

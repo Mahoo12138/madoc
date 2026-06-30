@@ -1,9 +1,9 @@
-import { FavoriteTag } from '@affine/core/components/page-list';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { toast } from '@affine/core/utils';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
-import { useLiveData, useService } from '@toeverything/infra';
+import { FavoriteTag } from '@madoc/core/components/page-list';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { toast } from '@madoc/core/utils';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 export interface FavoriteButtonProps {

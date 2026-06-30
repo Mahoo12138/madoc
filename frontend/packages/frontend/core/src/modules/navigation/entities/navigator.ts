@@ -1,4 +1,4 @@
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import type { Location } from 'history';
 import { Observable, switchMap } from 'rxjs';
 

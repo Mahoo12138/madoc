@@ -2,10 +2,10 @@ import type {
   BlobStorage,
   DocStorage,
   ListedBlobRecord,
-} from '@affine/nbstore';
-import type { WorkerInitOptions } from '@affine/nbstore/worker/client';
+} from '@madoc/nbstore';
+import type { WorkerInitOptions } from '@madoc/nbstore/worker/client';
 import type { Workspace as BSWorkspace } from '@blocksuite/affine/store';
-import { createIdentifier, type LiveData } from '@toeverything/infra';
+import { createIdentifier, type LiveData } from '@madoc/infra';
 
 import type { WorkspaceProfileInfo } from '../entities/profile';
 import type { Workspace } from '../entities/workspace';

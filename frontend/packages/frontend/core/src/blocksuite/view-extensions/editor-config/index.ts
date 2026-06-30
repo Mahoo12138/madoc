@@ -1,9 +1,9 @@
-import { getEditorConfigExtension } from '@affine/core/blocksuite/view-extensions/editor-config/get-config';
+import { getEditorConfigExtension } from '@madoc/core/blocksuite/view-extensions/editor-config/get-config';
 import {
   type ViewExtensionContext,
   ViewExtensionProvider,
 } from '@blocksuite/affine/ext-loader';
-import { FrameworkProvider } from '@toeverything/infra';
+import { FrameworkProvider } from '@madoc/infra';
 import { z } from 'zod';
 
 const optionsSchema = z.object({

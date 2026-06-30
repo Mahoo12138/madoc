@@ -1,24 +1,24 @@
-import { uniReactRoot } from '@affine/component';
-import { AffineErrorBoundary } from '@affine/core/components/affine/affine-error-boundary';
-import { SWRConfigProvider } from '@affine/core/components/providers/swr-config-provider';
-import { WorkspaceSideEffects } from '@affine/core/components/providers/workspace-side-effects';
+import { uniReactRoot } from '@madoc/component';
+import { AffineErrorBoundary } from '@madoc/core/components/affine/affine-error-boundary';
+import { SWRConfigProvider } from '@madoc/core/components/providers/swr-config-provider';
+import { WorkspaceSideEffects } from '@madoc/core/components/providers/workspace-side-effects';
 import {
   DefaultServerService,
   WorkspaceServerService,
-} from '@affine/core/modules/cloud';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { PeekViewManagerModal } from '@affine/core/modules/peek-view';
+} from '@madoc/core/modules/cloud';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { PeekViewManagerModal } from '@madoc/core/modules/peek-view';
 import type {
   Workspace,
   WorkspaceMetadata,
-} from '@affine/core/modules/workspace';
-import { WorkspacesService } from '@affine/core/modules/workspace';
+} from '@madoc/core/modules/workspace';
+import { WorkspacesService } from '@madoc/core/modules/workspace';
 import {
   FrameworkScope,
   LiveData,
   useLiveData,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import {
   type PropsWithChildren,
   useEffect,

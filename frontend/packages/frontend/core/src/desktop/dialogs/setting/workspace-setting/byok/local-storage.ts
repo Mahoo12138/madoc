@@ -1,5 +1,5 @@
-import { apis } from '@affine/electron-api';
-import { ByokKeyStorage, ByokKeyTestStatus } from '@affine/graphql';
+import { apis } from '@madoc/electron-api';
+import { ByokKeyStorage, ByokKeyTestStatus } from '@madoc/graphql';
 
 import { capabilitiesFor } from './metadata';
 import type { ByokKey, LocalByokKeyInput, LocalByokPublicKey } from './types';

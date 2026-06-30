@@ -1,20 +1,20 @@
 import {
   createDocExplorerContext,
   DocExplorerContext,
-} from '@affine/core/components/explorer/context';
-import { DocsExplorer } from '@affine/core/components/explorer/docs-view/docs-list';
-import type { ExplorerDisplayPreference } from '@affine/core/components/explorer/types';
-import { CollectionRulesService } from '@affine/core/modules/collection-rules';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { TagService } from '@affine/core/modules/tag';
+} from '@madoc/core/components/explorer/context';
+import { DocsExplorer } from '@madoc/core/components/explorer/docs-view/docs-list';
+import type { ExplorerDisplayPreference } from '@madoc/core/components/explorer/types';
+import { CollectionRulesService } from '@madoc/core/modules/collection-rules';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { TagService } from '@madoc/core/modules/tag';
 import {
   useIsActiveView,
   ViewBody,
   ViewHeader,
   ViewIcon,
   ViewTitle,
-} from '@affine/core/modules/workbench';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/workbench';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 

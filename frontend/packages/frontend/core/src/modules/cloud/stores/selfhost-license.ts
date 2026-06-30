@@ -3,8 +3,8 @@ import {
   deactivateLicenseMutation,
   getLicenseQuery,
   installLicenseMutation,
-} from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 
 import type { WorkspaceServerService } from '../services/workspace-server';
 

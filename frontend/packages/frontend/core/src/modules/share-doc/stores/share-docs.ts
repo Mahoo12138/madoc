@@ -1,6 +1,6 @@
-import type { WorkspaceServerService } from '@affine/core/modules/cloud';
-import { getWorkspacePublicPagesQuery } from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+import type { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import { getWorkspacePublicPagesQuery } from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 
 export class ShareDocsStore extends Store {
   constructor(private readonly workspaceServerService: WorkspaceServerService) {

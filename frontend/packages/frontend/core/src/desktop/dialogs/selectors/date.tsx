@@ -1,7 +1,7 @@
-import { DatePicker, Menu } from '@affine/component';
-import type { DialogComponentProps } from '@affine/core/modules/dialogs';
-import type { WORKSPACE_DIALOG_SCHEMA } from '@affine/core/modules/dialogs/constant';
-import { useI18n } from '@affine/i18n';
+import { DatePicker, Menu } from '@madoc/component';
+import type { DialogComponentProps } from '@madoc/core/modules/dialogs';
+import type { WORKSPACE_DIALOG_SCHEMA } from '@madoc/core/modules/dialogs/constant';
+import { useI18n } from '@madoc/i18n';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { useCallback, useState } from 'react';
 

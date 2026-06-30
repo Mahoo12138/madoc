@@ -1,5 +1,5 @@
-import { GlobalCacheService } from '@affine/core/modules/storage';
-import { LiveData, useLiveData, useService } from '@toeverything/infra';
+import { GlobalCacheService } from '@madoc/core/modules/storage';
+import { LiveData, useLiveData, useService } from '@madoc/infra';
 import { type PropsWithChildren, useCallback, useMemo } from 'react';
 
 import { cacheKey } from './constants';

@@ -1,13 +1,13 @@
-import { CALENDAR_INTEGRATION_SCROLL_ANCHOR } from '@affine/core/desktop/dialogs/setting/navigation-constants';
-import { WorkspaceServerService } from '@affine/core/modules/cloud';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { IntegrationService } from '@affine/core/modules/integration';
+import { CALENDAR_INTEGRATION_SCROLL_ANCHOR } from '@madoc/core/desktop/dialogs/setting/navigation-constants';
+import { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { IntegrationService } from '@madoc/core/modules/integration';
 import type {
   CalendarEntryRange,
   CalendarExternalEntry,
   CalendarViewData,
 } from '@blocksuite/data-view/view-presets';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 import dayjs from 'dayjs';
 
 type CalendarIntegrationLike = IntegrationService['calendar'];

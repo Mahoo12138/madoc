@@ -1,10 +1,10 @@
-import { MenuLinkItem } from '@affine/core/modules/app-sidebar/views';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { JournalService } from '@affine/core/modules/journal';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
+import { MenuLinkItem } from '@madoc/core/modules/app-sidebar/views';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { JournalService } from '@madoc/core/modules/journal';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
 import { TodayIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 
 export const AppSidebarJournalButton = () => {
   const t = useI18n();

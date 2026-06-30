@@ -4,26 +4,26 @@ import {
   Masonry,
   type MasonryGroup,
   Tooltip,
-} from '@affine/component';
+} from '@madoc/component';
 import {
   createDocExplorerContext,
   DocExplorerContext,
-} from '@affine/core/components/explorer/context';
-import { DocListItemComponent } from '@affine/core/components/explorer/docs-view/docs-list';
-import { Filters } from '@affine/core/components/filter';
-import { AffineShapeIcon } from '@affine/core/components/page-list';
-import type { CollectionInfo } from '@affine/core/modules/collection';
-import { CollectionRulesService } from '@affine/core/modules/collection-rules';
-import { DocsService } from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { Trans, useI18n } from '@affine/i18n';
+} from '@madoc/core/components/explorer/context';
+import { DocListItemComponent } from '@madoc/core/components/explorer/docs-view/docs-list';
+import { Filters } from '@madoc/core/components/filter';
+import { AffineShapeIcon } from '@madoc/core/components/page-list';
+import type { CollectionInfo } from '@madoc/core/modules/collection';
+import { CollectionRulesService } from '@madoc/core/modules/collection-rules';
+import { DocsService } from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { Trans, useI18n } from '@madoc/i18n';
 import {
   CloseIcon,
   EdgelessIcon,
   PageIcon,
   ToggleRightIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVar } from '@toeverything/theme';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';

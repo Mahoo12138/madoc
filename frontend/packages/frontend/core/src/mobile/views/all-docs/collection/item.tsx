@@ -1,10 +1,10 @@
-import { IconButton } from '@affine/component';
-import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
-import type { CollectionMeta } from '@affine/core/modules/collection';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { WorkbenchLink } from '@affine/core/modules/workbench';
+import { IconButton } from '@madoc/component';
+import { IsFavoriteIcon } from '@madoc/core/components/pure/icons';
+import type { CollectionMeta } from '@madoc/core/modules/collection';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { WorkbenchLink } from '@madoc/core/modules/workbench';
 import { ViewLayersIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { type MouseEvent, useCallback } from 'react';
 
 import { item, name, prefixIcon, suffixIcon } from './styles.css';

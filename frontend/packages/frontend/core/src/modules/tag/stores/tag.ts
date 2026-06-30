@@ -5,7 +5,7 @@ import {
   yjsGetPath,
   yjsObserveDeep,
   yjsObservePath,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { nanoid } from 'nanoid';
 import { map, switchMap } from 'rxjs';
 import { Array as YArray } from 'yjs';

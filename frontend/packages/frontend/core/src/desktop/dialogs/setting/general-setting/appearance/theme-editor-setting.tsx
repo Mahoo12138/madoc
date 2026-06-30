@@ -1,15 +1,15 @@
-import { Button } from '@affine/component';
-import { SettingRow } from '@affine/component/setting-components';
-import { DesktopApiService } from '@affine/core/modules/desktop-api';
-import { ThemeEditorService } from '@affine/core/modules/theme-editor';
-import { UrlService } from '@affine/core/modules/url';
-import { useI18n } from '@affine/i18n';
+import { Button } from '@madoc/component';
+import { SettingRow } from '@madoc/component/setting-components';
+import { DesktopApiService } from '@madoc/core/modules/desktop-api';
+import { ThemeEditorService } from '@madoc/core/modules/theme-editor';
+import { UrlService } from '@madoc/core/modules/url';
+import { useI18n } from '@madoc/i18n';
 import { DeleteIcon } from '@blocksuite/icons/rc';
 import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { cssVar } from '@toeverything/theme';
 import { useCallback } from 'react';
 

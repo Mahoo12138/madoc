@@ -23,7 +23,8 @@ config:
     Upload: File
     SafeInt: number
 overwrite: true
-schema: ../../backend/server/src/schema.gql
+# schema path removed for selfhosted — generated code maintained directly
+schema: []
 documents: ./src/**/*.gql
 generates:
   ./src/schema.ts:

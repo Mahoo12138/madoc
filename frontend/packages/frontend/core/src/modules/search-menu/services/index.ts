@@ -1,6 +1,6 @@
-import type { TagMeta } from '@affine/core/components/page-list';
-import { UserFriendlyError } from '@affine/error';
-import { I18n } from '@affine/i18n';
+import type { TagMeta } from '@madoc/core/components/page-list';
+import { UserFriendlyError } from '@madoc/error';
+import { I18n } from '@madoc/i18n';
 import { createSignalFromObservable } from '@blocksuite/affine/shared/utils';
 import type { DocMeta } from '@blocksuite/affine/store';
 import type {
@@ -10,7 +10,7 @@ import type {
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { CollectionsIcon, WarningIcon } from '@blocksuite/icons/lit';
 import { computed, signal } from '@preact/signals-core';
-import { Service } from '@toeverything/infra';
+import { Service } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import Fuse, { type FuseResultMatch } from 'fuse.js';
 import { html } from 'lit';

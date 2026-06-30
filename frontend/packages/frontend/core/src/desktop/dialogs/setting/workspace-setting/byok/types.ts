@@ -5,7 +5,7 @@ import {
   type GraphQLQuery,
   type QueryOptions,
   type QueryResponse,
-} from '@affine/graphql';
+} from '@madoc/graphql';
 
 export type ByokStorage = ByokKeyStorage;
 

@@ -1,4 +1,4 @@
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 
 import type { DocDisplayMetaService } from '../../doc-display-meta';
 import type { QuickSearchSession } from '../providers/quick-search-provider';

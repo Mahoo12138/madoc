@@ -1,14 +1,14 @@
-import { Button } from '@affine/component';
-import { WorkspaceTagsInlineEditor } from '@affine/core/components/tags';
+import { Button } from '@madoc/component';
+import { WorkspaceTagsInlineEditor } from '@madoc/core/components/tags';
 import {
   IntegrationService,
   IntegrationTypeIcon,
-} from '@affine/core/modules/integration';
-import type { ReadwiseConfig } from '@affine/core/modules/integration/type';
-import { TagService } from '@affine/core/modules/tag';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/integration';
+import type { ReadwiseConfig } from '@madoc/core/modules/integration/type';
+import { TagService } from '@madoc/core/modules/tag';
+import { useI18n } from '@madoc/i18n';
 import { PlusIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { type ReactNode, useCallback, useMemo, useState } from 'react';
 
 import {

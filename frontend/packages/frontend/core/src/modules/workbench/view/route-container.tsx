@@ -1,7 +1,7 @@
-import { IconButton } from '@affine/component';
-import { AffineErrorBoundary } from '@affine/core/components/affine/affine-error-boundary';
+import { IconButton } from '@madoc/component';
+import { AffineErrorBoundary } from '@madoc/core/components/affine/affine-error-boundary';
 import { RightSidebarIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { Suspense, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 

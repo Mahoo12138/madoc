@@ -1,6 +1,6 @@
-import { getStoreManager } from '@affine/core/blocksuite/manager/store';
+import { getStoreManager } from '@madoc/core/blocksuite/manager/store';
 import { MarkdownTransformer } from '@blocksuite/affine/widgets/linked-doc';
-import { Entity } from '@toeverything/infra';
+import { Entity } from '@madoc/infra';
 
 import type { TagService } from '../../tag';
 import {

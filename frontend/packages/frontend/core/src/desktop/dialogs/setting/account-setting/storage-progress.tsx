@@ -1,5 +1,5 @@
-import { Skeleton } from '@affine/component';
-import { useI18n } from '@affine/i18n';
+import { Skeleton } from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
 import { cssVar } from '@toeverything/theme';
 
 import * as styles from './storage-progress.css';

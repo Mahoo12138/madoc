@@ -32,8 +32,8 @@
  * Then you get a view portal.
  */
 
-import { createIsland, type Island } from '@affine/core/utils/island';
-import { useLiveData, useService } from '@toeverything/infra';
+import { createIsland, type Island } from '@madoc/core/utils/island';
+import { useLiveData, useService } from '@madoc/infra';
 import type React from 'react';
 import {
   createContext,

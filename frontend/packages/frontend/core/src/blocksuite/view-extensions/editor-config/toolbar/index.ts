@@ -1,14 +1,14 @@
-import { notify } from '@affine/component';
+import { notify } from '@madoc/component';
 import {
   generateUrl,
   type UseSharingUrl,
-} from '@affine/core/components/hooks/affine/use-share-url';
-import { WorkspaceServerService } from '@affine/core/modules/cloud';
-import { EditorService } from '@affine/core/modules/editor';
-import type { EditorSettingExt } from '@affine/core/modules/editor-setting/entities/editor-setting';
-import { copyLinkToBlockStdScopeClipboard } from '@affine/core/utils/clipboard';
-import { I18n, i18nTime } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/core/components/hooks/affine/use-share-url';
+import { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import { EditorService } from '@madoc/core/modules/editor';
+import type { EditorSettingExt } from '@madoc/core/modules/editor-setting/entities/editor-setting';
+import { copyLinkToBlockStdScopeClipboard } from '@madoc/core/utils/clipboard';
+import { I18n, i18nTime } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { BookmarkBlockComponent } from '@blocksuite/affine/blocks/bookmark';
 import {
   EmbedFigmaBlockComponent,
@@ -84,7 +84,7 @@ import {
   OpenInNewIcon,
 } from '@blocksuite/icons/lit';
 import { computed } from '@preact/signals-core';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 import { html } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { keyed } from 'lit/directives/keyed.js';

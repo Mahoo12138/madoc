@@ -1,7 +1,7 @@
-import { IconButton } from '@affine/component';
-import { EditorService } from '@affine/core/modules/editor';
+import { IconButton } from '@madoc/component';
+import { EditorService } from '@madoc/core/modules/editor';
 import { PresentationIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 
 export const DetailPageHeaderPresentButton = () => {
   const editorService = useService(EditorService);

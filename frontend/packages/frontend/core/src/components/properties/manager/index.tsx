@@ -5,14 +5,14 @@ import {
   Tooltip,
   useDraggable,
   useDropTarget,
-} from '@affine/component';
-import type { DocCustomPropertyInfo } from '@affine/core/modules/db';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import type { DocCustomPropertyInfo } from '@madoc/core/modules/db';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { WorkspacePropertyService } from '@madoc/core/modules/workspace-property';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
 import { MoreHorizontalIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import { type HTMLProps, useCallback, useState } from 'react';
 

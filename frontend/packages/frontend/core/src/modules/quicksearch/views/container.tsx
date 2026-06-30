@@ -1,6 +1,6 @@
-import { UserFriendlyError } from '@affine/error';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { UserFriendlyError } from '@madoc/error';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { QuickSearchService } from '../services/quick-search';

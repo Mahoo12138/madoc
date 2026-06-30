@@ -2,12 +2,12 @@ import {
   Button,
   WeekDatePicker,
   type WeekDatePickerHandle,
-} from '@affine/component';
-import { BlocksuiteEditorJournalDocTitleUI } from '@affine/core/blocksuite/block-suite-editor/journal-doc-title';
+} from '@madoc/component';
+import { BlocksuiteEditorJournalDocTitleUI } from '@madoc/core/blocksuite/block-suite-editor/journal-doc-title';
 import {
   JOURNAL_DATE_FORMAT,
   JournalService,
-} from '@affine/core/modules/journal';
+} from '@madoc/core/modules/journal';
 import {
   ViewBody,
   ViewHeader,
@@ -15,10 +15,10 @@ import {
   ViewService,
   ViewTitle,
   WorkbenchService,
-} from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
 import { TodayIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import dayjs from 'dayjs';
 import type { Location } from 'history';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';

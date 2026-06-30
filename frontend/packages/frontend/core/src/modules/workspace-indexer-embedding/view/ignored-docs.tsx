@@ -1,8 +1,8 @@
-import { Loading } from '@affine/component';
-import { DocsService } from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { i18nTime } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { Loading } from '@madoc/component';
+import { DocsService } from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { i18nTime } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import type React from 'react';
 
 import type { IgnoredDoc } from '../types';

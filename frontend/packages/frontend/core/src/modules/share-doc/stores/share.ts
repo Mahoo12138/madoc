@@ -3,8 +3,8 @@ import {
   PublicDocMode,
   publishPageMutation,
   revokePublicPageMutation,
-} from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 
 import type { WorkspaceServerService } from '../../cloud';
 import { mapRealtimeEnum } from '../../cloud/realtime/enum';

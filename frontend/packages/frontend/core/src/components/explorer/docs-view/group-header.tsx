@@ -1,7 +1,7 @@
-import { Button, IconButton } from '@affine/component';
-import { useI18n } from '@affine/i18n';
+import { Button, IconButton } from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
 import { ToggleRightIcon } from '@blocksuite/icons/rc';
-import { useLiveData } from '@toeverything/infra';
+import { useLiveData } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   type HTMLAttributes,

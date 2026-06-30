@@ -1,9 +1,9 @@
-import { Tooltip } from '@affine/component';
+import { Tooltip } from '@madoc/component';
 import {
   type CustomLottieProps,
   InternalLottie,
-} from '@affine/component/internal-lottie';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component/internal-lottie';
+import { useI18n } from '@madoc/i18n';
 import type { HTMLAttributes } from 'react';
 import type React from 'react';
 import { cloneElement, useState } from 'react';

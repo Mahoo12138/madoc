@@ -1,5 +1,5 @@
 {
-  "name": "@affine-tools/cli",
+  "name": "@madoc-tools/cli",
   "version": "0.26.3",
   "type": "module",
   "private": true,
@@ -15,8 +15,8 @@
     "affine": "r ./src/affine.ts"
   },
   "dependencies": {
-    "@affine-tools/utils": "workspace:*",
-    "@affine/s3-compat": "workspace:*",
+    "@madoc-tools/utils": "workspace:*",
+    "@madoc/s3-compat": "workspace:*",
     "@napi-rs/simple-git": "^0.1.22",
     "@rspack/core": "^2.0.3",
     "@rspack/dev-server": "^2.0.1",

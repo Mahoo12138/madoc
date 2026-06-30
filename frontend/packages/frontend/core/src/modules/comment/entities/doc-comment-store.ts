@@ -10,12 +10,12 @@ import {
   updateCommentMutation,
   updateReplyMutation,
   uploadCommentAttachmentMutation,
-} from '@affine/graphql';
+} from '@madoc/graphql';
 import type {
   RealtimeSubscriptionReady,
   RealtimeTopicEventOf,
-} from '@affine/realtime';
-import { Entity } from '@toeverything/infra';
+} from '@madoc/realtime';
+import { Entity } from '@madoc/infra';
 import type { Observable } from 'rxjs';
 
 import type { DefaultServerService, WorkspaceServerService } from '../../cloud';

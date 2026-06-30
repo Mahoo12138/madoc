@@ -1,7 +1,7 @@
-import { notify } from '@affine/component';
-import { updateReadyAtom } from '@affine/core/components/hooks/use-app-updater';
-import type { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { notify } from '@madoc/component';
+import { updateReadyAtom } from '@madoc/core/components/hooks/use-app-updater';
+import type { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { ResetIcon } from '@blocksuite/icons/rc';
 import type { createStore } from 'jotai';
 

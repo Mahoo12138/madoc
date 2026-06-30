@@ -1,5 +1,5 @@
-import { track } from '@affine/track';
-import { Service } from '@toeverything/infra';
+import { track } from '@madoc/track';
+import { Service } from '@madoc/infra';
 
 import type { DocsService } from '../../doc';
 import type { WorkbenchService } from '../../workbench';

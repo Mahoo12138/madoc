@@ -1,4 +1,4 @@
-import { Menu, type MenuProps, type MenuRef } from '@affine/component';
+import { Menu, type MenuProps, type MenuRef } from '@madoc/component';
 import { useEffect, useRef } from 'react';
 
 export const FilterValueMenu = ({

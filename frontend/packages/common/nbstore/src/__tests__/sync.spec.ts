@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 
-import * as reader from '@affine/reader';
+import * as reader from '@madoc/reader';
 import { NEVER } from 'rxjs';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Doc as YDoc, encodeStateAsUpdate } from 'yjs';

@@ -1,24 +1,24 @@
-import { useThemeColorV2 } from '@affine/component';
-import { PageDetailLoading } from '@affine/component/page-detail-skeleton';
-import type { AffineEditorContainer } from '@affine/core/blocksuite/block-suite-editor';
-import { AffineErrorBoundary } from '@affine/core/components/affine/affine-error-boundary';
-import { useGuard } from '@affine/core/components/guard';
-import { useActiveBlocksuiteEditor } from '@affine/core/components/hooks/use-block-suite-editor';
-import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
-import { PageDetailEditor } from '@affine/core/components/page-detail-editor';
-import { DetailPageWrapper } from '@affine/core/desktop/pages/workspace/detail-page/detail-page-wrapper';
-import { PageHeader } from '@affine/core/mobile/components';
-import { ServerService } from '@affine/core/modules/cloud';
-import { DocService } from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { EditorService } from '@affine/core/modules/editor';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { JournalService } from '@affine/core/modules/journal';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { ViewService } from '@affine/core/modules/workbench/services/view';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { i18nTime } from '@affine/i18n';
+import { useThemeColorV2 } from '@madoc/component';
+import { PageDetailLoading } from '@madoc/component/page-detail-skeleton';
+import type { AffineEditorContainer } from '@madoc/core/blocksuite/block-suite-editor';
+import { AffineErrorBoundary } from '@madoc/core/components/affine/affine-error-boundary';
+import { useGuard } from '@madoc/core/components/guard';
+import { useActiveBlocksuiteEditor } from '@madoc/core/components/hooks/use-block-suite-editor';
+import { useNavigateHelper } from '@madoc/core/components/hooks/use-navigate-helper';
+import { PageDetailEditor } from '@madoc/core/components/page-detail-editor';
+import { DetailPageWrapper } from '@madoc/core/desktop/pages/workspace/detail-page/detail-page-wrapper';
+import { PageHeader } from '@madoc/core/mobile/components';
+import { ServerService } from '@madoc/core/modules/cloud';
+import { DocService } from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { EditorService } from '@madoc/core/modules/editor';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { JournalService } from '@madoc/core/modules/journal';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { ViewService } from '@madoc/core/modules/workbench/services/view';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { i18nTime } from '@madoc/i18n';
 import { DisposableGroup } from '@blocksuite/affine/global/disposable';
 import { RefNodeSlotsProvider } from '@blocksuite/affine/inlines/reference';
 import {
@@ -30,7 +30,7 @@ import {
   useLiveData,
   useService,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import clsx from 'clsx';
 import dayjs from 'dayjs';

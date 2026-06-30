@@ -1,12 +1,12 @@
-import { useThemeColorV2, Wrapper } from '@affine/component';
-import { EmptyDocs } from '@affine/core/components/affine/empty';
+import { useThemeColorV2, Wrapper } from '@madoc/component';
+import { EmptyDocs } from '@madoc/core/components/affine/empty';
 import {
   createDocExplorerContext,
   DocExplorerContext,
-} from '@affine/core/components/explorer/context';
-import { DocsExplorer } from '@affine/core/components/explorer/docs-view/docs-list';
-import { CollectionRulesService } from '@affine/core/modules/collection-rules';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/components/explorer/context';
+import { DocsExplorer } from '@madoc/core/components/explorer/docs-view/docs-list';
+import { CollectionRulesService } from '@madoc/core/modules/collection-rules';
+import { useLiveData, useService } from '@madoc/infra';
 import { useEffect, useState } from 'react';
 
 import { Page } from '../../components/page';

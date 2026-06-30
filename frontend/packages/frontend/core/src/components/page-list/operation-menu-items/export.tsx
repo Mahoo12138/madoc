@@ -1,7 +1,7 @@
-import { MenuItem, MenuSeparator, MenuSub } from '@affine/component';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { MenuItem, MenuSeparator, MenuSub } from '@madoc/component';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import {
   ExportIcon,
   ExportToHtmlIcon,
@@ -10,7 +10,7 @@ import {
   PageIcon,
   PrinterIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import type { ReactNode } from 'react';
 import { useCallback } from 'react';
 

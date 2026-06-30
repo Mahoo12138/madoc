@@ -6,15 +6,15 @@ import {
   MenuItem,
   Modal,
   notify,
-} from '@affine/component';
-import { buildWorkspaceSettingsRedirectUri } from '@affine/core/components/hooks/use-navigate-helper';
+} from '@madoc/component';
+import { buildWorkspaceSettingsRedirectUri } from '@madoc/core/components/hooks/use-navigate-helper';
 import {
   useQuery,
   type UseQueryConfig,
-} from '@affine/core/components/hooks/use-query';
-import { GraphQLService } from '@affine/core/modules/cloud';
-import { UrlService } from '@affine/core/modules/url';
-import { UserFriendlyError } from '@affine/error';
+} from '@madoc/core/components/hooks/use-query';
+import { GraphQLService } from '@madoc/core/modules/cloud';
+import { UrlService } from '@madoc/core/modules/url';
+import { UserFriendlyError } from '@madoc/error';
 import {
   type CalendarAccountsQuery,
   calendarAccountsQuery,
@@ -25,10 +25,10 @@ import {
   linkCalDavAccountMutation,
   linkCalendarAccountMutation,
   unlinkCalendarAccountMutation,
-} from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
 import { GoogleIcon, LinkIcon, TodayIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import {
   type FormEvent,
   type KeyboardEvent,

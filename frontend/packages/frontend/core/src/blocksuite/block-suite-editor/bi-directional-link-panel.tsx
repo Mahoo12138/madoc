@@ -4,26 +4,26 @@ import {
   observeIntersection,
   Skeleton,
   useLitPortalFactory,
-} from '@affine/component';
-import { getViewManager } from '@affine/core/blocksuite/manager/view';
+} from '@madoc/component';
+import { getViewManager } from '@madoc/core/blocksuite/manager/view';
 import {
   patchReferenceRenderer,
   type ReferenceReactRenderer,
-} from '@affine/core/blocksuite/view-extensions/editor-view/reference-renderer';
-import { useGuard } from '@affine/core/components/guard';
-import { useEnableAI } from '@affine/core/components/hooks/affine/use-enable-ai';
-import { DocService } from '@affine/core/modules/doc';
+} from '@madoc/core/blocksuite/view-extensions/editor-view/reference-renderer';
+import { useGuard } from '@madoc/core/components/guard';
+import { useEnableAI } from '@madoc/core/components/hooks/affine/use-enable-ai';
+import { DocService } from '@madoc/core/modules/doc';
 import {
   type Backlink,
   DocLinksService,
   type Link,
-} from '@affine/core/modules/doc-link';
-import { toDocSearchParams } from '@affine/core/modules/navigation/utils';
-import { GlobalSessionStateService } from '@affine/core/modules/storage';
-import { WorkbenchLink } from '@affine/core/modules/workbench';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/core/modules/doc-link';
+import { toDocSearchParams } from '@madoc/core/modules/navigation/utils';
+import { GlobalSessionStateService } from '@madoc/core/modules/storage';
+import { WorkbenchLink } from '@madoc/core/modules/workbench';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import type {
   ExtensionType,
   TransformerMiddleware,
@@ -35,7 +35,7 @@ import {
   useFramework,
   useLiveData,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { debounce } from 'lodash-es';
 import {
   Fragment,

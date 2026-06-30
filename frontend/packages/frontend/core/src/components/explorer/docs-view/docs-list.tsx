@@ -3,11 +3,11 @@ import {
   type MasonryGroup,
   type MasonryItem,
   useConfirmModal,
-} from '@affine/component';
-import { DocsService } from '@affine/core/modules/doc';
-import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
-import { Trans, useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/component';
+import { DocsService } from '@madoc/core/modules/doc';
+import { WorkspacePropertyService } from '@madoc/core/modules/workspace-property';
+import { Trans, useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { memo, useCallback, useContext, useEffect, useMemo } from 'react';
 

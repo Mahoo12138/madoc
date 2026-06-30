@@ -4,14 +4,14 @@ import {
   IconButton,
   Menu,
   type MenuProps,
-} from '@affine/component';
+} from '@madoc/component';
 import {
   type AuthAccountInfo,
   AuthService,
   ServerService,
-} from '@affine/core/modules/cloud';
-import { GlobalDialogService } from '@affine/core/modules/dialogs';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/cloud';
+import { GlobalDialogService } from '@madoc/core/modules/dialogs';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { Account } from './account';

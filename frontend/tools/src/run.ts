@@ -1,6 +1,6 @@
-import { Path } from '@affine-tools/utils/path';
-import { execAsync } from '@affine-tools/utils/process';
-import type { Package, PackageName } from '@affine-tools/utils/workspace';
+import { Path } from '@madoc-tools/utils/path';
+import { execAsync } from '@madoc-tools/utils/process';
+import type { Package, PackageName } from '@madoc-tools/utils/workspace';
 
 import { Option, PackageCommand } from './command';
 
@@ -53,16 +53,16 @@ export class RunCommand extends PackageCommand {
     examples: [
       [`See detail of each command`, '$0 -h'],
       [
-        `Run custom 'xxx' script defined in @affine/web's package.json`,
+        `Run custom 'xxx' script defined in @madoc/web's package.json`,
         '$0 web xxx',
       ],
       [`Run 'init' for workspace`, '$0 init'],
       [`Clean dist of each package`, '$0 clean --dist'],
       [`Clean node_modules under each package`, '$0 clean --node-modules'],
       [`Clean everything`, '$0 clean --all'],
-      [`Run 'build' script for @affine/web`, '$0 build -p web'],
+      [`Run 'build' script for @madoc/web`, '$0 build -p web'],
       [
-        `Run 'build' script for @affine/web with all deps prebuild before`,
+        `Run 'build' script for @madoc/web with all deps prebuild before`,
         '$0 build -p web --deps',
       ],
     ],
@@ -168,9 +168,9 @@ export class RunCommand extends PackageCommand {
     const { args: extractedArgs, envs } = this.extractEnvs(args);
     args = extractedArgs;
 
-    const bin = args[0] === 'yarn' ? args[1] : args[0];
+    const bin = args[0] === 'yarn' || args[0] === 'pnpm' ? args[1] : args[0];
     const loader =
-      pkg.name === '@affine/server' ? serverRuntimeLoader : tsxRuntimeLoader;
+      pkg.name === '@madoc/server' ? serverRuntimeLoader : tsxRuntimeLoader;
     const hasKnownLoader =
       process.env.NODE_OPTIONS?.includes('tsx') ||
       process.env.NODE_OPTIONS?.includes(tsxRuntimeLoader) ||
@@ -190,9 +190,8 @@ export class RunCommand extends PackageCommand {
       NODE_OPTIONS.push(`--import=${loader}`);
     }
 
-    if (args[0] !== 'yarn') {
-      // add 'yarn' to the command so we can bypass bin execution to it
-      args.unshift('yarn');
+    if (args[0] !== 'pnpm' && args[0] !== 'yarn') {
+      args.unshift('pnpm');
     }
 
     await execAsync(pkg.name, args, {

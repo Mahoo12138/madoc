@@ -1,5 +1,5 @@
 {
-  "name": "@affine/routes",
+  "name": "@madoc/routes",
   "version": "0.26.3",
   "private": true,
   "type": "module",
@@ -10,8 +10,8 @@
     "build": "r build.ts"
   },
   "devDependencies": {
-    "@affine-tools/cli": "workspace:*",
-    "@affine-tools/utils": "workspace:*",
+    "@madoc-tools/cli": "workspace:*",
+    "@madoc-tools/utils": "workspace:*",
     "path-to-regexp": "^8.4.2",
     "vitest": "^4.1.8"
   },

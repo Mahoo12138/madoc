@@ -1,4 +1,4 @@
-import { createReactComponentFromLit } from '@affine/component';
+import { createReactComponentFromLit } from '@madoc/component';
 import { DocTitle } from '@blocksuite/affine/fragments/doc-title';
 import React from 'react';
 

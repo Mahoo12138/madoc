@@ -1,8 +1,8 @@
 import {
   type WorkspaceMetadata,
   WorkspacesService,
-} from '@affine/core/modules/workspace';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/workspace';
+import { useLiveData, useService } from '@madoc/infra';
 import { useEffect } from 'react';
 
 export function useWorkspaceInfo(meta?: WorkspaceMetadata) {

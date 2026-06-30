@@ -1,10 +1,10 @@
-import { WorkspaceServerService } from '@affine/core/modules/cloud';
-import { NbstoreService } from '@affine/core/modules/storage';
+import { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import { NbstoreService } from '@madoc/core/modules/storage';
 import {
   WorkspaceScope,
   WorkspaceService,
-} from '@affine/core/modules/workspace';
-import { type Framework } from '@toeverything/infra';
+} from '@madoc/core/modules/workspace';
+import { type Framework } from '@madoc/infra';
 
 import { AdditionalAttachments } from './entities/additional-attachments';
 import { EmbeddingEnabled } from './entities/embedding-enabled';

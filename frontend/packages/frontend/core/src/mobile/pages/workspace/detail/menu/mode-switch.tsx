@@ -2,11 +2,11 @@ import {
   RadioGroup,
   type RadioItem,
   useMobileMenuController,
-} from '@affine/component';
-import { EditorService } from '@affine/core/modules/editor';
-import track from '@affine/track';
+} from '@madoc/component';
+import { EditorService } from '@madoc/core/modules/editor';
+import track from '@madoc/track';
 import type { DocMode } from '@blocksuite/affine/model';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import * as styles from './mode-switch.css';

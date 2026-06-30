@@ -1,29 +1,29 @@
 // oxlint-disable-next-line no-restricted-imports
 import 'katex/dist/katex.min.css';
 
-import { useConfirmModal, useLitPortalFactory } from '@affine/component';
+import { useConfirmModal, useLitPortalFactory } from '@madoc/component';
 import {
   type EdgelessEditor,
   LitDocEditor,
   LitDocTitle,
   LitEdgelessEditor,
   type PageEditor,
-} from '@affine/core/blocksuite/editors';
-import { getViewManager } from '@affine/core/blocksuite/manager/view';
-import { useEnableAI } from '@affine/core/components/hooks/affine/use-enable-ai';
-import { ServerService } from '@affine/core/modules/cloud';
-import type { DocCustomPropertyInfo } from '@affine/core/modules/db';
+} from '@madoc/core/blocksuite/editors';
+import { getViewManager } from '@madoc/core/blocksuite/manager/view';
+import { useEnableAI } from '@madoc/core/components/hooks/affine/use-enable-ai';
+import { ServerService } from '@madoc/core/modules/cloud';
+import type { DocCustomPropertyInfo } from '@madoc/core/modules/db';
 import type {
   DatabaseRow,
   DatabaseValueCell,
-} from '@affine/core/modules/doc-info/types';
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { JournalService } from '@affine/core/modules/journal';
-import { useInsidePeekView } from '@affine/core/modules/peek-view';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { ServerFeature } from '@affine/graphql';
-import track from '@affine/track';
+} from '@madoc/core/modules/doc-info/types';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { JournalService } from '@madoc/core/modules/journal';
+import { useInsidePeekView } from '@madoc/core/modules/peek-view';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { ServerFeature } from '@madoc/graphql';
+import track from '@madoc/track';
 import type { DocTitle } from '@blocksuite/affine/fragments/doc-title';
 import type { DocMode } from '@blocksuite/affine/model';
 import type { Store } from '@blocksuite/affine/store';
@@ -32,7 +32,7 @@ import {
   useLiveData,
   useService,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import type React from 'react';
 import {
   forwardRef,

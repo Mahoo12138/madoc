@@ -1,5 +1,5 @@
-import type { DocsService } from '@affine/core/modules/doc';
-import { Service } from '@toeverything/infra';
+import type { DocsService } from '@madoc/core/modules/doc';
+import { Service } from '@madoc/infra';
 import { map, type Observable } from 'rxjs';
 
 import type { OrderByProvider } from '../../provider';

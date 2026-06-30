@@ -1,7 +1,7 @@
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { ThemeEditorService } from '@affine/core/modules/theme-editor';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { ThemeEditorService } from '@madoc/core/modules/theme-editor';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useTheme } from 'next-themes';
 import { useEffect } from 'react';
 

@@ -4,10 +4,10 @@ import {
   RadioGroup,
   type RadioItem,
   Slider,
-} from '@affine/component';
-import { SettingRow } from '@affine/component/setting-components';
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import { SettingRow } from '@madoc/component/setting-components';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
+import { useI18n } from '@madoc/i18n';
 import {
   EdgelessCRUDIdentifier,
   getSurfaceBlock,
@@ -27,7 +27,7 @@ import {
 } from '@blocksuite/affine/model';
 import type { EditorHost } from '@blocksuite/affine/std';
 import type { Store } from '@blocksuite/affine/store';
-import { useFramework, useLiveData } from '@toeverything/infra';
+import { useFramework, useLiveData } from '@madoc/infra';
 import { isEqual } from 'lodash-es';
 import { useCallback, useMemo, useState } from 'react';
 

@@ -1,6 +1,6 @@
-import { toast, useConfirmModal } from '@affine/component';
-import { Trans, useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { toast, useConfirmModal } from '@madoc/component';
+import { Trans, useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { TagService } from '../service/tag';

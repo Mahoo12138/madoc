@@ -1,4 +1,4 @@
-import { Input } from '@affine/component';
+import { Input } from '@madoc/component';
 import { useCallback, useState } from 'react';
 
 import * as styles from './string-cell.css';

@@ -1,15 +1,15 @@
-import { Divider, Tooltip } from '@affine/component';
-import { WorkbenchService } from '@affine/core/modules/workbench';
+import { Divider, Tooltip } from '@madoc/component';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
 import {
   type WorkspaceMetadata,
   WorkspacesService,
-} from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import clsx from 'clsx';
 import { memo, useCallback, useMemo } from 'react';
 

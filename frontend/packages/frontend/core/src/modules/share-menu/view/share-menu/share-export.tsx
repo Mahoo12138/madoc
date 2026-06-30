@@ -1,11 +1,11 @@
-import { useExportPage } from '@affine/core/components/hooks/affine/use-export-page';
+import { useExportPage } from '@madoc/core/components/hooks/affine/use-export-page';
 import {
   ExportMenuItems,
   PrintMenuItems,
-} from '@affine/core/components/page-list';
-import { EditorService } from '@affine/core/modules/editor';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/components/page-list';
+import { EditorService } from '@madoc/core/modules/editor';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 
 import * as styles from './index.css';
 

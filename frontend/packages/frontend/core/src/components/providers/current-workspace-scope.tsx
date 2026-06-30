@@ -1,7 +1,7 @@
-import { useWorkspace } from '@affine/core/components/hooks/use-workspace';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { WorkspacesService } from '@affine/core/modules/workspace';
-import { FrameworkScope, useLiveData, useService } from '@toeverything/infra';
+import { useWorkspace } from '@madoc/core/components/hooks/use-workspace';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { WorkspacesService } from '@madoc/core/modules/workspace';
+import { FrameworkScope, useLiveData, useService } from '@madoc/infra';
 
 export const CurrentWorkspaceScopeProvider = ({
   children,

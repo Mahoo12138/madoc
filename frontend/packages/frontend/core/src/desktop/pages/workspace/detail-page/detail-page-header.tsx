@@ -4,30 +4,30 @@ import {
   type InlineEditHandle,
   observeResize,
   useDraggable,
-} from '@affine/component';
-import { FavoriteButton } from '@affine/core/blocksuite/block-suite-header/favorite';
-import { InfoButton } from '@affine/core/blocksuite/block-suite-header/info';
-import { JournalWeekDatePicker } from '@affine/core/blocksuite/block-suite-header/journal/date-picker';
-import { JournalTodayButton } from '@affine/core/blocksuite/block-suite-header/journal/today-button';
-import { PageHeaderMenuButton } from '@affine/core/blocksuite/block-suite-header/menu';
-import { DetailPageHeaderPresentButton } from '@affine/core/blocksuite/block-suite-header/present/detail-header-present-button';
-import { BlocksuiteHeaderTitle } from '@affine/core/blocksuite/block-suite-header/title';
-import { EditorModeSwitch } from '@affine/core/blocksuite/block-suite-mode-switch';
-import { useRegisterCopyLinkCommands } from '@affine/core/components/hooks/affine/use-register-copy-link-commands';
-import { HeaderDivider } from '@affine/core/components/pure/header';
-import { DocService } from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { EditorService } from '@affine/core/modules/editor';
-import { JournalService } from '@affine/core/modules/journal';
-import { SharePageButton } from '@affine/core/modules/share-menu';
-import { TemplateDocService } from '@affine/core/modules/template-doc';
-import { ViewIcon, ViewTitle } from '@affine/core/modules/workbench';
-import type { Workspace } from '@affine/core/modules/workspace';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/component';
+import { FavoriteButton } from '@madoc/core/blocksuite/block-suite-header/favorite';
+import { InfoButton } from '@madoc/core/blocksuite/block-suite-header/info';
+import { JournalWeekDatePicker } from '@madoc/core/blocksuite/block-suite-header/journal/date-picker';
+import { JournalTodayButton } from '@madoc/core/blocksuite/block-suite-header/journal/today-button';
+import { PageHeaderMenuButton } from '@madoc/core/blocksuite/block-suite-header/menu';
+import { DetailPageHeaderPresentButton } from '@madoc/core/blocksuite/block-suite-header/present/detail-header-present-button';
+import { BlocksuiteHeaderTitle } from '@madoc/core/blocksuite/block-suite-header/title';
+import { EditorModeSwitch } from '@madoc/core/blocksuite/block-suite-mode-switch';
+import { useRegisterCopyLinkCommands } from '@madoc/core/components/hooks/affine/use-register-copy-link-commands';
+import { HeaderDivider } from '@madoc/core/components/pure/header';
+import { DocService } from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { EditorService } from '@madoc/core/modules/editor';
+import { JournalService } from '@madoc/core/modules/journal';
+import { SharePageButton } from '@madoc/core/modules/share-menu';
+import { TemplateDocService } from '@madoc/core/modules/template-doc';
+import { ViewIcon, ViewTitle } from '@madoc/core/modules/workbench';
+import type { Workspace } from '@madoc/core/modules/workspace';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import type { Store } from '@blocksuite/affine/store';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   forwardRef,

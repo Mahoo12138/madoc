@@ -1,6 +1,6 @@
-import { ConfirmModalProvider, PromptModalProvider } from '@affine/component';
-import { ProviderComposer } from '@affine/component/provider-composer';
-import { ThemeProvider } from '@affine/core/components/theme-provider';
+import { ConfirmModalProvider, PromptModalProvider } from '@madoc/component';
+import { ProviderComposer } from '@madoc/component/provider-composer';
+import { ThemeProvider } from '@madoc/core/components/theme-provider';
 import type { createStore } from 'jotai';
 import { Provider } from 'jotai';
 import type { PropsWithChildren } from 'react';

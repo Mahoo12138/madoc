@@ -1,5 +1,5 @@
 {
-  "name": "@affine/reader",
+  "name": "@madoc/reader",
   "type": "module",
   "version": "0.26.3",
   "private": true,
@@ -10,8 +10,8 @@
     "./dist": "./dist/index.js"
   },
   "scripts": {
-    "build": "affine bundle -p @affine/reader",
-    "bundle": "affine bundle -p @affine/reader"
+    "build": "affine bundle -p @madoc/reader",
+    "bundle": "affine bundle -p @madoc/reader"
   },
   "dependencies": {
     "lodash-es": "^4.17.23",

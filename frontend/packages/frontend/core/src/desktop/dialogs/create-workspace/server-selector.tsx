@@ -1,6 +1,6 @@
-import { Menu, MenuItem } from '@affine/component';
-import { type Server, ServersService } from '@affine/core/modules/cloud';
-import { useI18n } from '@affine/i18n';
+import { Menu, MenuItem } from '@madoc/component';
+import { type Server, ServersService } from '@madoc/core/modules/cloud';
+import { useI18n } from '@madoc/i18n';
 import {
   ArrowDownSmallIcon,
   CloudWorkspaceIcon,
@@ -8,7 +8,7 @@ import {
   LocalWorkspaceIcon,
   SelfhostIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   type HTMLAttributes,

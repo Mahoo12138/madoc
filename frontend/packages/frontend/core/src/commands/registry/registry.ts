@@ -1,4 +1,4 @@
-import { DebugLogger } from '@affine/debug';
+import { DebugLogger } from '@madoc/debug';
 // @ts-expect-error upstream type is wrong
 import { createKeybindingsHandler } from 'tinykeys';
 
@@ -69,7 +69,7 @@ export const AffineCommandRegistry = new (class {
         {
           [keybinding]: (e: Event) => {
             // Skip when Alt produces a locale input character (e.g. macOS
-            // Polish layout: Option+S → "ś"). The user is typing the
+            // Polish layout: Option+S �?"ś"). The user is typing the
             // character, not invoking the shortcut bound to the physical
             // key. Matches the handling in blocksuite's keymap.ts.
             if (

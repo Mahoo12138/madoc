@@ -1,8 +1,8 @@
-import { OverlayModal } from '@affine/component';
-import { useEnableCloud } from '@affine/core/components/hooks/affine/use-enable-cloud';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+import { OverlayModal } from '@madoc/component';
+import { useEnableCloud } from '@madoc/core/components/hooks/affine/use-enable-cloud';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import TopSvg from './top-svg';

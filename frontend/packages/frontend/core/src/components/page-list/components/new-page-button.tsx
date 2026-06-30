@@ -1,7 +1,7 @@
-import { DropdownButton, Menu } from '@affine/component';
-import { BlockCard } from '@affine/component/card/block-card';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { DropdownButton, Menu } from '@madoc/component';
+import { BlockCard } from '@madoc/component/card/block-card';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { EdgelessIcon, ImportIcon, PageIcon } from '@blocksuite/icons/rc';
 import type { MouseEvent, PropsWithChildren } from 'react';
 import { useCallback, useState } from 'react';

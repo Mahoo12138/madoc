@@ -1,16 +1,16 @@
-import { toast } from '@affine/component';
-import { getStoreManager } from '@affine/core/blocksuite/manager/store';
-import { AppSidebarService } from '@affine/core/modules/app-sidebar';
-import { DocsService } from '@affine/core/modules/doc';
+import { toast } from '@madoc/component';
+import { getStoreManager } from '@madoc/core/blocksuite/manager/store';
+import { AppSidebarService } from '@madoc/core/modules/app-sidebar';
+import { DocsService } from '@madoc/core/modules/doc';
 import {
   EditorSettingService,
   resolveNewDocTitle,
-} from '@affine/core/modules/editor-setting';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { getAFFiNEWorkspaceSchema } from '@affine/core/modules/workspace';
+} from '@madoc/core/modules/editor-setting';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { getAFFiNEWorkspaceSchema } from '@madoc/core/modules/workspace';
 import { type DocMode } from '@blocksuite/affine/model';
 import type { Workspace } from '@blocksuite/affine/store';
-import { LiveData, useLiveData, useServices } from '@toeverything/infra';
+import { LiveData, useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 export const usePageHelper = (docCollection: Workspace) => {

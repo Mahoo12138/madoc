@@ -1,7 +1,7 @@
-import type { Tag } from '@affine/core/modules/tag';
-import { TagService } from '@affine/core/modules/tag';
+import type { Tag } from '@madoc/core/modules/tag';
+import { TagService } from '@madoc/core/modules/tag';
 import { MoreHorizontalIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { assignInlineVars } from '@vanilla-extract/dynamic';
 
 import * as styles from './tag.css';

@@ -1,8 +1,8 @@
 import {
   SettingHeader,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component/setting-components';
+import { useI18n } from '@madoc/i18n';
 
 import type { ShortcutsInfo } from '../../../../../components/hooks/affine/use-shortcuts';
 import {

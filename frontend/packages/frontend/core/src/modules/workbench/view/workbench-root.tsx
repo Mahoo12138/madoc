@@ -1,12 +1,12 @@
-import { ResizePanel } from '@affine/component/resize-panel';
-import { AffineErrorComponent } from '@affine/core/components/affine/affine-error-boundary/affine-error-fallback';
-import { workbenchRoutes } from '@affine/core/desktop/workbench-router';
+import { ResizePanel } from '@madoc/component/resize-panel';
+import { AffineErrorComponent } from '@madoc/core/components/affine/affine-error-boundary/affine-error-fallback';
+import { workbenchRoutes } from '@madoc/core/desktop/workbench-router';
 import {
   appSettingAtom,
   FrameworkScope,
   useLiveData,
   useService,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useAtomValue } from 'jotai';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { type RouteObject, useLocation } from 'react-router-dom';

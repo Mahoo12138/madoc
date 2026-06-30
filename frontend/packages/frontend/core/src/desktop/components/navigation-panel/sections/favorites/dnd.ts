@@ -1,6 +1,6 @@
-import type { DropTargetOptions } from '@affine/component';
-import { isFavoriteSupportType } from '@affine/core/modules/favorite';
-import type { AffineDNDData } from '@affine/core/types/dnd';
+import type { DropTargetOptions } from '@madoc/component';
+import { isFavoriteSupportType } from '@madoc/core/modules/favorite';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
 
 import type { NavigationPanelTreeNodeDropEffect } from '../../tree';
 

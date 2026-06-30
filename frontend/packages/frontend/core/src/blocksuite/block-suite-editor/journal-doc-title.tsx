@@ -1,7 +1,7 @@
-import { JournalService } from '@affine/core/modules/journal';
-import { i18nTime, useI18n } from '@affine/i18n';
+import { JournalService } from '@madoc/core/modules/journal';
+import { i18nTime, useI18n } from '@madoc/i18n';
 import type { Store } from '@blocksuite/affine/store';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import dayjs from 'dayjs';
 
 import * as styles from './styles.css';

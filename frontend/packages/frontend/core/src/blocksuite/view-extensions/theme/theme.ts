@@ -1,5 +1,5 @@
-import { DocService, DocsService } from '@affine/core/modules/doc';
-import { AppThemeService } from '@affine/core/modules/theme';
+import { DocService, DocsService } from '@madoc/core/modules/doc';
+import { AppThemeService } from '@madoc/core/modules/theme';
 import type { Container } from '@blocksuite/affine/global/di';
 import { ColorScheme } from '@blocksuite/affine/model';
 import {
@@ -11,7 +11,7 @@ import {
   type Signal,
 } from '@blocksuite/affine/shared/utils';
 import { LifeCycleWatcher, StdIdentifier } from '@blocksuite/affine/std';
-import { type FrameworkProvider } from '@toeverything/infra';
+import { type FrameworkProvider } from '@madoc/infra';
 import type { Observable } from 'rxjs';
 import { combineLatest, map } from 'rxjs';
 

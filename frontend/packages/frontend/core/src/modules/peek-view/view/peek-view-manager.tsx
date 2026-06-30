@@ -1,6 +1,6 @@
-import { toReactNode } from '@affine/component';
+import { toReactNode } from '@madoc/component';
 import { BlockComponent } from '@blocksuite/affine/std';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { ActivePeekView } from '../entities/peek-view';

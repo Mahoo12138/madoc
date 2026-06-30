@@ -1,17 +1,17 @@
-import { Menu, MenuItem, MenuTrigger, notify } from '@affine/component';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { EditorService } from '@affine/core/modules/editor';
-import { ShareInfoService } from '@affine/core/modules/share-doc';
-import { UserFriendlyError } from '@affine/error';
-import { PublicDocMode } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+import { Menu, MenuItem, MenuTrigger, notify } from '@madoc/component';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { EditorService } from '@madoc/core/modules/editor';
+import { ShareInfoService } from '@madoc/core/modules/share-doc';
+import { UserFriendlyError } from '@madoc/error';
+import { PublicDocMode } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import {
   LockIcon,
   SingleSelectCheckSolidIcon,
   ViewIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVar } from '@toeverything/theme';
 import clsx from 'clsx';
 import { useEffect } from 'react';

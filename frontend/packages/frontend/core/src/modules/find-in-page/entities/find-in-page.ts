@@ -1,5 +1,5 @@
-import { DebugLogger } from '@affine/debug';
-import { Entity, LiveData } from '@toeverything/infra';
+import { DebugLogger } from '@madoc/debug';
+import { Entity, LiveData } from '@madoc/infra';
 import {
   debounceTime,
   distinctUntilChanged,

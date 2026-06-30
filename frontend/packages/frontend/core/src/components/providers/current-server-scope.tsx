@@ -1,6 +1,6 @@
-import { ServersService } from '@affine/core/modules/cloud';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { FrameworkScope, useLiveData, useService } from '@toeverything/infra';
+import { ServersService } from '@madoc/core/modules/cloud';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { FrameworkScope, useLiveData, useService } from '@madoc/infra';
 import { useMemo } from 'react';
 
 export const CurrentServerScopeProvider = ({

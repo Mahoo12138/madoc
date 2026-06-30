@@ -1,5 +1,5 @@
-import type { WorkerInitOptions } from '@affine/nbstore/worker/client';
-import { Service } from '@toeverything/infra';
+import type { WorkerInitOptions } from '@madoc/nbstore/worker/client';
+import { Service } from '@madoc/infra';
 
 import type { NbstoreProvider } from '../providers/nbstore';
 

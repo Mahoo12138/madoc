@@ -1,22 +1,22 @@
-import { AffineContext } from '@affine/core/components/context';
-import { AppContainer } from '@affine/core/desktop/components/app-container';
-import { router } from '@affine/core/desktop/router';
-import { configureCommonModules } from '@affine/core/modules';
-import { I18nProvider } from '@affine/core/modules/i18n';
-import { LifecycleService } from '@affine/core/modules/lifecycle';
+import { AffineContext } from '@madoc/core/components/context';
+import { AppContainer } from '@madoc/core/desktop/components/app-container';
+import { router } from '@madoc/core/desktop/router';
+import { configureCommonModules } from '@madoc/core/modules';
+import { I18nProvider } from '@madoc/core/modules/i18n';
+import { LifecycleService } from '@madoc/core/modules/lifecycle';
 import {
   configureLocalStorageStateStorageImpls,
   NbstoreProvider,
-} from '@affine/core/modules/storage';
-import { PopupWindowProvider } from '@affine/core/modules/url';
-import { configureBrowserWorkbenchModule } from '@affine/core/modules/workbench';
-import { configureBrowserWorkspaceFlavours } from '@affine/core/modules/workspace-engine';
-import createEmotionCache from '@affine/core/utils/create-emotion-cache';
-import { getWorkerUrl } from '@affine/env/worker';
-import { StoreManagerClient } from '@affine/nbstore/worker/client';
+} from '@madoc/core/modules/storage';
+import { PopupWindowProvider } from '@madoc/core/modules/url';
+import { configureBrowserWorkbenchModule } from '@madoc/core/modules/workbench';
+import { configureBrowserWorkspaceFlavours } from '@madoc/core/modules/workspace-engine';
+import createEmotionCache from '@madoc/core/utils/create-emotion-cache';
+import { getWorkerUrl } from '@madoc/env/worker';
+import { StoreManagerClient } from '@madoc/nbstore/worker/client';
 import { CacheProvider } from '@emotion/react';
-import { Framework, FrameworkRoot, getCurrentStore } from '@toeverything/infra';
-import { OpClient } from '@toeverything/infra/op';
+import { Framework, FrameworkRoot, getCurrentStore } from '@madoc/infra';
+import { OpClient } from '@madoc/infra/op';
 import { Suspense } from 'react';
 import { RouterProvider } from 'react-router-dom';
 

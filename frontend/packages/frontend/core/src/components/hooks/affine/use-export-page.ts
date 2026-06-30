@@ -1,13 +1,13 @@
-import { notify } from '@affine/component';
+import { notify } from '@madoc/component';
 import {
   pushGlobalLoadingEventAtom,
   resolveGlobalLoadingEventAtom,
-} from '@affine/component/global-loading';
-import type { AffineEditorContainer } from '@affine/core/blocksuite/block-suite-editor/blocksuite-editor';
-import { EditorService } from '@affine/core/modules/editor';
-import { getAFFiNEWorkspaceSchema } from '@affine/core/modules/workspace/global-schema';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/component/global-loading';
+import type { AffineEditorContainer } from '@madoc/core/blocksuite/block-suite-editor/blocksuite-editor';
+import { EditorService } from '@madoc/core/modules/editor';
+import { getAFFiNEWorkspaceSchema } from '@madoc/core/modules/workspace/global-schema';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { ExportManager } from '@blocksuite/affine/blocks/surface';
 import {
   docLinkBaseURLMiddleware,
@@ -26,7 +26,7 @@ import {
   MarkdownTransformer,
   ZipTransformer,
 } from '@blocksuite/affine/widgets/linked-doc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useSetAtom } from 'jotai';
 import { nanoid } from 'nanoid';
 

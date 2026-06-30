@@ -1,10 +1,10 @@
-import { IconButton, notify, toast } from '@affine/component';
-import { LitDocEditor, type PageEditor } from '@affine/core/blocksuite/editors';
-import { SnapshotHelper } from '@affine/core/modules/comment/services/snapshot-helper';
-import type { CommentAttachment } from '@affine/core/modules/comment/types';
-import { PeekViewService } from '@affine/core/modules/peek-view';
-import { downloadResourceWithUrl } from '@affine/core/utils/resource';
-import { DebugLogger } from '@affine/debug';
+import { IconButton, notify, toast } from '@madoc/component';
+import { LitDocEditor, type PageEditor } from '@madoc/core/blocksuite/editors';
+import { SnapshotHelper } from '@madoc/core/modules/comment/services/snapshot-helper';
+import type { CommentAttachment } from '@madoc/core/modules/comment/types';
+import { PeekViewService } from '@madoc/core/modules/peek-view';
+import { downloadResourceWithUrl } from '@madoc/core/utils/resource';
+import { DebugLogger } from '@madoc/debug';
 import { getAttachmentFileIconRC } from '@blocksuite/affine/components/icons';
 import { type RichText, selectTextModel } from '@blocksuite/affine/rich-text';
 import { ViewportElementExtension } from '@blocksuite/affine/shared/services';
@@ -16,7 +16,7 @@ import {
   CloseIcon,
 } from '@blocksuite/icons/rc';
 import type { TextSelection } from '@blocksuite/std';
-import { useFramework, useService } from '@toeverything/infra';
+import { useFramework, useService } from '@madoc/infra';
 import bytes from 'bytes';
 import clsx from 'clsx';
 import {

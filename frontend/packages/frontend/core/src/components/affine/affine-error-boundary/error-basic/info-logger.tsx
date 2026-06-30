@@ -1,5 +1,5 @@
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 

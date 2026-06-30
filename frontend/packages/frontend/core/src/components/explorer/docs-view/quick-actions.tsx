@@ -4,20 +4,20 @@ import {
   type IconButtonProps,
   toast,
   useConfirmModal,
-} from '@affine/component';
-import type { DocRecord } from '@affine/core/modules/doc';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { UserFriendlyError } from '@affine/error';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/component';
+import type { DocRecord } from '@madoc/core/modules/doc';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { UserFriendlyError } from '@madoc/error';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import {
   DeleteIcon,
   OpenInNewIcon,
   ResetIcon,
   SplitViewIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { memo, useCallback, useContext } from 'react';
 
 import { useBlockSuiteMetaHelper } from '../../hooks/affine/use-block-suite-meta-helper';

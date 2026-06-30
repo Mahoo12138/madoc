@@ -1,5 +1,5 @@
-import type { ToastOptions } from '@affine/component';
-import { toast as basicToast } from '@affine/component';
+import type { ToastOptions } from '@madoc/component';
+import { toast as basicToast } from '@madoc/component';
 
 export const toast = (message: string, options?: ToastOptions) => {
   const modal = document.querySelector<HTMLDivElement>('[role=presentation]');

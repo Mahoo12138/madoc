@@ -1,4 +1,4 @@
-import { Service } from '@toeverything/infra';
+import { Service } from '@madoc/infra';
 
 import { I18n } from '../entities/i18n';
 

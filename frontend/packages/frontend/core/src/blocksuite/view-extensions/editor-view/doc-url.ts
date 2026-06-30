@@ -1,13 +1,13 @@
-import { generateUrl } from '@affine/core/components/hooks/affine/use-share-url';
-import { WorkspaceServerService } from '@affine/core/modules/cloud';
-import { resolveLinkToDoc } from '@affine/core/modules/navigation/utils';
-import { WorkspaceService } from '@affine/core/modules/workspace';
+import { generateUrl } from '@madoc/core/components/hooks/affine/use-share-url';
+import { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import { resolveLinkToDoc } from '@madoc/core/modules/navigation/utils';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
 import { type ReferenceParams } from '@blocksuite/affine/model';
 import {
   GenerateDocUrlExtension,
   ParseDocUrlExtension,
 } from '@blocksuite/affine/shared/services';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 function patchParseDocUrlExtension(framework: FrameworkProvider) {
   const workspaceService = framework.get(WorkspaceService);

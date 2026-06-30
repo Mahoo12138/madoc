@@ -8,16 +8,16 @@ import {
   observeIntersection,
   Scrollable,
   Skeleton,
-} from '@affine/component';
-import { InvitationService } from '@affine/core/modules/cloud';
+} from '@madoc/component';
+import { InvitationService } from '@madoc/core/modules/cloud';
 import {
   type Notification,
   NotificationListService,
   NotificationType,
-} from '@affine/core/modules/notification';
-import { WorkspacesService } from '@affine/core/modules/workspace';
-import { extractEmojiIcon } from '@affine/core/utils';
-import { UserFriendlyError } from '@affine/error';
+} from '@madoc/core/modules/notification';
+import { WorkspacesService } from '@madoc/core/modules/workspace';
+import { extractEmojiIcon } from '@madoc/core/utils';
+import { UserFriendlyError } from '@madoc/error';
 import type {
   InvitationAcceptedNotificationBodyType,
   InvitationBlockedNotificationBodyType,
@@ -26,9 +26,9 @@ import type {
   InvitationReviewDeclinedNotificationBodyType,
   InvitationReviewRequestNotificationBodyType,
   MentionNotificationBodyType,
-} from '@affine/graphql';
-import { i18nTime, Trans, useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/graphql';
+import { i18nTime, Trans, useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import {
   CollaborationIcon,
   DeleteIcon,
@@ -37,7 +37,7 @@ import {
   NotificationIcon,
   PageIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   useCallback,

@@ -1,16 +1,16 @@
-import { RadioGroup, type RadioItem } from '@affine/component';
-import { registerAffineCommand } from '@affine/core/commands';
-import { EditorService } from '@affine/core/modules/editor';
-import { ViewService, WorkbenchService } from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { RadioGroup, type RadioItem } from '@madoc/component';
+import { registerAffineCommand } from '@madoc/core/commands';
+import { EditorService } from '@madoc/core/modules/editor';
+import { ViewService, WorkbenchService } from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import type { DocMode } from '@blocksuite/affine/model';
 import { EdgelessIcon, PageIcon } from '@blocksuite/icons/rc';
 import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useCallback, useEffect, useMemo } from 'react';
 
 import { switchItem } from './style.css';

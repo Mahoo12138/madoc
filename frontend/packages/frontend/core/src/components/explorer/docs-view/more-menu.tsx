@@ -5,13 +5,13 @@ import {
   MenuItem,
   type MenuProps,
   useConfirmModal,
-} from '@affine/component';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { DocsService } from '@affine/core/modules/doc';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/component';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { DocsService } from '@madoc/core/modules/doc';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import {
   DeleteIcon,
   DuplicateIcon,
@@ -20,7 +20,7 @@ import {
   OpenInNewIcon,
   SplitViewIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useContext } from 'react';
 
 import { useBlockSuiteMetaHelper } from '../../hooks/affine/use-block-suite-meta-helper';

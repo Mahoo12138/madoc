@@ -1,5 +1,5 @@
-import { VirtualKeyboardProvider } from '@affine/core/mobile/modules/virtual-keyboard';
-import { globalVars } from '@affine/core/mobile/styles/variables.css';
+import { VirtualKeyboardProvider } from '@madoc/core/mobile/modules/virtual-keyboard';
+import { globalVars } from '@madoc/core/mobile/styles/variables.css';
 import type { Container } from '@blocksuite/affine/global/di';
 import { DisposableGroup } from '@blocksuite/affine/global/disposable';
 import {
@@ -9,7 +9,7 @@ import {
 import { LifeCycleWatcher } from '@blocksuite/affine/std';
 import type { ExtensionType } from '@blocksuite/affine/store';
 import { batch, signal } from '@preact/signals-core';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 export function KeyboardToolbarExtension(
   framework: FrameworkProvider

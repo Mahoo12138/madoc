@@ -1,13 +1,13 @@
-import { DocsService } from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { JournalService } from '@affine/core/modules/journal';
-import { PeekViewService } from '@affine/core/modules/peek-view/services/peek-view';
-import { useInsidePeekView } from '@affine/core/modules/peek-view/view/modal-container';
-import { WorkbenchLink } from '@affine/core/modules/workbench';
-import { track } from '@affine/track';
+import { DocsService } from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { JournalService } from '@madoc/core/modules/journal';
+import { PeekViewService } from '@madoc/core/modules/peek-view/services/peek-view';
+import { useInsidePeekView } from '@madoc/core/modules/peek-view/view/modal-container';
+import { WorkbenchLink } from '@madoc/core/modules/workbench';
+import { track } from '@madoc/track';
 import type { DocMode } from '@blocksuite/affine/model';
 import type { Workspace } from '@blocksuite/affine/store';
-import { LiveData, useLiveData, useService } from '@toeverything/infra';
+import { LiveData, useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import { nanoid } from 'nanoid';
 import {

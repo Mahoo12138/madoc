@@ -1,9 +1,9 @@
 import type {
   SpellCheckStateKey,
   SpellCheckStateSchema,
-} from '@affine/electron/main/shared-state-schema';
-import type { Language } from '@affine/i18n';
-import { LiveData, Service } from '@toeverything/infra';
+} from '@madoc/electron/main/shared-state-schema';
+import type { Language } from '@madoc/i18n';
+import { LiveData, Service } from '@madoc/infra';
 
 import type { DesktopApiService } from '../../desktop-api';
 import type { I18n } from '../../i18n';

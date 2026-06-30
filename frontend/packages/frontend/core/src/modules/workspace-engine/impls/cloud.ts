@@ -1,18 +1,18 @@
-import { toArrayBuffer } from '@affine/core/utils/array-buffer';
-import { DebugLogger } from '@affine/debug';
+import { toArrayBuffer } from '@madoc/core/utils/array-buffer';
+import { DebugLogger } from '@madoc/debug';
 import {
   createWorkspaceMutation,
   deleteWorkspaceMutation,
   getWorkspacesQuery,
   ServerDeploymentType,
   ServerFeature,
-} from '@affine/graphql';
+} from '@madoc/graphql';
 import type {
   BlobStorage,
   DocStorage,
   ListedBlobRecord,
-} from '@affine/nbstore';
-import { CloudBlobStorage, StaticCloudDocStorage } from '@affine/nbstore/cloud';
+} from '@madoc/nbstore';
+import { CloudBlobStorage, StaticCloudDocStorage } from '@madoc/nbstore/cloud';
 import {
   IndexedDBBlobStorage,
   IndexedDBBlobSyncStorage,
@@ -20,11 +20,11 @@ import {
   IndexedDBDocSyncStorage,
   IndexedDBIndexerStorage,
   IndexedDBIndexerSyncStorage,
-} from '@affine/nbstore/idb';
+} from '@madoc/nbstore/idb';
 import {
   IndexedDBV1BlobStorage,
   IndexedDBV1DocStorage,
-} from '@affine/nbstore/idb/v1';
+} from '@madoc/nbstore/idb/v1';
 import {
   SqliteBlobStorage,
   SqliteBlobSyncStorage,
@@ -32,12 +32,12 @@ import {
   SqliteDocSyncStorage,
   SqliteIndexerStorage,
   SqliteIndexerSyncStorage,
-} from '@affine/nbstore/sqlite';
+} from '@madoc/nbstore/sqlite';
 import {
   SqliteV1BlobStorage,
   SqliteV1DocStorage,
-} from '@affine/nbstore/sqlite/v1';
-import type { WorkerInitOptions } from '@affine/nbstore/worker/client';
+} from '@madoc/nbstore/sqlite/v1';
+import type { WorkerInitOptions } from '@madoc/nbstore/worker/client';
 import {
   catchErrorInto,
   effect,
@@ -48,7 +48,7 @@ import {
   onComplete,
   onStart,
   Service,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { isEqual } from 'lodash-es';
 import { map, Observable, switchMap, tap } from 'rxjs';
 import {

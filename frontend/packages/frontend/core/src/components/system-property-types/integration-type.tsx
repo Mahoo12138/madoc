@@ -1,12 +1,12 @@
-import { MenuItem } from '@affine/component';
-import type { FilterParams } from '@affine/core/modules/collection-rules';
-import type { DocRecord } from '@affine/core/modules/doc';
-import { IntegrationTypeIcon } from '@affine/core/modules/integration';
-import { INTEGRATION_TYPE_NAME_MAP } from '@affine/core/modules/integration/constant';
-import type { IntegrationType } from '@affine/core/modules/integration/type';
-import { useI18n } from '@affine/i18n';
+import { MenuItem } from '@madoc/component';
+import type { FilterParams } from '@madoc/core/modules/collection-rules';
+import type { DocRecord } from '@madoc/core/modules/doc';
+import { IntegrationTypeIcon } from '@madoc/core/modules/integration';
+import { INTEGRATION_TYPE_NAME_MAP } from '@madoc/core/modules/integration/constant';
+import type { IntegrationType } from '@madoc/core/modules/integration/type';
+import { useI18n } from '@madoc/i18n';
 import { IntegrationsIcon, ReadwiseIcon } from '@blocksuite/icons/rc';
-import { useLiveData } from '@toeverything/infra';
+import { useLiveData } from '@madoc/infra';
 
 import { PlainTextDocGroupHeader } from '../explorer/docs-view/group-header';
 import { StackProperty } from '../explorer/docs-view/stack-property';

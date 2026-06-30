@@ -1,9 +1,9 @@
-import { MenuItem } from '@affine/component/ui/menu';
-import { DefaultServerService } from '@affine/core/modules/cloud';
-import { ServerFeature } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
+import { MenuItem } from '@madoc/component/ui/menu';
+import { DefaultServerService } from '@madoc/core/modules/cloud';
+import { ServerFeature } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
 import { ImportIcon, PlusIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 
 import * as styles from './index.css';
 

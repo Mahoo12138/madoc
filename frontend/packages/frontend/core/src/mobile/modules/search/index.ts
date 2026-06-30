@@ -1,5 +1,5 @@
-import { WorkspaceScope } from '@affine/core/modules/workspace';
-import { type Framework } from '@toeverything/infra';
+import { WorkspaceScope } from '@madoc/core/modules/workspace';
+import { type Framework } from '@madoc/infra';
 
 import { MobileSearchService } from './service/search';
 

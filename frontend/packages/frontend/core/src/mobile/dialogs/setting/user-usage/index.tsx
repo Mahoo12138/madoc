@@ -1,11 +1,11 @@
-import { Skeleton } from '@affine/component';
+import { Skeleton } from '@madoc/component';
 import {
   AuthService,
   ServerService,
   UserCopilotQuotaService,
   UserQuotaService,
-} from '@affine/core/modules/cloud';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/cloud';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVar } from '@toeverything/theme';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { type ReactNode, useEffect } from 'react';

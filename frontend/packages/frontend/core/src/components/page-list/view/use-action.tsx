@@ -1,5 +1,5 @@
-import type { Collection } from '@affine/core/modules/collection';
-import { useI18n } from '@affine/i18n';
+import type { Collection } from '@madoc/core/modules/collection';
+import { useI18n } from '@madoc/i18n';
 import { DeleteIcon, FilterIcon } from '@blocksuite/icons/rc';
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';

@@ -1,17 +1,17 @@
-import { Loading, toast, Tooltip } from '@affine/component';
-import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { DocsService } from '@affine/core/modules/doc';
+import { Loading, toast, Tooltip } from '@madoc/component';
+import { usePageHelper } from '@madoc/core/blocksuite/block-suite-page-list/utils';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { DocsService } from '@madoc/core/modules/doc';
 import {
   type CalendarEvent,
   IntegrationService,
-} from '@affine/core/modules/integration';
-import { JournalService } from '@affine/core/modules/journal';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/core/modules/integration';
+import { JournalService } from '@madoc/core/modules/journal';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import { FullDayIcon, PeriodIcon, PlusIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { assignInlineVars } from '@vanilla-extract/dynamic';
 import type { Dayjs } from 'dayjs';

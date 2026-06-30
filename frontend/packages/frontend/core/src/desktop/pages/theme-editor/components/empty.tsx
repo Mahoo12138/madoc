@@ -1,4 +1,4 @@
-import { Empty } from '@affine/component';
+import { Empty } from '@madoc/component';
 
 export const ThemeEmpty = () => {
   return (

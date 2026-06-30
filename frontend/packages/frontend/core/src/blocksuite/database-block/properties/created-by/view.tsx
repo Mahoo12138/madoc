@@ -1,4 +1,4 @@
-import { Avatar, uniReactRoot } from '@affine/component';
+import { Avatar, uniReactRoot } from '@madoc/component';
 import {
   type CellRenderProps,
   createIcon,

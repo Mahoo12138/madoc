@@ -1,12 +1,12 @@
-import { Button, Checkbox, IconButton } from '@affine/component';
+import { Button, Checkbox, IconButton } from '@madoc/component';
 import {
   OpenInAppService,
   OpenLinkMode,
-} from '@affine/core/modules/open-in-app';
-import { appIconMap } from '@affine/core/utils';
-import { Trans, useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/open-in-app';
+import { appIconMap } from '@madoc/core/utils';
+import { Trans, useI18n } from '@madoc/i18n';
 import { CloseIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useState } from 'react';
 
 import * as styles from './open-in-app-card.css';

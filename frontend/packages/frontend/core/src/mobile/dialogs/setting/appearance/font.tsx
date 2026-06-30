@@ -1,10 +1,10 @@
-import { getBaseFontStyleOptions } from '@affine/core/desktop/dialogs/setting/general-setting/editor/general';
+import { getBaseFontStyleOptions } from '@madoc/core/desktop/dialogs/setting/general-setting/editor/general';
 import {
   EditorSettingService,
   type FontFamily,
-} from '@affine/core/modules/editor-setting';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/editor-setting';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { SettingDropdownSelect } from '../dropdown-select';

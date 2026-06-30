@@ -1,5 +1,5 @@
-import { useI18n } from '@affine/i18n';
-import { getCurrentStore } from '@toeverything/infra';
+import { useI18n } from '@madoc/i18n';
+import { getCurrentStore } from '@madoc/infra';
 import clsx from 'clsx';
 import { Provider } from 'jotai/react';
 import type { FC } from 'react';

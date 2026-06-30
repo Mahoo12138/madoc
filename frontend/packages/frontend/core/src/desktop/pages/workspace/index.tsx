@@ -1,20 +1,20 @@
-import { DNDContext } from '@affine/component';
-import { AffineOtherPageLayout } from '@affine/component/affine-other-page-layout';
-import { workbenchRoutes } from '@affine/core/desktop/workbench-router';
+import { DNDContext } from '@madoc/component';
+import { AffineOtherPageLayout } from '@madoc/component/affine-other-page-layout';
+import { workbenchRoutes } from '@madoc/core/desktop/workbench-router';
 import {
   DefaultServerService,
   ServersService,
-} from '@affine/core/modules/cloud';
-import { GlobalDialogService } from '@affine/core/modules/dialogs';
-import { DndService } from '@affine/core/modules/dnd/services';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { OpenInAppGuard } from '@affine/core/modules/open-in-app';
+} from '@madoc/core/modules/cloud';
+import { GlobalDialogService } from '@madoc/core/modules/dialogs';
+import { DndService } from '@madoc/core/modules/dnd/services';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { OpenInAppGuard } from '@madoc/core/modules/open-in-app';
 import {
   getAFFiNEWorkspaceSchema,
   type Workspace,
   type WorkspaceMetadata,
   WorkspacesService,
-} from '@affine/core/modules/workspace';
+} from '@madoc/core/modules/workspace';
 import { ZipTransformer } from '@blocksuite/affine/widgets/linked-doc';
 import {
   FrameworkScope,
@@ -22,7 +22,7 @@ import {
   useLiveData,
   useService,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import type { PropsWithChildren, ReactElement } from 'react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {

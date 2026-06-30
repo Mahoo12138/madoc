@@ -1,5 +1,5 @@
-import { Button } from '@affine/component';
-import { useI18n } from '@affine/i18n';
+import { Button } from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
 
 import * as styles from './tag-list-header.css';
 

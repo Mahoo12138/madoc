@@ -3,7 +3,7 @@ import {
   indexerAggregateQuery,
   indexerSearchQuery,
   type SearchInput,
-} from '@affine/graphql';
+} from '@madoc/graphql';
 import { Observable } from 'rxjs';
 
 import {

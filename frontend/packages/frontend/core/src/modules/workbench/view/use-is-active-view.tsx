@@ -1,4 +1,4 @@
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 
 import { ViewService } from '../services/view';
 import { WorkbenchService } from '../services/workbench';

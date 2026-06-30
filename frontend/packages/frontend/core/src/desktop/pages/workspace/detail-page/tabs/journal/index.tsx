@@ -1,4 +1,4 @@
-import type { DateCell } from '@affine/component';
+import type { DateCell } from '@madoc/component';
 import {
   DatePicker,
   IconButton,
@@ -7,30 +7,30 @@ import {
   MenuSeparator,
   Scrollable,
   useConfirmModal,
-} from '@affine/component';
-import { Guard } from '@affine/core/components/guard';
-import { MoveToTrash } from '@affine/core/components/page-list';
-import { WorkspaceServerService } from '@affine/core/modules/cloud';
+} from '@madoc/component';
+import { Guard } from '@madoc/core/components/guard';
+import { MoveToTrash } from '@madoc/core/components/page-list';
+import { WorkspaceServerService } from '@madoc/core/modules/cloud';
 import {
   type DocRecord,
   DocService,
   DocsService,
-} from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { IntegrationService } from '@affine/core/modules/integration';
-import { JournalService } from '@affine/core/modules/journal';
+} from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { IntegrationService } from '@madoc/core/modules/integration';
+import { JournalService } from '@madoc/core/modules/journal';
 import {
   ViewService,
   WorkbenchLink,
   WorkbenchService,
-} from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
 import { CalendarXmarkIcon, EditIcon } from '@blocksuite/icons/rc';
 import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { assignInlineVars } from '@vanilla-extract/dynamic';
 import clsx from 'clsx';
 import dayjs from 'dayjs';

@@ -1,6 +1,6 @@
-import { DebugLogger } from '@affine/debug';
-import { UserFriendlyError } from '@affine/error';
-import { fromPromise, Service } from '@toeverything/infra';
+import { DebugLogger } from '@madoc/debug';
+import { UserFriendlyError } from '@madoc/error';
+import { fromPromise, Service } from '@madoc/infra';
 
 import type { ServerService } from './server';
 

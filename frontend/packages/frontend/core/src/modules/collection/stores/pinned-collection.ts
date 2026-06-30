@@ -1,4 +1,4 @@
-import { Store } from '@toeverything/infra';
+import { Store } from '@madoc/infra';
 import type { Observable } from 'rxjs';
 
 import type { WorkspaceDBService } from '../../db';

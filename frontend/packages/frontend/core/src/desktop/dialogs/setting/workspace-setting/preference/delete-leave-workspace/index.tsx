@@ -1,15 +1,15 @@
-import { notify } from '@affine/component';
-import { SettingRow } from '@affine/component/setting-components';
-import { ConfirmModal } from '@affine/component/ui/modal';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { GlobalContextService } from '@affine/core/modules/global-context';
+import { notify } from '@madoc/component';
+import { SettingRow } from '@madoc/component/setting-components';
+import { ConfirmModal } from '@madoc/component/ui/modal';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
 import {
   WorkspaceService,
   WorkspacesService,
-} from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import { ArrowRightSmallIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { useCallback, useState } from 'react';
 

@@ -1,5 +1,5 @@
-import { IconButton } from '@affine/component';
-import { useI18n } from '@affine/i18n';
+import { IconButton } from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
 import { ToggleRightIcon } from '@blocksuite/icons/rc';
 import { Trigger as CollapsibleTrigger } from '@radix-ui/react-collapsible';
 

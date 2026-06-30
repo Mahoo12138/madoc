@@ -1,10 +1,10 @@
-import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
-import type { Tag } from '@affine/core/modules/tag';
-import { TagService } from '@affine/core/modules/tag';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+import type { NodeOperation } from '@madoc/core/desktop/components/navigation-panel';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
+import type { Tag } from '@madoc/core/modules/tag';
+import { TagService } from '@madoc/core/modules/tag';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService, useServices } from '@madoc/infra';
 import clsx from 'clsx';
 import { useCallback, useMemo } from 'react';
 

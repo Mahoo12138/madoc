@@ -8,8 +8,8 @@ import type {
   RealtimeTopicEventOf,
   RealtimeTopicInputOf,
   RealtimeTopicName,
-} from '@affine/realtime';
-import { OpClient, transfer } from '@toeverything/infra/op';
+} from '@madoc/realtime';
+import { OpClient, transfer } from '@madoc/infra/op';
 import type { Observable } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 

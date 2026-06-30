@@ -1,4 +1,4 @@
-import { OnEvent, Service } from '@toeverything/infra';
+import { OnEvent, Service } from '@madoc/infra';
 
 import { WorkbenchLocationChanged } from '../../workbench/services/workbench';
 import { PeekViewEntity } from '../entities/peek-view';

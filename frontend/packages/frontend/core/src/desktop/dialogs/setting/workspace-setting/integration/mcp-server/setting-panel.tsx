@@ -1,11 +1,11 @@
-import { Button, ErrorMessage, notify, Skeleton } from '@affine/component';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { AccessTokenService, ServerService } from '@affine/core/modules/cloud';
-import type { AccessToken } from '@affine/core/modules/cloud/stores/access-token';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { UserFriendlyError } from '@affine/error';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { Button, ErrorMessage, notify, Skeleton } from '@madoc/component';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { AccessTokenService, ServerService } from '@madoc/core/modules/cloud';
+import type { AccessToken } from '@madoc/core/modules/cloud/stores/access-token';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { UserFriendlyError } from '@madoc/error';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 
 import { IntegrationSettingHeader } from '../setting';

@@ -1,5 +1,5 @@
-import { Checkbox } from '@affine/component';
-import type { CalendarAccountsQuery } from '@affine/graphql';
+import { Checkbox } from '@madoc/component';
+import type { CalendarAccountsQuery } from '@madoc/graphql';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { useCallback } from 'react';
 

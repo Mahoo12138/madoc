@@ -1,8 +1,8 @@
-import { Button } from '@affine/component/ui/button';
-import { EditorService } from '@affine/core/modules/editor';
-import { useI18n } from '@affine/i18n';
+import { Button } from '@madoc/component/ui/button';
+import { EditorService } from '@madoc/core/modules/editor';
+import { useI18n } from '@madoc/i18n';
 import { PresentationIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 
 import * as styles from './styles.css';
 

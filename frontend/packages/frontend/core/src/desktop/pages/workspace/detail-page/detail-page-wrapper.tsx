@@ -1,9 +1,9 @@
-import { type Doc, DocsService } from '@affine/core/modules/doc';
-import type { Editor } from '@affine/core/modules/editor';
-import { EditorsService } from '@affine/core/modules/editor';
-import { ViewService } from '@affine/core/modules/workbench/services/view';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { FrameworkScope, useLiveData, useService } from '@toeverything/infra';
+import { type Doc, DocsService } from '@madoc/core/modules/doc';
+import type { Editor } from '@madoc/core/modules/editor';
+import { EditorsService } from '@madoc/core/modules/editor';
+import { ViewService } from '@madoc/core/modules/workbench/services/view';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { FrameworkScope, useLiveData, useService } from '@madoc/infra';
 import {
   type PropsWithChildren,
   type ReactNode,

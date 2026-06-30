@@ -1,5 +1,5 @@
-import type { MessageCommunicapable } from '@toeverything/infra/op';
-import { OpConsumer } from '@toeverything/infra/op';
+import type { MessageCommunicapable } from '@madoc/infra/op';
+import { OpConsumer } from '@madoc/infra/op';
 
 import {
   DEFAULT_TYPST_RENDER_OPTIONS,

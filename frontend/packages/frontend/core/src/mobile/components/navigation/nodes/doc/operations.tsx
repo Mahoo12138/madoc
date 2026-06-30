@@ -4,20 +4,20 @@ import {
   MenuSub,
   toast,
   useConfirmModal,
-} from '@affine/component';
-import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
-import { Guard } from '@affine/core/components/guard';
-import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
-import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
-import { DocsService } from '@affine/core/modules/doc';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { preventDefault } from '@affine/core/utils';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/component';
+import { usePageHelper } from '@madoc/core/blocksuite/block-suite-page-list/utils';
+import { Guard } from '@madoc/core/components/guard';
+import { useBlockSuiteMetaHelper } from '@madoc/core/components/hooks/affine/use-block-suite-meta-helper';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { IsFavoriteIcon } from '@madoc/core/components/pure/icons';
+import type { NodeOperation } from '@madoc/core/desktop/components/navigation-panel';
+import { DocsService } from '@madoc/core/modules/doc';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { preventDefault } from '@madoc/core/utils';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import {
   DeleteIcon,
   DuplicateIcon,
@@ -25,7 +25,7 @@ import {
   LinkedPageIcon,
   OpenInNewIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+import { useLiveData, useService, useServices } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { DocFrameScope, DocInfoSheet } from '../../../doc-info';

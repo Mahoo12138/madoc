@@ -1,10 +1,10 @@
-import type { WorkspaceServerService } from '@affine/core/modules/cloud';
+import type { WorkspaceServerService } from '@madoc/core/modules/cloud';
 import {
   setEnableAiMutation,
   setEnableSharingMutation,
   setEnableUrlPreviewMutation,
-} from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 
 import type { NbstoreService } from '../../storage';
 

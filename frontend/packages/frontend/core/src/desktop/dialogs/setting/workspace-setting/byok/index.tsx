@@ -1,19 +1,19 @@
-import { Button, notify } from '@affine/component';
+import { Button, notify } from '@madoc/component';
 import {
   SettingHeader,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { WorkspaceServerService } from '@affine/core/modules/cloud';
-import { WorkspaceService } from '@affine/core/modules/workspace';
+} from '@madoc/component/setting-components';
+import { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
 import {
   ByokKeyStorage,
   clearWorkspaceByokConfigsMutation as clearByokMutation,
   deleteWorkspaceByokConfigMutation as deleteByokMutation,
   type GraphQLQuery,
   workspaceByokSettingsQuery as byokSettingsQuery,
-} from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AddKeyModal } from './add-key-modal';

@@ -1,14 +1,14 @@
-import { Button, Menu, MenuItem, MenuTrigger } from '@affine/component';
+import { Button, Menu, MenuItem, MenuTrigger } from '@madoc/component';
 import {
   getSelectedNodes,
   useSharingUrl,
-} from '@affine/core/components/hooks/affine/use-share-url';
-import { getDefaultShareMode } from '@affine/core/components/hooks/affine/use-share-url.utils';
-import { EditorService } from '@affine/core/modules/editor';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/components/hooks/affine/use-share-url';
+import { getDefaultShareMode } from '@madoc/core/components/hooks/affine/use-share-url.utils';
+import { EditorService } from '@madoc/core/modules/editor';
+import { useI18n } from '@madoc/i18n';
 import type { DocMode } from '@blocksuite/affine/model';
 import { BlockIcon, EdgelessIcon, PageIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import { useCallback, useMemo } from 'react';
 
@@ -73,7 +73,7 @@ export const CopyLinkButton = ({
               secondary: secondary,
             })}
           >
-            {environment.isMacOs ? '‚åò + ‚å• + C' : 'Ctrl + Shift + C'}
+            {environment.isMacOs ? '‚å?+ ‚å?+ C' : 'Ctrl + Shift + C'}
           </span>
         )}
       </Button>

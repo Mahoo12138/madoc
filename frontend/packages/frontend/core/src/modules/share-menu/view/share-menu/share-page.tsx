@@ -1,9 +1,9 @@
-import { Divider, Skeleton } from '@affine/component';
-import { Button } from '@affine/component/ui/button';
-import { ServerService } from '@affine/core/modules/cloud';
-import { ShareInfoService } from '@affine/core/modules/share-doc';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { Divider, Skeleton } from '@madoc/component';
+import { Button } from '@madoc/component/ui/button';
+import { ServerService } from '@madoc/core/modules/cloud';
+import { ShareInfoService } from '@madoc/core/modules/share-doc';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { Suspense, useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 

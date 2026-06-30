@@ -1,4 +1,4 @@
-import { AppThemeService } from '@affine/core/modules/theme';
+import { AppThemeService } from '@madoc/core/modules/theme';
 import { ColorScheme } from '@blocksuite/affine/model';
 import {
   type ThemeExtension,
@@ -14,7 +14,7 @@ import {
   StdIdentifier,
 } from '@blocksuite/affine/std';
 import type { Container } from '@blocksuite/global/di';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 import type { Observable } from 'rxjs';
 
 export function getPreviewThemeExtension(framework: FrameworkProvider) {

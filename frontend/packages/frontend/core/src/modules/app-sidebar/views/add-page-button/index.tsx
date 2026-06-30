@@ -1,15 +1,15 @@
-import { Button, IconButton, Menu, MenuItem, MenuSub } from '@affine/component';
-import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { DocsService } from '@affine/core/modules/doc';
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
-import { TemplateDocService } from '@affine/core/modules/template-doc';
-import { TemplateListMenuContentScrollable } from '@affine/core/modules/template-doc/view/template-list-menu';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { inferOpenMode } from '@affine/core/utils';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+import { Button, IconButton, Menu, MenuItem, MenuSub } from '@madoc/component';
+import { usePageHelper } from '@madoc/core/blocksuite/block-suite-page-list/utils';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { DocsService } from '@madoc/core/modules/doc';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
+import { TemplateDocService } from '@madoc/core/modules/template-doc';
+import { TemplateListMenuContentScrollable } from '@madoc/core/modules/template-doc/view/template-list-menu';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { inferOpenMode } from '@madoc/core/utils';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import type { DocMode } from '@blocksuite/affine/model';
 import {
   ArrowDownSmallIcon,
@@ -18,7 +18,7 @@ import {
   PlusIcon,
   TemplateIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import type React from 'react';
 import { type MouseEvent, useCallback } from 'react';

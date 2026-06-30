@@ -1,5 +1,5 @@
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useService } from '@toeverything/infra';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useService } from '@madoc/infra';
 import { useAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { useCallback } from 'react';

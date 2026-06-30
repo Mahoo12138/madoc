@@ -1,11 +1,11 @@
-import { UserFriendlyError } from '@affine/error';
+import { UserFriendlyError } from '@madoc/error';
 import {
   gqlFetcherFactory,
   type GraphQLQuery,
   type QueryOptions,
   type QueryResponse,
-} from '@affine/graphql';
-import { fromPromise, Service } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { fromPromise, Service } from '@madoc/infra';
 import type { Observable } from 'rxjs';
 
 import { AuthService } from './auth';

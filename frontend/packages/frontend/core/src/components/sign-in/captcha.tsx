@@ -1,6 +1,6 @@
-import { CaptchaService } from '@affine/core/modules/cloud';
+import { CaptchaService } from '@madoc/core/modules/cloud';
 import { Turnstile } from '@marsidev/react-turnstile';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect } from 'react';
 
 import * as style from './style.css';

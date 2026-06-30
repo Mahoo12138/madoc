@@ -1,4 +1,4 @@
-import type { Framework } from '@toeverything/infra';
+import type { Framework } from '@madoc/infra';
 
 import { DefaultServerService, WorkspaceServerService } from '../cloud';
 import { DocDisplayMetaService } from '../doc-display-meta';

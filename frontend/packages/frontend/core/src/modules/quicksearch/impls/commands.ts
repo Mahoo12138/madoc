@@ -3,9 +3,9 @@ import {
   AffineCommandRegistry,
   type CommandCategory,
   PreconditionStrategy,
-} from '@affine/core/commands';
+} from '@madoc/core/commands';
 import type { DocMode } from '@blocksuite/affine/model';
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import Fuse from 'fuse.js';
 
 import type { GlobalContextService } from '../../global-context';

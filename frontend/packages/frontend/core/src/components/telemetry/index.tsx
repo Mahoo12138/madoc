@@ -1,5 +1,5 @@
-import { enableAutoTrack, sentry, tracker } from '@affine/track';
-import { appSettingAtom } from '@toeverything/infra';
+import { enableAutoTrack, sentry, tracker } from '@madoc/track';
+import { appSettingAtom } from '@madoc/infra';
 import { useAtomValue } from 'jotai/react';
 import { useEffect } from 'react';
 

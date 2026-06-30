@@ -1,24 +1,19 @@
-import { enableAutoTrack, makeTracker } from './auto';
-import { type EventArgs, type Events } from './events';
-import { sentry } from './sentry';
-import {
-  flushTelemetry,
-  setTelemetryContext,
-  setTelemetryTransport,
-} from './telemetry';
-import { tracker } from './tracker';
-export const track = makeTracker((event, props) => {
-  tracker.track(event, props);
-});
+export const track = (_event: string, _props?: Record<string, unknown>) => {};
 
-export {
-  enableAutoTrack,
-  type EventArgs,
-  type Events,
-  flushTelemetry,
-  sentry,
-  setTelemetryContext,
-  setTelemetryTransport,
-  tracker,
-};
+export const enableAutoTrack = () => {};
+
+export const sentry = undefined;
+
+export const flushTelemetry = async () => {};
+
+export const setTelemetryContext = (_ctx: Record<string, unknown>) => {};
+
+export const setTelemetryTransport = (_transport: unknown) => {};
+
+export const tracker = { track: (_event: string, _props?: Record<string, unknown>) => {} };
+
+export type EventArgs = Record<string, unknown>;
+
+export type Events = Record<string, unknown>;
+
 export default track;

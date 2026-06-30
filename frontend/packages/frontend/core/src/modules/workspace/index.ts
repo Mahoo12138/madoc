@@ -1,4 +1,4 @@
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
 
 export type { WorkspaceProfileInfo } from './entities/profile';
 export { Workspace } from './entities/workspace';
@@ -13,7 +13,7 @@ export { WorkspaceScope } from './scopes/workspace';
 export { WorkspaceService } from './services/workspace';
 export { WorkspacesService } from './services/workspaces';
 
-import type { Framework } from '@toeverything/infra';
+import type { Framework } from '@madoc/infra';
 
 import { GlobalCache, GlobalState, NbstoreService } from '../storage';
 import { WorkspaceEngine } from './entities/engine';

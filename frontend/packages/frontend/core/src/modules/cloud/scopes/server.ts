@@ -1,4 +1,4 @@
-import { Scope } from '@toeverything/infra';
+import { Scope } from '@madoc/infra';
 
 import type { Server } from '../entities/server';
 

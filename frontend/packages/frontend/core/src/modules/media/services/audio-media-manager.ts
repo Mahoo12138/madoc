@@ -1,4 +1,4 @@
-import { generateUrl } from '@affine/core/components/hooks/affine/use-share-url';
+import { generateUrl } from '@madoc/core/components/hooks/affine/use-share-url';
 import { AttachmentBlockModel } from '@blocksuite/affine/model';
 import {
   attachmentBlockAudioMediaKey,
@@ -9,7 +9,7 @@ import {
   parseAudioMediaKey,
   type PlaybackState,
   Service,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { clamp } from 'lodash-es';
 import { distinctUntilChanged } from 'rxjs';
 

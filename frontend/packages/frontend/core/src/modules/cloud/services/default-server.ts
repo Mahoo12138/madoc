@@ -1,5 +1,5 @@
-import { ServerDeploymentType } from '@affine/graphql';
-import { Service } from '@toeverything/infra';
+import { ServerDeploymentType } from '@madoc/graphql';
+import { Service } from '@madoc/infra';
 
 import type { Server } from '../entities/server';
 import type { ServersService } from './servers';

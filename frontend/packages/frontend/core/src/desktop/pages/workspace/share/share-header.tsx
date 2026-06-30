@@ -1,6 +1,6 @@
-import { BlocksuiteHeaderTitle } from '@affine/core/blocksuite/block-suite-header/title';
-import { EditorModeSwitch } from '@affine/core/blocksuite/block-suite-mode-switch';
-import ShareHeaderRightItem from '@affine/core/components/cloud/share-header-right-item';
+import { BlocksuiteHeaderTitle } from '@madoc/core/blocksuite/block-suite-header/title';
+import { EditorModeSwitch } from '@madoc/core/blocksuite/block-suite-mode-switch';
+import ShareHeaderRightItem from '@madoc/core/components/cloud/share-header-right-item';
 import type { DocMode } from '@blocksuite/affine/model';
 
 import * as styles from './share-header.css';

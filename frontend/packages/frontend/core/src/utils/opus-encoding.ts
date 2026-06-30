@@ -1,9 +1,9 @@
-import { DebugLogger } from '@affine/debug';
-import { apis } from '@affine/electron-api';
+import { DebugLogger } from '@madoc/debug';
+import { apis } from '@madoc/electron-api';
 import type {
   AudioSliceManifestItemInput,
   TranscriptionSourceAudioInput,
-} from '@affine/graphql';
+} from '@madoc/graphql';
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 
 import { isLink } from '../modules/navigation/utils';

@@ -2,15 +2,15 @@ import {
   type DropTargetDropEvent,
   type DropTargetOptions,
   toast,
-} from '@affine/component';
-import { GlobalContextService } from '@affine/core/modules/global-context';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
-import type { Tag } from '@affine/core/modules/tag';
-import { TagService } from '@affine/core/modules/tag';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+} from '@madoc/component';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
+import type { Tag } from '@madoc/core/modules/tag';
+import { TagService } from '@madoc/core/modules/tag';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
+import { useLiveData, useService, useServices } from '@madoc/infra';
 import clsx from 'clsx';
 import { useCallback, useMemo } from 'react';
 

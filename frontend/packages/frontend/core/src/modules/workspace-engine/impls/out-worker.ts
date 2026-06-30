@@ -1,5 +1,5 @@
-import { getWorkerUrl } from '@affine/env/worker';
-import { OpClient } from '@toeverything/infra/op';
+import { getWorkerUrl } from '@madoc/env/worker';
+import { OpClient } from '@madoc/infra/op';
 
 import type { WorkerOps } from './worker-ops';
 

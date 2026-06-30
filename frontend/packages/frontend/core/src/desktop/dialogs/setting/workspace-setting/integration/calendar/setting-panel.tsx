@@ -1,9 +1,9 @@
-import { Button, notify } from '@affine/component';
-import { WorkspaceServerService } from '@affine/core/modules/cloud';
-import { IntegrationService } from '@affine/core/modules/integration';
-import { useI18n } from '@affine/i18n';
+import { Button, notify } from '@madoc/component';
+import { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import { IntegrationService } from '@madoc/core/modules/integration';
+import { useI18n } from '@madoc/i18n';
 import { TodayIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { IntegrationSettingHeader } from '../setting';

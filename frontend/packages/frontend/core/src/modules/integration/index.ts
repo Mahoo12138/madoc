@@ -1,4 +1,4 @@
-import type { Framework } from '@toeverything/infra';
+import type { Framework } from '@madoc/infra';
 
 import { WorkspaceServerService } from '../cloud';
 import { WorkspaceDBService } from '../db';

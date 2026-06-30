@@ -1,4 +1,4 @@
-import type { ListedBlobRecord } from '@affine/nbstore';
+import type { ListedBlobRecord } from '@madoc/nbstore';
 import {
   effect,
   Entity,
@@ -6,7 +6,7 @@ import {
   LiveData,
   onComplete,
   onStart,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { fileTypeFromBuffer } from 'file-type';
 import { switchMap, tap } from 'rxjs';
 

@@ -1,11 +1,11 @@
-import { RadioGroup, type RadioItem, Switch } from '@affine/component';
+import { RadioGroup, type RadioItem, Switch } from '@madoc/component';
 import {
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/component/setting-components';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { settingWrapper } from './style.css';

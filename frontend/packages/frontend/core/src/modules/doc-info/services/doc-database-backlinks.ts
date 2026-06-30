@@ -1,6 +1,6 @@
 import { DatabaseBlockDataSource } from '@blocksuite/affine/blocks/database';
 import type { DatabaseBlockModel } from '@blocksuite/affine/model';
-import { LiveData, Service } from '@toeverything/infra';
+import { LiveData, Service } from '@madoc/infra';
 import { isEqual } from 'lodash-es';
 import { combineLatest, distinctUntilChanged, map, Observable } from 'rxjs';
 

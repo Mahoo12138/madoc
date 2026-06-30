@@ -1,4 +1,4 @@
-import type { Framework } from '@toeverything/infra';
+import type { Framework } from '@madoc/infra';
 
 import { VirtualKeyboardProvider } from './providers/virtual-keyboard';
 import { VirtualKeyboardService } from './services/virtual-keyboard';

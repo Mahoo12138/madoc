@@ -1,7 +1,7 @@
-import { PropertyValue, Tooltip } from '@affine/component';
-import { type DocRecord, DocService } from '@affine/core/modules/doc';
-import { i18nTime, useI18n } from '@affine/i18n';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { PropertyValue, Tooltip } from '@madoc/component';
+import { type DocRecord, DocService } from '@madoc/core/modules/doc';
+import { i18nTime, useI18n } from '@madoc/i18n';
+import { useLiveData, useServices } from '@madoc/infra';
 
 import { PlainTextDocGroupHeader } from '../explorer/docs-view/group-header';
 import type { GroupHeaderProps } from '../explorer/types';

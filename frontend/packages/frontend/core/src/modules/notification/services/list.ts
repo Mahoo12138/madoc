@@ -7,7 +7,7 @@ import {
   onStart,
   Service,
   smartRetry,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { EMPTY, exhaustMap, tap } from 'rxjs';
 
 import type { Notification, NotificationStore } from '../stores/notification';

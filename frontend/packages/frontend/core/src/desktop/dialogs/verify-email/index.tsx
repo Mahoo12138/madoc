@@ -1,26 +1,26 @@
-import { Button, Modal, notify } from '@affine/component';
+import { Button, Modal, notify } from '@madoc/component';
 import {
   AuthContent,
   AuthHeader,
   AuthInput,
-} from '@affine/component/auth-components';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
+} from '@madoc/component/auth-components';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
 import {
   AuthService,
   DefaultServerService,
   ServersService,
-} from '@affine/core/modules/cloud';
+} from '@madoc/core/modules/cloud';
 import type {
   DialogComponentProps,
   GLOBAL_DIALOG_SCHEMA,
-} from '@affine/core/modules/dialogs';
-import { Unreachable } from '@affine/env/constant';
+} from '@madoc/core/modules/dialogs';
+import { Unreachable } from '@madoc/env/constant';
 import {
   sendChangeEmailMutation,
   sendVerifyEmailMutation,
-} from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useState } from 'react';
 
 export const VerifyEmailDialog = ({

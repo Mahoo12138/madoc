@@ -6,24 +6,24 @@ import {
   notify,
   Skeleton,
   useConfirmModal,
-} from '@affine/component';
+} from '@madoc/component';
 import {
   Pagination,
   SettingHeader,
-} from '@affine/component/setting-components';
-import { Avatar } from '@affine/component/ui/avatar';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
-import { BackupService } from '@affine/core/modules/backup/services';
-import { toArrayBuffer } from '@affine/core/utils/array-buffer';
-import { i18nTime, useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/component/setting-components';
+import { Avatar } from '@madoc/component/ui/avatar';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { useNavigateHelper } from '@madoc/core/components/hooks/use-navigate-helper';
+import { BackupService } from '@madoc/core/modules/backup/services';
+import { toArrayBuffer } from '@madoc/core/utils/array-buffer';
+import { i18nTime, useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import {
   DeleteIcon,
   LocalWorkspaceIcon,
   MoreVerticalIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import bytes from 'bytes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 

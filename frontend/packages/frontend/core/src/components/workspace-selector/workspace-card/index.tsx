@@ -1,15 +1,15 @@
-import { Button, notify, Skeleton, Tooltip } from '@affine/component';
-import { Loading } from '@affine/component/ui/loading';
-import { useSystemOnline } from '@affine/core/components/hooks/use-system-online';
-import { useWorkspace } from '@affine/core/components/hooks/use-workspace';
-import { useWorkspaceInfo } from '@affine/core/components/hooks/use-workspace-info';
+import { Button, notify, Skeleton, Tooltip } from '@madoc/component';
+import { Loading } from '@madoc/component/ui/loading';
+import { useSystemOnline } from '@madoc/core/components/hooks/use-system-online';
+import { useWorkspace } from '@madoc/core/components/hooks/use-workspace';
+import { useWorkspaceInfo } from '@madoc/core/components/hooks/use-workspace-info';
 import {
   type WorkspaceMetadata,
   type WorkspaceProfileInfo,
   WorkspacesService,
-} from '@affine/core/modules/workspace';
-import { UNTITLED_WORKSPACE_NAME } from '@affine/env/constant';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/workspace';
+import { UNTITLED_WORKSPACE_NAME } from '@madoc/env/constant';
+import { useI18n } from '@madoc/i18n';
 import {
   ArrowDownSmallIcon,
   CloudWorkspaceIcon,
@@ -22,7 +22,7 @@ import {
   TeamWorkspaceIcon,
   UnsyncIcon,
 } from '@blocksuite/icons/rc';
-import { LiveData, useLiveData, useService } from '@toeverything/infra';
+import { LiveData, useLiveData, useService } from '@madoc/infra';
 import { cssVar } from '@toeverything/theme';
 import clsx from 'clsx';
 import type { HTMLAttributes } from 'react';

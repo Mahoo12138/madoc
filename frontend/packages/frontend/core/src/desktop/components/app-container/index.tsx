@@ -1,19 +1,19 @@
-import { useAppSettingHelper } from '@affine/core/components/hooks/affine/use-app-setting-helper';
-import { RootAppSidebar } from '@affine/core/components/root-app-sidebar';
-import { AppSidebarService } from '@affine/core/modules/app-sidebar';
+import { useAppSettingHelper } from '@madoc/core/components/hooks/affine/use-app-setting-helper';
+import { RootAppSidebar } from '@madoc/core/components/root-app-sidebar';
+import { AppSidebarService } from '@madoc/core/modules/app-sidebar';
 import {
   AppSidebarFallback,
   OpenInAppCard,
   SidebarSwitch,
-} from '@affine/core/modules/app-sidebar/views';
-import { AppTabsHeader } from '@affine/core/modules/app-tabs-header';
-import { NavigationButtons } from '@affine/core/modules/navigation';
-import { WorkspaceService } from '@affine/core/modules/workspace';
+} from '@madoc/core/modules/app-sidebar/views';
+import { AppTabsHeader } from '@madoc/core/modules/app-tabs-header';
+import { NavigationButtons } from '@madoc/core/modules/navigation';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
 import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import clsx from 'clsx';
 import {
   forwardRef,

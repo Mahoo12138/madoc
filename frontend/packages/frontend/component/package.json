@@ -1,5 +1,5 @@
 {
-  "name": "@affine/component",
+  "name": "@madoc/component",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -20,10 +20,10 @@
     "react-dom": "^19.2.1"
   },
   "dependencies": {
-    "@affine/debug": "workspace:*",
-    "@affine/error": "workspace:*",
-    "@affine/graphql": "workspace:*",
-    "@affine/i18n": "workspace:*",
+    "@madoc/debug": "workspace:*",
+    "@madoc/error": "workspace:*",
+    "@madoc/graphql": "workspace:*",
+    "@madoc/i18n": "workspace:*",
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.1.0",
     "@blocksuite/icons": "^2.2.17",
@@ -69,7 +69,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@affine-tools/utils": "workspace:*",
+    "@madoc-tools/utils": "workspace:*",
     "@storybook/react": "^10.2.14",
     "@storybook/react-vite": "^10.2.14",
     "@testing-library/dom": "^10.4.0",

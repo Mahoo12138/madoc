@@ -1,6 +1,6 @@
-import { Checkbox, MenuItem, MenuSub } from '@affine/component';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+import { Checkbox, MenuItem, MenuSub } from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import { useCallback } from 'react';
 
 import { type QuickAction, quickActions } from '../quick-actions.constants';

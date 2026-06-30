@@ -1,14 +1,14 @@
 import {
   PreconditionStrategy,
   registerAffineCommand,
-} from '@affine/core/commands';
-import { useSharingUrl } from '@affine/core/components/hooks/affine/use-share-url';
-import { getDefaultShareMode } from '@affine/core/components/hooks/affine/use-share-url.utils';
-import { EditorService } from '@affine/core/modules/editor';
-import { useIsActiveView } from '@affine/core/modules/workbench';
-import type { WorkspaceMetadata } from '@affine/core/modules/workspace';
-import { track } from '@affine/track';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/commands';
+import { useSharingUrl } from '@madoc/core/components/hooks/affine/use-share-url';
+import { getDefaultShareMode } from '@madoc/core/components/hooks/affine/use-share-url.utils';
+import { EditorService } from '@madoc/core/modules/editor';
+import { useIsActiveView } from '@madoc/core/modules/workbench';
+import type { WorkspaceMetadata } from '@madoc/core/modules/workspace';
+import { track } from '@madoc/track';
+import { useLiveData, useService } from '@madoc/infra';
 import { useEffect } from 'react';
 
 export function useRegisterCopyLinkCommands({

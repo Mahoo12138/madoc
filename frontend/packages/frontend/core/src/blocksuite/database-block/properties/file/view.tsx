@@ -1,7 +1,7 @@
-import { Popover, uniReactRoot } from '@affine/component';
-import { Button } from '@affine/component/ui/button';
-import { Menu, MenuItem } from '@affine/component/ui/menu';
-import { PeekViewService } from '@affine/core/modules/peek-view/services/peek-view';
+import { Popover, uniReactRoot } from '@madoc/component';
+import { Button } from '@madoc/component/ui/button';
+import { Menu, MenuItem } from '@madoc/component/ui/menu';
+import { PeekViewService } from '@madoc/core/modules/peek-view/services/peek-view';
 import {
   type Cell,
   type CellRenderProps,
@@ -27,7 +27,7 @@ import {
 import {
   generateFractionalIndexingKeyBetween,
   useService,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { fileTypeFromBuffer, type FileTypeResult } from 'file-type';
 import { nanoid } from 'nanoid';
 import type { ForwardRefRenderFunction, MouseEvent, ReactNode } from 'react';

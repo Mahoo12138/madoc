@@ -1,13 +1,13 @@
 import {
   createCustomToolbarExtension,
   createToolbarMoreMenuConfig,
-} from '@affine/core/blocksuite/view-extensions/editor-config/toolbar';
-import { WorkspaceServerService } from '@affine/core/modules/cloud';
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
+} from '@madoc/core/blocksuite/view-extensions/editor-config/toolbar';
+import { WorkspaceServerService } from '@madoc/core/modules/cloud';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
 import { ToolbarMoreMenuConfigExtension } from '@blocksuite/affine/components/toolbar';
 import { EditorSettingExtension } from '@blocksuite/affine/shared/services';
 import type { ExtensionType } from '@blocksuite/store';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 export function getEditorConfigExtension(
   framework: FrameworkProvider

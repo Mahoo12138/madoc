@@ -1,21 +1,21 @@
-import { IconButton, notify, toast, useConfirmModal } from '@affine/component';
+import { IconButton, notify, toast, useConfirmModal } from '@madoc/component';
 import {
   MenuSeparator,
   MenuSub,
   MobileMenu,
   MobileMenuItem,
-} from '@affine/component/ui/menu';
-import { useFavorite } from '@affine/core/blocksuite/block-suite-header/favorite';
-import { Guard, useGuard } from '@affine/core/components/guard';
-import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
-import { DocInfoSheet } from '@affine/core/mobile/components';
-import { MobileTocMenu } from '@affine/core/mobile/components/toc-menu';
-import { DocService } from '@affine/core/modules/doc';
-import { EditorService } from '@affine/core/modules/editor';
-import { ViewService } from '@affine/core/modules/workbench/services/view';
-import { preventDefault } from '@affine/core/utils';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/component/ui/menu';
+import { useFavorite } from '@madoc/core/blocksuite/block-suite-header/favorite';
+import { Guard, useGuard } from '@madoc/core/components/guard';
+import { IsFavoriteIcon } from '@madoc/core/components/pure/icons';
+import { DocInfoSheet } from '@madoc/core/mobile/components';
+import { MobileTocMenu } from '@madoc/core/mobile/components/toc-menu';
+import { DocService } from '@madoc/core/modules/doc';
+import { EditorService } from '@madoc/core/modules/editor';
+import { ViewService } from '@madoc/core/modules/workbench/services/view';
+import { preventDefault } from '@madoc/core/utils';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import {
   DeleteIcon,
   EdgelessIcon,
@@ -24,7 +24,7 @@ import {
   PageIcon,
   TocIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useState } from 'react';
 
 import { JournalConflictsMenuItem } from './menu/journal-conflicts';

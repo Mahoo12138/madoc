@@ -1,10 +1,10 @@
-import { IconButton, useConfirmModal } from '@affine/component';
-import { DocsService } from '@affine/core/modules/doc';
-import { MigrationFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { Trans, useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { IconButton, useConfirmModal } from '@madoc/component';
+import { DocsService } from '@madoc/core/modules/doc';
+import { MigrationFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { Trans, useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { BroomIcon, HelpIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { CollapsibleSection } from '../../layouts/collapsible-section';

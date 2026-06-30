@@ -1,4 +1,4 @@
-import { type Framework } from '@toeverything/infra';
+import { type Framework } from '@madoc/infra';
 
 import { DocScope } from '../doc/scopes/doc';
 import { DocService } from '../doc/services/doc';

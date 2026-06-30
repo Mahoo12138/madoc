@@ -1,6 +1,6 @@
-import { I18nService } from '@affine/core/modules/i18n';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { I18nService } from '@madoc/core/modules/i18n';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useMemo } from 'react';
 
 import { SettingDropdownSelect } from '../dropdown-select';

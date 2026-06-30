@@ -1,6 +1,6 @@
-import type { DocsService } from '@affine/core/modules/doc';
-import type { TagService } from '@affine/core/modules/tag';
-import { Service } from '@toeverything/infra';
+import type { DocsService } from '@madoc/core/modules/doc';
+import type { TagService } from '@madoc/core/modules/tag';
+import { Service } from '@madoc/infra';
 import { combineLatest, map, type Observable } from 'rxjs';
 
 import type { GroupByProvider } from '../../provider';

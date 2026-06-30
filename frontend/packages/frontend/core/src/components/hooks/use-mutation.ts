@@ -1,12 +1,12 @@
-import { GraphQLService } from '@affine/core/modules/cloud';
+import { GraphQLService } from '@madoc/core/modules/cloud';
 import type {
   GraphQLQuery,
   MutationOptions,
   QueryResponse,
   QueryVariables,
   RecursiveMaybeFields,
-} from '@affine/graphql';
-import { useService } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { useService } from '@madoc/infra';
 import type { GraphQLError } from 'graphql';
 import { useMemo } from 'react';
 import type { Key } from 'swr';
@@ -23,7 +23,7 @@ import useSWRMutation from 'swr/mutation';
  * @example
  *
  * ```ts
- * import { someMutation } from '@affine/graphql'
+ * import { someMutation } from '@madoc/graphql'
  *
  * const { trigger } = useMutation({
  *  mutation: someMutation,

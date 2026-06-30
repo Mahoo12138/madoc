@@ -1,5 +1,5 @@
-import { channelToScheme } from '@affine/core/utils/channel';
-import { DebugLogger } from '@affine/debug';
+import { channelToScheme } from '@madoc/core/utils/channel';
+import { DebugLogger } from '@madoc/debug';
 
 const logger = new DebugLogger('open-in-app');
 

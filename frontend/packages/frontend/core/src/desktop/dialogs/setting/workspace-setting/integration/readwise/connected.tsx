@@ -1,8 +1,8 @@
-import { Button, Modal } from '@affine/component';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { IntegrationService } from '@affine/core/modules/integration';
-import { useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+import { Button, Modal } from '@madoc/component';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { IntegrationService } from '@madoc/core/modules/integration';
+import { useI18n } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import { useCallback, useState } from 'react';
 
 import * as styles from './connected.css';

@@ -1,5 +1,5 @@
-import { OverlayModal } from '@affine/component';
-import { useI18n } from '@affine/i18n';
+import { OverlayModal } from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
 
 export const StarAFFiNEModal = ({
   open,

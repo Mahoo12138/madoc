@@ -1,7 +1,7 @@
-import { type MenuSubProps, useMobileMenuController } from '@affine/component';
-import { TagService } from '@affine/core/modules/tag';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { type MenuSubProps, useMobileMenuController } from '@madoc/component';
+import { TagService } from '@madoc/core/modules/tag';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import {
   createContext,
   type Dispatch,

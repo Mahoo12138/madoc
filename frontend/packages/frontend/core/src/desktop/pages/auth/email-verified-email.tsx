@@ -1,11 +1,11 @@
-import { Button } from '@affine/component';
-import { AuthPageContainer } from '@affine/component/auth-components';
-import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
-import { GraphQLService } from '@affine/core/modules/cloud';
-import { UserFriendlyError } from '@affine/error';
-import { verifyEmailMutation } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+import { Button } from '@madoc/component';
+import { AuthPageContainer } from '@madoc/component/auth-components';
+import { useNavigateHelper } from '@madoc/core/components/hooks/use-navigate-helper';
+import { GraphQLService } from '@madoc/core/modules/cloud';
+import { UserFriendlyError } from '@madoc/error';
+import { verifyEmailMutation } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import { type FC, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 

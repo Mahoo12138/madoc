@@ -1,5 +1,5 @@
-import type { IconData } from '@affine/component';
-import { Store } from '@toeverything/infra';
+import type { IconData } from '@madoc/component';
+import { Store } from '@madoc/infra';
 
 import type { WorkspaceDBService } from '../../db';
 

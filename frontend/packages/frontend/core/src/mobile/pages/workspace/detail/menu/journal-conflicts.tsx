@@ -4,20 +4,20 @@ import {
   MobileMenuItem,
   MobileMenuSub,
   useConfirmModal,
-} from '@affine/component';
-import { Guard } from '@affine/core/components/guard';
-import { MoveToTrash } from '@affine/core/components/page-list';
+} from '@madoc/component';
+import { Guard } from '@madoc/core/components/guard';
+import { MoveToTrash } from '@madoc/core/components/page-list';
 import {
   type DocRecord,
   DocService,
   DocsService,
-} from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { JournalService } from '@affine/core/modules/journal';
-import { WorkbenchLink } from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { JournalService } from '@madoc/core/modules/journal';
+import { WorkbenchLink } from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
 import { CalendarXmarkIcon, EditIcon, TodayIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { type MouseEvent, useCallback, useMemo } from 'react';
 
 import * as styles from './journal-conflicts.css';

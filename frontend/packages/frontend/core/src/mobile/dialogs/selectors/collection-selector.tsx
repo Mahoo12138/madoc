@@ -1,12 +1,12 @@
-import { Modal } from '@affine/component';
-import { CollectionService } from '@affine/core/modules/collection';
+import { Modal } from '@madoc/component';
+import { CollectionService } from '@madoc/core/modules/collection';
 import type {
   DialogComponentProps,
   WORKSPACE_DIALOG_SCHEMA,
-} from '@affine/core/modules/dialogs';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/dialogs';
+import { useI18n } from '@madoc/i18n';
 import { ViewLayersIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { useMemo } from 'react';
 

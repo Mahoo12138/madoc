@@ -1,8 +1,8 @@
 import type {
   StoreClient,
   WorkerInitOptions,
-} from '@affine/nbstore/worker/client';
-import { Entity } from '@toeverything/infra';
+} from '@madoc/nbstore/worker/client';
+import { Entity } from '@madoc/infra';
 
 import type { FeatureFlagService } from '../../feature-flag';
 import type { NbstoreService } from '../../storage';

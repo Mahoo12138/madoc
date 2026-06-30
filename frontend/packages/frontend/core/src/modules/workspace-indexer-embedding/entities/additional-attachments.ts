@@ -1,5 +1,5 @@
-import type { WorkspaceService } from '@affine/core/modules/workspace';
-import type { PaginationInput } from '@affine/graphql';
+import type { WorkspaceService } from '@madoc/core/modules/workspace';
+import type { PaginationInput } from '@madoc/graphql';
 import {
   catchErrorInto,
   effect,
@@ -9,7 +9,7 @@ import {
   onComplete,
   onStart,
   smartRetry,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { EMPTY } from 'rxjs';
 import { exhaustMap, mergeMap } from 'rxjs/operators';
 

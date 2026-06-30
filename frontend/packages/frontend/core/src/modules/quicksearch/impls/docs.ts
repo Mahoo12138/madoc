@@ -1,4 +1,4 @@
-import { ServerFeature } from '@affine/graphql';
+import { ServerFeature } from '@madoc/graphql';
 import { SearchIcon } from '@blocksuite/icons/rc';
 import {
   effect,
@@ -6,7 +6,7 @@ import {
   LiveData,
   onComplete,
   onStart,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { truncate } from 'lodash-es';
 import { catchError, EMPTY, map, of, switchMap, tap, throttleTime } from 'rxjs';
 

@@ -1,5 +1,5 @@
-import type { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import type { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { SidebarIcon } from '@blocksuite/icons/rc';
 
 import type { AppSidebarService } from '../modules/app-sidebar';

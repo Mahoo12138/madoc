@@ -1,4 +1,4 @@
-import { Framework } from '@toeverything/infra';
+import { Framework } from '@madoc/infra';
 import { Subject } from 'rxjs';
 import { describe, expect, test, vi } from 'vitest';
 

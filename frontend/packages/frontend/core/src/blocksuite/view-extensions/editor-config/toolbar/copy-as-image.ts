@@ -1,7 +1,7 @@
-import { notify } from '@affine/component';
-import { EditorService } from '@affine/core/modules/editor';
-import { apis } from '@affine/electron-api';
-import { I18n } from '@affine/i18n';
+import { notify } from '@madoc/component';
+import { EditorService } from '@madoc/core/modules/editor';
+import { apis } from '@madoc/electron-api';
+import { I18n } from '@madoc/i18n';
 import type { MenuContext } from '@blocksuite/affine/components/toolbar';
 import { Bound, getCommonBound } from '@blocksuite/affine/global/gfx';
 import type { BlockStdScope } from '@blocksuite/affine/std';
@@ -13,7 +13,7 @@ import {
   isGfxGroupCompatibleModel,
 } from '@blocksuite/affine/std/gfx';
 import { CopyAsImgaeIcon } from '@blocksuite/icons/lit';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 const snapshotStyle = `
   affine-edgeless-root .widgets-container,

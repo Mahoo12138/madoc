@@ -1,5 +1,5 @@
-import { getDocCreatedByUpdatedByListQuery } from '@affine/graphql';
-import { Store, yjsGetPath } from '@toeverything/infra';
+import { getDocCreatedByUpdatedByListQuery } from '@madoc/graphql';
+import { Store, yjsGetPath } from '@madoc/infra';
 import type { Observable } from 'rxjs';
 
 import type { WorkspaceService } from '../../workspace';

@@ -1,4 +1,4 @@
-import { IconButton, Input, Menu, MenuItem } from '@affine/component';
+import { IconButton, Input, Menu, MenuItem } from '@madoc/component';
 import { MoreHorizontalIcon } from '@blocksuite/icons/rc';
 import { cssVar } from '@toeverything/theme';
 import { useCallback, useState } from 'react';

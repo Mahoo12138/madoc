@@ -1,7 +1,7 @@
-import { IconButton, notify } from '@affine/component';
-import { copyTextToClipboard } from '@affine/core/utils/clipboard';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+import { IconButton, notify } from '@madoc/component';
+import { copyTextToClipboard } from '@madoc/core/utils/clipboard';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import type { DocMode } from '@blocksuite/affine/model';
 import {
   CloseIcon,
@@ -11,7 +11,7 @@ import {
   OpenInNewIcon,
   SplitViewIcon,
 } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { clsx } from 'clsx';
 import {
   type HTMLAttributes,

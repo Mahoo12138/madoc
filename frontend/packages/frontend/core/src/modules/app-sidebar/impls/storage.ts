@@ -1,4 +1,4 @@
-import { type Memento, wrapMemento } from '@toeverything/infra';
+import { type Memento, wrapMemento } from '@madoc/infra';
 
 import type { GlobalState } from '../../storage';
 import type { AppSidebarState } from '../providers/storage';

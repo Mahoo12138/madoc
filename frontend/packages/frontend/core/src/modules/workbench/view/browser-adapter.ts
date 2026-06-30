@@ -1,4 +1,4 @@
-import { useLiveData } from '@toeverything/infra';
+import { useLiveData } from '@madoc/infra';
 import type { Location } from 'history';
 import { useEffect } from 'react';
 // oxlint-disable-next-line no-restricted-imports

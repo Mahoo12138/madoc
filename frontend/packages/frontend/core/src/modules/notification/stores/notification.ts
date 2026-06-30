@@ -7,8 +7,8 @@ import {
   readAllNotificationsMutation,
   readNotificationMutation,
   type UnionNotificationBodyType,
-} from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 import { map } from 'rxjs';
 
 import type { GraphQLService, ServerService } from '../../cloud';
@@ -20,7 +20,7 @@ export type Notification = NonNullable<
 
 export type NotificationBody = UnionNotificationBodyType;
 
-export { NotificationType } from '@affine/graphql';
+export { NotificationType } from '@madoc/graphql';
 
 export class NotificationStore extends Store {
   constructor(

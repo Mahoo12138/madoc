@@ -1,6 +1,6 @@
-import type { MenuProps } from '@affine/component';
-import { Menu, Tooltip } from '@affine/component';
-import { useI18n } from '@affine/i18n';
+import type { MenuProps } from '@madoc/component';
+import { Menu, Tooltip } from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
 import clsx from 'clsx';
 import type { HTMLAttributes, MouseEventHandler } from 'react';
 import { forwardRef, memo, useCallback, useMemo, useState } from 'react';

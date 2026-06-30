@@ -1,8 +1,8 @@
-import { Button } from '@affine/component';
-import { MeetingSettingsService } from '@affine/core/modules/media/services/meeting-settings';
-import { Trans, useI18n } from '@affine/i18n';
+import { Button } from '@madoc/component';
+import { MeetingSettingsService } from '@madoc/core/modules/media/services/meeting-settings';
+import { Trans, useI18n } from '@madoc/i18n';
 import { DualLinkIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useTheme } from 'next-themes';
 import { useCallback } from 'react';
 

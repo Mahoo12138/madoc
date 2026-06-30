@@ -1,16 +1,16 @@
-import { MenuItem, MenuSeparator, MobileMenuSub } from '@affine/component';
-import { sortPagesByDate } from '@affine/core/desktop/pages/workspace/detail-page/tabs/journal';
+import { MenuItem, MenuSeparator, MobileMenuSub } from '@madoc/component';
+import { sortPagesByDate } from '@madoc/core/desktop/pages/workspace/detail-page/tabs/journal';
 import {
   type DocRecord,
   DocService,
   DocsService,
-} from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { JournalService } from '@affine/core/modules/journal';
-import { WorkbenchLink } from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { JournalService } from '@madoc/core/modules/journal';
+import { WorkbenchLink } from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
 import { HistoryIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import dayjs from 'dayjs';
 import { type ReactNode, useCallback, useMemo } from 'react';
 

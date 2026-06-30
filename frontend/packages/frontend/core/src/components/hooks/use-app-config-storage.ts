@@ -1,6 +1,6 @@
-import { apis } from '@affine/electron-api';
-import type { AppConfigSchema } from '@toeverything/infra';
-import { AppConfigStorage, defaultAppConfig } from '@toeverything/infra';
+import { apis } from '@madoc/electron-api';
+import type { AppConfigSchema } from '@madoc/infra';
+import { AppConfigStorage, defaultAppConfig } from '@madoc/infra';
 import type { Dispatch } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 

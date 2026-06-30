@@ -8,15 +8,15 @@ import {
   QuickSearchInput,
   SidebarContainer,
   SidebarScrollableContainer,
-} from '@affine/core/modules/app-sidebar/views';
-import { ExternalMenuLinkItem } from '@affine/core/modules/app-sidebar/views/menu-item/external-menu-link-item';
-import { AuthService, ServerService } from '@affine/core/modules/cloud';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { CMDKQuickSearchService } from '@affine/core/modules/quicksearch/services/cmdk';
-import type { Workspace } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/core/modules/app-sidebar/views';
+import { ExternalMenuLinkItem } from '@madoc/core/modules/app-sidebar/views/menu-item/external-menu-link-item';
+import { AuthService, ServerService } from '@madoc/core/modules/cloud';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { CMDKQuickSearchService } from '@madoc/core/modules/quicksearch/services/cmdk';
+import type { Workspace } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import type { Store } from '@blocksuite/affine/store';
 import {
   AiOutlineIcon,
@@ -25,7 +25,7 @@ import {
   JournalIcon,
   SettingsIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+import { useLiveData, useService, useServices } from '@madoc/infra';
 import type { ReactElement } from 'react';
 import { memo, useCallback } from 'react';
 
@@ -118,7 +118,7 @@ const AIChatButton = () => {
 
 /**
  * This is for the whole affine app sidebar.
- * This component wraps the app sidebar in `@affine/component` with logic and data.
+ * This component wraps the app sidebar in `@madoc/component` with logic and data.
  *
  */
 export const RootAppSidebar = memo((): ReactElement => {

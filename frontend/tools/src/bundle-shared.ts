@@ -1,15 +1,15 @@
 import type { Configuration as RspackDevServerConfiguration } from '@rspack/dev-server';
 
 export const RSPACK_SUPPORTED_PACKAGES = [
-  '@affine/admin',
-  '@affine/web',
-  '@affine/mobile',
-  '@affine/ios',
-  '@affine/android',
-  '@affine/electron-renderer',
-  '@affine/server',
-  '@affine/reader',
-  '@affine/media-capture-playground',
+  '@madoc/admin',
+  '@madoc/web',
+  '@madoc/mobile',
+  '@madoc/ios',
+  '@madoc/android',
+  '@madoc/electron-renderer',
+  '@madoc/server',
+  '@madoc/reader',
+  '@madoc/media-capture-playground',
 ] as const;
 
 const rspackSupportedPackageSet = new Set<string>(RSPACK_SUPPORTED_PACKAGES);
@@ -58,16 +58,20 @@ export const DEFAULT_DEV_SERVER_CONFIG: RspackDevServerConfiguration = {
   proxy: [
     {
       context: '/api',
-      target: 'http://localhost:3010',
+      target: 'http://localhost:3000',
     },
     {
       context: '/socket.io',
-      target: 'http://localhost:3010',
+      target: 'http://localhost:3000',
       ws: true,
     },
     {
       context: '/graphql',
-      target: 'http://localhost:3010',
+      target: 'http://localhost:3000',
+    },
+    {
+      context: '/info',
+      target: 'http://localhost:3000',
     },
   ],
 };

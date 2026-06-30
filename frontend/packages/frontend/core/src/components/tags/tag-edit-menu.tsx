@@ -5,8 +5,8 @@ import {
   type MenuProps,
   MenuSeparator,
   Scrollable,
-} from '@affine/component';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
 import { DeleteIcon, DoneIcon, TagsIcon } from '@blocksuite/icons/rc';
 import type { MouseEventHandler, PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';

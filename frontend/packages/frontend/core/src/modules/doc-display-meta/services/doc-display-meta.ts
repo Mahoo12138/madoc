@@ -1,4 +1,4 @@
-import { i18nTime } from '@affine/i18n';
+import { i18nTime } from '@madoc/i18n';
 import {
   AliasIcon as LitAliasIcon,
   BlockLinkIcon as LitBlockLinkIcon,
@@ -21,7 +21,7 @@ import {
   TomorrowIcon,
   YesterdayIcon,
 } from '@blocksuite/icons/rc';
-import { LiveData, Service } from '@toeverything/infra';
+import { LiveData, Service } from '@madoc/infra';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 

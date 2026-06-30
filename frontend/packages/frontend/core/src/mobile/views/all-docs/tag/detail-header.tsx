@@ -1,6 +1,6 @@
-import { PageHeader } from '@affine/core/mobile/components';
-import type { Tag } from '@affine/core/modules/tag';
-import { useLiveData } from '@toeverything/infra';
+import { PageHeader } from '@madoc/core/mobile/components';
+import type { Tag } from '@madoc/core/modules/tag';
+import { useLiveData } from '@madoc/infra';
 
 import * as styles from './detail.css';
 

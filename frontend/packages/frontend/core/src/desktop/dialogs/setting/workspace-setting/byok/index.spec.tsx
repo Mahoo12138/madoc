@@ -9,7 +9,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import type * as Infra from '@toeverything/infra';
+import type * as Infra from '@madoc/infra';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -64,7 +64,7 @@ const deleteWorkspaceByokConfigMutation = vi.hoisted(() =>
   Symbol('deleteWorkspaceByokConfigMutation')
 );
 
-vi.mock('@affine/component', () => ({
+vi.mock('@madoc/component', () => ({
   Button: ({
     children,
     ...props
@@ -94,7 +94,7 @@ vi.mock('@affine/component', () => ({
   },
 }));
 
-vi.mock('@affine/component/setting-components', () => ({
+vi.mock('@madoc/component/setting-components', () => ({
   SettingHeader: ({
     title,
     subtitle,
@@ -112,21 +112,21 @@ vi.mock('@affine/component/setting-components', () => ({
   ),
 }));
 
-vi.mock('@affine/core/modules/cloud', () => ({
+vi.mock('@madoc/core/modules/cloud', () => ({
   WorkspaceServerService: WorkspaceServerServiceToken,
 }));
 
-vi.mock('@affine/core/modules/workspace', () => ({
+vi.mock('@madoc/core/modules/workspace', () => ({
   WorkspaceService: WorkspaceServiceToken,
 }));
 
-vi.mock('@affine/electron-api', () => ({
+vi.mock('@madoc/electron-api', () => ({
   get apis() {
     return electronApiState.apis;
   },
 }));
 
-vi.mock('@affine/graphql', () => ({
+vi.mock('@madoc/graphql', () => ({
   ByokKeyStorage,
   ByokKeyTestStatus,
   ByokProvider,
@@ -137,7 +137,7 @@ vi.mock('@affine/graphql', () => ({
   workspaceByokSettingsQuery,
 }));
 
-vi.mock('@affine/i18n', () => {
+vi.mock('@madoc/i18n', () => {
   const messages: Record<string, string> = {
     'com.affine.settings.workspace.byok.action.add-key': 'Add key',
     'com.affine.settings.workspace.byok.action.edit': 'Edit',
@@ -211,7 +211,7 @@ vi.mock('@blocksuite/icons/rc', () => ({
   TranscriptWithAiIcon: () => <span>transcript</span>,
 }));
 
-vi.mock('@toeverything/infra', async importOriginal => {
+vi.mock('@madoc/infra', async importOriginal => {
   const actual = await importOriginal<typeof Infra>();
 
   return {

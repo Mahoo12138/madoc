@@ -1,9 +1,9 @@
-import type { DocFrontendDocState } from '@affine/nbstore';
+import type { DocFrontendDocState } from '@madoc/nbstore';
 import type {
   Table as OrmTable,
   TableSchemaBuilder,
-} from '@toeverything/infra';
-import { Entity, LiveData } from '@toeverything/infra';
+} from '@madoc/infra';
+import { Entity, LiveData } from '@madoc/infra';
 
 import type { UserDBEngine } from './user-db-engine';
 

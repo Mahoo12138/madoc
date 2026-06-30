@@ -1,19 +1,19 @@
-import { Button, Checkbox, Loading, Switch, Tooltip } from '@affine/component';
-import { SettingHeader } from '@affine/component/setting-components';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
+import { Button, Checkbox, Loading, Switch, Tooltip } from '@madoc/component';
+import { SettingHeader } from '@madoc/component/setting-components';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
 import {
   AFFINE_FLAGS,
   FeatureFlagService,
   type Flag,
-} from '@affine/core/modules/feature-flag';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/feature-flag';
+import { useI18n } from '@madoc/i18n';
 import {
   ArrowRightSmallIcon,
   DiscordIcon,
   EmailIcon,
   GithubIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { Suspense, useCallback, useState } from 'react';

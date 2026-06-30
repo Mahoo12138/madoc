@@ -1,7 +1,7 @@
-import { IconPicker, uniReactRoot } from '@affine/component';
+import { IconPicker, uniReactRoot } from '@madoc/component';
 // Import the identifier for internal use
 import { type IconPickerService as IIconPickerService } from '@blocksuite/affine-shared/services';
-import { Service } from '@toeverything/infra';
+import { Service } from '@madoc/infra';
 
 // Re-export types from BlockSuite shared services
 export type {

@@ -1,5 +1,5 @@
-import { getDocSummaryQuery } from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+import { getDocSummaryQuery } from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 import { map, Observable } from 'rxjs';
 
 import type { WorkspaceServerService } from '../../cloud';

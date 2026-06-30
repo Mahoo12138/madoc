@@ -1,10 +1,10 @@
-import { shallowEqual } from '@affine/component';
-import { RealtimeLiveQuery } from '@affine/core/modules/cloud/realtime/live-query';
-import { DebugLogger } from '@affine/debug';
-import { UserFriendlyError } from '@affine/error';
-import { AiJobStatus, type TranscriptionResultType } from '@affine/graphql';
-import type { RealtimeTopicEventOf } from '@affine/realtime';
-import { Entity, LiveData } from '@toeverything/infra';
+import { shallowEqual } from '@madoc/component';
+import { RealtimeLiveQuery } from '@madoc/core/modules/cloud/realtime/live-query';
+import { DebugLogger } from '@madoc/debug';
+import { UserFriendlyError } from '@madoc/error';
+import { AiJobStatus, type TranscriptionResultType } from '@madoc/graphql';
+import type { RealtimeTopicEventOf } from '@madoc/realtime';
+import { Entity, LiveData } from '@madoc/infra';
 
 import type { DefaultServerService, WorkspaceServerService } from '../../cloud';
 import { AuthService } from '../../cloud/services/auth';

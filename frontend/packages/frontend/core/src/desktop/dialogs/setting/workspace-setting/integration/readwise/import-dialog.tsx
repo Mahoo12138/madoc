@@ -6,12 +6,12 @@ import {
   Modal,
   notify,
   Scrollable,
-} from '@affine/component';
-import { IntegrationService } from '@affine/core/modules/integration';
-import type { ReadwiseHighlight } from '@affine/core/modules/integration/type';
-import { i18nTime, Trans, useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import { IntegrationService } from '@madoc/core/modules/integration';
+import type { ReadwiseHighlight } from '@madoc/core/modules/integration/type';
+import { i18nTime, Trans, useI18n } from '@madoc/i18n';
 import { InformationFillDuotoneIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   type ChangeEvent,

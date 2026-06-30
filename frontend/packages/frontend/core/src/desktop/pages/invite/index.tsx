@@ -1,16 +1,16 @@
-import { notify } from '@affine/component';
+import { notify } from '@madoc/component';
 import {
   AcceptInvitePage,
   ExpiredPage,
   JoinFailedPage,
   RequestToJoinPage,
   SentRequestPage,
-} from '@affine/component/member-components';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { WorkspacesService } from '@affine/core/modules/workspace';
-import { UserFriendlyError } from '@affine/error';
-import { WorkspaceMemberStatus } from '@affine/graphql';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/component/member-components';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { WorkspacesService } from '@madoc/core/modules/workspace';
+import { UserFriendlyError } from '@madoc/error';
+import { WorkspaceMemberStatus } from '@madoc/graphql';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useEffect, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 

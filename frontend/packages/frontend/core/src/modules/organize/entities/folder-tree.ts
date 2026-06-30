@@ -1,4 +1,4 @@
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import { map } from 'rxjs';
 
 import type { FolderStore } from '../stores/folder';

@@ -1,6 +1,6 @@
-import { GlobalDialogService } from '@affine/core/modules/dialogs';
+import { GlobalDialogService } from '@madoc/core/modules/dialogs';
 import type { DocMode } from '@blocksuite/affine/model';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 

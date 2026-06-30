@@ -4,17 +4,17 @@ import {
   Menu,
   MenuItem,
   MenuSeparator,
-} from '@affine/component';
-import type { FilterParams } from '@affine/core/modules/collection-rules';
-import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import type { FilterParams } from '@madoc/core/modules/collection-rules';
+import { WorkspacePropertyService } from '@madoc/core/modules/workspace-property';
+import { useI18n } from '@madoc/i18n';
 import {
   ArrowLeftBigIcon,
   CloudWorkspaceIcon,
   FavoriteIcon,
   PlusIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useMemo } from 'react';
 
 import { generateExplorerPropertyList } from '../explorer/properties';

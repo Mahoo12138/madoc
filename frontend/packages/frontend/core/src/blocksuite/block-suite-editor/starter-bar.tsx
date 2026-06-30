@@ -1,19 +1,19 @@
-import { MenuSeparator } from '@affine/component';
-import { DocsService } from '@affine/core/modules/doc';
-import { EditorService } from '@affine/core/modules/editor';
-import { TemplateDocService } from '@affine/core/modules/template-doc';
+import { MenuSeparator } from '@madoc/component';
+import { DocsService } from '@madoc/core/modules/doc';
+import { EditorService } from '@madoc/core/modules/editor';
+import { TemplateDocService } from '@madoc/core/modules/template-doc';
 import {
   TemplateListMenu,
   TemplateListMenuAdd,
-} from '@affine/core/modules/template-doc/view/template-list-menu';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/core/modules/template-doc/view/template-list-menu';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import type { Store } from '@blocksuite/affine/store';
 import {
   EdgelessIcon,
   TemplateColoredIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   forwardRef,

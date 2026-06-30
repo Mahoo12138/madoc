@@ -1,4 +1,4 @@
-import { UserFriendlyError } from '@affine/error';
+import { UserFriendlyError } from '@madoc/error';
 import {
   gqlFetcherFactory,
   type OauthProvidersQuery,
@@ -6,8 +6,8 @@ import {
   type ServerConfigQuery,
   serverConfigQuery,
   ServerFeature,
-} from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 
 export type ServerConfigType = ServerConfigQuery['serverConfig'] &
   OauthProvidersQuery['serverConfig'];

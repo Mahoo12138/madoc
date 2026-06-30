@@ -1,6 +1,6 @@
-import { CheckboxValue } from '@affine/core/components/workspace-property-types/checkbox';
-import type { LiveData } from '@toeverything/infra';
-import { useLiveData } from '@toeverything/infra';
+import { CheckboxValue } from '@madoc/core/components/workspace-property-types/checkbox';
+import type { LiveData } from '@madoc/infra';
+import { useLiveData } from '@madoc/infra';
 
 import type { DatabaseCellRendererProps } from '../../../types';
 

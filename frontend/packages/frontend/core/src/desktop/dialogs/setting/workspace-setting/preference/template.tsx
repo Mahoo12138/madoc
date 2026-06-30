@@ -3,18 +3,18 @@ import {
   MenuSeparator,
   MenuTrigger,
   Switch,
-} from '@affine/component';
+} from '@madoc/component';
 import {
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { DocsService } from '@affine/core/modules/doc';
-import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
-import { TemplateDocService } from '@affine/core/modules/template-doc';
-import { TemplateListMenu } from '@affine/core/modules/template-doc/view/template-list-menu';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/component/setting-components';
+import { DocsService } from '@madoc/core/modules/doc';
+import { DocDisplayMetaService } from '@madoc/core/modules/doc-display-meta';
+import { TemplateDocService } from '@madoc/core/modules/template-doc';
+import { TemplateListMenu } from '@madoc/core/modules/template-doc/view/template-list-menu';
+import { useI18n } from '@madoc/i18n';
 import { DeleteIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import * as styles from './template.css';

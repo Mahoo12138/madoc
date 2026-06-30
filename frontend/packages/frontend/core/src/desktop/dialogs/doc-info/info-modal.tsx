@@ -4,22 +4,22 @@ import {
   Menu,
   PropertyCollapsibleContent,
   PropertyCollapsibleSection,
-} from '@affine/component';
-import { BacklinkGroups } from '@affine/core/blocksuite/block-suite-editor/bi-directional-link-panel';
-import { CreatePropertyMenuItems } from '@affine/core/components/properties/menu/create-doc-property';
-import { WorkspacePropertyRow } from '@affine/core/components/properties/table';
-import type { DocCustomPropertyInfo } from '@affine/core/modules/db';
-import { DocDatabaseBacklinkInfo } from '@affine/core/modules/doc-info';
+} from '@madoc/component';
+import { BacklinkGroups } from '@madoc/core/blocksuite/block-suite-editor/bi-directional-link-panel';
+import { CreatePropertyMenuItems } from '@madoc/core/components/properties/menu/create-doc-property';
+import { WorkspacePropertyRow } from '@madoc/core/components/properties/table';
+import type { DocCustomPropertyInfo } from '@madoc/core/modules/db';
+import { DocDatabaseBacklinkInfo } from '@madoc/core/modules/doc-info';
 import type {
   DatabaseRow,
   DatabaseValueCell,
-} from '@affine/core/modules/doc-info/types';
-import { DocLinksService } from '@affine/core/modules/doc-link';
-import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/core/modules/doc-info/types';
+import { DocLinksService } from '@madoc/core/modules/doc-link';
+import { WorkspacePropertyService } from '@madoc/core/modules/workspace-property';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import { PlusIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useEffect, useState } from 'react';
 
 import * as styles from './info-modal.css';

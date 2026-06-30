@@ -1,6 +1,6 @@
-import { shallowEqual } from '@affine/component';
-import type { CollectionMeta } from '@affine/core/modules/collection';
-import { useI18n } from '@affine/i18n';
+import { shallowEqual } from '@madoc/component';
+import type { CollectionMeta } from '@madoc/core/modules/collection';
+import { useI18n } from '@madoc/i18n';
 import { ToggleRightIcon, ViewLayersIcon } from '@blocksuite/icons/rc';
 import { selectAtom } from 'jotai/utils';
 import type { MouseEventHandler } from 'react';

@@ -1,5 +1,5 @@
-import { getPublicUserByIdQuery } from '@affine/graphql';
-import { Store } from '@toeverything/infra';
+import { getPublicUserByIdQuery } from '@madoc/graphql';
+import { Store } from '@madoc/infra';
 
 import type { GraphQLService } from '../services/graphql';
 

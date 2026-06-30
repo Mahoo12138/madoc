@@ -1,11 +1,11 @@
-import { DebugLogger } from '@affine/debug';
+import { DebugLogger } from '@madoc/debug';
 import {
   effect,
   exhaustMapWithTrailing,
   fromPromise,
   LiveData,
   Service,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { catchError, distinctUntilChanged, EMPTY } from 'rxjs';
 
 import type { NavigationGestureProvider } from '../providers/navigation-gesture';

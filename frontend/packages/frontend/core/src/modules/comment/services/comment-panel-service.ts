@@ -1,5 +1,5 @@
-import { type WorkbenchService } from '@affine/core/modules/workbench';
-import { Service } from '@toeverything/infra';
+import { type WorkbenchService } from '@madoc/core/modules/workbench';
+import { Service } from '@madoc/infra';
 
 import type { DocCommentEntity } from '../entities/doc-comment';
 

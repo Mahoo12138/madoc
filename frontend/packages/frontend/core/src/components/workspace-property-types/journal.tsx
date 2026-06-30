@@ -4,20 +4,20 @@ import {
   Menu,
   MenuItem,
   PropertyValue,
-} from '@affine/component';
-import { MobileJournalConflictList } from '@affine/core/mobile/pages/workspace/detail/menu/journal-conflicts';
-import type { FilterParams } from '@affine/core/modules/collection-rules';
-import { DocService } from '@affine/core/modules/doc';
-import { JournalService } from '@affine/core/modules/journal';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { ViewService } from '@affine/core/modules/workbench/services/view';
-import { i18nTime, useI18n } from '@affine/i18n';
+} from '@madoc/component';
+import { MobileJournalConflictList } from '@madoc/core/mobile/pages/workspace/detail/menu/journal-conflicts';
+import type { FilterParams } from '@madoc/core/modules/collection-rules';
+import { DocService } from '@madoc/core/modules/doc';
+import { JournalService } from '@madoc/core/modules/journal';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { ViewService } from '@madoc/core/modules/workbench/services/view';
+import { i18nTime, useI18n } from '@madoc/i18n';
 import { TodayIcon } from '@blocksuite/icons/rc';
 import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 

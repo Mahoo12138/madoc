@@ -7,27 +7,27 @@ import {
   PropertyRoot,
   useDraggable,
   useDropTarget,
-} from '@affine/component';
-import type { DocCustomPropertyInfo } from '@affine/core/modules/db';
-import { DocService } from '@affine/core/modules/doc';
-import { DocDatabaseBacklinkInfo } from '@affine/core/modules/doc-info';
+} from '@madoc/component';
+import type { DocCustomPropertyInfo } from '@madoc/core/modules/db';
+import { DocService } from '@madoc/core/modules/doc';
+import { DocDatabaseBacklinkInfo } from '@madoc/core/modules/doc-info';
 import type {
   DatabaseRow,
   DatabaseValueCell,
-} from '@affine/core/modules/doc-info/types';
-import { DocIntegrationPropertiesTable } from '@affine/core/modules/integration';
-import { ViewService, WorkbenchService } from '@affine/core/modules/workbench';
-import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/core/modules/doc-info/types';
+import { DocIntegrationPropertiesTable } from '@madoc/core/modules/integration';
+import { ViewService, WorkbenchService } from '@madoc/core/modules/workbench';
+import { WorkspacePropertyService } from '@madoc/core/modules/workspace-property';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { PlusIcon, PropertyIcon, ToggleDownIcon } from '@blocksuite/icons/rc';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import clsx from 'clsx';
 import type React from 'react';
 import { forwardRef, useCallback, useMemo, useState } from 'react';
@@ -267,7 +267,7 @@ interface WorkspacePropertiesTableBodyProps {
   ) => void;
 }
 
-// 🏷️ Tags     (⋅ xxx) (⋅ yyy)
+// 🏷�?Tags     (�?xxx) (�?yyy)
 // #️⃣ Number   123456
 // +  Add a property
 const WorkspaceWorkspacePropertiesTableBody = forwardRef<

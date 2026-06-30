@@ -1,6 +1,6 @@
-import { observeIntersection } from '@affine/component';
-import { useI18n } from '@affine/i18n';
-import { useLiveData } from '@toeverything/infra';
+import { observeIntersection } from '@madoc/component';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData } from '@madoc/infra';
 import { debounce } from 'lodash-es';
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 

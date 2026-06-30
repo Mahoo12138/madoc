@@ -5,19 +5,19 @@ import {
   toast,
   useConfirmModal,
   usePromptModal,
-} from '@affine/component';
-import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
-import { useCatchEventCallback } from '@affine/core/components/hooks/use-catch-event-hook';
-import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
-import { DocsService } from '@affine/core/modules/doc';
+} from '@madoc/component';
+import { useBlockSuiteMetaHelper } from '@madoc/core/components/hooks/affine/use-block-suite-meta-helper';
+import { useCatchEventCallback } from '@madoc/core/components/hooks/use-catch-event-hook';
+import { WorkspaceDialogService } from '@madoc/core/modules/dialogs';
+import { DocsService } from '@madoc/core/modules/doc';
 import {
   CompatibleFavoriteItemsAdapter,
   FavoriteService,
-} from '@affine/core/modules/favorite';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/core/modules/favorite';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import type { DocMeta } from '@blocksuite/affine/store';
 import {
   DeleteIcon,
@@ -33,7 +33,7 @@ import {
   ResetIcon,
   SplitViewIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+import { useLiveData, useService, useServices } from '@madoc/infra';
 import type { MouseEvent } from 'react';
 import { useCallback, useState } from 'react';
 

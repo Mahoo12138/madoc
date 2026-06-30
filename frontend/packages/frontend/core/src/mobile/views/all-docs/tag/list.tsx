@@ -1,6 +1,6 @@
-import { EmptyTags } from '@affine/core/components/affine/empty';
-import { TagService } from '@affine/core/modules/tag';
-import { useLiveData, useService } from '@toeverything/infra';
+import { EmptyTags } from '@madoc/core/components/affine/empty';
+import { TagService } from '@madoc/core/modules/tag';
+import { useLiveData, useService } from '@madoc/infra';
 
 import { TagItem } from './item';
 import { list } from './styles.css';

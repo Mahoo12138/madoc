@@ -1,10 +1,10 @@
-import { MenuItem, PropertyValue, type RadioItem } from '@affine/component';
-import type { FilterParams } from '@affine/core/modules/collection-rules';
-import { type DocRecord, DocService } from '@affine/core/modules/doc';
-import { EditorSettingService } from '@affine/core/modules/editor-setting';
-import { useI18n } from '@affine/i18n';
+import { MenuItem, PropertyValue, type RadioItem } from '@madoc/component';
+import type { FilterParams } from '@madoc/core/modules/collection-rules';
+import { type DocRecord, DocService } from '@madoc/core/modules/doc';
+import { EditorSettingService } from '@madoc/core/modules/editor-setting';
+import { useI18n } from '@madoc/i18n';
 import { LongerIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { PlainTextDocGroupHeader } from '../explorer/docs-view/group-header';

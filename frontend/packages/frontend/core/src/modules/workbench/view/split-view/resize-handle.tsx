@@ -1,6 +1,6 @@
-import { useDropTarget } from '@affine/component';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useDropTarget } from '@madoc/component';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useLiveData, useService } from '@madoc/infra';
 import { useAtomValue } from 'jotai';
 import type { HTMLAttributes } from 'react';
 import { useCallback } from 'react';

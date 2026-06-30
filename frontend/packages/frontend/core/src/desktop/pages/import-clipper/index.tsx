@@ -1,21 +1,21 @@
-import { Button } from '@affine/component';
-import { AuthHeader } from '@affine/component/auth-components';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { useWorkspaceName } from '@affine/core/components/hooks/use-workspace-info';
-import { WorkspaceSelector } from '@affine/core/components/workspace-selector';
-import { AuthService, ServerService } from '@affine/core/modules/cloud';
+import { Button } from '@madoc/component';
+import { AuthHeader } from '@madoc/component/auth-components';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { useWorkspaceName } from '@madoc/core/components/hooks/use-workspace-info';
+import { WorkspaceSelector } from '@madoc/core/components/workspace-selector';
+import { AuthService, ServerService } from '@madoc/core/modules/cloud';
 import {
   type ClipperInput,
   ImportClipperService,
-} from '@affine/core/modules/import-clipper';
+} from '@madoc/core/modules/import-clipper';
 import {
   type WorkspaceMetadata,
   WorkspacesService,
-} from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+} from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 import { AllDocsIcon } from '@blocksuite/icons/rc';
-import { LiveData, useLiveData, useService } from '@toeverything/infra';
+import { LiveData, useLiveData, useService } from '@madoc/infra';
 import { cssVar } from '@toeverything/theme';
 import { useCallback, useEffect, useRef, useState } from 'react';
 

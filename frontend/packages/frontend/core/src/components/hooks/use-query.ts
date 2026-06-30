@@ -1,10 +1,10 @@
-import { GraphQLService } from '@affine/core/modules/cloud';
+import { GraphQLService } from '@madoc/core/modules/cloud';
 import type {
   GraphQLQuery,
   QueryOptions,
   QueryResponse,
-} from '@affine/graphql';
-import { useService } from '@toeverything/infra';
+} from '@madoc/graphql';
+import { useService } from '@madoc/infra';
 import type { GraphQLError } from 'graphql';
 import { useCallback, useMemo } from 'react';
 import type { SWRConfiguration, SWRResponse } from 'swr';
@@ -27,7 +27,7 @@ export type UseQueryConfig<Query extends GraphQLQuery = GraphQLQuery> = Omit<
  * @example
  *
  * ```ts
- * import { someQuery, someQueryWithNoVars } from '@affine/graphql'
+ * import { someQuery, someQueryWithNoVars } from '@madoc/graphql'
  *
  * const swrResponse1 = useQuery({
  *   query: workspaceByIdQuery,

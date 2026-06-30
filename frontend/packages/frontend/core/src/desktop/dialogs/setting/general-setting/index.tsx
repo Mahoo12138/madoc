@@ -1,7 +1,7 @@
-import type { SettingTab } from '@affine/core/modules/dialogs/constant';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { MeetingSettingsService } from '@affine/core/modules/media/services/meeting-settings';
-import { useI18n } from '@affine/i18n';
+import type { SettingTab } from '@madoc/core/modules/dialogs/constant';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { MeetingSettingsService } from '@madoc/core/modules/media/services/meeting-settings';
+import { useI18n } from '@madoc/i18n';
 import {
   AppearanceIcon,
   ExperimentIcon,
@@ -12,7 +12,7 @@ import {
   NotificationIcon,
   PenIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useMemo } from 'react';
 
 import { AuthService, ServerService } from '../../../../modules/cloud';

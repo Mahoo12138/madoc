@@ -1,10 +1,10 @@
-import { SafeArea } from '@affine/component';
-import { GlobalCacheService } from '@affine/core/modules/storage';
+import { SafeArea } from '@madoc/component';
+import { GlobalCacheService } from '@madoc/core/modules/storage';
 import {
   WorkbenchLink,
   WorkbenchService,
-} from '@affine/core/modules/workbench';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/core/modules/workbench';
+import { useLiveData, useService } from '@madoc/infra';
 import { assignInlineVars } from '@vanilla-extract/dynamic';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';

@@ -3,31 +3,31 @@
 ## Start
 
 ```bash
-yarn affine -h
+pnpm affine -h
 ```
 
 ### Run build command defined in package.json
 
 ```bash
-yarn affine i18n build
+pnpm affine i18n build
 # or
-yarn build -p i18n
+pnpm build -p i18n
 ```
 
 ### Run dev command defined in package.json
 
 ```bash
-yarn affine web dev
+pnpm affine web dev
 # or
-yarn dev -p i18n
+pnpm dev -p i18n
 ```
 
 ### Clean
 
 ```bash
-yarn affine clean --dist --rust
+pnpm affine clean --dist --rust
 # clean node_modules
-yarn affine clean --node-modules
+pnpm affine clean --node-modules
 ```
 
 ### Init
@@ -35,7 +35,7 @@ yarn affine clean --node-modules
 > Generate files that make the monorepo work properly, the per project codegen will not be included anymore
 
 ```bash
-yarn affine init
+pnpm affine init
 ```
 
 ## Tricks
@@ -75,7 +75,7 @@ or
 
 ```bash
 # af is also available for running the scripts
-yarn af web build
+pnpm af web build
 ```
 
 #### by custom shell script

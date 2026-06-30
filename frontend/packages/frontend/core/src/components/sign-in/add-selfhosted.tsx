@@ -1,16 +1,16 @@
-import { Button, notify } from '@affine/component';
+import { Button, notify } from '@madoc/component';
 import {
   AuthContainer,
   AuthContent,
   AuthFooter,
   AuthHeader,
   AuthInput,
-} from '@affine/component/auth-components';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { ServersService } from '@affine/core/modules/cloud';
-import { UserFriendlyError } from '@affine/error';
-import { Trans, useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+} from '@madoc/component/auth-components';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { ServersService } from '@madoc/core/modules/cloud';
+import { UserFriendlyError } from '@madoc/error';
+import { Trans, useI18n } from '@madoc/i18n';
+import { useService } from '@madoc/infra';
 import {
   type Dispatch,
   type SetStateAction,

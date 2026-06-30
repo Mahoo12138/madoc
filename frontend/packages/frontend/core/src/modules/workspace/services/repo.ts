@@ -1,6 +1,6 @@
-import { DebugLogger } from '@affine/debug';
-import type { WorkerInitOptions } from '@affine/nbstore/worker/client';
-import { ObjectPool, Service } from '@toeverything/infra';
+import { DebugLogger } from '@madoc/debug';
+import type { WorkerInitOptions } from '@madoc/nbstore/worker/client';
+import { ObjectPool, Service } from '@madoc/infra';
 
 import type { Workspace } from '../entities/workspace';
 import { WorkspaceInitialized } from '../events';

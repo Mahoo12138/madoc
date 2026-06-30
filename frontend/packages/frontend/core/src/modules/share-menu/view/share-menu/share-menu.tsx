@@ -1,12 +1,12 @@
-import { Tabs, Tooltip } from '@affine/component';
-import { Button } from '@affine/component/ui/button';
-import { Menu } from '@affine/component/ui/menu';
-import { ShareInfoService } from '@affine/core/modules/share-doc';
-import type { WorkspaceMetadata } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+import { Tabs, Tooltip } from '@madoc/component';
+import { Button } from '@madoc/component/ui/button';
+import { Menu } from '@madoc/component/ui/menu';
+import { ShareInfoService } from '@madoc/core/modules/share-doc';
+import type { WorkspaceMetadata } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import type { Store } from '@blocksuite/affine/store';
 import { LockIcon, PublishIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import {
   forwardRef,
   type PropsWithChildren,

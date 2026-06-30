@@ -1,4 +1,4 @@
-import { Avatar, notify } from '@affine/component';
+import { Avatar, notify } from '@madoc/component';
 import {
   type ExistedUserInfo,
   type UserListService,
@@ -250,8 +250,7 @@ export const MemberPreview = ({
       </div>
       {onDelete && (
         <div className={styles.memberDeleteIcon} onClick={onDelete}>
-          âœ•
-        </div>
+          âœ?        </div>
       )}
     </div>
   );

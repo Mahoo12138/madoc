@@ -1,11 +1,11 @@
-import type { InlineEditProps } from '@affine/component';
-import { InlineEdit } from '@affine/component';
-import { useGuard } from '@affine/core/components/guard';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { DocService, DocsService } from '@affine/core/modules/doc';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { track } from '@affine/track';
-import { useLiveData, useService } from '@toeverything/infra';
+import type { InlineEditProps } from '@madoc/component';
+import { InlineEdit } from '@madoc/component';
+import { useGuard } from '@madoc/core/components/guard';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { DocService, DocsService } from '@madoc/core/modules/doc';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { track } from '@madoc/track';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import type { HTMLAttributes } from 'react';
 

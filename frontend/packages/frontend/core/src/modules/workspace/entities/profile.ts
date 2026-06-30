@@ -1,4 +1,4 @@
-import { DebugLogger } from '@affine/debug';
+import { DebugLogger } from '@madoc/debug';
 import {
   effect,
   Entity,
@@ -6,7 +6,7 @@ import {
   LiveData,
   onComplete,
   onStart,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { isEqual } from 'lodash-es';
 import { catchError, EMPTY, exhaustMap, tap } from 'rxjs';
 

@@ -1,11 +1,11 @@
-import { PropertyValue } from '@affine/component';
-import { ConfigModal } from '@affine/core/components/mobile';
+import { PropertyValue } from '@madoc/component';
+import { ConfigModal } from '@madoc/core/components/mobile';
 import { DefaultInlineManagerExtension } from '@blocksuite/affine/inlines/preset';
 import { RichText } from '@blocksuite/affine/rich-text';
 import type { BlockStdScope } from '@blocksuite/affine/std';
 import type { Store } from '@blocksuite/affine/store';
 import { TextIcon } from '@blocksuite/icons/rc';
-import { type LiveData, useLiveData } from '@toeverything/infra';
+import { type LiveData, useLiveData } from '@madoc/infra';
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import type * as Y from 'yjs';
 

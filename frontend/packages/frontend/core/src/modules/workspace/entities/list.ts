@@ -1,4 +1,4 @@
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import { combineLatest, map, of, switchMap } from 'rxjs';
 
 import type { WorkspaceMetadata } from '../metadata';

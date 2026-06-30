@@ -1,10 +1,10 @@
-import type { Collection as LegacyCollectionInfo } from '@affine/env/filter';
+import type { Collection as LegacyCollectionInfo } from '@madoc/env/filter';
 import {
   Store,
   yjsGetPath,
   yjsObserve,
   yjsObserveDeep,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
 import { distinctUntilChanged, map, type Observable, switchMap } from 'rxjs';

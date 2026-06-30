@@ -1,9 +1,9 @@
-import { Checkbox, notify, useDndMonitor } from '@affine/component';
-import { useAppSettingHelper } from '@affine/core/components/hooks/affine/use-app-setting-helper';
-import type { AffineDNDData } from '@affine/core/types/dnd';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
-import { useService } from '@toeverything/infra';
+import { Checkbox, notify, useDndMonitor } from '@madoc/component';
+import { useAppSettingHelper } from '@madoc/core/components/hooks/affine/use-app-setting-helper';
+import type { AffineDNDData } from '@madoc/core/types/dnd';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
+import { useService } from '@madoc/infra';
 import clsx from 'clsx';
 import { useSetAtom } from 'jotai';
 import { nanoid } from 'nanoid';

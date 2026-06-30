@@ -1,8 +1,8 @@
-import { MenuItem } from '@affine/component';
-import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
-import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { MenuItem } from '@madoc/component';
+import { IsFavoriteIcon } from '@madoc/core/components/pure/icons';
+import { CompatibleFavoriteItemsAdapter } from '@madoc/core/modules/favorite';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useMemo } from 'react';
 
 export const FavoriteFolderOperation = ({ id }: { id: string }) => {

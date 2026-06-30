@@ -1,11 +1,11 @@
-import { IconButton, usePromptModal } from '@affine/component';
-import { CollectionService } from '@affine/core/modules/collection';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
-import { WorkbenchService } from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
-import { track } from '@affine/track';
+import { IconButton, usePromptModal } from '@madoc/component';
+import { CollectionService } from '@madoc/core/modules/collection';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import { AddCollectionIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useServices } from '@toeverything/infra';
+import { useLiveData, useServices } from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { CollapsibleSection } from '../../layouts/collapsible-section';

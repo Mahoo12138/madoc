@@ -1,19 +1,19 @@
-import { IconButton, Menu, MenuItem } from '@affine/component';
-import { Divider } from '@affine/component/ui/divider';
-import { useEnableCloud } from '@affine/core/components/hooks/affine/use-enable-cloud';
-import { useSignOut } from '@affine/core/components/hooks/affine/use-sign-out';
-import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
-import type { AuthAccountInfo, Server } from '@affine/core/modules/cloud';
-import { AuthService, ServersService } from '@affine/core/modules/cloud';
-import { GlobalDialogService } from '@affine/core/modules/dialogs';
-import { GlobalContextService } from '@affine/core/modules/global-context';
+import { IconButton, Menu, MenuItem } from '@madoc/component';
+import { Divider } from '@madoc/component/ui/divider';
+import { useEnableCloud } from '@madoc/core/components/hooks/affine/use-enable-cloud';
+import { useSignOut } from '@madoc/core/components/hooks/affine/use-sign-out';
+import { useAsyncCallback } from '@madoc/core/components/hooks/affine-async-hooks';
+import { useNavigateHelper } from '@madoc/core/components/hooks/use-navigate-helper';
+import type { AuthAccountInfo, Server } from '@madoc/core/modules/cloud';
+import { AuthService, ServersService } from '@madoc/core/modules/cloud';
+import { GlobalDialogService } from '@madoc/core/modules/dialogs';
+import { GlobalContextService } from '@madoc/core/modules/global-context';
 import {
   type WorkspaceMetadata,
   WorkspaceService,
   WorkspacesService,
-} from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+} from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import {
   AccountIcon,
   CloudWorkspaceIcon,
@@ -28,7 +28,7 @@ import {
   useLiveData,
   useService,
   useServiceOptional,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { useCallback, useMemo } from 'react';
 
 import { WorkspaceCard } from '../../workspace-card';

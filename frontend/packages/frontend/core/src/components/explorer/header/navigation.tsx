@@ -1,6 +1,6 @@
-import { WorkbenchLink } from '@affine/core/modules/workbench';
-import { useI18n } from '@affine/i18n';
-import track from '@affine/track';
+import { WorkbenchLink } from '@madoc/core/modules/workbench';
+import { useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
 
 import * as styles from './navigation.css';
 

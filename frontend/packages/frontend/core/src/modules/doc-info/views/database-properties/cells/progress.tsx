@@ -1,8 +1,8 @@
-import { Progress, PropertyValue } from '@affine/component';
-import { ConfigModal } from '@affine/core/components/mobile';
+import { Progress, PropertyValue } from '@madoc/component';
+import { ConfigModal } from '@madoc/core/components/mobile';
 import { ProgressIcon } from '@blocksuite/icons/rc';
-import type { LiveData } from '@toeverything/infra';
-import { useLiveData } from '@toeverything/infra';
+import type { LiveData } from '@madoc/infra';
+import { useLiveData } from '@madoc/infra';
 import { useEffect, useState } from 'react';
 
 import type { DatabaseCellRendererProps } from '../../../types';

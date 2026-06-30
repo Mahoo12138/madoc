@@ -1,10 +1,10 @@
-import { Button } from '@affine/component/ui/button';
-import { ConfirmModal } from '@affine/component/ui/modal';
-import { DocService } from '@affine/core/modules/doc';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { useI18n } from '@affine/i18n';
+import { Button } from '@madoc/component/ui/button';
+import { ConfirmModal } from '@madoc/component/ui/modal';
+import { DocService } from '@madoc/core/modules/doc';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { useI18n } from '@madoc/i18n';
 import { DeleteIcon, ResetIcon } from '@blocksuite/icons/rc';
-import { useService } from '@toeverything/infra';
+import { useService } from '@madoc/infra';
 import { useCallback, useState } from 'react';
 
 import { useAppSettingHelper } from '../../../components/hooks/affine/use-app-setting-helper';

@@ -2,17 +2,26 @@
   "name": "@madoc/web",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "packages/common",
-    "packages/common/*",
-    "packages/frontend/*",
-    "packages/frontend/apps/*",
-    "tools",
-    "tools/*"
-  ],
-  "packageManager": "yarn@4.13.0",
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "build": "yarn affine build",
-    "dev": "yarn affine dev"
+    "build": "pnpm affine bundle -p @madoc/web",
+    "dev": "pnpm affine bundle --dev -p @madoc/web"
+  },
+  "dependencies": {
+    "@madoc/component": "workspace:*",
+    "@madoc/core": "workspace:*",
+    "@madoc/env": "workspace:*",
+    "@madoc/nbstore": "workspace:*",
+    "@madoc/track": "workspace:*",
+    "@emotion/react": "^11.14.0",
+    "@madoc/infra": "workspace:*",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "react-router-dom": "^6.30.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "typescript": "^5.9.3"
   }
 }

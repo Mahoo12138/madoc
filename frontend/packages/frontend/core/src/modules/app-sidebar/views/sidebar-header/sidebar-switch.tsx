@@ -1,8 +1,8 @@
-import { IconButton } from '@affine/component';
-import { NotificationCountService } from '@affine/core/modules/notification';
-import { track } from '@affine/track';
+import { IconButton } from '@madoc/component';
+import { NotificationCountService } from '@madoc/core/modules/notification';
+import { track } from '@madoc/track';
 import { SidebarIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import { useCallback, useRef } from 'react';
 

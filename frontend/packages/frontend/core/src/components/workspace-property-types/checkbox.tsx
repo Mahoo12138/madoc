@@ -1,6 +1,6 @@
-import { Checkbox, MenuItem, PropertyValue } from '@affine/component';
-import type { FilterParams } from '@affine/core/modules/collection-rules';
-import { useI18n } from '@affine/i18n';
+import { Checkbox, MenuItem, PropertyValue } from '@madoc/component';
+import type { FilterParams } from '@madoc/core/modules/collection-rules';
+import { useI18n } from '@madoc/i18n';
 import { CheckBoxCheckLinearIcon } from '@blocksuite/icons/rc';
 import { useCallback } from 'react';
 

@@ -1,4 +1,4 @@
-import { type IconData, IconRenderer, IconType } from '@affine/component';
+import { type IconData, IconRenderer, IconType } from '@madoc/component';
 import * as litIcons from '@blocksuite/icons/lit';
 import { html } from 'lit';
 

@@ -1,20 +1,20 @@
-import { notify } from '@affine/component';
+import { notify } from '@madoc/component';
 import {
   generateUrl,
   type UseSharingUrl,
-} from '@affine/core/components/hooks/affine/use-share-url';
-import { ServerService } from '@affine/core/modules/cloud';
-import { EditorService } from '@affine/core/modules/editor';
-import { copyLinkToBlockStdScopeClipboard } from '@affine/core/utils/clipboard';
-import { I18n } from '@affine/i18n';
-import { track } from '@affine/track';
+} from '@madoc/core/components/hooks/affine/use-share-url';
+import { ServerService } from '@madoc/core/modules/cloud';
+import { EditorService } from '@madoc/core/modules/editor';
+import { copyLinkToBlockStdScopeClipboard } from '@madoc/core/utils/clipboard';
+import { I18n } from '@madoc/i18n';
+import { track } from '@madoc/track';
 import {
   menu,
   type MenuOptions,
 } from '@blocksuite/affine/components/context-menu';
 import type { DatabaseBlockModel } from '@blocksuite/affine/model';
 import { LinkIcon } from '@blocksuite/icons/lit';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 export function createDatabaseOptionsConfig(framework: FrameworkProvider) {
   return {

@@ -1,5 +1,5 @@
-import { RadioGroup } from '@affine/component';
-import { useLiveData, useService } from '@toeverything/infra';
+import { RadioGroup } from '@madoc/component';
+import { useLiveData, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import { ViewService } from '../../services/view';

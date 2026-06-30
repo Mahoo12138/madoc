@@ -1,4 +1,4 @@
-import type { ElementOrFactory } from '@affine/component';
+import type { ElementOrFactory } from '@madoc/component';
 import {
   type ViewExtensionContext,
   ViewExtensionProvider,

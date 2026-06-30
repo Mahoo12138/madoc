@@ -1,5 +1,5 @@
-import { AppThemeService } from '@affine/core/modules/theme';
-import { useService } from '@toeverything/infra';
+import { AppThemeService } from '@madoc/core/modules/theme';
+import { useService } from '@madoc/infra';
 import { ThemeProvider as NextThemeProvider, useTheme } from 'next-themes';
 import type { PropsWithChildren } from 'react';
 import { useEffect } from 'react';

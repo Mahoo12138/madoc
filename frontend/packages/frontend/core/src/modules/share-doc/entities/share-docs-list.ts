@@ -1,5 +1,5 @@
-import { DebugLogger } from '@affine/debug';
-import type { GetWorkspacePublicPagesQuery } from '@affine/graphql';
+import { DebugLogger } from '@madoc/debug';
+import type { GetWorkspacePublicPagesQuery } from '@madoc/graphql';
 import {
   catchErrorInto,
   effect,
@@ -10,7 +10,7 @@ import {
   onComplete,
   onStart,
   smartRetry,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import { map, tap } from 'rxjs';
 
 import type { GlobalCache } from '../../storage';

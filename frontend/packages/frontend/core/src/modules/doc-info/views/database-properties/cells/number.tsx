@@ -1,5 +1,5 @@
-import { NumberValue } from '@affine/core/components/workspace-property-types/number';
-import { useLiveData } from '@toeverything/infra';
+import { NumberValue } from '@madoc/core/components/workspace-property-types/number';
+import { useLiveData } from '@madoc/infra';
 
 import type { DatabaseCellRendererProps } from '../../../types';
 

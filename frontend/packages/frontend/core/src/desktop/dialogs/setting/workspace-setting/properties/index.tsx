@@ -1,13 +1,13 @@
-import { Button, Menu } from '@affine/component';
-import { SettingHeader } from '@affine/component/setting-components';
-import { useWorkspaceInfo } from '@affine/core/components/hooks/use-workspace-info';
-import { WorkspacePropertyManager } from '@affine/core/components/properties/manager';
-import { CreatePropertyMenuItems } from '@affine/core/components/properties/menu/create-doc-property';
-import type { DocCustomPropertyInfo } from '@affine/core/modules/db';
-import { WorkspaceService } from '@affine/core/modules/workspace';
-import { Trans, useI18n } from '@affine/i18n';
-import track from '@affine/track';
-import { FrameworkScope, useService } from '@toeverything/infra';
+import { Button, Menu } from '@madoc/component';
+import { SettingHeader } from '@madoc/component/setting-components';
+import { useWorkspaceInfo } from '@madoc/core/components/hooks/use-workspace-info';
+import { WorkspacePropertyManager } from '@madoc/core/components/properties/manager';
+import { CreatePropertyMenuItems } from '@madoc/core/components/properties/menu/create-doc-property';
+import type { DocCustomPropertyInfo } from '@madoc/core/modules/db';
+import { WorkspaceService } from '@madoc/core/modules/workspace';
+import { Trans, useI18n } from '@madoc/i18n';
+import track from '@madoc/track';
+import { FrameworkScope, useService } from '@madoc/infra';
 import { useCallback } from 'react';
 
 import * as styles from './styles.css';

@@ -1,9 +1,9 @@
 // todo(@pengx17): remove jotai
-import { UrlService } from '@affine/core/modules/url';
-import type { UpdateMeta } from '@affine/electron-api';
-import { apis, events } from '@affine/electron-api';
-import { track } from '@affine/track';
-import { appSettingAtom, useService } from '@toeverything/infra';
+import { UrlService } from '@madoc/core/modules/url';
+import type { UpdateMeta } from '@madoc/electron-api';
+import { apis, events } from '@madoc/electron-api';
+import { track } from '@madoc/track';
+import { appSettingAtom, useService } from '@madoc/infra';
 import { atom, useAtom, useAtomValue } from 'jotai';
 import { atomWithObservable, atomWithStorage } from 'jotai/utils';
 import { useCallback, useState } from 'react';

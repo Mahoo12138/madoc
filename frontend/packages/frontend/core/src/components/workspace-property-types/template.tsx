@@ -1,9 +1,9 @@
-import { Checkbox, MenuItem, PropertyValue } from '@affine/component';
-import type { FilterParams } from '@affine/core/modules/collection-rules';
-import { type DocRecord, DocService } from '@affine/core/modules/doc';
-import { useI18n } from '@affine/i18n';
+import { Checkbox, MenuItem, PropertyValue } from '@madoc/component';
+import type { FilterParams } from '@madoc/core/modules/collection-rules';
+import { type DocRecord, DocService } from '@madoc/core/modules/doc';
+import { useI18n } from '@madoc/i18n';
 import { TemplateIcon } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import { type ChangeEvent, useCallback } from 'react';
 
 import { PlainTextDocGroupHeader } from '../explorer/docs-view/group-header';

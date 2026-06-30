@@ -1,5 +1,5 @@
 {
-  "name": "@affine/env",
+  "name": "@madoc/env",
   "private": true,
   "type": "module",
   "devDependencies": {
@@ -15,7 +15,7 @@
     "./worker": "./src/worker.ts"
   },
   "peerDependencies": {
-    "@affine/templates": "workspace:*",
+    "@madoc/templates": "workspace:*",
     "@blocksuite/affine": "0.22.4"
   },
   "dependencies": {

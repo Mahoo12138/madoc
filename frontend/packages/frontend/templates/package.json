@@ -1,11 +1,11 @@
 {
-  "name": "@affine/templates",
+  "name": "@madoc/templates",
   "private": true,
   "sideEffect": false,
   "version": "0.26.3",
   "scripts": {
     "build": "node ./build-edgeless.mjs && node ./build-stickers.mjs",
-    "postinstall": "yarn build"
+    "postinstall": "pnpm build"
   },
   "type": "module",
   "exports": {

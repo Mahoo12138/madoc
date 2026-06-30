@@ -1,4 +1,4 @@
-import { Button } from '@affine/component';
+import { Button } from '@madoc/component';
 import clsx from 'clsx';
 import {
   cloneElement,

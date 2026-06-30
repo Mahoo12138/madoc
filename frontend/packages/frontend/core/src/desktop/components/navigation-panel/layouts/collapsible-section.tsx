@@ -1,7 +1,7 @@
-import { CategoryDivider } from '@affine/core/modules/app-sidebar/views';
-import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
+import { CategoryDivider } from '@madoc/core/modules/app-sidebar/views';
+import { NavigationPanelService } from '@madoc/core/modules/navigation-panel';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@madoc/infra';
 import clsx from 'clsx';
 import {
   type CSSProperties,

@@ -1,5 +1,5 @@
-import { Unreachable } from '@affine/env/constant';
-import { LiveData, ObjectPool, Service } from '@toeverything/infra';
+import { Unreachable } from '@madoc/env/constant';
+import { LiveData, ObjectPool, Service } from '@madoc/infra';
 import { nanoid } from 'nanoid';
 import { Observable, switchMap } from 'rxjs';
 

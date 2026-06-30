@@ -1,9 +1,9 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 
-import { getBuildConfig } from '@affine-tools/utils/build-config';
-import { Path, ProjectRoot } from '@affine-tools/utils/path';
-import { Package } from '@affine-tools/utils/workspace';
+import { getBuildConfig } from '@madoc-tools/utils/build-config';
+import { Path, ProjectRoot } from '@madoc-tools/utils/path';
+import { Package } from '@madoc-tools/utils/workspace';
 import rspack, {
   type Configuration as RspackConfiguration,
 } from '@rspack/core';
@@ -80,7 +80,7 @@ export function createHTMLTargetConfig(
   const tailwindConfigPath = pkg.join('tailwind.config.js');
   const hasTailwind =
     tailwindConfigPath.exists() ||
-    pkg.name === '@affine/media-capture-playground';
+    pkg.name === '@madoc/media-capture-playground';
   const tailwindPlugin = tailwindConfigPath.exists()
     ? ['@tailwindcss/postcss', require(tailwindConfigPath.value)]
     : ['@tailwindcss/postcss'];
@@ -167,7 +167,7 @@ export function createHTMLTargetConfig(
           '@preact',
           'signals-core'
         ).value,
-        '@affine/core/modules/code-block-preview-renderer/platform-backend':
+        '@madoc/core/modules/code-block-preview-renderer/platform-backend':
           codeBlockPreviewBackendAlias,
       },
     },
@@ -330,7 +330,7 @@ export function createHTMLTargetConfig(
           patterns: [
             {
               // copy the shared public assets into dist
-              from: new Package('@affine/core').join('public').value,
+              from: new Package('@madoc/core').join('public').value,
             },
           ],
         }),

@@ -1,4 +1,4 @@
-import { createIdentifier } from '@toeverything/infra';
+import { createIdentifier } from '@madoc/infra';
 
 interface VirtualKeyboardInfo {
   visible: boolean;

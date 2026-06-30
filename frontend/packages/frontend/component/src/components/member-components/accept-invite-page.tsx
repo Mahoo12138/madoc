@@ -1,6 +1,6 @@
-import { AuthPageContainer } from '@affine/component/auth-components';
-import type { GetInviteInfoQuery } from '@affine/graphql';
-import { useI18n } from '@affine/i18n';
+import { AuthPageContainer } from '@madoc/component/auth-components';
+import type { GetInviteInfoQuery } from '@madoc/graphql';
+import { useI18n } from '@madoc/i18n';
 
 import { Avatar } from '../../ui/avatar';
 import { Button } from '../../ui/button';

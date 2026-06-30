@@ -1,12 +1,12 @@
-import { Scrollable } from '@affine/component';
-import { PageDetailLoading } from '@affine/component/page-detail-skeleton';
-import type { AffineEditorContainer } from '@affine/core/blocksuite/block-suite-editor';
-import { EditorOutlineViewer } from '@affine/core/blocksuite/outline-viewer';
-import { AffineErrorBoundary } from '@affine/core/components/affine/affine-error-boundary';
-import { useGuard } from '@affine/core/components/guard';
-import { PageNotFound } from '@affine/core/desktop/pages/404';
-import { EditorService } from '@affine/core/modules/editor';
-import { DebugLogger } from '@affine/debug';
+import { Scrollable } from '@madoc/component';
+import { PageDetailLoading } from '@madoc/component/page-detail-skeleton';
+import type { AffineEditorContainer } from '@madoc/core/blocksuite/block-suite-editor';
+import { EditorOutlineViewer } from '@madoc/core/blocksuite/outline-viewer';
+import { AffineErrorBoundary } from '@madoc/core/components/affine/affine-error-boundary';
+import { useGuard } from '@madoc/core/components/guard';
+import { PageNotFound } from '@madoc/core/desktop/pages/404';
+import { EditorService } from '@madoc/core/modules/editor';
+import { DebugLogger } from '@madoc/debug';
 import { DisposableGroup } from '@blocksuite/affine/global/disposable';
 import { Bound } from '@blocksuite/affine/global/gfx';
 import { RefNodeSlotsProvider } from '@blocksuite/affine/inlines/reference';
@@ -16,7 +16,7 @@ import {
   useLiveData,
   useService,
   useServices,
-} from '@toeverything/infra';
+} from '@madoc/infra';
 import clsx from 'clsx';
 import { lazy, Suspense, useCallback } from 'react';
 
@@ -30,7 +30,7 @@ const logger = new DebugLogger('doc-peek-view');
 
 // Lazy load BlockSuiteEditor to break circular dependency
 const BlockSuiteEditor = lazy(() =>
-  import('@affine/core/blocksuite/block-suite-editor').then(module => ({
+  import('@madoc/core/blocksuite/block-suite-editor').then(module => ({
     default: module.BlockSuiteEditor,
   }))
 );

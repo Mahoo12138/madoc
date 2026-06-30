@@ -1,4 +1,4 @@
-import { WorkbenchService } from '@affine/core/modules/workbench';
+import { WorkbenchService } from '@madoc/core/modules/workbench';
 import { getSelectedBlocksCommand } from '@blocksuite/affine/shared/commands';
 import type { CommentProvider } from '@blocksuite/affine/shared/services';
 import type { BlockStdScope } from '@blocksuite/affine/std';
@@ -16,7 +16,7 @@ import {
   GfxControllerIdentifier,
   GfxPrimitiveElementModel,
 } from '@blocksuite/std/gfx';
-import type { FrameworkProvider } from '@toeverything/infra';
+import type { FrameworkProvider } from '@madoc/infra';
 
 import { DocCommentManagerService } from '../../../modules/comment/services/doc-comment-manager';
 

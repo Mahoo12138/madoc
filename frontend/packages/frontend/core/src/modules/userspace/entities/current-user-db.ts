@@ -1,4 +1,4 @@
-import { Entity, LiveData } from '@toeverything/infra';
+import { Entity, LiveData } from '@madoc/infra';
 import { Observable, of, switchMap } from 'rxjs';
 
 import type { AuthService } from '../../cloud';

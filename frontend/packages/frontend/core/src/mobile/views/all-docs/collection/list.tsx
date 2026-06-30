@@ -1,6 +1,6 @@
-import { EmptyCollections } from '@affine/core/components/affine/empty';
-import { CollectionService } from '@affine/core/modules/collection';
-import { useLiveData, useService } from '@toeverything/infra';
+import { EmptyCollections } from '@madoc/core/components/affine/empty';
+import { CollectionService } from '@madoc/core/modules/collection';
+import { useLiveData, useService } from '@madoc/infra';
 
 import { CollectionListItem } from './item';
 import { list } from './styles.css';

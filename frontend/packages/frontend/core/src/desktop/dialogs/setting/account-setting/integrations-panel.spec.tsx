@@ -9,7 +9,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import type * as Infra from '@toeverything/infra';
+import type * as Infra from '@madoc/infra';
 import type { InputHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -64,7 +64,7 @@ const linkCalDavAccountMutation = vi.hoisted(() =>
   Symbol('linkCalDavAccountMutation')
 );
 
-vi.mock('@affine/component', () => ({
+vi.mock('@madoc/component', () => ({
   Button: ({
     children,
     onClick,
@@ -100,7 +100,7 @@ vi.mock('@affine/component', () => ({
   },
 }));
 
-vi.mock('@affine/core/components/hooks/use-query', () => ({
+vi.mock('@madoc/core/components/hooks/use-query', () => ({
   useQuery: ({ query }: { query: symbol }) => {
     if (query === calendarAccountsQuery) {
       return {
@@ -127,19 +127,19 @@ vi.mock('@affine/core/components/hooks/use-query', () => ({
   },
 }));
 
-vi.mock('@affine/core/modules/cloud', () => ({
+vi.mock('@madoc/core/modules/cloud', () => ({
   GraphQLService: GraphQLServiceToken,
 }));
 
-vi.mock('@affine/core/modules/url', () => ({
+vi.mock('@madoc/core/modules/url', () => ({
   UrlService: UrlServiceToken,
 }));
 
-vi.mock('@affine/core/modules/workspace', () => ({
+vi.mock('@madoc/core/modules/workspace', () => ({
   WorkspaceService: WorkspaceServiceToken,
 }));
 
-vi.mock('@affine/graphql', () => ({
+vi.mock('@madoc/graphql', () => ({
   calendarAccountsQuery,
   calendarProvidersQuery,
   CalendarProviderType,
@@ -148,7 +148,7 @@ vi.mock('@affine/graphql', () => ({
   linkCalDavAccountMutation,
 }));
 
-vi.mock('@affine/i18n', () => ({
+vi.mock('@madoc/i18n', () => ({
   useI18n: () =>
     new Proxy(
       {},
@@ -169,7 +169,7 @@ vi.mock('@blocksuite/icons/rc', () => ({
   TodayIcon: () => <span>today-icon</span>,
 }));
 
-vi.mock('@toeverything/infra', async importOriginal => {
+vi.mock('@madoc/infra', async importOriginal => {
   const actual = await importOriginal<typeof Infra>();
 
   return {

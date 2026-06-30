@@ -1,5 +1,5 @@
-import { type Doc, DocsService } from '@affine/core/modules/doc';
-import { FrameworkScope, useService } from '@toeverything/infra';
+import { type Doc, DocsService } from '@madoc/core/modules/doc';
+import { FrameworkScope, useService } from '@madoc/infra';
 import { type PropsWithChildren, useEffect, useState } from 'react';
 
 export const DocFrameScope = ({

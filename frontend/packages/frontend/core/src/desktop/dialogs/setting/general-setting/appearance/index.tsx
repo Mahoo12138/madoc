@@ -1,15 +1,15 @@
-import type { RadioItem } from '@affine/component';
-import { RadioGroup, Switch } from '@affine/component';
+import type { RadioItem } from '@madoc/component';
+import { RadioGroup, Switch } from '@madoc/component';
 import {
   SettingHeader,
   SettingRow,
   SettingWrapper,
-} from '@affine/component/setting-components';
-import { LanguageMenu } from '@affine/core/components/affine/language-menu';
-import { TraySettingService } from '@affine/core/modules/editor-setting/services/tray-settings';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
-import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+} from '@madoc/component/setting-components';
+import { LanguageMenu } from '@madoc/core/components/affine/language-menu';
+import { TraySettingService } from '@madoc/core/modules/editor-setting/services/tray-settings';
+import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
+import { useI18n } from '@madoc/i18n';
+import { useLiveData, useService } from '@madoc/infra';
 import { useTheme } from 'next-themes';
 import { useCallback, useMemo } from 'react';
 
