@@ -22,8 +22,10 @@
     "@magic-works/i18n-codegen": "^0.6.1",
     "dayjs": "^1.11.13",
     "i18next": "^25.0.0",
-    "react": "^19.2.1",
     "react-i18next": "^15.2.0"
+  },
+  "peerDependencies": {
+    "react": "^19.2.1"
   },
   "devDependencies": {
     "@madoc-tools/cli": "workspace:*",

@@ -3,7 +3,7 @@ import { FeatureFlagService } from '@madoc/core/modules/feature-flag';
 import { type Island } from '@madoc/core/utils/island';
 import { ArrowLeftBigIcon } from '@blocksuite/icons/rc';
 import { useLiveData, useService } from '@madoc/infra';
-import { eases, waapi } from 'animejs';
+import { easings, waapi } from 'animejs';
 import clsx from 'clsx';
 import {
   createContext,
@@ -52,7 +52,7 @@ export const SubPageTarget = () => {
   ));
 };
 
-const ease = eases.cubicBezier(0.25, 0.36, 0.24, 0.97);
+const ease = easings.cubicBezier(0.25, 0.36, 0.24, 0.97);
 
 export const SubPageProvider = ({
   island,

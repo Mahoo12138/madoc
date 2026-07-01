@@ -154,12 +154,23 @@ export function createHTMLTargetConfig(
     devtool: buildConfig.debug ? 'cheap-module-source-map' : 'source-map',
     resolve: {
       symlinks: true,
+      dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
       extensionAlias: {
         '.js': ['.js', '.tsx', '.ts'],
         '.mjs': ['.mjs', '.mts'],
       },
       extensions: ['.js', '.ts', '.tsx'],
       alias: {
+        react: ProjectRoot.join('node_modules', 'react').value,
+        'react-dom': ProjectRoot.join('node_modules', 'react-dom').value,
+        'react-router-dom': ProjectRoot.join(
+          'node_modules',
+          'react-router-dom'
+        ).value,
+        'react-router': ProjectRoot.join(
+          'node_modules',
+          'react-router'
+        ).value,
         yjs: ProjectRoot.join('node_modules', 'yjs').value,
         lit: ProjectRoot.join('node_modules', 'lit').value,
         '@preact/signals-core': ProjectRoot.join(
