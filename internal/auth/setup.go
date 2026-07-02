@@ -17,6 +17,7 @@ type SetupHandler struct {
 }
 
 type setupReq struct {
+	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -42,6 +43,9 @@ func (h *SetupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Name == "" {
+		req.Name = req.Email
+	}
 	if !strings.Contains(req.Email, "@") || req.Email == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid email"})
 		return
@@ -58,7 +62,7 @@ func (h *SetupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := uuid.New().String()
-	if err := h.repo.CreateUser(r.Context(), userID, req.Email, req.Email, hash); err != nil {
+	if err := h.repo.CreateUser(r.Context(), userID, req.Name, req.Email, hash); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to create user"})
 		return
 	}
@@ -85,7 +89,7 @@ func (h *SetupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"id":    userID,
-		"name":  req.Email,
+		"name":  req.Name,
 		"email": req.Email,
 	})
 }

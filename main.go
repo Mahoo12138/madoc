@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"io"
 	"io/fs"
 	"log"
@@ -20,12 +21,12 @@ import (
 	"madoc/internal/sync"
 )
 
-//go:embed all:frontend/dist
+//go:embed all:web/dist
 var frontendFS embed.FS
 
 func main() {
 	dbPath := envOr("MADOC_DB", "madoc.db")
-	addr := envOr("MADOC_ADDR", ":3000")
+	addr := envOr("MADOC_ADDR", ":4000")
 
 	conn, err := db.Open(dbPath)
 	if err != nil {
@@ -53,12 +54,13 @@ func main() {
 		log.Println("MADOC_DEV=true: CORS enabled for development")
 	}
 
-	r.Get("/info", infoHandler)
+	r.Get("/info", infoHandler(repo))
 	r.Post("/api/setup/create-admin-user", setupH.ServeHTTP)
 	r.Post("/api/auth/preflight", authH.Preflight)
 	r.Post("/api/auth/sign-in", authH.SignIn)
 	r.Post("/api/auth/sign-out", authH.SignOut)
 	r.Get("/api/auth/session", authH.Session)
+	r.Get("/api/auth/methods", authMethodsHandler)
 	r.With(sm.OptionalAuth).Post("/graphql", gqlH.ServeHTTP)
 
 	r.Mount("/socket.io", syncSrv.Router())
@@ -67,7 +69,14 @@ func main() {
 	r.Get("/api/workspaces/{workspaceId}/blobs/{key}", blobDownloadHandler(repo))
 	r.With(sm.OptionalAuth).Post("/api/workspaces/{workspaceId}/blobs/{key}", blobUploadHandler(repo))
 
-	static, err := fs.Sub(frontendFS, "frontend/dist")
+	// Doc binary endpoint (used by frontend for initial doc loading)
+	r.With(sm.OptionalAuth).Get("/api/workspaces/{workspaceId}/docs/{guid}", docDownloadHandler(repo))
+
+	// Public doc endpoints (madoc doesn't support public docs yet, return 404)
+	r.Head("/api/workspaces/{workspaceId}/public-docs/{docId}", publicDocHandler)
+	r.Get("/api/workspaces/{workspaceId}/public-docs/{docId}", publicDocHandler)
+
+	static, err := fs.Sub(frontendFS, "web/dist")
 	if err != nil {
 		log.Fatalf("static fs: %v", err)
 	}
@@ -85,9 +94,21 @@ func main() {
 	}
 }
 
-func infoHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"version":"0.26.2","type":"selfhosted","flavor":"allinone"}`))
+func infoHandler(repo *db.Repo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		initialized, err := repo.IsInitialized(r.Context())
+		if err != nil {
+			http.Error(w, "server error", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"version":     "0.26.2",
+			"type":        "selfhosted",
+			"flavor":      "allinone",
+			"initialized": initialized,
+		})
+	}
 }
 
 func spaHandler(static fs.FS, fileServer http.Handler) http.HandlerFunc {
@@ -151,6 +172,56 @@ func envOr(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// authMethodsHandler returns available auth methods for the current user.
+func authMethodsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(`{"password":{"bound":true},"oauth":{"bound":false,"providers":[]},"passkey":{"bound":false,"count":0}}`))
+}
+
+// docDownloadHandler returns the binary representation of a doc (snapshot + updates).
+func docDownloadHandler(repo *db.Repo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		workspaceID := chi.URLParam(r, "workspaceId")
+		guid := chi.URLParam(r, "guid")
+		ctx := r.Context()
+
+		// Collect all updates for this doc
+		updates, err := repo.ListUpdates(ctx, workspaceID, guid)
+		if err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+
+		var bin []byte
+		for _, u := range updates {
+			bin = append(bin, u.Blob...)
+		}
+
+		// If no updates, try snapshot
+		if len(bin) == 0 {
+			snap, err := repo.GetSnapshot(ctx, workspaceID, guid)
+			if err != nil || snap == nil {
+				http.Error(w, "not found", http.StatusNotFound)
+				return
+			}
+			bin = snap.Blob
+		}
+
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Write(bin)
+	}
+}
+
+// publicDocHandler returns 404 for public-doc requests since madoc doesn't support public docs yet.
+func publicDocHandler(w http.ResponseWriter, r *http.Request) {
+	// For HEAD requests, only write headers (no body)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.WriteHeader(http.StatusNotFound)
+	if r.Method != "HEAD" {
+		w.Write([]byte("not found"))
+	}
 }
 
 // corsMiddleware adds permissive CORS headers for local development.

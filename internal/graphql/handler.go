@@ -248,6 +248,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err.Error())
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"data": map[string]interface{}{
 			op: data,
@@ -748,15 +749,17 @@ func (h *Handler) workspaceByID(ctx context.Context, vars map[string]interface{}
 func (h *Handler) serverConfig(ctx context.Context) interface{} {
 	initialized, _ := h.repo.IsInitialized(ctx)
 	return map[string]interface{}{
-		"version":                "0.26.2",
-		"name":                   "madoc",
-		"baseUrl":                "",
-		"initialized":            initialized,
-		"type":                   "Selfhosted",
-		"features":               []interface{}{},
-		"availableUserFeatures":  []interface{}{},
-		"credentialsRequirement": map[string]interface{}{"email": true, "password": true},
-		"oauthProviders":         []interface{}{},
+		"version":                  "0.26.2",
+		"name":                     "madoc",
+		"baseUrl":                  "",
+		"initialized":              initialized,
+		"type":                     "Selfhosted",
+		"features":                 []interface{}{},
+		"availableUserFeatures":    []interface{}{},
+		"availableWorkspaceFeatures": []interface{}{},
+		"calendarProviders":        []interface{}{},
+		"credentialsRequirement":   map[string]interface{}{"email": true, "password": true},
+		"oauthProviders":           []interface{}{},
 	}
 }
 
