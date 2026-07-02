@@ -1,7 +1,0 @@
-mutation sendVerifyChangeEmail(
-  $token: String!
-  $email: String!
-  $callbackUrl: String!
-) {
-  sendVerifyChangeEmail(token: $token, email: $email, callbackUrl: $callbackUrl)
-}

@@ -5,8 +5,7 @@
 *.db
 *.db-wal
 *.db-shm
-/frontend/dist/*
-!/frontend/dist/.gitkeep
-!/frontend/dist/index.html
+/web/dist/*
+!/web/dist/.gitkeep
 node_modules
 /tmp/

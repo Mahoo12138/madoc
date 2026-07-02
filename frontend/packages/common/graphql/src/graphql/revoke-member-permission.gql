@@ -1,3 +1,0 @@
-mutation revokeMemberPermission($workspaceId: String!, $userId: String!) {
-  revokeMember(workspaceId: $workspaceId, userId: $userId)
-}

@@ -1,3 +1,0 @@
-mutation createCopilotMessage($options: CreateChatMessageInput!) {
-  createCopilotMessage(options: $options)
-}

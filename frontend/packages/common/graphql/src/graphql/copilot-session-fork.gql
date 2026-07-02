@@ -1,3 +1,0 @@
-mutation forkCopilotSession($options: ForkChatSessionInput!) {
-  forkCopilotSession(options: $options)
-}

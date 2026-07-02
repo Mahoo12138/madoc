@@ -1,3 +1,0 @@
-mutation sendChangeEmail($callbackUrl: String!) {
-  sendChangeEmail(callbackUrl: $callbackUrl)
-}

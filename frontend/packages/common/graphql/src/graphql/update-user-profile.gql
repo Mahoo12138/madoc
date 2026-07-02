@@ -1,6 +1,0 @@
-mutation updateUserProfile($input: UpdateUserInput!) {
-  updateProfile(input: $input) {
-    id
-    name
-  }
-}

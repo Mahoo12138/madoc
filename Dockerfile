@@ -1,16 +1,16 @@
 FROM node:20-alpine AS frontend-builder
-WORKDIR /src/frontend
-COPY frontend/ ./
+WORKDIR /src/web
+COPY web/ ./
 RUN corepack enable && pnpm --version
 RUN pnpm install --frozen-lockfile
-RUN pnpm affine build
+RUN pnpm build
 
 FROM golang:1.25-alpine AS builder
 RUN apk add --no-cache git
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
-COPY --from=frontend-builder /src/frontend/dist ./frontend/dist
+COPY --from=frontend-builder /src/web/dist ./web/dist
 COPY . .
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /usr/local/bin/madoc .
 

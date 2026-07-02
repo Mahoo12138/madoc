@@ -1,7 +1,0 @@
-mutation testWorkspaceByokConfig($input: TestWorkspaceByokConfigInput!) {
-  testWorkspaceByokConfig(input: $input) {
-    ok
-    status
-    message
-  }
-}

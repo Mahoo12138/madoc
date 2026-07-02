@@ -1,3 +1,0 @@
-mutation resolveComment($input: CommentResolveInput!) {
-  resolveComment(input: $input)
-}

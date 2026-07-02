@@ -1,3 +1,0 @@
-mutation setBlob($workspaceId: String!, $blob: Upload!) {
-  setBlob(workspaceId: $workspaceId, blob: $blob)
-}

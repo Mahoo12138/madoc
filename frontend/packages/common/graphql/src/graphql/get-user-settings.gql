@@ -1,9 +1,0 @@
-query getUserSettings {
-  currentUser {
-    settings {
-      receiveInvitationEmail
-      receiveMentionEmail
-      receiveCommentEmail
-    }
-  }
-}

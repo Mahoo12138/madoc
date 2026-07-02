@@ -1,5 +1,0 @@
-query oauthProviders {
-  serverConfig {
-    oauthProviders
-  }
-}

@@ -1,8 +1,0 @@
-mutation uploadAvatar($avatar: Upload!) {
-  uploadAvatar(avatar: $avatar) {
-    id
-    name
-    avatarUrl
-    email
-  }
-}

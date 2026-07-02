@@ -5,7 +5,7 @@
 # Usage:
 #   ./dev.sh          # start both backend + frontend
 #   ./dev.sh backend   # start only backend (air hot reload)
-#   ./dev.sh frontend  # start only frontend (rspack dev server)
+#   ./dev.sh frontend  # start only frontend (vite dev server)
 
 set -e
 
@@ -42,11 +42,16 @@ start_backend() {
 }
 
 start_frontend() {
-    echo -e "${CYAN}[frontend] Starting rspack dev server...${NC}"
-    echo -e "${CYAN}[frontend] SELF_HOSTED=true, port 8080${NC}"
+    echo -e "${CYAN}[frontend] Starting vite dev server...${NC}"
+    echo -e "${CYAN}[frontend] port 8080${NC}"
     (
-        cd "$ROOT_DIR/frontend"
-        SELF_HOSTED=true pnpm affine bundle @madoc/web --dev
+        cd "$ROOT_DIR/web"
+        # Install dependencies if vite is not found
+        if [ ! -d "node_modules" ]; then
+            echo -e "${YELLOW}[frontend] Dependencies not found, running pnpm install...${NC}"
+            pnpm install
+        fi
+        pnpm dev
     ) &
     PIDS+=($!)
     echo -e "${GREEN}[frontend] PID=$!${NC}"

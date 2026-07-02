@@ -1,7 +1,0 @@
-#import './license-body.gql'
-
-mutation activateLicense($workspaceId: String!, $license: String!) {
-  activateLicense(workspaceId: $workspaceId, license: $license) {
-    ...licenseBody
-  }
-}

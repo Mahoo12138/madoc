@@ -1,5 +1,0 @@
-query getInvoicesCount {
-  currentUser {
-    invoiceCount
-  }
-}
