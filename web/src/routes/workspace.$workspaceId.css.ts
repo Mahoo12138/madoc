@@ -208,3 +208,63 @@ export const backLink = style({
     color: '#2b2b2b',
   },
 });
+
+// Document list
+export const docList = style({
+  width: '100%',
+  maxWidth: '600px',
+  display: 'flex',
+  flexDirection: 'column',
+});
+
+export const docCard = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '12px 16px',
+  borderRadius: '8px',
+  border: '1px solid rgba(0,0,0,0.08)',
+  backgroundColor: '#fff',
+  cursor: 'pointer',
+  transition: 'border-color 0.15s, box-shadow 0.15s',
+  ':hover': {
+    borderColor: '#1e96eb',
+    boxShadow: '0 2px 8px rgba(30,150,235,0.1)',
+  },
+});
+
+export const docTitle = style({
+  fontSize: '14px',
+  fontWeight: 500,
+  color: '#2b2b2b',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const docMeta = style({
+  fontSize: '12px',
+  color: '#999',
+  flexShrink: 0,
+  marginLeft: '16px',
+});
+
+export const newDocButton = style({
+  height: '40px',
+  padding: '0 20px',
+  border: 'none',
+  borderRadius: '8px',
+  backgroundColor: '#1e96eb',
+  color: '#fff',
+  fontSize: '14px',
+  fontWeight: 600,
+  cursor: 'pointer',
+  transition: 'background 0.15s',
+  ':hover': {
+    backgroundColor: '#1a85d4',
+  },
+  ':disabled': {
+    backgroundColor: '#999',
+    cursor: 'not-allowed',
+  },
+});

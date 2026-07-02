@@ -1,11 +1,21 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useSession, useSignOut } from '@/api/hooks';
+import {
+  createMadocWorkspace,
+  createNewDoc,
+  getDocYjsUpdate,
+  SyncClient,
+} from '@madoc/doc';
 
 import {
   avatar,
   backLink,
+  docList,
+  docCard,
+  docTitle,
+  docMeta,
   emptyIcon,
   emptySubtitle,
   emptyTitle,
@@ -18,6 +28,7 @@ import {
   navItem,
   navItemActive,
   navSectionLabel,
+  newDocButton,
   sidebar,
   sidebarFooter,
   sidebarHeader,
@@ -38,8 +49,45 @@ function WorkspacePage() {
   const session = useSession();
   const signOut = useSignOut();
   const [activeTab, setActiveTab] = useState<'all' | 'trash' | 'settings'>('all');
+  const [docTimestamps, setDocTimestamps] = useState<Record<string, number>>({});
+  const [isCreating, setIsCreating] = useState(false);
+
+  const syncClientRef = useRef<SyncClient | null>(null);
+  const collectionRef = useRef<ReturnType<typeof createMadocWorkspace> | null>(null);
 
   const user = session.data?.user;
+
+  useEffect(() => {
+    const syncClient = new SyncClient();
+    const collection = createMadocWorkspace(workspaceId);
+
+    syncClientRef.current = syncClient;
+    collectionRef.current = collection;
+
+    let mounted = true;
+
+    const init = async () => {
+      try {
+        await syncClient.connect();
+        await syncClient.joinWorkspace(workspaceId);
+
+        const timestamps = await syncClient.loadDocTimestamps(workspaceId);
+        if (mounted) {
+          setDocTimestamps(timestamps);
+        }
+      } catch (err) {
+        console.error('[WorkspacePage] Failed to initialize:', err);
+      }
+    };
+
+    init();
+
+    return () => {
+      mounted = false;
+      syncClient.leaveWorkspace(workspaceId).catch(() => {});
+      syncClient.disconnect();
+    };
+  }, [workspaceId]);
 
   if (session.isLoading || !user) {
     return <div className={loadingContainer}>Loading...</div>;
@@ -48,6 +96,36 @@ function WorkspacePage() {
   const handleSignOut = async () => {
     await signOut.mutateAsync();
     navigate({ to: '/sign-in', replace: true });
+  };
+
+  const handleCreateDoc = async () => {
+    if (!collectionRef.current || !syncClientRef.current || isCreating) {
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const docId = createNewDoc(collectionRef.current);
+      const yjsUpdate = getDocYjsUpdate(collectionRef.current, docId);
+
+      if (yjsUpdate) {
+        await syncClientRef.current.pushDocUpdate(workspaceId, docId, yjsUpdate);
+      }
+
+      setDocTimestamps((prev) => ({
+        ...prev,
+        [docId]: Date.now(),
+      }));
+
+      navigate({
+        to: '/workspace/$workspaceId/$docId',
+        params: { workspaceId, docId },
+      });
+    } catch (err) {
+      console.error('[WorkspacePage] Failed to create document:', err);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const initials = user.name
@@ -63,9 +141,12 @@ function WorkspacePage() {
     { id: 'settings' as const, label: 'Settings', icon: '⚙' },
   ];
 
+  const docIds = Object.keys(docTimestamps).sort(
+    (a, b) => (docTimestamps[b] ?? 0) - (docTimestamps[a] ?? 0)
+  );
+
   return (
     <div className={layout}>
-      {/* Sidebar */}
       <div className={sidebar}>
         <div className={sidebarHeader}>
           <a
@@ -106,7 +187,6 @@ function WorkspacePage() {
         </div>
       </div>
 
-      {/* Main area */}
       <div className={main}>
         <div className={mainHeader}>
           <span className={mainHeaderTitle}>
@@ -118,43 +198,79 @@ function WorkspacePage() {
         </div>
 
         <div className={mainContent}>
-          <div className={emptyIcon}>
-            <svg width="32" height="32" viewBox="0 0 20 20" fill="#1e96eb">
-              <path d="M17.5 3H15L12.5 10L10 3H7.5L5 10L2.5 3H0L5 17H7.5L10 10L12.5 17H15L17.5 3Z" fill="#1e96eb" />
-            </svg>
-          </div>
-          <h2 className={emptyTitle}>
-            {activeTab === 'all' && 'No documents yet'}
-            {activeTab === 'trash' && 'Trash is empty'}
-            {activeTab === 'settings' && 'Workspace Settings'}
-          </h2>
-          <p className={emptySubtitle}>
-            {activeTab === 'all' &&
-              'Create your first document to start writing and collaborating.'}
-            {activeTab === 'trash' &&
-              'Deleted documents will appear here.'}
-            {activeTab === 'settings' &&
-              'Workspace configuration will be available here.'}
-          </p>
-          {activeTab === 'all' && (
-            <button
-              style={{
-                height: '40px',
-                padding: '0 20px',
-                border: 'none',
-                borderRadius: '8px',
-                backgroundColor: '#1e96eb',
-                color: '#fff',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-              onClick={() => {
-                // TODO: create document
-              }}
-            >
-              New Document
-            </button>
+          {activeTab === 'all' && docIds.length === 0 && (
+            <>
+              <div className={emptyIcon}>
+                <svg width="32" height="32" viewBox="0 0 20 20" fill="#1e96eb">
+                  <path d="M17.5 3H15L12.5 10L10 3H7.5L5 10L2.5 3H0L5 17H7.5L10 10L12.5 17H15L17.5 3Z" fill="#1e96eb" />
+                </svg>
+              </div>
+              <h2 className={emptyTitle}>No documents yet</h2>
+              <p className={emptySubtitle}>
+                Create your first document to start writing and collaborating.
+              </p>
+              <button
+                className={newDocButton}
+                onClick={handleCreateDoc}
+                disabled={isCreating}
+              >
+                {isCreating ? 'Creating...' : 'New Document'}
+              </button>
+            </>
+          )}
+
+          {activeTab === 'all' && docIds.length > 0 && (
+            <div className={docList}>
+              <button
+                className={newDocButton}
+                onClick={handleCreateDoc}
+                disabled={isCreating}
+                style={{ marginBottom: '16px' }}
+              >
+                {isCreating ? 'Creating...' : '+ New Document'}
+              </button>
+              {docIds.map((docId) => (
+                <div
+                  key={docId}
+                  className={docCard}
+                  onClick={() => {
+                    navigate({
+                      to: '/workspace/$workspaceId/$docId',
+                      params: { workspaceId, docId },
+                    });
+                  }}
+                >
+                  <div className={docTitle}>
+                    {docId.slice(0, 12)}...
+                  </div>
+                  <div className={docMeta}>
+                    {docTimestamps[docId]
+                      ? new Date(docTimestamps[docId]).toLocaleString()
+                      : 'Unknown'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'trash' && (
+            <>
+              <div className={emptyIcon}>
+                <span style={{ fontSize: '32px' }}>🗑</span>
+              </div>
+              <h2 className={emptyTitle}>Trash is empty</h2>
+              <p className={emptySubtitle}>Deleted documents will appear here.</p>
+            </>
+          )}
+
+          {activeTab === 'settings' && (
+            <>
+              <div className={emptyIcon}>
+                <span style={{ fontSize: '32px' }}>⚙</span>
+              </div>
+              <h2 className={emptyTitle}>Workspace Settings</h2>
+              <p className={emptySubtitle}>Workspace configuration will be available here.</p>
+            </>
           )}
         </div>
       </div>
