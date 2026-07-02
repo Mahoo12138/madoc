@@ -1,4 +1,9 @@
-import type { PreflightResponse, ServerInfo, User } from './types';
+import type {
+  PreflightResponse,
+  ServerInfo,
+  User,
+  Workspace,
+} from './types';
 
 async function request<T>(
   url: string,
@@ -21,7 +26,6 @@ async function request<T>(
     throw new ApiError(res.status, message);
   }
 
-  // Some endpoints (e.g. sign-out) return simple JSON
   return res.json().catch(() => ({}) as T);
 }
 
@@ -34,6 +38,8 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
+
+// ─── REST API ──────────────────────────────────────
 
 export const api = {
   getInfo: () => request<ServerInfo>('/info'),
@@ -64,4 +70,78 @@ export const api = {
         body: JSON.stringify({ name, email, password }),
       },
     ),
+};
+
+// ─── GraphQL ───────────────────────────────────────
+
+interface GraphQLResponse<T> {
+  data?: T;
+  errors?: Array<{ message: string }>;
+}
+
+async function graphql<T>(
+  query: string,
+  variables?: Record<string, unknown>,
+): Promise<T> {
+  const res = await fetch('/graphql', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+  });
+
+  const body: GraphQLResponse<T> = await res.json();
+
+  if (body.errors?.length) {
+    throw new ApiError(res.status, body.errors[0].message);
+  }
+
+  return body.data as T;
+}
+
+export const gql = {
+  workspaces: () =>
+    graphql<{ workspaces: Workspace[] }>(`
+      query {
+        workspaces {
+          id
+          name
+          public
+          createdAt
+          role
+          memberCount
+        }
+      }
+    `).then(r => r.workspaces),
+
+  createWorkspace: () =>
+    graphql<{ createWorkspace: Workspace }>(`
+      mutation {
+        createWorkspace {
+          id
+          name
+          public
+          createdAt
+          role
+          memberCount
+        }
+      }
+    `).then(r => r.createWorkspace),
+
+  updateWorkspace: (id: string, name: string) =>
+    graphql<{ updateWorkspace: Workspace }>(
+      `
+      mutation updateWorkspace($input: UpdateWorkspaceInput!) {
+        updateWorkspace(input: $input) {
+          id
+          name
+          public
+          createdAt
+          role
+          memberCount
+        }
+      }
+      `,
+      { input: { id, name } },
+    ).then(r => r.updateWorkspace),
 };

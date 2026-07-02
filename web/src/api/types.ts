@@ -1,5 +1,3 @@
-// Shared API types
-
 export interface User {
   id: string;
   name: string;
@@ -18,22 +16,12 @@ export interface PreflightResponse {
   registered: boolean;
   hasPassword: boolean;
 }
-// Shared API types
 
-export interface User {
+export interface Workspace {
   id: string;
-  name: string;
-  email: string;
-  avatar_url: string | null;
-}
-
-export interface ServerInfo {
-  version: string;
-  type: string;
-  flavor: string;
-}
-
-export interface PreflightResponse {
-  registered: boolean;
-  hasPassword: boolean;
+  name: string | null;
+  public: boolean;
+  createdAt: string;
+  role: string;
+  memberCount: number;
 }

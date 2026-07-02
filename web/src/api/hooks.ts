@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { api } from './client';
-import type { PreflightResponse, ServerInfo, User } from './types';
+import { api, gql } from './client';
+import type { PreflightResponse, ServerInfo, User, Workspace } from './types';
 
 // Query keys
 export const queryKeys = {
   session: ['auth', 'session'] as const,
   info: ['server', 'info'] as const,
+  workspaces: ['workspaces'] as const,
 };
 
 // Hooks
@@ -69,6 +70,36 @@ export function useCreateAdmin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.session });
       queryClient.invalidateQueries({ queryKey: queryKeys.info });
+    },
+  });
+}
+
+// ─── Workspace hooks ───────────────────────────────
+
+export function useWorkspaces() {
+  return useQuery<Workspace[]>({
+    queryKey: queryKeys.workspaces,
+    queryFn: gql.workspaces,
+  });
+}
+
+export function useCreateWorkspace() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: gql.createWorkspace,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaces });
+    },
+  });
+}
+
+export function useUpdateWorkspace() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      gql.updateWorkspace(id, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaces });
     },
   });
 }
