@@ -1,32 +1,14 @@
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import path from 'node:path';
 
-// Custom plugin to exclude node_modules .css.ts files from vanilla-extract processing
-function excludeNodeModulesCssTs(): Plugin {
-  return {
-    name: 'exclude-node-modules-css-ts',
-    enforce: 'pre',
-    transform(code, id) {
-      // Skip .css.ts files in node_modules
-      if (id.includes('node_modules') && id.endsWith('.css.ts')) {
-        // Return empty module to skip processing
-        return {
-          code: 'export default {};',
-          map: null,
-        };
-      }
-      return null;
-    },
-  };
-}
+const root = __dirname;
+const rootNodeModules = path.resolve(root, './node_modules');
 
 export default defineConfig({
   plugins: [
-    // Add our custom plugin before vanilla-extract
-    excludeNodeModulesCssTs(),
     tanstackRouter({
       target: 'react',
       autoCodeSplitting: true,
@@ -38,44 +20,38 @@ export default defineConfig({
     }),
   ],
   resolve: {
+    dedupe: [
+      'react',
+      'react-dom',
+      '@tanstack/react-query',
+      '@tanstack/react-router',
+    ],
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@madoc/doc': path.resolve(__dirname, './packages/common/doc/src'),
-      '@madoc/editor': path.resolve(__dirname, './packages/frontend/editor/src'),
+      '@': path.resolve(root, './src'),
+      '@madoc/doc': path.resolve(root, './packages/common/doc/src'),
+      '@madoc/editor': path.resolve(root, './packages/frontend/editor/src'),
+      react: path.resolve(rootNodeModules, './react'),
+      'react-dom': path.resolve(rootNodeModules, './react-dom'),
+      'react/jsx-runtime': path.resolve(rootNodeModules, './react/jsx-runtime.js'),
+      'react/jsx-dev-runtime': path.resolve(rootNodeModules, './react/jsx-dev-runtime.js'),
     },
   },
   optimizeDeps: {
     include: [
-      // Include all @blocksuite packages to pre-bundle their .css.ts files
-      '@blocksuite/**/*',
-      '@blocksuite/affine',
-      '@blocksuite/affine/effects',
-      '@blocksuite/affine/store',
-      '@blocksuite/affine/sync',
-      '@blocksuite/affine/schemas',
-      '@blocksuite/affine/shared/services',
-      '@blocksuite/affine/inlines/reference',
-      '@blocksuite/integration-test',
-      '@blocksuite/integration-test/effects',
-      '@blocksuite/integration-test/view',
-      // Include other dependencies
       'yjs',
-      'socket.io-client',
       'lit',
       '@preact/signals-core',
-      // Include CommonJS modules that need to be converted to ESM
       'lodash.ismatch',
       'bind-event-listener',
       'extend',
       'debug',
-      'bytes'
+      'bytes',
     ],
     exclude: [
-      // Exclude our workspace packages from pre-bundling
+      '@blocksuite',
       '@madoc/doc',
       '@madoc/editor',
-      '@blocksuite/affine-block-note',
-      '@blocksuite/affine-fragment-outline'
+      'socket.io-client',
     ],
   },
   css: {
@@ -104,20 +80,22 @@ export default defineConfig({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         ws: true,
+        // Configure rewrite to ensure correct path
+        rewrite: (path) => path,
       },
       '/graphql': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
       },
       '/info': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
       },
     },

@@ -4,6 +4,22 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  react: 18.2.0
+  react-dom: 18.2.0
+  '@types/react': 18.3.31
+  '@types/react-dom': 18.3.7
+  '@tanstack/react-router': 1.168.19
+  '@tanstack/router-plugin': 1.168.19
+  '@preact/signals-core': 1.14.3
+  bind-event-listener: 3.0.0
+  bytes: 3.1.2
+  debug: 4.4.3
+  extend: 3.0.2
+  lit: 3.3.3
+  lodash.ismatch: 4.4.0
+  yjs: 13.6.31
+
 importers:
 
   .:
@@ -14,54 +30,84 @@ importers:
       '@madoc/editor':
         specifier: workspace:*
         version: link:packages/frontend/editor
+      '@preact/signals-core':
+        specifier: 1.14.3
+        version: 1.14.3
       '@tanstack/react-query':
-        specifier: ^5.83.0
-        version: 5.101.2(react@19.2.7)
+        specifier: 5.101.2
+        version: 5.101.2(react@18.2.0)
       '@tanstack/react-router':
-        specifier: ^1.130.0
-        version: 1.170.17(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        specifier: 1.168.19
+        version: 1.168.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@vanilla-extract/css':
-        specifier: ^1.17.0
+        specifier: 1.21.1
         version: 1.21.1(babel-plugin-macros@3.1.0)
+      bind-event-listener:
+        specifier: 3.0.0
+        version: 3.0.0
+      bytes:
+        specifier: 3.1.2
+        version: 3.1.2
+      debug:
+        specifier: 4.4.3
+        version: 4.4.3
+      extend:
+        specifier: 3.0.2
+        version: 3.0.2
+      lit:
+        specifier: 3.3.3
+        version: 3.3.3
+      lodash.ismatch:
+        specifier: 4.4.0
+        version: 4.4.0
       react:
-        specifier: ^19.1.0
-        version: 19.2.7
+        specifier: 18.2.0
+        version: 18.2.0
       react-dom:
-        specifier: ^19.1.0
-        version: 19.2.7(react@19.2.7)
+        specifier: 18.2.0
+        version: 18.2.0(react@18.2.0)
+      yjs:
+        specifier: 13.6.31
+        version: 13.6.31
     devDependencies:
       '@tanstack/router-plugin':
-        specifier: ^1.130.0
-        version: 1.168.19(@tanstack/react-router@1.170.17(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(esbuild@0.28.1)(rolldown@1.1.4)(rollup@4.62.2)(vite@7.3.6(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0))
+        specifier: 1.168.19
+        version: 1.168.19(@tanstack/react-router@1.168.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(esbuild@0.28.1)(rolldown@1.1.4)(rollup@4.62.2)(vite@7.3.6(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0))
       '@types/react':
-        specifier: ^19.1.0
-        version: 19.2.17
+        specifier: 18.3.31
+        version: 18.3.31
       '@types/react-dom':
-        specifier: ^19.1.0
-        version: 19.2.3(@types/react@19.2.17)
+        specifier: 18.3.7
+        version: 18.3.7(@types/react@18.3.31)
       '@vanilla-extract/vite-plugin':
-        specifier: ^5.0.0
+        specifier: 5.2.3
         version: 5.2.3(@types/node@26.1.0)(babel-plugin-macros@3.1.0)(esbuild@0.28.1)(jiti@2.7.0)(lightningcss@1.32.0)(vite@7.3.6(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0))
       '@vitejs/plugin-react':
-        specifier: ^4.3.0
+        specifier: 4.7.0
         version: 4.7.0(vite@7.3.6(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0))
       typescript:
-        specifier: ^5.9.3
+        specifier: 5.9.3
         version: 5.9.3
       vite:
-        specifier: ^7.0.0
+        specifier: 7.3.6
         version: 7.3.6(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)
 
   packages/common/doc:
     dependencies:
       '@blocksuite/affine':
         specifier: 0.22.4
-        version: 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)(yjs@13.6.31)
+        version: 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)(yjs@13.6.31)
+      '@blocksuite/integration-test':
+        specifier: 0.22.4
+        version: 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      idb:
+        specifier: ^8.0.3
+        version: 8.0.3
       socket.io-client:
         specifier: ^4.8.3
         version: 4.8.3
       yjs:
-        specifier: ^13.6.21
+        specifier: 13.6.31
         version: 13.6.31
     devDependencies:
       typescript:
@@ -72,28 +118,28 @@ importers:
     dependencies:
       '@blocksuite/affine':
         specifier: 0.22.4
-        version: 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)(yjs@13.6.31)
+        version: 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)(yjs@13.6.31)
       '@blocksuite/integration-test':
         specifier: 0.22.4
-        version: 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
+        version: 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
       '@madoc/doc':
         specifier: workspace:*
         version: link:../../common/doc
       '@preact/signals-core':
-        specifier: ^1.8.0
+        specifier: 1.14.3
         version: 1.14.3
       lit:
-        specifier: ^3.0.0
+        specifier: 3.3.3
         version: 3.3.3
-      react:
-        specifier: ^19.1.0
-        version: 19.2.7
     devDependencies:
       '@types/react':
-        specifier: ^19.1.0
-        version: 19.2.17
+        specifier: 18.3.31
+        version: 18.3.31
+      react:
+        specifier: 18.2.0
+        version: 18.2.0
       typescript:
-        specifier: ^5.9.3
+        specifier: 5.9.3
         version: 5.9.3
 
 packages:
@@ -402,10 +448,10 @@ packages:
     resolution: {integrity: sha512-JSetbNEyE+/HnefmDR8J1Tt6ebWn7F150tkKfaqPegOU+s1lLWN/4cRel8z6IiQ/ft3qrO+Mqd115AHfp1eTDA==}
     engines: {node: '>=18.19.0 <23.0.0'}
     peerDependencies:
-      '@types/react': ^18.0.25
+      '@types/react': 18.3.31
       change-case: 4.1.2
-      lit: ^3.1.1
-      react: ^18.2.0
+      lit: 3.3.3
+      react: 18.2.0
     peerDependenciesMeta:
       lit:
         optional: true
@@ -424,7 +470,7 @@ packages:
   '@blocksuite/sync@0.22.4':
     resolution: {integrity: sha512-Ru/WUy5f14G2BQsb+7oGFEI9kVTrfrma3BRpZsT0Si+nRiRcFgmbi3yBCzbXI4JQQ9CPd6Wyq1eMQ1OFB6GAQg==}
     peerDependencies:
-      yjs: '*'
+      yjs: 13.6.31
 
   '@borewit/text-codec@0.2.2':
     resolution: {integrity: sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ==}
@@ -948,6 +994,10 @@ packages:
   '@socket.io/component-emitter@3.1.2':
     resolution: {integrity: sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==}
 
+  '@tanstack/history@1.161.6':
+    resolution: {integrity: sha512-NaOGLRrddszbQj9upGat6HG/4TKvXLvu+osAIgfxPYA+eIvYKv8GKDJOrY2D3/U9MRnKfMWD7bU4jeD4xmqyIg==}
+    engines: {node: '>=20.19'}
+
   '@tanstack/history@1.162.0':
     resolution: {integrity: sha512-79pf/RkhteYZTRgcR4F9kbk84P2N8rugQJswxfIqovlbRiT3yI7eBE+5QorIrZaOKktsgzRlXh1l/du/xpl4iA==}
     engines: {node: '>=20.19'}
@@ -958,20 +1008,25 @@ packages:
   '@tanstack/react-query@5.101.2':
     resolution: {integrity: sha512-seDkr6kzGzX1okaaTtZPtgA688CDPlXUz1C6xSg0ESqn04Vuc8tlrYms1s3de+znBqhPVxFRfpAfUf+6XvfPWg==}
     peerDependencies:
-      react: ^18 || ^19
+      react: 18.2.0
 
-  '@tanstack/react-router@1.170.17':
-    resolution: {integrity: sha512-ppLkjCfSMaeug9rmFRYzOd4TIqWV+yTE7tzIny7alJsSnM7w4lzEZm6eqCehG0SPetpZ0R3K+UnanSmBgOAVcQ==}
+  '@tanstack/react-router@1.168.19':
+    resolution: {integrity: sha512-0NCuwMPRlEpffDIF7OTSe3g4d8U93WsHxMi15YLJxjmNbng2of50wx+8UnT8IxKLbSdpFHSEDNTi4qnNyWn/Kw==}
     engines: {node: '>=20.19'}
     peerDependencies:
-      react: '>=18.0.0 || >=19.0.0'
-      react-dom: '>=18.0.0 || >=19.0.0'
+      react: 18.2.0
+      react-dom: 18.2.0
 
   '@tanstack/react-store@0.9.3':
     resolution: {integrity: sha512-y2iHd/N9OkoQbFJLUX1T9vbc2O9tjH0pQRgTcx1/Nz4IlwLvkgpuglXUx+mXt0g5ZDFrEeDnONPqkbfxXJKwRg==}
     peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react: 18.2.0
+      react-dom: 18.2.0
+
+  '@tanstack/router-core@1.168.14':
+    resolution: {integrity: sha512-UhCJtjNrd5wcTmhgB2HyUP0+Rj1M7BD4dS11YsF9x6VC2KH/eqxzs/vK+nN5f+cOhPOLZdmLkWMW+WGmacZ8HA==}
+    engines: {node: '>=20.19'}
+    hasBin: true
 
   '@tanstack/router-core@1.171.14':
     resolution: {integrity: sha512-Mo3hwx0qB0cJsVYGDjG0+Ouf7VV74h/vsoDMGztdlyzDanp4gBA2s7IVvm6hFrmQM6GpD9F0Z7SqD7OldfLE7g==}
@@ -986,7 +1041,7 @@ packages:
     engines: {node: '>=20.19'}
     peerDependencies:
       '@rsbuild/core': '>=1.0.2 || ^2.0.0'
-      '@tanstack/react-router': ^1.170.17
+      '@tanstack/react-router': 1.168.19
       vite: '>=5.0.0 || >=6.0.0 || >=7.0.0 || >=8.0.0'
       vite-plugin-solid: ^2.11.10 || ^3.0.0-0
       webpack: '>=5.92.0'
@@ -1080,13 +1135,16 @@ packages:
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
 
-  '@types/react-dom@19.2.3':
-    resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
-    peerDependencies:
-      '@types/react': ^19.2.0
+  '@types/prop-types@15.7.15':
+    resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
-  '@types/react@19.2.17':
-    resolution: {integrity: sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==}
+  '@types/react-dom@18.3.7':
+    resolution: {integrity: sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ==}
+    peerDependencies:
+      '@types/react': 18.3.31
+
+  '@types/react@18.3.31':
+    resolution: {integrity: sha512-vfEqpXTvwT91yhmwdfouStN2hSKwTvyRs8qpLfADyrq/kxDw0hZM7Wk9Ug1FELj8hIby+S/+kQCSRFF32nv2Qw==}
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
@@ -1653,6 +1711,10 @@ packages:
   longest-streak@3.1.0:
     resolution: {integrity: sha512-9Ri+o0JYgehTaVBBDoMqIl8GXtbWg711O3srftcHhZ0dqnETqLaoIK0x17fUw9rFSlK/0NlsKe0Ahhyl5pXE2g==}
 
+  loose-envify@1.4.0:
+    resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
+    hasBin: true
+
   loupe@3.2.1:
     resolution: {integrity: sha512-CdzqowRJCeLU72bHvWqwRBBlLcMEtIvGrlvef74kMnV2AolS9Y8xUv1I0U/MNAWMhBlKIoyuEgoJ0t/bbwHbLQ==}
 
@@ -1916,17 +1978,17 @@ packages:
   raf-schd@4.0.3:
     resolution: {integrity: sha512-tQkJl2GRWh83ui2DiPTJz9wEiMN20syf+5oKfB03yYP7ioZcJwsIK8FjrtLwH1m7C7e+Tt2yYBlrOpdT+dyeIQ==}
 
-  react-dom@19.2.7:
-    resolution: {integrity: sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==}
+  react-dom@18.2.0:
+    resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
     peerDependencies:
-      react: ^19.2.7
+      react: 18.2.0
 
   react-refresh@0.17.0:
     resolution: {integrity: sha512-z6F7K9bV85EfseRCp2bzrpyQ0Gkw1uLoCel9XBVWPg/TjRj94SkJzUTGfOa4bs7iJvBWtQG0Wq7wnI0syw3EBQ==}
     engines: {node: '>=0.10.0'}
 
-  react@19.2.7:
-    resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
+  react@18.2.0:
+    resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
     engines: {node: '>=0.10.0'}
 
   readdirp@5.0.0:
@@ -1982,8 +2044,8 @@ packages:
   rxjs@7.8.2:
     resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
 
-  scheduler@0.27.0:
-    resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
+  scheduler@0.23.0:
+    resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
 
   semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
@@ -2185,7 +2247,7 @@ packages:
   use-sync-external-store@1.6.0:
     resolution: {integrity: sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==}
     peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react: 18.2.0
 
   utrie@1.0.2:
     resolution: {integrity: sha512-1MLa5ouZiOmQzUbjbu9VmjLzn1QLXBhwpUa7kdLUQK+KQ5KA9I1vk5U4YHe/X2Ch7PYnJfWuWT+VbuxbGwljhw==}
@@ -2354,7 +2416,7 @@ packages:
     resolution: {integrity: sha512-YSVsLoXxO67J6eE/nV4AtFtT3QEotZf5sK5BHxFBXso7VDUT3Tx07IfA6hsu5Q5OmBdMkQVmFZ9QOA7fikWvnw==}
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
     peerDependencies:
-      yjs: ^13.0.0
+      yjs: 13.6.31
 
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
@@ -2517,16 +2579,16 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
-  '@blocksuite/affine-block-attachment@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-attachment@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2544,18 +2606,18 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-bookmark@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-bookmark@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-embed': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-embed-doc': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-embed': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-embed-doc': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -2572,17 +2634,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-callout@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-callout@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@emoji-mart/data': 1.2.1
@@ -2602,20 +2664,20 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-code@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-code@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-gfx-turbo-renderer': 0.22.4
-      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-link': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-link': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2634,17 +2696,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-data-view@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)':
+  '@blocksuite/affine-block-data-view@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2681,20 +2743,20 @@ snapshots:
       - tsx
       - yaml
 
-  '@blocksuite/affine-block-database@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)':
+  '@blocksuite/affine-block-database@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-drag-handle': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-drag-handle': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@emotion/css': 11.13.5
@@ -2734,13 +2796,13 @@ snapshots:
       - tsx
       - yaml
 
-  '@blocksuite/affine-block-divider@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-divider@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
@@ -2759,19 +2821,19 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-edgeless-text@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-edgeless-text@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2788,19 +2850,19 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-embed-doc@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-embed-doc@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-embed': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-embed': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2820,19 +2882,19 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-embed@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-embed@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2852,18 +2914,18 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-frame@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-frame@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-frame-title': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-frame-title': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2882,18 +2944,18 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-image@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-image@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-gfx-turbo-renderer': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2912,18 +2974,18 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-latex@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-latex@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2945,17 +3007,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-list@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-list@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-gfx-turbo-renderer': 0.22.4
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -2973,21 +3035,21 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-note@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-note@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-embed': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-embed': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-fragment-doc-title': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-fragment-doc-title': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-gfx-turbo-renderer': 0.22.4
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3008,15 +3070,15 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-paragraph@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-paragraph@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-gfx-turbo-renderer': 0.22.4
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
@@ -3035,37 +3097,37 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-root@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)':
+  '@blocksuite/affine-block-root@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-bookmark': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-block-edgeless-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-embed': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-frame': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-image': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-paragraph': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-bookmark': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-block-edgeless-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-embed': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-frame': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-image': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-paragraph': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-brush': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-connector': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-group': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-mindmap': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-shape': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-brush': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-connector': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-group': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-mindmap': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-shape': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-selected-rect': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-selected-rect': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3106,18 +3168,18 @@ snapshots:
       - tsx
       - yaml
 
-  '@blocksuite/affine-block-surface-ref@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-surface-ref@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-frame': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-frame': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3137,13 +3199,13 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-surface@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-block-surface@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
@@ -3166,19 +3228,19 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-block-table@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)':
+  '@blocksuite/affine-block-table@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)':
     dependencies:
       '@atlaskit/pragmatic-drag-and-drop': 1.8.1
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@emotion/css': 11.13.5
@@ -3212,12 +3274,12 @@ snapshots:
       - tsx
       - yaml
 
-  '@blocksuite/affine-components@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-components@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@blocksuite/sync': 0.22.4(yjs@13.6.31)
@@ -3255,15 +3317,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@blocksuite/affine-foundation@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)':
+  '@blocksuite/affine-foundation@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3300,14 +3362,14 @@ snapshots:
       - tsx
       - yaml
 
-  '@blocksuite/affine-fragment-adapter-panel@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-fragment-adapter-panel@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3322,17 +3384,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-fragment-doc-title@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-fragment-doc-title@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-frame': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-frame': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3349,17 +3411,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-fragment-frame-panel@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-fragment-frame-panel@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-frame': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-frame': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3378,17 +3440,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-fragment-outline@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-fragment-outline@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-fragment-doc-title': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-fragment-doc-title': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3407,17 +3469,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-brush@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-brush@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3436,18 +3498,18 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-connector@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-connector@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3466,18 +3528,18 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-group@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-group@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3496,20 +3558,20 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-link@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-link@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-bookmark': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-embed': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-bookmark': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-embed': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3528,24 +3590,24 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-mindmap@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-mindmap@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-edgeless-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-image': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-edgeless-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-image': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-connector': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-shape': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-connector': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-shape': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3566,20 +3628,20 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-note@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-note@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-bookmark': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-image': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-bookmark': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-image': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3599,17 +3661,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-pointer@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-pointer@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3628,18 +3690,18 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-shape@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-shape@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3658,18 +3720,18 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-template@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-template@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3689,17 +3751,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-gfx-text@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-gfx-text@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -3727,15 +3789,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@blocksuite/affine-inline-footnote@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-inline-footnote@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3757,16 +3819,16 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-inline-latex@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-inline-latex@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3793,15 +3855,15 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-inline-link@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-inline-link@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3823,14 +3885,14 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-inline-mention@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-inline-mention@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3852,20 +3914,20 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-inline-preset@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-inline-preset@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-footnote': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-link': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-mention': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-footnote': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-link': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-mention': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3893,14 +3955,14 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-inline-reference@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-inline-reference@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3937,13 +3999,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@blocksuite/affine-rich-text@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-rich-text@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -3965,11 +4027,11 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-shared@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-shared@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
       '@blocksuite/affine-model': 0.22.4
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -4015,20 +4077,20 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-drag-handle@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-drag-handle@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-callout': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-embed': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-list': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-paragraph': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-callout': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-embed': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-list': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-paragraph': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -4048,16 +4110,16 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-edgeless-auto-connect@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-edgeless-auto-connect@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@preact/signals-core': 1.14.3
       '@toeverything/theme': 1.1.23
@@ -4070,44 +4132,16 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-edgeless-dragging-area@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-edgeless-dragging-area@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
-      '@blocksuite/std': 0.22.4
-      '@lit/context': 1.1.6
-      '@preact/signals-core': 1.14.3
-      '@toeverything/theme': 1.1.23
-      lit: 3.3.3
-      rxjs: 7.8.2
-      yjs: 13.6.31
-    transitivePeerDependencies:
-      - '@types/react'
-      - babel-plugin-macros
-      - change-case
-      - react
-      - supports-color
-
-  '@blocksuite/affine-widget-edgeless-selected-rect@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
-    dependencies:
-      '@blocksuite/affine-block-frame': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-gfx-connector': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-shape': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@lit/context': 1.1.6
       '@preact/signals-core': 1.14.3
@@ -4122,16 +4156,44 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-edgeless-toolbar@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-edgeless-selected-rect@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-frame': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-ext-loader': 0.22.4
+      '@blocksuite/affine-gfx-connector': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-shape': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-model': 0.22.4
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/global': 0.22.4
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
+      '@blocksuite/std': 0.22.4
+      '@lit/context': 1.1.6
+      '@preact/signals-core': 1.14.3
+      '@toeverything/theme': 1.1.23
+      lit: 3.3.3
+      rxjs: 7.8.2
+      yjs: 13.6.31
+    transitivePeerDependencies:
+      - '@types/react'
+      - babel-plugin-macros
+      - change-case
+      - react
+      - supports-color
+
+  '@blocksuite/affine-widget-edgeless-toolbar@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
+    dependencies:
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@floating-ui/dom': 1.7.6
       '@lit/context': 1.1.6
@@ -4147,15 +4209,15 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-edgeless-zoom-toolbar@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-edgeless-zoom-toolbar@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@floating-ui/dom': 1.7.6
       '@preact/signals-core': 1.14.3
@@ -4170,14 +4232,14 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-frame-title@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-frame-title@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
       '@blocksuite/std': 0.22.4
       '@lit/context': 1.1.6
@@ -4191,31 +4253,31 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-keyboard-toolbar@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)':
+  '@blocksuite/affine-widget-keyboard-toolbar@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-block-embed': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-image': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-latex': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-list': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-paragraph': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface-ref': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-block-embed': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-image': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-latex': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-list': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-paragraph': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface-ref': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-fragment-doc-title': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-link': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-fragment-doc-title': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-link': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -4251,17 +4313,17 @@ snapshots:
       - tsx
       - yaml
 
-  '@blocksuite/affine-widget-linked-doc@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-linked-doc@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-image': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-image': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -4280,17 +4342,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-note-slicer@0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-note-slicer@0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-selected-rect': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-selected-rect': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@lit/context': 1.1.6
       '@preact/signals-core': 1.14.3
@@ -4305,14 +4367,14 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-page-dragging-area@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-page-dragging-area@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@lit/context': 1.1.6
@@ -4329,15 +4391,15 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-remote-selection@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-remote-selection@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@preact/signals-core': 1.14.3
       '@toeverything/theme': 1.1.23
@@ -4351,11 +4413,11 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-scroll-anchoring@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-scroll-anchoring@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
       '@blocksuite/std': 0.22.4
       '@preact/signals-core': 1.14.3
@@ -4368,14 +4430,14 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-slash-menu@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-slash-menu@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@floating-ui/dom': 1.7.6
@@ -4391,17 +4453,17 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine-widget-toolbar@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)':
+  '@blocksuite/affine-widget-toolbar@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-table': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-table': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@floating-ui/dom': 1.7.6
       '@preact/signals-core': 1.14.3
@@ -4435,14 +4497,14 @@ snapshots:
       - tsx
       - yaml
 
-  '@blocksuite/affine-widget-viewport-overlay@0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)':
+  '@blocksuite/affine-widget-viewport-overlay@0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@floating-ui/dom': 1.7.6
       '@preact/signals-core': 1.14.3
@@ -4457,72 +4519,72 @@ snapshots:
       - react
       - supports-color
 
-  '@blocksuite/affine@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)(yjs@13.6.31)':
+  '@blocksuite/affine@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)(yjs@13.6.31)':
     dependencies:
-      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-bookmark': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-callout': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-code': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-block-divider': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-edgeless-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-embed': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-embed-doc': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-frame': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-image': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-latex': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-list': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-paragraph': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-root': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-block-surface': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-surface-ref': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-block-table': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-block-attachment': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-bookmark': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-callout': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-code': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-block-database': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-block-divider': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-edgeless-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-embed': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-embed-doc': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-frame': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-image': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-latex': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-list': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-paragraph': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-root': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-block-surface': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-surface-ref': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-block-table': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-ext-loader': 0.22.4
-      '@blocksuite/affine-foundation': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-fragment-adapter-panel': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-fragment-doc-title': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-fragment-frame-panel': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-fragment-outline': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-brush': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-connector': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-group': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-link': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-mindmap': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-note': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-shape': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-template': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-foundation': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-fragment-adapter-panel': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-fragment-doc-title': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-fragment-frame-panel': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-fragment-outline': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-brush': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-connector': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-group': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-link': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-mindmap': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-note': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-pointer': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-shape': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-template': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-gfx-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-gfx-turbo-renderer': 0.22.4
-      '@blocksuite/affine-inline-footnote': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-link': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-mention': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-inline-footnote': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-latex': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-link': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-mention': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-preset': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-inline-reference': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/affine-model': 0.22.4
-      '@blocksuite/affine-rich-text': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-drag-handle': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-auto-connect': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-dragging-area': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-selected-rect': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-edgeless-zoom-toolbar': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-frame-title': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-keyboard-toolbar': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-widget-linked-doc': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-note-slicer': 0.22.4(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-page-dragging-area': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-remote-selection': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-scroll-anchoring': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-widget-toolbar': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
-      '@blocksuite/affine-widget-viewport-overlay': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)
+      '@blocksuite/affine-rich-text': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-drag-handle': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-auto-connect': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-dragging-area': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-selected-rect': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-edgeless-zoom-toolbar': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-frame-title': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-keyboard-toolbar': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-widget-linked-doc': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-note-slicer': 0.22.4(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-page-dragging-area': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-remote-selection': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-scroll-anchoring': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-slash-menu': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-widget-toolbar': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
+      '@blocksuite/affine-widget-viewport-overlay': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/data-view': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)
       '@blocksuite/global': 0.22.4
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
@@ -4554,12 +4616,12 @@ snapshots:
       - yaml
       - yjs
 
-  '@blocksuite/data-view@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)':
+  '@blocksuite/data-view@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine-components': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
-      '@blocksuite/affine-shared': 0.22.4(@types/react@19.2.17)(change-case@4.1.2)(react@19.2.7)
+      '@blocksuite/affine-components': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
+      '@blocksuite/affine-shared': 0.22.4(@types/react@18.3.31)(change-case@4.1.2)(react@18.2.0)
       '@blocksuite/global': 0.22.4
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@blocksuite/std': 0.22.4
       '@blocksuite/store': 0.22.4
       '@emotion/css': 11.13.5
@@ -4609,18 +4671,18 @@ snapshots:
       rxjs: 7.8.2
       zod: 3.25.76
 
-  '@blocksuite/icons@2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)':
+  '@blocksuite/icons@2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)':
     dependencies:
-      '@types/react': 19.2.17
+      '@types/react': 18.3.31
       change-case: 4.1.2
     optionalDependencies:
       lit: 3.3.3
-      react: 19.2.7
+      react: 18.2.0
 
-  '@blocksuite/integration-test@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)':
+  '@blocksuite/integration-test@0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)':
     dependencies:
-      '@blocksuite/affine': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@19.2.7)(yjs@13.6.31)
-      '@blocksuite/icons': 2.2.17(@types/react@19.2.17)(change-case@4.1.2)(lit@3.3.3)(react@19.2.7)
+      '@blocksuite/affine': 0.22.4(@types/debug@4.1.13)(@types/node@26.1.0)(@types/react@18.3.31)(babel-plugin-macros@3.1.0)(change-case@4.1.2)(jiti@2.7.0)(lightningcss@1.32.0)(react@18.2.0)(yjs@13.6.31)
+      '@blocksuite/icons': 2.2.17(@types/react@18.3.31)(change-case@4.1.2)(lit@3.3.3)(react@18.2.0)
       '@floating-ui/dom': 1.7.6
       '@lit/context': 1.1.6
       '@lottiefiles/dotlottie-wc': 0.5.3
@@ -5094,30 +5156,39 @@ snapshots:
 
   '@socket.io/component-emitter@3.1.2': {}
 
+  '@tanstack/history@1.161.6': {}
+
   '@tanstack/history@1.162.0': {}
 
   '@tanstack/query-core@5.101.2': {}
 
-  '@tanstack/react-query@5.101.2(react@19.2.7)':
+  '@tanstack/react-query@5.101.2(react@18.2.0)':
     dependencies:
       '@tanstack/query-core': 5.101.2
-      react: 19.2.7
+      react: 18.2.0
 
-  '@tanstack/react-router@1.170.17(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@tanstack/react-router@1.168.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      '@tanstack/history': 1.162.0
-      '@tanstack/react-store': 0.9.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@tanstack/router-core': 1.171.14
+      '@tanstack/history': 1.161.6
+      '@tanstack/react-store': 0.9.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@tanstack/router-core': 1.168.14
       isbot: 5.1.44
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
 
-  '@tanstack/react-store@0.9.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@tanstack/react-store@0.9.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@tanstack/store': 0.9.3
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
-      use-sync-external-store: 1.6.0(react@19.2.7)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      use-sync-external-store: 1.6.0(react@18.2.0)
+
+  '@tanstack/router-core@1.168.14':
+    dependencies:
+      '@tanstack/history': 1.161.6
+      cookie-es: 3.1.1
+      seroval: 1.5.4
+      seroval-plugins: 1.5.4(seroval@1.5.4)
 
   '@tanstack/router-core@1.171.14':
     dependencies:
@@ -5139,7 +5210,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/router-plugin@1.168.19(@tanstack/react-router@1.170.17(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(esbuild@0.28.1)(rolldown@1.1.4)(rollup@4.62.2)(vite@7.3.6(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0))':
+  '@tanstack/router-plugin@1.168.19(@tanstack/react-router@1.168.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(esbuild@0.28.1)(rolldown@1.1.4)(rollup@4.62.2)(vite@7.3.6(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0))':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/template': 7.29.7
@@ -5151,7 +5222,7 @@ snapshots:
       unplugin: 3.3.0(esbuild@0.28.1)(rolldown@1.1.4)(rollup@4.62.2)(vite@7.3.6(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0))
       zod: 4.4.3
     optionalDependencies:
-      '@tanstack/react-router': 1.170.17(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@tanstack/react-router': 1.168.19(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       vite: 7.3.6(@types/node@26.1.0)(jiti@2.7.0)(lightningcss@1.32.0)
     transitivePeerDependencies:
       - '@farmfe/core'
@@ -5260,12 +5331,15 @@ snapshots:
 
   '@types/parse-json@4.0.2': {}
 
-  '@types/react-dom@19.2.3(@types/react@19.2.17)':
-    dependencies:
-      '@types/react': 19.2.17
+  '@types/prop-types@15.7.15': {}
 
-  '@types/react@19.2.17':
+  '@types/react-dom@18.3.7(@types/react@18.3.31)':
     dependencies:
+      '@types/react': 18.3.31
+
+  '@types/react@18.3.31':
+    dependencies:
+      '@types/prop-types': 15.7.15
       csstype: 3.2.3
 
   '@types/trusted-types@2.0.7': {}
@@ -5892,6 +5966,10 @@ snapshots:
 
   longest-streak@3.1.0: {}
 
+  loose-envify@1.4.0:
+    dependencies:
+      js-tokens: 4.0.0
+
   loupe@3.2.1: {}
 
   lower-case@2.0.2:
@@ -6333,14 +6411,17 @@ snapshots:
 
   raf-schd@4.0.3: {}
 
-  react-dom@19.2.7(react@19.2.7):
+  react-dom@18.2.0(react@18.2.0):
     dependencies:
-      react: 19.2.7
-      scheduler: 0.27.0
+      loose-envify: 1.4.0
+      react: 18.2.0
+      scheduler: 0.23.0
 
   react-refresh@0.17.0: {}
 
-  react@19.2.7: {}
+  react@18.2.0:
+    dependencies:
+      loose-envify: 1.4.0
 
   readdirp@5.0.0: {}
 
@@ -6457,7 +6538,9 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  scheduler@0.27.0: {}
+  scheduler@0.23.0:
+    dependencies:
+      loose-envify: 1.4.0
 
   semver@6.3.1: {}
 
@@ -6644,9 +6727,9 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  use-sync-external-store@1.6.0(react@19.2.7):
+  use-sync-external-store@1.6.0(react@18.2.0):
     dependencies:
-      react: 19.2.7
+      react: 18.2.0
 
   utrie@1.0.2:
     dependencies:
