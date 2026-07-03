@@ -5,6 +5,8 @@
 ## 构建与验证
 
 - 构建：`go build -o madoc.exe .` ✅
+- 当前全量测试：`go test ./...` ✅
+- 当前静态检查：`go vet ./...` ✅
 - Db 测试：`go test -timeout 30s -count=1 -v ./internal/db/` — 6/6 通过 ✅
 - 冒烟测试：info、setup admin、登录、GraphQL CRUD、blob 上传下载、Engine.IO 握手 — 全部通过 ✅
 - GraphQL Phase 3 测试：currentUser(token/features/quota)、publishDoc、revokePublicDoc、updateWorkspace、workspace(publicDocs) — 全部通过 ✅
@@ -16,7 +18,7 @@
 ## Phase 0 — Go 基础设施（已完成）
 
 - SQLite 连接 + modernc.org/sqlite（无 CGO）
-- Schema：12 张 AFFiNE 映射表（全部使用 `DATETIME` 类型，确保 time.Time 扫描正确）
+- Schema：当前 15 张 AFFiNE 映射表（全部使用 `DATETIME` 类型，确保 time.Time 扫描正确）
 - `db.Repo`：Snapshot/Upsert、DocUpdate CRUD、Blob CRUD、Workspace/User 生命周期、AppConfig
 - 构建/测试通过
 
@@ -24,7 +26,7 @@
 
 ## Phase 0.5 — 前端分支清理（已完成）
 
-- `frontend/` 独立 monorepo，构建结果 951 个 dist 文件，0 错误
+- `web/` 独立 pnpm workspace，使用 Vite 构建到 `web/dist`
 - 删除所有 AI / 本地工作区 / 支付 / OAuth / 遥测相关源文件
 - Blocksuite 0.22.4 npm 依赖通过 SWC exclude 规则接入
 
@@ -64,14 +66,10 @@
 
 ## Phase 2 — Socket.IO 同步引擎 + Blob 存储（已完成）
 
-### `internal/socketio/` — 自研 Engine.IO v4 + Socket.IO v5 协议
-- HTTP polling 握手：`GET /socket.io/?EIO=4&transport=polling`
-- HTTP polling 收发：`POST/GET`（带 sid）
-- WebSocket 升级 + 双向通信
-- Socket.IO 包帧：CONNECT (0)、EVENT (2)、ACK (3)、DISCONNECT (1)
-- Namespace 支持（`/`）
-- 内存 Session 存储 + polling 挂起消息队列
-- 定时 Engine.IO ping/pong 保活
+### Socket.IO 服务端 — `github.com/zishang520/socket.io/v2`
+- 当前实现直接使用 `github.com/zishang520/socket.io/v2/socket`
+- 路由挂载：`/socket.io`
+- 支持 Socket.IO 客户端连接、事件 ACK、房间广播和断开清理
 
 ### `internal/sync/` — 文档同步 + 在线感知 + 房间管理
 - `RoomManager`：按 workspace 隔离的房间，Peer 跟踪
@@ -105,11 +103,10 @@
 
 ## Phase 3 — 鉴权协议增强 + GraphQL 补全 + 快照压缩（已完成）
 
-### Socket.IO 鉴权（`internal/socketio/handler.go`、`internal/sync/server.go`）
-- `Handler.AuthFunc` 回调：从请求 `sid` cookie → `SessionManager.GetUserID()` → 写入 Engine.IO Session.UserID
-- `Handler.GetUserID(sid)`：暴露给事件处理器查询连接对应的用户 ID
+### Socket.IO 鉴权（`internal/sync/server.go`）
+- 从 Socket.IO handshake cookie 提取 `sid` → `SessionManager.GetUserID()` → 映射当前连接用户 ID
 - `auth/middleware.go`：存储 `sessionID` 到 context，`GetSessionID(ctx)` 辅助函数
-- 空 `AuthFunc` 或空 cookie 时用户 ID 为空字符串（向后兼容）
+- 空 cookie 或无效 session 时用户 ID 为空字符串（向后兼容）
 
 ### `realtime:request` 协议（`internal/sync/server.go`）
 - `user.profile.get`：返回当前用户信息（id、name、email、avatarUrl、features）
@@ -205,7 +202,7 @@
 ## Phase 5 — User & Admin APIs + Dockerfile（已完成）
 
 ### Schema 扩展
-- `schema.sql` 新增 2 表：`user_features`、`user_access_tokens`，总数 16 张
+- `schema.sql` 新增 2 表：`user_features`、`user_access_tokens`，当前总数 15 张
 - `user_features`：user_id → feature name → activated 标识
 - `user_access_tokens`：带名称/令牌哈希/过期时间的个人访问令牌
 
@@ -270,8 +267,8 @@
 ### Yjs 策略 — Relay 模式
 服务端只存储和转发原始 Yjs update，不做 CRDT 理解。`load-doc` 返回拼接后的所有 updates，客户端 Yjs 引擎自行合并。
 
-### Socket.IO — 自研实现
-基于 `gorilla/websocket`（~350 行 Go 代码），零外部 Socket.IO 库依赖。完全可控。
+### Socket.IO — 库实现
+当前使用 `github.com/zishang520/socket.io/v2`，避免维护自研 Engine.IO/Socket.IO 协议栈；`gorilla/websocket` 仅作为间接依赖存在。
 
 ### Auth — 双层鉴权
 GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUserID`），Socket.IO 使用 `AuthFunc` 回调（同一机制），CSRF 保护变更端点。
@@ -388,7 +385,7 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 | 文件 | 说明 |
 |---|---|
 | `main.go` | 入口，路由配置，go:embed 前端，快照压缩循环 |
-| `internal/db/schema.sql` | 16 张 AFFiNE 映射表（全部 DATETIME） |
+| `internal/db/schema.sql` | 15 张 AFFiNE 映射表（全部 DATETIME） |
 | `internal/db/repo.go` | 所有 CRUD（用户、会话、工作区、快照、更新、blob、页面、配置、邀请、doc pairs） |
 | `internal/db/db_test.go` | 数据库测试（6 个测试用例） |
 | `internal/auth/session.go` | SessionManager |
@@ -398,13 +395,11 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 | `internal/auth/password.go` | bcrypt hash/check |
 | `internal/auth/csrf.go` | CSRFProtector |
 | `internal/graphql/handler.go` | GraphQL 执行器（pattern-match + multipart 解析 + 70+ 解析器） |
-| `internal/socketio/packets.go` | Engine.IO + Socket.IO 包类型定义与编解码 |
-| `internal/socketio/handler.go` | Engine.IO HTTP 处理器（polling + WebSocket + auth 回调） |
 | `internal/sync/server.go` | SyncServer（事件路由 + 房间管理 + realtime 协议 + 快照压缩） |
 | `internal/sync/room.go` | RoomManager + Peer/Room 定义 |
-| `Dockerfile` | 多阶段容器构建（frontend → backend → runtime） |
+| `Dockerfile` | 多阶段容器构建（web → backend → runtime） |
 | `BUILD.md` | 构建与运行说明 |
-| `go.mod` | 依赖：chi、sqlite、securecookie、websocket、crypto/bcrypt |
+| `go.mod` | 依赖：chi、sqlite、securecookie、socket.io、crypto/bcrypt |
 
 ---
 

@@ -5,10 +5,10 @@
 目标：把 AFFiNE 0.26.2 整体移植到 Go + SQLite，走纯开源极客自部署路线。
 
 - **后端**：用 Go 完全重写 NestJS/PostgreSQL/Redis/S3 后端
-- **前端**：从 `@affine/web` **Fork 出 `@madoc/web`**，做定制裁剪——彻底删除 AI、cloud/local 工作区切换、订阅付费等 UI，所有工作区只走服务端同步
+- **前端**：从 `@affine/web` **Fork 出 `@madoc/web`**，整理到当前仓库的 `web/` 目录，做定制裁剪——彻底删除 AI、cloud/local 工作区切换、订阅付费等 UI，所有工作区只走服务端同步
 - **初始化**：复用 AFFiNE selfhost 流程（`/api/setup/create-admin-user` + `serverConfig.initialized`），首次访问跳转 setup 页面创建站点管理员
 
-参考源码：`D:\Code\Go\madoc\AFFiNE-0.26.2`
+参考源码：`D:\Code\Go\madoc\AFFiNE\` 或 `D:\Code\Go\madoc\AFFiNE-*`
 
 ---
 
@@ -98,9 +98,9 @@ SpaceType: `workspace` | `userspace`
 
 ### 前端定制 (Fork @affine/web → @madoc/web)
 
-- **源码位置**：从 AFFiNE `packages/frontend/apps/web` 及其依赖整理到 `madoc/frontend/`（madoc 仓库内独立管理）
-- **参考源码**：`AFFiNE-0.26.2/` 仅用于开发参考，不入 git 仓库
-- **构建**：Selfhost 入口 `selfhost.html`，构建产物输出到 `frontend/dist/`
+- **源码位置**：从 AFFiNE `packages/frontend/apps/web` 及其依赖整理到 `madoc/web/`（madoc 仓库内独立管理）
+- **参考源码**：`AFFiNE/` 或 `AFFiNE-*` 仅用于开发参考，不入 git 仓库
+- **构建**：Vite 入口 `index.html`，构建产物输出到 `web/dist/`
 - **裁剪清单**：
   - 删除 AI/Copilot 相关 UI（侧栏 AI 按钮、chat panel、AI actions）
   - 删除 cloud/local 工作区切换——所有工作区强制走服务端同步，移除 IndexedDB 本地工作区入口
@@ -128,9 +128,9 @@ SpaceType: `workspace` | `userspace`
 
 ### Phase 0.5 — 前端 Fork + 裁剪（2天，可与 Phase 1 并行）
 
-**目标**：从 `@affine/web` Fork 出 `@madoc/web`，整理到 `frontend/` 目录，去掉不需要的功能模块
+**目标**：从 `@affine/web` Fork 出 `@madoc/web`，整理到 `web/` 目录，去掉不需要的功能模块
 
-1. 从 AFFiNE-0.26.2 的 `packages/frontend/apps/web` 及相关依赖整理到 `madoc/frontend/`
+1. 从 AFFiNE 参考源码的 `packages/frontend/apps/web` 及相关依赖整理到 `madoc/web/`
 2. 以 `apps/web/` 内容为起点
 3. **裁剪模块引用**：
    - 移除 local workspace 相关（IndexedDB provider、BroadcastChannel sync）
@@ -138,10 +138,10 @@ SpaceType: `workspace` | `userspace`
    - 移除 payment/subscription 模块
    - 移除 OAuth 登录组件
 4. 修改 workspace 创建逻辑：新建工作区时直接走服务端（无 local 选项）
-5. 确保 `selfhost.html` 入口 + setup 页面保持可用
-6. 构建产物输出到 `frontend/dist/`
+5. 确保 Vite SPA 入口 + setup 页面保持可用
+6. 构建产物输出到 `web/dist/`
 
-**验证**：构建通过，`selfhost.html` 加载无 JS 错误，无 AI/local/payment 相关 UI 残留
+**验证**：构建通过，SPA 入口加载无 JS 错误，无 AI/local/payment 相关 UI 残留
 
 ### Phase 1 — 认证 + 静态资源 + GraphQL 骨架（3天）
 
@@ -160,8 +160,8 @@ SpaceType: `workspace` | `userspace`
    - 实现 resolvers：`serverConfig`, `currentUser`, `workspaces`, `workspace(id)`, `createWorkspace`, `deleteWorkspace`, `appConfig`
    - `serverConfig` 返回 selfhosted 标记 + 版本 + 功能开关（关闭 payment/copilot/oauth）
 4. **静态资源**
-   - 构建 AFFiNE web 前端 → `frontend/dist/`（含 `selfhost.html`）
-   - `go:embed` 嵌入 + 路由：`/admin/*`, `/mobile/*`, `/*` → SPA fallback 到 `selfhost.html`
+   - 构建 @madoc/web 前端 → `web/dist/`
+   - `go:embed` 嵌入 + 路由：`/admin/*`, `/mobile/*`, `/*` → SPA fallback 到 `index.html`
 5. **GET /info** — `{ version, type: "selfhosted", flavor: "allinone" }`
 
 **验证**：浏览器打开 → selfhost setup 页面 → 创建管理员 → 登录 → 看到空的工作区列表
@@ -212,8 +212,8 @@ SpaceType: `workspace` | `userspace`
 ### Phase 5 — 构建 + 打包 + 文档（1天）
 
 1. **前端构建脚本**
-   - `cd frontend && pnpm install && pnpm build`
-   - 构建产物输出到 `frontend/dist/`
+   - `cd web && pnpm install && pnpm build`
+   - 构建产物输出到 `web/dist/`
 2. **Go 构建** — `go build -o madoc` 单二进制
 3. **Docker 支持** — 简单 Dockerfile
 4. **BUILD.md** — 完整构建说明
@@ -250,7 +250,7 @@ AFFiNE 后端在 `PgWorkspaceDocStorageAdapter` 中周期性合并 Updates 到 S
 
 ### 前端 monorepo 结构
 
-前端整理到 `frontend/` 时保留 pnpm workspace monorepo 结构（保留 core、env、graphql、blocksuite 等内部包），改动最小，方便后续跟踪 AFFiNE 上游更新。
+前端整理到 `web/` 时保留 pnpm workspace monorepo 结构（保留 core、env、graphql、blocksuite 等内部包），改动最小，方便后续跟踪 AFFiNE 上游更新。
 
 ### 用户注册策略
 
@@ -302,7 +302,7 @@ madoc/
 │   ├── doc/                    # Doc 存储适配器 (snapshot + update)
 │   ├── blob/                   # Blob 文件系统存储
 │   └── api/                    # REST handlers (auth, blobs, docs, setup)
-├── frontend/                   # @madoc/web 前端源码（从 AFFiNE 整理而来）
+├── web/                        # @madoc/web 前端源码（从 AFFiNE 整理而来）
 │   ├── ...                     # 前端源码 + 依赖
 │   └── dist/                   # 构建产物 (go:embed)
 ├── go.mod / go.sum
@@ -310,5 +310,5 @@ madoc/
 └── BUILD.md
 
 # 不入仓库（.gitignore）:
-# AFFiNE-0.26.2/               # 仅作为开发参考源码
+# AFFiNE/ 或 AFFiNE-*/        # 仅作为开发参考源码
 ```

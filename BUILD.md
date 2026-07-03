@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Go 1.25+
-- Node.js 20+ with corepack enabled (for frontend)
+- Node.js 20+ with corepack enabled
 - pnpm 9+ (`corepack enable && corepack install pnpm@latest`)
 - [air](https://github.com/air-verse/air) for Go hot reload: `go install github.com/air-verse/air@latest`
 
@@ -11,9 +11,9 @@
 
 ```sh
 # frontend
-cd frontend
+cd web
 pnpm install --frozen-lockfile
-pnpm affine build
+pnpm build
 cd ..
 
 # backend
@@ -50,9 +50,9 @@ docker run -d -p 3000:3000 -v madoc-data:/data madoc
 
 This starts:
 - **Backend**: `http://localhost:3000` (Go, with air hot reload, CORS enabled)
-- **Frontend**: `http://localhost:8080` (rspack dev server, proxies API calls to :3000)
+- **Frontend**: `http://localhost:8080` (Vite dev server, proxies API calls to :3000)
 
-Open `http://localhost:8080` in your browser. The dev server serves `selfhost.html`
+Open `http://localhost:8080` in your browser. The dev server serves `index.html`
 and proxies `/api`, `/graphql`, `/socket.io`, `/info` requests to the Go backend.
 
 ### Start services individually
@@ -64,11 +64,11 @@ and proxies `/api`, `/graphql`, `/socket.io`, `/info` requests to the Go backend
 # Or manually:
 MADOC_DEV=true MADOC_ADDR=:3000 air
 
-# Frontend only (rspack dev server)
+# Frontend only (Vite dev server)
 ./dev.sh frontend
 
 # Or manually:
-cd frontend && SELF_HOSTED=true pnpm affine bundle @madoc/web --dev
+cd web && pnpm dev
 ```
 
 ### How dev mode works
@@ -76,7 +76,7 @@ cd frontend && SELF_HOSTED=true pnpm affine bundle @madoc/web --dev
 ```
 Browser (localhost:8080)
   │
-  ├── HTML/JS/CSS  ← rspack dev server (port 8080)
+  ├── HTML/JS/CSS  ← Vite dev server (port 8080)
   │
   └── /api/*          ─┐
       /graphql          ├──→ proxy → Go backend (port 3000)
@@ -85,14 +85,13 @@ Browser (localhost:8080)
 ```
 
 - `MADOC_DEV=true` enables CORS headers on the Go backend
-- `SELF_HOSTED=true` makes the rspack dev server use `selfhost.html` as the SPA entry
-- The rspack dev server proxy forwards API/WebSocket traffic to `localhost:3000`
+- The Vite dev server proxy forwards API/WebSocket traffic to `localhost:3000`
 - Air watches `.go`, `.sql` files and rebuilds on change
 
 ### First-time frontend install
 
 ```sh
-cd frontend
+cd web
 corepack enable
 corepack install pnpm@latest
 pnpm install

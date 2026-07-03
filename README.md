@@ -2,7 +2,7 @@
 
 ## 1. 项目简介
 madoc 是一款面向小团队（5-10人）和家庭的高效、轻量级、开源自部署协同文档/白板工具。
-基于 AFFiNE 0.26.2 整体移植到 Go + SQLite，走纯开源极客自部署路线。
+基于 AFFiNE 0.26.x 整体移植到 Go + SQLite，走纯开源极客自部署路线。
 专注于实现"单二进制文件、开箱即用、极低内存占用、数据完全私有化"的极客部署体验。
 
 ## 2. 技术栈核心 (Tech Stack)
@@ -133,11 +133,11 @@ SpaceType: `workspace` | `userspace`
 
 ## 6. 前端方案 (Fork @affine/web → @madoc/web)
 
-- **源码位置**：从 AFFiNE `packages/frontend/apps/web` 及其依赖整理到 `frontend/`（madoc 仓库内独立管理）
+- **源码位置**：从 AFFiNE `packages/frontend/apps/web` 及其依赖整理到 `web/`（madoc 仓库内独立管理）
 - **结构**：保留 monorepo 结构（pnpm workspace），保留必要的内部包（core、env、graphql、blocksuite 等），改动最小，方便跟踪上游更新
-- **参考源码**：`AFFiNE-0.26.2/` 仅用于开发参考，已在 `.gitignore` 中排除，不入仓库
+- **参考源码**：`AFFiNE/` 或 `AFFiNE-*` 仅用于开发参考，已在 `.gitignore` 中排除，不入仓库
 - **包管理器**：pnpm
-- **构建**：Selfhost 入口 `selfhost.html`，构建产物输出到 `frontend/dist/`（`pnpm install && pnpm build`）
+- **构建**：SPA 入口 `index.html`，构建产物输出到 `web/dist/`（`cd web && pnpm install && pnpm build`）
 - **裁剪清单**：
   - 删除 AI/Copilot 相关 UI（侧栏 AI 按钮、chat panel、AI actions）
   - 删除 cloud/local 工作区切换——所有工作区强制走服务端同步，移除 IndexedDB 本地工作区入口
@@ -153,7 +153,7 @@ SpaceType: `workspace` | `userspace`
 
 1. **纯净与轻量**: 尽量使用 Go 标准库 + 极少第三方库（socket.io、gqlgen、modernc.org/sqlite、chi 路由、securecookie、bcrypt）。不依赖 CGO，确保交叉编译友好。
 2. **错误处理**: Go 代码必须严格检查 `err`，对 SQLite 的写入必须包含超时容错和重试。
-3. **单文件打包**: 前端构建产物输出至 `frontend/dist/`，后端使用 `//go:embed frontend/dist/*` 内嵌。
+3. **单文件打包**: 前端构建产物输出至 `web/dist/`，后端使用 `//go:embed all:web/dist` 内嵌。
 4. **性能优化**: 针对 5-10 人场景，限制 SQLite 的并发写入连接数，Go 端对 Write 操作加锁，确保无锁冲突风险。
 5. **Blob 存储**: 本地文件系统，数据目录 `$MADOC_DATA/`（默认 `./data/`），子目录 `blobs/`, `avatars/`。
 
@@ -191,7 +191,7 @@ madoc/
 │   ├── doc/                    # Doc 存储适配器 (snapshot + update)
 │   ├── blob/                   # Blob 文件系统存储
 │   └── api/                    # REST handlers (auth, blobs, docs, setup)
-├── frontend/                   # @madoc/web 前端源码（从 AFFiNE 整理而来）
+├── web/                        # @madoc/web 前端源码（从 AFFiNE 整理而来）
 │   ├── ...                     # 前端源码 + 依赖
 │   └── dist/                   # 构建产物 (go:embed)
 ├── go.mod / go.sum
@@ -199,5 +199,5 @@ madoc/
 └── BUILD.md                    # 构建说明
 
 # 不入仓库（.gitignore）:
-# AFFiNE-0.26.2/               # 仅作为开发参考源码
+# AFFiNE/ 或 AFFiNE-*/        # 仅作为开发参考源码
 ```
