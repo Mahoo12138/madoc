@@ -1,4 +1,4 @@
--- madoc SQLite Schema ！ 16 tables mapped from AFFiNE Prisma models
+-- madoc SQLite schema: 15 tables mapped from the AFFiNE self-hosted data model.
 
 PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
--- 3. UserSession ！ links users to sessions
+-- 3. UserSession links users to sessions.
 CREATE TABLE IF NOT EXISTS user_sessions (
     id         TEXT PRIMARY KEY,
     session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
     created_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
--- 5. WorkspaceUserRole ！ workspace member permissions
+-- 5. WorkspaceUserRole stores workspace member permissions.
 CREATE TABLE IF NOT EXISTS workspace_user_permissions (
     id           TEXT PRIMARY KEY,
     workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS workspace_user_permissions (
 CREATE INDEX IF NOT EXISTS idx_wup_ws ON workspace_user_permissions(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_wup_uid ON workspace_user_permissions(user_id);
 
--- 6. WorkspaceDoc ！ page metadata
+-- 6. WorkspaceDoc stores page metadata.
 CREATE TABLE IF NOT EXISTS workspace_pages (
     workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     doc_id       TEXT NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS workspace_pages (
 );
 CREATE INDEX IF NOT EXISTS idx_wp_ws ON workspace_pages(workspace_id);
 
--- 7. Snapshots ！ latest Yjs document state per doc
+-- 7. Snapshots store the latest Yjs document state per doc.
 CREATE TABLE IF NOT EXISTS snapshots (
     workspace_id TEXT NOT NULL,
     guid         TEXT NOT NULL,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS snapshots (
 );
 CREATE INDEX IF NOT EXISTS idx_snap_ws ON snapshots(workspace_id);
 
--- 8. Updates ！ sequential Yjs binary patches
+-- 8. Updates store sequential Yjs binary patches.
 CREATE TABLE IF NOT EXISTS updates (
     workspace_id TEXT NOT NULL,
     guid         TEXT NOT NULL,
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS updates (
 );
 CREATE INDEX IF NOT EXISTS idx_upd_ws ON updates(workspace_id);
 
--- 9. SnapshotHistory ！ point-in-time doc snapshots for version history
+-- 9. SnapshotHistory stores point-in-time doc snapshots for version history.
 CREATE TABLE IF NOT EXISTS snapshot_histories (
     workspace_id TEXT NOT NULL,
     guid         TEXT NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS snapshot_histories (
     PRIMARY KEY(workspace_id, guid, timestamp)
 );
 
--- 10. UserSnapshot ！ per-user Yjs docs (settings, preferences)
+-- 10. UserSnapshot stores per-user Yjs docs, such as settings and preferences.
 CREATE TABLE IF NOT EXISTS user_snapshots (
     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     id         TEXT NOT NULL,
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS user_snapshots (
     PRIMARY KEY(user_id, id)
 );
 
--- 11. Blobs ！ file attachments per workspace
+-- 11. Blobs store file attachments per workspace.
 CREATE TABLE IF NOT EXISTS blobs (
     workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     key          TEXT NOT NULL,
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS blobs (
 );
 CREATE INDEX IF NOT EXISTS idx_blob_ws ON blobs(workspace_id);
 
--- 12. AppConfig ！ server-level key-value configuration
+-- 12. AppConfig stores server-level key-value configuration.
 CREATE TABLE IF NOT EXISTS app_configs (
     id         TEXT PRIMARY KEY,
     value      TEXT NOT NULL DEFAULT '{}',
@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS app_configs (
     updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
--- 13. WorkspaceInvites ！ member invitation records
+-- 13. WorkspaceInvites stores member invitation records.
 CREATE TABLE IF NOT EXISTS workspace_invites (
     id           TEXT PRIMARY KEY,
     workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS workspace_invites (
 CREATE INDEX IF NOT EXISTS idx_wi_ws ON workspace_invites(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_wi_email ON workspace_invites(email);
 
--- 14. UserFeatures ！ per-user feature toggles
+-- 14. UserFeatures stores per-user feature toggles.
 CREATE TABLE IF NOT EXISTS user_features (
     id         TEXT PRIMARY KEY,
     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS user_features (
 CREATE INDEX IF NOT EXISTS idx_uf_uid ON user_features(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_uf_uid_name ON user_features(user_id, name);
 
--- 15. UserAccessTokens ！ API access tokens
+-- 15. UserAccessTokens stores API access tokens.
 CREATE TABLE IF NOT EXISTS user_access_tokens (
     id         TEXT PRIMARY KEY,
     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

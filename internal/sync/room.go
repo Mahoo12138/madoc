@@ -6,7 +6,8 @@ type Peer struct {
 	SID        string
 	ClientID   string
 	UserID     string
-	Awareness  map[string]bool
+	SpaceType  string
+	SpaceID    string
 }
 
 type Room struct {
