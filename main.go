@@ -26,7 +26,7 @@ var frontendFS embed.FS
 
 func main() {
 	dbPath := envOr("MADOC_DB", "madoc.db")
-	addr := envOr("MADOC_ADDR", ":4000")
+	addr := envOr("MADOC_ADDR", ":3000")
 
 	conn, err := db.Open(dbPath)
 	if err != nil {
@@ -116,13 +116,13 @@ func spaHandler(static fs.FS, fileServer http.Handler) http.HandlerFunc {
 		p := strings.TrimPrefix(r.URL.Path, "/")
 		if p == "" {
 			r2 := r.Clone(r.Context())
-			r2.URL.Path = "/selfhost.html"
+			r2.URL.Path = "/index.html"
 			fileServer.ServeHTTP(w, r2)
 			return
 		}
 		if _, err := fs.Stat(static, p); err != nil {
 			r2 := r.Clone(r.Context())
-			r2.URL.Path = "/selfhost.html"
+			r2.URL.Path = "/index.html"
 			fileServer.ServeHTTP(w, r2)
 			return
 		}

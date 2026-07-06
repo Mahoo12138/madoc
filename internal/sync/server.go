@@ -22,6 +22,14 @@ type Server struct {
 	userIDs map[string]string
 }
 
+type loadDocPayload struct {
+	Missing   string   `json:"missing"`
+	Snapshot  string   `json:"snapshot"`
+	Updates   []string `json:"updates"`
+	State     string   `json:"state"`
+	Timestamp int64    `json:"timestamp"`
+}
+
 func NewServer(repo *db.Repo, sm *auth.SessionManager) *Server {
 	io := socket.NewServer(nil, nil)
 
@@ -244,29 +252,13 @@ func (s *Server) handleConnection(client *socket.Socket) {
 			return
 		}
 
-		var missing []byte
-		for _, u := range updates {
-			missing = append(missing, u.Blob...)
-		}
-
 		snap, _ := s.repo.GetSnapshot(ctx, spaceID, docID)
-		if snap != nil && len(updates) == 0 {
-			missing = snap.Blob
-		}
 
-		var ts int64
-		if snap != nil {
-			ts = snap.UpdatedAt.UnixMilli()
-		} else if len(updates) > 0 {
-			ts = updates[len(updates)-1].CreatedAt.UnixMilli()
-		}
-
-		// TODO: implement state vector diff for incremental sync
-		ackSocket(args, map[string]any{
-			"missing":   base64.StdEncoding.EncodeToString(missing),
-			"state":     "",
-			"timestamp": ts,
-		})
+		// TODO: implement state vector diff for incremental sync.
+		// Keep `missing` for older clients, but new clients must apply
+		// `snapshot` and ordered `updates` instead of interpreting a byte
+		// concatenation of multiple Yjs updates as a single update.
+		ackSocket(args, buildLoadDocPayload(snap, updates))
 	})
 
 	client.On("space:load-doc-timestamps", func(args ...any) {
@@ -442,6 +434,36 @@ func (s *Server) realtimeNotificationCountGet(client *socket.Socket, args []any)
 	ackSocket(args, map[string]int{"count": 0})
 }
 
+func buildLoadDocPayload(snap *db.Snapshot, updates []db.DocUpdate) loadDocPayload {
+	updateStrings := make([]string, 0, len(updates))
+	for _, u := range updates {
+		updateStrings = append(updateStrings, base64.StdEncoding.EncodeToString(u.Blob))
+	}
+
+	snapshot := ""
+	var timestamp int64
+	if snap != nil {
+		snapshot = base64.StdEncoding.EncodeToString(snap.Blob)
+		timestamp = snap.UpdatedAt.UnixMilli()
+	}
+	if len(updates) > 0 {
+		timestamp = updates[len(updates)-1].CreatedAt.UnixMilli()
+	}
+
+	missing := snapshot
+	if missing == "" && len(updates) == 1 {
+		missing = updateStrings[0]
+	}
+
+	return loadDocPayload{
+		Missing:   missing,
+		Snapshot:  snapshot,
+		Updates:   updateStrings,
+		State:     "",
+		Timestamp: timestamp,
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Snapshot compaction
 // ---------------------------------------------------------------------------
@@ -461,38 +483,18 @@ func (s *Server) StartCompactionLoop() {
 }
 
 func (s *Server) tryCompactDoc(ctx context.Context, spaceID, docID string) {
-	updates, err := s.repo.ListUpdates(ctx, spaceID, docID)
-	if err != nil {
-		return
-	}
-	if len(updates) < compactUpdateThreshold {
-		return
-	}
-	s.compactDoc(ctx, spaceID, docID, updates)
+	// Server-side Yjs compaction needs a real Yjs merge implementation.
+	// Raw byte concatenation corrupts snapshots, so compaction is disabled
+	// until y-octo or a client-produced merged snapshot is wired in.
 }
 
 func (s *Server) compactDoc(ctx context.Context, spaceID, docID string, updates []db.DocUpdate) {
-	var merged []byte
-	for _, u := range updates {
-		merged = append(merged, u.Blob...)
-	}
-	if len(merged) == 0 {
-		return
-	}
-	if err := s.repo.UpsertSnapshot(ctx, &db.Snapshot{
-		WorkspaceID: spaceID,
-		GUID:        docID,
-		Blob:        merged,
-		Size:        int64(len(merged)),
-	}); err != nil {
-		log.Printf("compact: upsert snapshot error: %v", err)
-		return
-	}
-	lastTime := updates[len(updates)-1].CreatedAt
-	if err := s.repo.DeleteUpdatesBefore(ctx, spaceID, docID, lastTime); err != nil {
-		log.Printf("compact: delete updates error: %v", err)
-	}
-	log.Printf("compact: %s/%s merged %d updates (%d bytes)", spaceID, docID, len(updates), len(merged))
+	log.Printf(
+		"compact: skipped %s/%s with %d updates; server-side Yjs merge is not implemented",
+		spaceID,
+		docID,
+		len(updates),
+	)
 }
 
 func (s *Server) compactAllDocs(ctx context.Context) {

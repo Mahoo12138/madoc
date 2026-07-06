@@ -67,6 +67,41 @@ func TestUpdates(t *testing.T) {
 	}
 }
 
+func TestAppendUpdateRetriesTimestampConflict(t *testing.T) {
+	ctx := context.Background()
+	r := openTestDB(t)
+
+	now := time.Now().UTC()
+	oldNowUTC := nowUTC
+	nowUTC = func() time.Time { return now }
+	t.Cleanup(func() { nowUTC = oldNowUTC })
+
+	for i := 0; i < 10; i++ {
+		_, err := r.db.ExecContext(ctx,
+			`INSERT INTO updates(workspace_id, guid, created_at, blob) VALUES(?, ?, ?, ?)`,
+			"ws1", "doc1", now.Add(time.Duration(i)*time.Nanosecond).Format(time.RFC3339Nano), []byte{byte(i)})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	ts, err := r.AppendUpdate(ctx, "ws1", "doc1", []byte{10}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ts.Equal(now.Add(10 * time.Nanosecond)) {
+		t.Fatalf("expected retry timestamp %s, got %s", now.Add(10*time.Nanosecond), ts)
+	}
+
+	ups, err := r.ListUpdates(ctx, "ws1", "doc1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ups) != 11 {
+		t.Fatalf("expect 11 updates, got %d", len(ups))
+	}
+}
+
 func TestUserSession(t *testing.T) {
 	ctx := context.Background()
 	r := openTestDB(t)

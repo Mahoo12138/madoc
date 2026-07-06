@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -14,6 +15,8 @@ type Repo struct {
 }
 
 func NewRepo(db *sql.DB) *Repo { return &Repo{db: db} }
+
+var nowUTC = func() time.Time { return time.Now().UTC() }
 
 // ---------------------------------------------------------------------------
 // Snapshot — latest Yjs document state per doc (table: snapshots)
@@ -67,11 +70,33 @@ type DocUpdate struct {
 }
 
 func (r *Repo) AppendUpdate(ctx context.Context, workspaceID, guid string, blob []byte, createdBy *string) (time.Time, error) {
-	now := time.Now().UTC()
+	now := nowUTC()
+	for attempt := 0; attempt < 10; attempt++ {
+		createdAt := now.Add(time.Duration(attempt) * time.Nanosecond)
+		_, err := r.db.ExecContext(ctx,
+			`INSERT INTO updates(workspace_id, guid, created_at, blob, created_by) VALUES(?, ?, ?, ?, ?)`,
+			workspaceID, guid, createdAt.Format(time.RFC3339Nano), blob, createdBy)
+		if err == nil {
+			return createdAt, nil
+		}
+		if !isUpdateTimestampConflict(err) {
+			return createdAt, err
+		}
+	}
+
+	createdAt := now.Add(10 * time.Nanosecond)
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO updates(workspace_id, guid, created_at, blob, created_by) VALUES(?, ?, ?, ?, ?)`,
-		workspaceID, guid, now.Format(time.RFC3339Nano), blob, createdBy)
-	return now, err
+		workspaceID, guid, createdAt.Format(time.RFC3339Nano), blob, createdBy)
+	return createdAt, err
+}
+
+func isUpdateTimestampConflict(err error) bool {
+	msg := err.Error()
+	return strings.Contains(msg, "UNIQUE constraint failed") &&
+		strings.Contains(msg, "updates.workspace_id") &&
+		strings.Contains(msg, "updates.guid") &&
+		strings.Contains(msg, "updates.created_at")
 }
 
 func (r *Repo) ListUpdates(ctx context.Context, workspaceID, guid string) ([]DocUpdate, error) {
@@ -305,15 +330,15 @@ func (r *Repo) SaveUserSnapshot(ctx context.Context, userID, id string, blob []b
 // ---------------------------------------------------------------------------
 
 type User struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Password  *string   `json:"-"`
-	AvatarURL *string   `json:"avatar_url"`
-	Registered bool     `json:"registered"`
-	Disabled  bool      `json:"disabled"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	Email      string    `json:"email"`
+	Password   *string   `json:"-"`
+	AvatarURL  *string   `json:"avatar_url"`
+	Registered bool      `json:"registered"`
+	Disabled   bool      `json:"disabled"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 func (r *Repo) CreateUser(ctx context.Context, id, name, email, password string) error {
@@ -518,10 +543,10 @@ func (r *Repo) DeleteWorkspace(ctx context.Context, id string) error {
 // Permission types matching AFFiNE Int-based enum:
 //   Owner=100, Admin=50, Collaborator=10, External=0
 const (
-	PermOwner       = 100
-	PermAdmin       = 50
+	PermOwner        = 100
+	PermAdmin        = 50
 	PermCollaborator = 10
-	PermExternal    = 0
+	PermExternal     = 0
 )
 
 type WorkspaceUserPermission struct {
