@@ -5,6 +5,9 @@
 *.db
 *.db-wal
 *.db-shm
+/.codegraph/
+/AFFiNE/
+/AFFiNE-*/
 /web/dist/*
 !/web/dist/.gitkeep
 node_modules

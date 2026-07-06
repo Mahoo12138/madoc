@@ -37,9 +37,9 @@ madoc 是一款面向小团队（5-10人）和家庭的高效、轻量级、开�
 |------|------|------|------|
 | `space:join` | C→S | `{ spaceType, spaceId, clientVersion }` | 加入房间 |
 | `space:leave` | C→S | — | 离开房间 |
-| `space:load-doc` | C→S | `{ spaceType, spaceId, docId, stateVector? }` | 返回 `{ missing, state, timestamp }` |
+| `space:load-doc` | C→S | `{ spaceType, spaceId, docId, stateVector? }` | 返回 `{ snapshot, updates, state, timestamp }`，`missing` 仅保留兼容 |
 | `space:push-doc-update` | C→S | `{ spaceType, spaceId, docId, update:"base64" }` | 返回 `{ timestamp }` |
-| `space:broadcast-doc-updates` | S→C | — | 服务端广播给房间内其他客户端 |
+| `space:broadcast-doc-update` | S→C | — | 服务端广播给房间内其他客户端 |
 | `space:load-doc-timestamps` | C→S | — | 批量获取文档时间戳 |
 | `space:join-awareness` / `space:update-awareness` / `space:load-awarenesses` | 双向 | — | 光标/在线状态 |
 
@@ -48,14 +48,14 @@ SpaceType: `workspace` | `userspace`
 **数据流：**
 1. 客户端 A 修改文档 → BlockSuite/Yjs 生成二进制 `Update` → 通过 Socket.io `space:push-doc-update` 发送给 Go 后端。
 2. Go 后端收到后执行两步：
-   - **广播**: 通过 `space:broadcast-doc-updates` 转发给同房间其他客户端。
+   - **广播**: 通过 `space:broadcast-doc-update` 转发给同房间其他客户端。
    - **落库**: 将 base64 解码后的二进制 `Update` 写入 SQLite 的 `updates` 表（顺序追加）。
 
 ### B. 状态初始化与瘦身 (Snapshot & Compaction)
 1. 客户端打开文档 → 发送 `space:load-doc` 事件。
-2. Go 从 SQLite 读取最新的 `Snapshot` + 尚未合并的 `Updates`，打包 base64 返回。
-3. 前端 Yjs 引擎在浏览器端自动合并这些数据，渲染出最终界面。
-4. **瘦身策略**: MVP 阶段暂不做服务端合并，等 updates 堆积后让客户端下次 load 时在浏览器端合并。后续可切换到 y-octo (AFFiNE 的 Rust Yjs 实现，通过 CGO 调用) 或纯 Go Yjs 库。
+2. Go 从 SQLite 读取最新的 `Snapshot` + ordered `Updates`，分别以 base64 返回；不能把多条 Yjs update 直接字节拼接成一条 update。
+3. 前端先应用 `snapshot`，再按顺序逐条应用 `updates`，渲染出最终界面。
+4. **瘦身策略**: 服务端暂不做 Yjs 合并压缩，后续接 y-octo、纯 Go Yjs 库，或由客户端上传合法 merged snapshot。
 
 ### C. 认证流程
 - Cookie-based session: HTTPOnly cookie `sid` + CSRF header `x-affine-csrf-token`

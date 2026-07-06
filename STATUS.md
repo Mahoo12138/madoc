@@ -76,7 +76,7 @@
 - `space:join`：加入 workspace 房间，返回 clientId
 - `space:leave`：离开房间
 - `space:push-doc-update`：追加 Yjs update 到 DB + 广播到房间
-- `space:load-doc`：返回该文档所有 stored updates（拼接为 `missing`），不做 diff 计算
+- `space:load-doc`：返回该文档的 `snapshot` + ordered `updates`；`missing` 仅保留兼容，不再拼接多条 Yjs update
 - `space:load-doc-timestamps`：返回 `docId → 最新时间戳` 映射
 - `space:delete-doc`：删除文档所有 updates
 - `space:join-awareness` / `space:leave-awareness`：awareness 房间注册
@@ -265,7 +265,7 @@
 ## 技术决策
 
 ### Yjs 策略 — Relay 模式
-服务端只存储和转发原始 Yjs update，不做 CRDT 理解。`load-doc` 返回拼接后的所有 updates，客户端 Yjs 引擎自行合并。
+服务端只存储和转发原始 Yjs update，不做 CRDT 理解。`load-doc` 返回 snapshot 和 ordered updates，客户端逐条应用；不能将多条 Yjs update 直接字节拼接为单条 update。
 
 ### Socket.IO — 库实现
 当前使用 `github.com/zishang520/socket.io/v2`，避免维护自研 Engine.IO/Socket.IO 协议栈；`gorilla/websocket` 仅作为间接依赖存在。
@@ -279,8 +279,11 @@ GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUs
 ### 变量名兼容
 `resolveVar()` 辅助函数按优先级查找：直接变量键 → 查询语句中 `argName: $varName` 映射。支持别名如 `id`/`workspaceId`、`docId`/`pageId`，确保前后端 GraphQL 操作名差异不导致 400。
 
-### 快照压缩 — 双触发
-按数量（每 doc ≥ 100 updates） + 定时（每小时）双触发合并。合并后更新写为 snapshot，原始 updates 删除。
+### 前端图标 — 复用 Blocksuite
+工作区 UI 直接复用 AFFiNE 同源的 `@blocksuite/icons`，React 组件统一从 `@blocksuite/icons/rc` 导入。当前不再引入 `lucide-react`、`react-icons` 等第二套图标库，避免图标线宽、尺寸和依赖来源不一致。
+
+### 快照压缩 — 暂停服务端合并
+服务端没有 Yjs merge 实现，当前禁止把 updates 直接拼接后写入 snapshot。后续需要接 y-octo、纯 Go Yjs 库，或由客户端上传合法 merged snapshot。
 
 ### 文档广播 — 仅单条发送
 仅支持 `space:broadcast-doc-update`（单条 update），不支持批量广播。
