@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@blocksuite/icons": "2.2.17",
     "@madoc/doc": "workspace:*",
     "@madoc/editor": "workspace:*",
     "@preact/signals-core": "1.14.3",

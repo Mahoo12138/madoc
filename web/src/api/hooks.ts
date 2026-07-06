@@ -76,10 +76,11 @@ export function useCreateAdmin() {
 
 // ─── Workspace hooks ───────────────────────────────
 
-export function useWorkspaces() {
+export function useWorkspaces(enabled = true) {
   return useQuery<Workspace[]>({
     queryKey: queryKeys.workspaces,
     queryFn: gql.workspaces,
+    enabled,
   });
 }
 

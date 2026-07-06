@@ -1,27 +1,157 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  AiOutlineIcon,
+  AllDocsIcon,
+  ArrowLeftSmallIcon,
+  BackwardPanelIcon,
+  CloseIcon,
+  CommentIcon,
+  DeleteIcon,
+  EdgelessIcon,
+  FavoriteIcon,
+  ForwardPanelIcon,
+  InfoIcon,
+  JournalIcon,
+  MoreHorizontalIcon,
+  PageIcon,
+  PlusIcon,
+  PresentationIcon,
+  SearchIcon,
+  ShareIcon,
+  SidebarIcon,
+} from '@blocksuite/icons/rc';
+import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { useSession } from '@/api/hooks';
+import {
+  WorkspaceLeftSidebar,
+  type WorkspaceSidebarNavItem,
+  type WorkspaceSidebarSection,
+} from '@/components/workspace-shell/left-sidebar';
+import {
+  WorkspaceQuickSearch,
+  type WorkspaceQuickSearchDoc,
+} from '@/components/workspace-shell/quick-search';
+import { WorkspaceSwitcher } from '@/components/workspace-shell/workspace-switcher';
+import {
+  WorkspaceRightSidebar,
+  type WorkspaceRightSidebarTab,
+} from '@/components/workspace-shell/right-sidebar';
+import {
+  getDocFavorite,
+  getDocDisplayTitle,
+  isDocTrashed,
+  loadWorkspaceDocMetadata,
+  reconcileWorkspaceDocMetadata,
+  updateDocMetadata,
+  type DocMetadataMap,
+} from '@/utils/doc-metadata';
 import { Editor, initEditorEffects } from '@madoc/editor';
 import type { Store } from '@blocksuite/affine/store';
 import {
-  applyUpdateToDoc,
   createMadocWorkspace,
+  createNewDoc,
   getDoc,
   getDocYjsUpdate,
-  SyncClient,
+  DocFrontend,
+  SocketProvider,
+  IDBDocStorage,
 } from '@madoc/doc';
 
 import {
+  editorActions,
+  editorAppHeaderButton,
+  editorAppMeta,
+  editorAppTab,
+  editorAppTabActive,
+  editorAppTabAdd,
+  editorAppTabClose,
+  editorAppTabFavorite,
+  editorAppTabFavoriteActive,
+  editorAppTabIcon,
+  editorAppTabLabel,
+  editorAppTabsCenter,
+  editorAppTabsHeader,
+  editorAppTabsLeft,
+  editorAppTabsRight,
+  editorAppViewMain,
   editorBackLink,
   editorContainer,
+  editorDocInfo,
+  editorDocTitle,
+  editorDocTitleInput,
   editorError,
+  editorHeaderDivider,
+  editorHeaderIconButton,
+  editorHeaderIconButtonActive,
   editorLayout,
   editorLoading,
   editorMain,
+  editorModeButton,
+  editorModeButtonActive,
+  editorModeSwitch,
+  editorNav,
+  editorNavIcon,
+  editorNavItem,
+  editorNavItemActive,
+  editorNavLabel,
+  editorNavMeta,
+  editorNavSectionActions,
+  editorNavSection,
+  editorNavSectionAction,
+  editorNavSectionChevron,
+  editorNavSectionContent,
+  editorNavSectionRoot,
+  editorNavSectionTitle,
+  editorNavSectionTrigger,
+  editorQuickNewButton,
+  editorQuickSearchButton,
+  editorQuickSearchRow,
+  editorRecentDocItem,
+  editorRecentDocMeta,
+  editorRecentDocTitle,
+  editorQuietButton,
+  editorRightInfoCard,
+  editorRightInfoLabel,
+  editorRightInfoValue,
+  editorRightPanelBody,
+  editorRightPanelClose,
+  editorRightPanelHeader,
+  editorRightPanelKicker,
+  editorRightPanelMeta,
+  editorRightPanelTitle,
+  editorRightSidebarPanel,
+  editorRightSidebarRail,
+  editorRightSidebarShell,
+  editorRightSidebarTab,
+  editorRightSidebarTabActive,
+  editorRightSidebarTabIcon,
+  editorRightSidebarTabLabel,
+  editorRightTimeline,
+  editorRightTimelineItem,
+  editorRightTimelineMeta,
+  editorRightTimelineTitle,
+  editorShareButton,
   editorSidebar,
+  editorSidebarClosed,
   editorSidebarHeader,
+  editorSidebarMeta,
+  editorSidebarPrimary,
+  editorSidebarScrollable,
+  editorSidebarText,
   editorSidebarTitle,
+  editorSidebarFooter,
+  editorSidebarUserButton,
+  editorSidebarWorkspaceBar,
+  editorTopbar,
+  editorTopbarPrimary,
+  editorUserAvatar,
+  editorUserEmail,
+  editorUserInfo,
+  editorUserName,
+  editorUserText,
+  editorWorkspaceMark,
 } from './workspace.$workspaceId.$docId.css';
 
 initEditorEffects();
@@ -30,6 +160,17 @@ export const Route = createFileRoute('/workspace/$workspaceId/$docId')({
   component: DocEditorPage,
 });
 
+type EditorSidebarSectionId =
+  | 'favorites'
+  | 'organize'
+  | 'recently-updated'
+  | 'tags'
+  | 'collections'
+  | 'others';
+
+type EditorRightSidebarTab = 'outline' | 'comments' | 'info';
+type EditorMode = 'page' | 'edgeless';
+
 function DocEditorPage() {
   const navigate = useNavigate();
   const { workspaceId, docId } = Route.useParams();
@@ -37,69 +178,622 @@ function DocEditorPage() {
 
   const [store, setStore] = useState<Store | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+  const [showQuickSearch, setShowQuickSearch] = useState(false);
+  const [quickSearchQuery, setQuickSearchQuery] = useState('');
+  const [editorMode, setEditorMode] = useState<EditorMode>('page');
+  const [activeRightTab, setActiveRightTab] =
+    useState<EditorRightSidebarTab>('outline');
+  const [collapsedSections, setCollapsedSections] = useState<
+    Record<EditorSidebarSectionId, boolean>
+  >({
+    favorites: false,
+    organize: false,
+    'recently-updated': false,
+    tags: false,
+    collections: false,
+    others: false,
+  });
+  const [docTimestamps, setDocTimestamps] = useState<Record<string, number>>({});
+  const [docMetadata, setDocMetadata] = useState<DocMetadataMap>(() =>
+    loadWorkspaceDocMetadata(workspaceId)
+  );
+  const [isCreating, setIsCreating] = useState(false);
 
-  const syncClientRef = useRef<SyncClient | null>(null);
+  const socketRef = useRef<SocketProvider | null>(null);
   const collectionRef = useRef<ReturnType<typeof createMadocWorkspace> | null>(null);
 
+  const title = getDocDisplayTitle(docMetadata, docId);
+  const [titleDraft, setTitleDraft] = useState(title);
+  const getTitle = (id: string) => getDocDisplayTitle(docMetadata, id);
+  const isDocFavorite = (id: string) => getDocFavorite(docMetadata, id);
+
   useEffect(() => {
-    const syncClient = new SyncClient();
+    setDocMetadata(loadWorkspaceDocMetadata(workspaceId));
+  }, [workspaceId]);
+
+  useEffect(() => {
+    setTitleDraft(title);
+  }, [title]);
+
+  const commitTitle = () => {
+    const next = updateDocMetadata(workspaceId, docId, {
+      title: titleDraft,
+      updatedAt: Date.now(),
+    });
+    setDocMetadata(next);
+    setTitleDraft(getDocDisplayTitle(next, docId));
+  };
+
+  const goWorkspace = () => {
+    navigate({
+      to: '/workspace/$workspaceId',
+      params: { workspaceId },
+    });
+  };
+
+  const handleCreateDoc = async () => {
+    if (!collectionRef.current || !socketRef.current || isCreating) {
+      return;
+    }
+
+    setShowQuickSearch(false);
+    setQuickSearchQuery('');
+    setIsCreating(true);
+    try {
+      const nextDocId = createNewDoc(collectionRef.current);
+      const yjsUpdate = getDocYjsUpdate(collectionRef.current, nextDocId);
+
+      if (yjsUpdate) {
+        await socketRef.current.pushDocUpdate(workspaceId, nextDocId, yjsUpdate);
+      }
+
+      const now = Date.now();
+      setDocTimestamps((prev) => ({
+        ...prev,
+        [nextDocId]: now,
+      }));
+      setDocMetadata(
+        updateDocMetadata(workspaceId, nextDocId, {
+          title: 'Untitled',
+          createdAt: now,
+          updatedAt: now,
+        })
+      );
+
+      navigate({
+        to: '/workspace/$workspaceId/$docId',
+        params: { workspaceId, docId: nextDocId },
+      });
+    } catch (err) {
+      console.error('[DocEditor] Failed to create document:', err);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const docIds = Object.keys(docTimestamps).filter(
+    (id) => !isDocTrashed(docMetadata, id)
+  ).sort(
+    (a, b) => (docTimestamps[b] ?? 0) - (docTimestamps[a] ?? 0)
+  );
+  const favoriteDocIds = docIds.filter(isDocFavorite);
+  const currentDocFavorite = isDocFavorite(docId);
+  const recentDocIds = docIds.filter((id) => id !== docId).slice(0, 5);
+  const formatDocTime = (id: string) => {
+    const timestamp = docTimestamps[id];
+    if (!timestamp) {
+      return 'Unknown';
+    }
+
+    return new Date(timestamp).toLocaleString();
+  };
+  const quickSearchDocs: WorkspaceQuickSearchDoc[] = docIds.map((searchDocId) => ({
+    id: searchDocId,
+    title: getTitle(searchDocId),
+    updatedLabel: `Updated ${formatDocTime(searchDocId)}`,
+  }));
+  const openDocument = (nextDocId: string) => {
+    setShowQuickSearch(false);
+    setQuickSearchQuery('');
+    navigate({
+      to: '/workspace/$workspaceId/$docId',
+      params: { workspaceId, docId: nextDocId },
+    });
+  };
+  const toggleCurrentDocFavorite = () => {
+    setDocMetadata(
+      updateDocMetadata(workspaceId, docId, {
+        favorite: !currentDocFavorite,
+      })
+    );
+  };
+  const openRightSidebar = (tab: EditorRightSidebarTab) => {
+    setActiveRightTab(tab);
+    setRightSidebarOpen(true);
+  };
+  const user = session.data?.user;
+  const initials =
+    user?.name
+      .split(' ')
+      .map((s) => s[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'M';
+  const rightSidebarTabs: WorkspaceRightSidebarTab<EditorRightSidebarTab>[] = [
+    {
+      id: 'outline',
+      icon: <AiOutlineIcon />,
+      label: 'Outline',
+      title: 'Outline',
+      content: (
+        <>
+          <div className={editorRightTimeline}>
+            <button type="button" className={editorRightTimelineItem}>
+              <span className={editorRightTimelineTitle}>{title}</span>
+              <span className={editorRightTimelineMeta}>Top level document</span>
+            </button>
+          </div>
+          <div className={editorRightPanelMeta}>
+            Headings will appear here as the document grows.
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'comments',
+      icon: <CommentIcon />,
+      label: 'Comments',
+      title: 'Comments',
+      content: (
+        <>
+          <div className={editorRightInfoCard}>
+            <div className={editorRightInfoLabel}>No comments</div>
+            <div className={editorRightInfoValue}>
+              Comment threads will appear here.
+            </div>
+          </div>
+          <div className={editorRightPanelMeta}>
+            Select text in the editor to start a discussion.
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'info',
+      icon: <InfoIcon />,
+      label: 'Info',
+      title: 'Document info',
+      content: (
+        <>
+          <div className={editorRightInfoCard}>
+            <div className={editorRightInfoLabel}>Document</div>
+            <div className={editorRightInfoValue}>{docId}</div>
+          </div>
+          <div className={editorRightInfoCard}>
+            <div className={editorRightInfoLabel}>Workspace</div>
+            <div className={editorRightInfoValue}>{workspaceId}</div>
+          </div>
+          <div className={editorRightInfoCard}>
+            <div className={editorRightInfoLabel}>Updated</div>
+            <div className={editorRightInfoValue}>{formatDocTime(docId)}</div>
+          </div>
+          <div className={editorRightInfoCard}>
+            <div className={editorRightInfoLabel}>Signed in as</div>
+            <div className={editorRightInfoValue}>
+              {user?.email ?? 'Unknown user'}
+            </div>
+          </div>
+        </>
+      ),
+    },
+  ];
+  const toggleSection = (section: EditorSidebarSectionId) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+  const sidebarNavItems: WorkspaceSidebarNavItem[] = [
+    {
+      id: 'all-docs',
+      icon: <AllDocsIcon />,
+      label: 'All Documents',
+      onClick: goWorkspace,
+    },
+    {
+      id: 'journals',
+      icon: <JournalIcon />,
+      label: 'Journals',
+      disabled: true,
+    },
+    {
+      id: 'current-doc',
+      icon: <PageIcon />,
+      label: title,
+      title,
+      active: true,
+    },
+  ];
+  const sidebarSections: WorkspaceSidebarSection[] = [
+    {
+      id: 'favorites',
+      title: 'Favorites',
+      collapsed: collapsedSections.favorites,
+      onToggle: () => toggleSection('favorites'),
+      action: (
+        <span
+          className={editorNavSectionAction}
+          title="Add favorite"
+          aria-hidden="true"
+        >
+          <FavoriteIcon />
+        </span>
+      ),
+      children:
+        favoriteDocIds.length === 0 ? (
+          <div className={editorNavMeta}>No favorite documents</div>
+        ) : (
+          favoriteDocIds.slice(0, 5).map((favoriteDocId) => (
+            <button
+              key={favoriteDocId}
+              type="button"
+              className={editorRecentDocItem}
+              onClick={() => openDocument(favoriteDocId)}
+            >
+              <span className={editorNavIcon}>
+                <FavoriteIcon />
+              </span>
+              <span className={editorRecentDocTitle}>
+                {getTitle(favoriteDocId)}
+              </span>
+              <span className={editorRecentDocMeta}>
+                {docTimestamps[favoriteDocId]
+                  ? new Date(docTimestamps[favoriteDocId]).toLocaleDateString()
+                  : 'Unknown'}
+              </span>
+            </button>
+          ))
+        ),
+    },
+    {
+      id: 'organize',
+      title: 'Organize',
+      collapsed: collapsedSections.organize,
+      onToggle: () => toggleSection('organize'),
+      action: (
+        <span
+          className={editorNavSectionAction}
+          title="New folder"
+          aria-hidden="true"
+        >
+          <PlusIcon />
+        </span>
+      ),
+      children: <div className={editorNavMeta}>No folders yet</div>,
+    },
+    {
+      id: 'recently-updated',
+      title: 'Recently updated',
+      collapsed: collapsedSections['recently-updated'],
+      onToggle: () => toggleSection('recently-updated'),
+      children:
+        recentDocIds.length === 0 ? (
+          <div className={editorNavMeta}>No other recent documents</div>
+        ) : (
+          recentDocIds.map((recentDocId) => (
+            <button
+              key={recentDocId}
+              type="button"
+              className={editorRecentDocItem}
+              onClick={() => {
+                navigate({
+                  to: '/workspace/$workspaceId/$docId',
+                  params: { workspaceId, docId: recentDocId },
+                });
+              }}
+            >
+              <span className={editorNavIcon}>
+                <PageIcon />
+              </span>
+              <span className={editorRecentDocTitle}>
+                {getTitle(recentDocId)}
+              </span>
+              <span className={editorRecentDocMeta}>
+                {docTimestamps[recentDocId]
+                  ? new Date(docTimestamps[recentDocId]).toLocaleDateString()
+                  : 'Unknown'}
+              </span>
+            </button>
+          ))
+        ),
+    },
+    {
+      id: 'tags',
+      title: 'Tags',
+      collapsed: collapsedSections.tags,
+      onToggle: () => toggleSection('tags'),
+      action: (
+        <span
+          className={editorNavSectionAction}
+          title="New tag"
+          aria-hidden="true"
+        >
+          <PlusIcon />
+        </span>
+      ),
+      children: <div className={editorNavMeta}>No tags yet</div>,
+    },
+    {
+      id: 'collections',
+      title: 'Collections',
+      collapsed: collapsedSections.collections,
+      onToggle: () => toggleSection('collections'),
+      action: (
+        <span
+          className={editorNavSectionAction}
+          title="New collection"
+          aria-hidden="true"
+        >
+          <PlusIcon />
+        </span>
+      ),
+      children: <div className={editorNavMeta}>No collections yet</div>,
+    },
+    {
+      id: 'others',
+      title: 'Others',
+      collapsed: collapsedSections.others,
+      onToggle: () => toggleSection('others'),
+      children: (
+        <button type="button" className={editorNavItem} disabled>
+          <span className={editorNavIcon}>
+            <DeleteIcon />
+          </span>
+          <span className={editorNavLabel}>Trash</span>
+        </button>
+      ),
+    },
+  ];
+
+  const sidebar = (
+    <WorkspaceLeftSidebar
+      open={sidebarOpen}
+      workspaceId={workspaceId}
+      initials={initials}
+      userName={user?.name}
+      userEmail={user?.email}
+      userTitle={user ? user.email : 'User'}
+      backHref={`/workspace/${workspaceId}`}
+      backTitle="All documents"
+      backIcon={<ArrowLeftSmallIcon />}
+      workspaceIcon={<PageIcon />}
+      workspaceSwitcher={
+        <WorkspaceSwitcher
+          currentWorkspaceId={workspaceId}
+          user={user}
+          initials={initials}
+        />
+      }
+      quickSearchIcon={<SearchIcon />}
+      newDocumentIcon={<PlusIcon />}
+      isCreating={isCreating}
+      navItems={sidebarNavItems}
+      sections={sidebarSections}
+      showFooterUser
+      onBack={goWorkspace}
+      onQuickSearch={() => setShowQuickSearch(true)}
+      onCreateDocument={handleCreateDoc}
+      classes={{
+        root: editorSidebar,
+        closed: editorSidebarClosed,
+        header: editorSidebarHeader,
+        workspaceBar: editorSidebarWorkspaceBar,
+        backLink: editorBackLink,
+        mark: editorWorkspaceMark,
+        headerText: editorSidebarText,
+        headerTitle: editorSidebarTitle,
+        headerMeta: editorSidebarMeta,
+        userButton: editorSidebarUserButton,
+        avatar: editorUserAvatar,
+        primary: editorSidebarPrimary,
+        quickSearchRow: editorQuickSearchRow,
+        quickSearchButton: editorQuickSearchButton,
+        quickNewButton: editorQuickNewButton,
+        nav: editorNav,
+        navItem: editorNavItem,
+        navItemActive: editorNavItemActive,
+        navIcon: editorNavIcon,
+        navLabel: editorNavLabel,
+        scrollable: editorSidebarScrollable,
+        sectionRoot: editorNavSectionRoot,
+        sectionTrigger: editorNavSectionTrigger,
+        sectionTitle: editorNavSectionTitle,
+        sectionLabel: editorNavSection,
+        sectionChevron: editorNavSectionChevron,
+        sectionActions: editorNavSectionActions,
+        sectionContent: editorNavSectionContent,
+        footer: editorSidebarFooter,
+        userInfo: editorUserInfo,
+        userText: editorUserText,
+        userName: editorUserName,
+        userEmail: editorUserEmail,
+      }}
+    />
+  );
+
+  const rightSidebar = (
+    <WorkspaceRightSidebar
+      tabs={rightSidebarTabs}
+      activeTab={activeRightTab}
+      open={rightSidebarOpen}
+      kicker="Document sidebar"
+      railLabel="Document sidebar tabs"
+      closeIcon={<CloseIcon />}
+      classes={{
+        shell: editorRightSidebarShell,
+        panel: editorRightSidebarPanel,
+        rail: editorRightSidebarRail,
+        tab: editorRightSidebarTab,
+        tabActive: editorRightSidebarTabActive,
+        tabIcon: editorRightSidebarTabIcon,
+        tabLabel: editorRightSidebarTabLabel,
+        header: editorRightPanelHeader,
+        kicker: editorRightPanelKicker,
+        title: editorRightPanelTitle,
+        close: editorRightPanelClose,
+        body: editorRightPanelBody,
+      }}
+      onActiveTabChange={setActiveRightTab}
+      onOpenChange={setRightSidebarOpen}
+    />
+  );
+
+  const renderShell = (children: ReactNode, showSidebar = true) => (
+    <div className={editorLayout}>
+      <div className={editorAppTabsHeader}>
+        <div className={editorAppTabsLeft}>
+          <button
+            type="button"
+            className={editorAppHeaderButton}
+            onClick={() => setSidebarOpen((open) => !open)}
+            aria-pressed={sidebarOpen}
+            title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+          >
+            <SidebarIcon />
+          </button>
+          <button type="button" className={editorAppHeaderButton} onClick={goWorkspace}>
+            <BackwardPanelIcon />
+          </button>
+          <button type="button" className={editorAppHeaderButton} disabled>
+            <ForwardPanelIcon />
+          </button>
+        </div>
+        <div className={editorAppTabsCenter}>
+          <button type="button" className={editorAppTab} onClick={goWorkspace}>
+            <span className={editorAppTabIcon}>
+              <AllDocsIcon />
+            </span>
+            <span className={editorAppTabLabel}>All Documents</span>
+          </button>
+          <div className={`${editorAppTab} ${editorAppTabActive}`}>
+            <span className={editorAppTabIcon}>
+              <PageIcon />
+            </span>
+            <span className={editorAppTabLabel}>{title}</span>
+            <button
+              type="button"
+              className={`${editorAppTabFavorite} ${
+                currentDocFavorite ? editorAppTabFavoriteActive : ''
+              }`}
+              aria-pressed={currentDocFavorite}
+              title={
+                currentDocFavorite ? 'Remove from Favorites' : 'Add to Favorites'
+              }
+              onClick={toggleCurrentDocFavorite}
+            >
+              <FavoriteIcon />
+            </button>
+            <button
+              type="button"
+              className={editorAppTabClose}
+              onClick={goWorkspace}
+              title="Close document tab"
+            >
+              <CloseIcon />
+            </button>
+          </div>
+          <button
+            type="button"
+            className={editorAppTabAdd}
+            onClick={handleCreateDoc}
+            disabled={isCreating}
+            title="New document"
+          >
+            <PlusIcon />
+          </button>
+        </div>
+        <div className={editorAppTabsRight}>
+          <span className={editorAppMeta}>{workspaceId.slice(0, 8)}...</span>
+        </div>
+      </div>
+      <div className={editorAppViewMain}>
+        {showSidebar ? sidebar : null}
+        <div className={editorMain}>{children}</div>
+        {showSidebar ? rightSidebar : null}
+        {showSidebar ? (
+          <WorkspaceQuickSearch
+            open={showQuickSearch}
+            query={quickSearchQuery}
+            docs={quickSearchDocs}
+            isCreating={isCreating}
+            onQueryChange={setQuickSearchQuery}
+            onClose={() => {
+              setShowQuickSearch(false);
+              setQuickSearchQuery('');
+            }}
+            onOpenDoc={openDocument}
+            onCreateDocument={handleCreateDoc}
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+
+  useEffect(() => {
+    const socket = new SocketProvider();
+    const idb = new IDBDocStorage();
+    const frontend = new DocFrontend(socket, idb);
     const collection = createMadocWorkspace(workspaceId);
 
-    syncClientRef.current = syncClient;
+    socketRef.current = socket;
     collectionRef.current = collection;
 
     let mounted = true;
-    let unsubscribeBroadcast: (() => void) | null = null;
 
     const init = async () => {
       try {
-        await syncClient.connect();
-        await syncClient.joinWorkspace(workspaceId);
-
-        // Load doc from server
-        const { missing } = await syncClient.loadDoc(workspaceId, docId);
+        await frontend.start(workspaceId);
+        const timestamps = await socket.loadDocTimestamps(workspaceId);
+        if (mounted) {
+          const reconciledMetadata = reconcileWorkspaceDocMetadata(
+            workspaceId,
+            timestamps
+          );
+          setDocTimestamps(timestamps);
+          setDocMetadata(
+            reconciledMetadata[docId]
+              ? reconciledMetadata
+              : updateDocMetadata(workspaceId, docId, {
+                  title: 'Untitled',
+                  createdAt: Date.now(),
+                  updatedAt: Date.now(),
+                })
+          );
+        }
 
         // Ensure doc exists locally
-        const doc = getDoc(collection, docId);
-        if (!doc) {
-          // Doc doesn't exist, create it
-          const { createNewDoc } = await import('@madoc/doc');
+        const existingDoc = getDoc(collection, docId);
+        if (!existingDoc) {
           createNewDoc(collection, docId);
         }
 
-        // Apply server state
-        if (missing.length > 0) {
-          applyUpdateToDoc(collection, docId, missing);
-        }
+        // Get the Yjs doc and connect to sync
+        const currentDoc = getDoc(collection, docId);
+        if (!currentDoc) throw new Error('Failed to get doc');
+
+        const yDoc = currentDoc.spaceDoc;
+        if (!yDoc) throw new Error('Doc has no Yjs document');
+
+        // Load from server and start sync
+        await frontend.connectDoc(docId, yDoc);
 
         // Get store for editor
-        const currentDoc = getDoc(collection, docId);
-        if (!currentDoc) {
-          throw new Error('Failed to get doc');
-        }
-
         const docStore = currentDoc.getStore();
         if (mounted) {
           setStore(docStore);
         }
-
-        // Listen for local changes and push to server
-        const yDoc = currentDoc.spaceDoc;
-        if (yDoc) {
-          yDoc.on('update', (update: Uint8Array) => {
-            syncClient.pushDocUpdate(workspaceId, docId, update).catch((err) => {
-              console.error('[DocEditor] Failed to push update:', err);
-            });
-          });
-        }
-
-        // Listen for remote changes
-        unsubscribeBroadcast = syncClient.onBroadcastUpdate((data) => {
-          if (data.docId === docId) {
-            const update = base64ToUint8Array(data.update);
-            applyUpdateToDoc(collection, docId, update);
-          }
-        });
       } catch (err) {
         console.error('[DocEditor] Failed to initialize:', err);
         if (mounted) {
@@ -112,100 +806,77 @@ function DocEditorPage() {
 
     return () => {
       mounted = false;
-      unsubscribeBroadcast?.();
-      syncClient.leaveWorkspace(workspaceId).catch(() => {});
-      syncClient.disconnect();
+      socketRef.current = null;
+      collectionRef.current = null;
+      frontend.disconnectDoc(docId);
+      frontend.stop();
+      idb.destroy();
     };
   }, [workspaceId, docId]);
 
   if (session.isLoading || !session.data?.user) {
-    return <div className={editorLoading}>Loading...</div>;
+    return renderShell(<div className={editorLoading}>Loading...</div>, false);
   }
 
   if (error) {
-    return (
-      <div className={editorLayout}>
-        <div className={editorMain}>
-          <div className={editorError}>
-            <div>Error: {error}</div>
-            <button
-              onClick={() => {
-                navigate({
-                  to: '/workspace/$workspaceId',
-                  params: { workspaceId },
-                });
-              }}
-            >
-              Back to Workspace
-            </button>
-          </div>
-        </div>
+    return renderShell(
+      <div className={editorError}>
+        <div>Error: {error}</div>
+        <button type="button" className={editorQuietButton} onClick={goWorkspace}>
+          Back to Workspace
+        </button>
       </div>
     );
   }
 
   if (!store) {
-    return (
-      <div className={editorLayout}>
-        <div className={editorSidebar}>
-          <div className={editorSidebarHeader}>
-            <a
-              className={editorBackLink}
-              onClick={(e) => {
-                e.preventDefault();
-                navigate({
-                  to: '/workspace/$workspaceId',
-                  params: { workspaceId },
-                });
-              }}
-            >
-              ←
-            </a>
-            <span className={editorSidebarTitle}>Loading...</span>
-          </div>
+    return renderShell(
+      <>
+        <div className={editorTopbar}>
+        <div className={editorDocInfo}>
+          <div className={editorDocTitle}>{title}</div>
+          <div className={editorDocMeta}>Opening document</div>
         </div>
-        <div className={editorMain}>
-          <div className={editorLoading}>Loading document...</div>
         </div>
-      </div>
+        <div className={editorLoading}>Loading document...</div>
+      </>
     );
   }
 
-  return (
-    <div className={editorLayout}>
-      <div className={editorSidebar}>
-        <div className={editorSidebarHeader}>
-          <a
-            className={editorBackLink}
-            onClick={(e) => {
-              e.preventDefault();
-              navigate({
-                to: '/workspace/$workspaceId',
-                params: { workspaceId },
-              });
+  return renderShell(
+    <>
+      <div className={editorTopbar}>
+        <div className={editorDocInfo}>
+          <input
+            className={editorDocTitleInput}
+            value={titleDraft}
+            aria-label="Document title"
+            onChange={(event) => setTitleDraft(event.target.value)}
+            onBlur={commitTitle}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.currentTarget.blur();
+              }
+              if (event.key === 'Escape') {
+                setTitleDraft(title);
+                event.currentTarget.blur();
+              }
             }}
-          >
-            ←
-          </a>
-          <span className={editorSidebarTitle}>
-            {docId.slice(0, 12)}...
-          </span>
+          />
+          <div className={editorDocMeta}>{docId}</div>
+        </div>
+        <div className={editorActions}>
+          <button type="button" className={editorQuietButton}>
+            Share
+          </button>
+          <button type="button" className={editorQuietButton}>
+            More
+          </button>
         </div>
       </div>
-      <div className={editorMain}>
-        <div className={editorContainer}>
-          <Editor store={store} />
-        </div>
+      <div className={editorContainer}>
+        <Editor store={store} />
       </div>
-    </div>
+    </>
   );
-}
-
-function base64ToUint8Array(base64: string): Uint8Array {
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
 }

@@ -15,7 +15,31 @@ export interface DocUpdateBroadcast {
   spaceType: string;
   spaceId: string;
   docId: string;
-  update: string; // base64
+  update: string;
   timestamp: number;
   editor: string;
+}
+
+export interface AwarenessBroadcast {
+  spaceType: string;
+  spaceId: string;
+  docId: string;
+  awarenessUpdate: string;
+}
+
+export function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+export function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
 }

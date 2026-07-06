@@ -5,73 +5,126 @@ const textSecondary = '#6f6f6f';
 const textTertiary = '#9b9b9b';
 const accent = '#1e96eb';
 
-export const container = style({
-  minHeight: '100vh',
-  backgroundColor: '#fbfbfa',
-  color: textPrimary,
-  fontFamily:
-    'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+export const root = style({
+  position: 'relative',
+  flex: 1,
+  width: 0,
+  minWidth: 0,
 });
 
-export const loadingText = style({
-  minHeight: '100vh',
+export const trigger = style({
+  width: '100%',
+  minHeight: '32px',
   display: 'flex',
   alignItems: 'center',
+  gap: '8px',
+  padding: '4px',
+  border: 'none',
+  borderRadius: '4px',
+  backgroundColor: 'transparent',
+  color: textPrimary,
+  fontFamily: 'inherit',
+  textAlign: 'left',
+  cursor: 'pointer',
+  transition: 'background-color 0.16s',
+  ':hover': {
+    backgroundColor: 'rgba(31, 35, 40, 0.055)',
+  },
+  ':focus-visible': {
+    outline: `2px solid ${accent}`,
+    outlineOffset: '2px',
+  },
+});
+
+export const avatar = style({
+  width: '24px',
+  height: '24px',
+  display: 'inline-flex',
+  alignItems: 'center',
   justifyContent: 'center',
+  flexShrink: 0,
+  border: '0.5px solid rgba(31, 35, 40, 0.12)',
+  borderRadius: '4px',
+  backgroundColor: '#ffffff',
+  color: accent,
+  fontSize: '16px',
+});
+
+export const triggerText = style({
+  minWidth: 0,
+  flex: 1,
+});
+
+export const triggerTitle = style({
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  color: textPrimary,
+  fontSize: '14px',
+  fontWeight: 650,
+  lineHeight: '18px',
+});
+
+export const triggerMeta = style({
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  color: textTertiary,
+  fontSize: '11px',
+  lineHeight: '15px',
+});
+
+export const chevron = style({
+  width: '16px',
+  height: '16px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
   color: textSecondary,
   fontSize: '14px',
 });
 
-export const navigatorFrame = style({
-  minHeight: '100vh',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '24px',
-});
-
-export const navigatorPanel = style({
-  width: '300px',
-  maxWidth: 'calc(100vw - 32px)',
-  maxHeight: 'min(800px, calc(100vh - 80px))',
+export const popover = style({
+  position: 'absolute',
+  top: '38px',
+  left: 0,
+  zIndex: 70,
+  width: '288px',
+  maxWidth: 'calc(100vw - 24px)',
+  maxHeight: 'min(680px, calc(100vh - 96px))',
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
   border: '1px solid rgba(31, 35, 40, 0.1)',
-  borderRadius: '10px',
+  borderRadius: '8px',
   backgroundColor: '#ffffff',
-  boxShadow: '0 6px 8px rgba(31, 35, 40, 0.08)',
+  boxShadow: '0 6px 12px rgba(31, 35, 40, 0.12)',
 });
 
-export const navigatorHeader = style({
-  flexShrink: 0,
-  padding: '8px',
-  borderBottom: '1px solid rgba(31, 35, 40, 0.08)',
-});
-
-export const accountRow = style({
-  minHeight: '42px',
+export const account = style({
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
-  padding: '4px 6px',
+  padding: '10px',
+  borderBottom: '1px solid rgba(31, 35, 40, 0.08)',
 });
 
 export const accountAvatar = style({
-  width: '32px',
-  height: '32px',
+  width: '30px',
+  height: '30px',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
   flexShrink: 0,
   borderRadius: '50%',
-  backgroundColor: accent,
+  backgroundColor: '#2f7dd3',
   color: '#ffffff',
-  fontSize: '13px',
+  fontSize: '12px',
   fontWeight: 700,
 });
 
-export const accountInfo = style({
+export const accountText = style({
   minWidth: 0,
   flex: 1,
 });
@@ -95,21 +148,21 @@ export const accountEmail = style({
   lineHeight: '16px',
 });
 
-export const navigatorBody = style({
-  minHeight: '180px',
+export const list = style({
+  minHeight: 0,
   overflowY: 'auto',
   padding: '6px',
 });
 
-export const workspaceCard = style({
+export const item = style({
   width: '100%',
-  minHeight: '44px',
+  minHeight: '38px',
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
   padding: '6px',
   border: 'none',
-  borderRadius: '6px',
+  borderRadius: '4px',
   backgroundColor: 'transparent',
   color: textPrimary,
   fontFamily: 'inherit',
@@ -124,33 +177,16 @@ export const workspaceCard = style({
   },
 });
 
-export const workspaceCardActive = style({
+export const itemActive = style({
   backgroundColor: 'rgba(30, 150, 235, 0.08)',
 });
 
-export const workspaceAvatar = style({
-  width: '32px',
-  height: '32px',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-  border: '0.5px solid rgba(31, 35, 40, 0.12)',
-  borderRadius: '6px',
-  backgroundColor: '#f4f8fb',
-  color: accent,
-  fontSize: '18px',
-});
-
-export const workspaceTitleGroup = style({
+export const itemText = style({
   minWidth: 0,
   flex: 1,
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
 });
 
-export const workspaceName = style({
+export const itemTitle = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -160,7 +196,7 @@ export const workspaceName = style({
   lineHeight: '18px',
 });
 
-export const workspaceMeta = style({
+export const itemMeta = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -169,7 +205,7 @@ export const workspaceMeta = style({
   lineHeight: '16px',
 });
 
-export const workspaceCheck = style({
+export const activeIcon = style({
   width: '20px',
   height: '20px',
   display: 'inline-flex',
@@ -180,48 +216,15 @@ export const workspaceCheck = style({
   fontSize: '15px',
 });
 
-export const workspaceState = style({
-  minHeight: '184px',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '10px',
-  padding: '24px 18px',
+export const empty = style({
+  padding: '24px 16px',
+  color: textSecondary,
+  fontSize: '13px',
+  lineHeight: '20px',
   textAlign: 'center',
 });
 
-export const workspaceStateIcon = style({
-  width: '42px',
-  height: '42px',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: '10px',
-  backgroundColor: '#edf6ff',
-  color: accent,
-  fontSize: '22px',
-});
-
-export const openingMark = workspaceStateIcon;
-
-export const openingTitle = style({
-  margin: 0,
-  color: textPrimary,
-  fontSize: '14px',
-  lineHeight: '20px',
-  fontWeight: 700,
-});
-
-export const openingSubtitle = style({
-  margin: 0,
-  maxWidth: '240px',
-  color: textSecondary,
-  fontSize: '12px',
-  lineHeight: '18px',
-});
-
-export const navigatorFooter = style({
+export const footer = style({
   flexShrink: 0,
   display: 'flex',
   flexDirection: 'column',
@@ -230,16 +233,16 @@ export const navigatorFooter = style({
   borderTop: '1px solid rgba(31, 35, 40, 0.08)',
 });
 
-export const footerButton = style({
+export const action = style({
   width: '100%',
-  height: '34px',
+  height: '30px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'flex-start',
   gap: '8px',
   padding: '0 8px',
   border: 'none',
-  borderRadius: '6px',
+  borderRadius: '4px',
   backgroundColor: 'transparent',
   color: textPrimary,
   fontFamily: 'inherit',
@@ -259,14 +262,14 @@ export const footerButton = style({
   },
 });
 
-export const footerButtonDanger = style({
+export const dangerAction = style({
   color: '#b42318',
   ':hover': {
     backgroundColor: 'rgba(180, 35, 24, 0.08)',
   },
 });
 
-export const footerButtonIcon = style({
+export const actionIcon = style({
   width: '18px',
   height: '18px',
   display: 'inline-flex',

@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./sync": "./src/sync.ts",
-    "./workspace": "./src/workspace.ts"
+    ".": "./src/index.ts"
   },
   "dependencies": {
     "@blocksuite/affine": "0.22.4",
+    "@blocksuite/integration-test": "0.22.4",
+    "idb": "^8.0.3",
     "socket.io-client": "^4.8.3",
     "yjs": "^13.6.21"
   },

@@ -10,13 +10,16 @@
   "dependencies": {
     "@blocksuite/affine": "0.22.4",
     "@blocksuite/integration-test": "0.22.4",
+    "@madoc/doc": "workspace:*",
     "@preact/signals-core": "^1.8.0",
-    "lit": "^3.0.0",
-    "react": "^19.1.0",
-    "@madoc/doc": "workspace:*"
+    "lit": "^3.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0 <19"
   },
   "devDependencies": {
-    "@types/react": "^19.1.0",
-    "typescript": "^5.9.3"
+    "@types/react": "18.3.31",
+    "react": "18.2.0",
+    "typescript": "5.9.3"
   }
 }
