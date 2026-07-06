@@ -5,18 +5,35 @@ import type { DocUpdateBroadcast } from './types';
 
 const NBSTORE_ORIGIN = 'madoc:doc-frontend';
 
+export type DocSyncStatus =
+  | 'connecting'
+  | 'loading'
+  | 'syncing'
+  | 'saved'
+  | 'error';
+
+interface DocFrontendOptions {
+  onSyncStatusChange?: (status: DocSyncStatus) => void;
+}
+
 export class DocFrontend {
   private provider: SocketProvider;
   private idb: IDBDocStorage;
+  private options: DocFrontendOptions;
   private workspaceId = '';
   private docs = new Map<string, Y.Doc>();
   private unsubBroadcast: (() => void) | null = null;
   private unsubs = new Map<string, () => void>();
   private started = false;
 
-  constructor(provider: SocketProvider, idb: IDBDocStorage) {
+  constructor(
+    provider: SocketProvider,
+    idb: IDBDocStorage,
+    options: DocFrontendOptions = {}
+  ) {
     this.provider = provider;
     this.idb = idb;
+    this.options = options;
   }
 
   get connected(): boolean {
@@ -26,6 +43,7 @@ export class DocFrontend {
   async start(workspaceId: string): Promise<void> {
     if (this.started) return;
     this.workspaceId = workspaceId;
+    this.setSyncStatus('connecting');
 
     await this.idb.init();
     await this.provider.connect();
@@ -62,26 +80,65 @@ export class DocFrontend {
   async connectDoc(docId: string, yDoc: Y.Doc): Promise<number | null> {
     if (!this.started) throw new Error('DocFrontend not started');
 
+    this.setSyncStatus('loading');
     this.docs.set(docId, yDoc);
 
     // Load doc from server
-    const { missing, timestamp } = await this.provider.loadDoc(this.workspaceId, docId);
+    const { missing, snapshot, updates, timestamp } = await this.provider.loadDoc(
+      this.workspaceId,
+      docId
+    );
 
-    // Apply server state to Yjs doc
-    if (missing.length > 0) {
+    if (snapshot.length > 0) {
+      Y.applyUpdate(yDoc, snapshot, NBSTORE_ORIGIN);
+    }
+
+    for (const update of updates) {
+      Y.applyUpdate(yDoc, update, NBSTORE_ORIGIN);
+    }
+
+    // Compatibility with older servers that only return one encoded update.
+    if (snapshot.length === 0 && updates.length === 0 && missing.length > 0) {
       Y.applyUpdate(yDoc, missing, NBSTORE_ORIGIN);
     }
 
-    // Cache in IDB
-    if (missing.length > 0) {
-      await this.idb.saveSnapshot(this.workspaceId, docId, missing);
+    const serverState = Y.encodeStateVector(yDoc);
+    const cached = await this.idb.getMergedDoc(this.workspaceId, docId);
+    let appliedCache = false;
+    if (cached && cached.length > 0) {
+      Y.applyUpdate(yDoc, cached, NBSTORE_ORIGIN);
+      appliedCache = true;
     }
 
+    const pendingLocalUpdate = Y.encodeStateAsUpdate(yDoc, serverState);
+    if (appliedCache && pendingLocalUpdate.length > 0) {
+      await this.provider.pushDocUpdate(
+        this.workspaceId,
+        docId,
+        pendingLocalUpdate
+      );
+    }
+
+    await this.idb.clearDoc(this.workspaceId, docId);
+    await this.idb.saveSnapshot(
+      this.workspaceId,
+      docId,
+      Y.encodeStateAsUpdate(yDoc)
+    );
+    this.setSyncStatus('saved');
+
     // Subscribe to local Yjs updates
-    const handleUpdate = (update: Uint8Array, origin: any) => {
+    const handleUpdate = (update: Uint8Array, origin: unknown) => {
       if (origin === NBSTORE_ORIGIN) return;
-      this.idb.saveUpdate(this.workspaceId, docId, update);
-      this.provider.pushDocUpdate(this.workspaceId, docId, update);
+      this.setSyncStatus('syncing');
+      void (async () => {
+        await this.idb.saveUpdate(this.workspaceId, docId, update);
+        await this.provider.pushDocUpdate(this.workspaceId, docId, update);
+        this.setSyncStatus('saved');
+      })().catch(error => {
+        this.setSyncStatus('error');
+        console.error('[DocFrontend] failed to push doc update:', error);
+      });
     };
 
     yDoc.on('update', handleUpdate);
@@ -113,6 +170,10 @@ export class DocFrontend {
     Y.applyUpdate(yDoc, updateBinary, NBSTORE_ORIGIN);
 
     // Cache in IDB
-    this.idb.saveUpdate(this.workspaceId, data.docId, updateBinary);
+    void this.idb.saveUpdate(this.workspaceId, data.docId, updateBinary);
+  }
+
+  private setSyncStatus(status: DocSyncStatus): void {
+    this.options.onSyncStatusChange?.(status);
   }
 }

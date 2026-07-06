@@ -50,13 +50,17 @@ import {
 import { Editor, initEditorEffects } from '@madoc/editor';
 import type { Store } from '@blocksuite/affine/store';
 import {
+  createEmptyDoc,
   createMadocWorkspace,
   createNewDoc,
   getDoc,
   getDocYjsUpdate,
+  initializeDocContent,
+  setDocTitle,
   DocFrontend,
   SocketProvider,
   IDBDocStorage,
+  type DocSyncStatus,
 } from '@madoc/doc';
 
 import {
@@ -144,6 +148,7 @@ import {
   editorSidebarFooter,
   editorSidebarUserButton,
   editorSidebarWorkspaceBar,
+  editorSyncStatus,
   editorTopbar,
   editorTopbarPrimary,
   editorUserAvatar,
@@ -171,6 +176,49 @@ type EditorSidebarSectionId =
 type EditorRightSidebarTab = 'outline' | 'comments' | 'info';
 type EditorMode = 'page' | 'edgeless';
 
+type StoreRootTitle = {
+  props?: {
+    title?: {
+      length?: number;
+      clear?: () => void;
+      insert?: (content: string, index: number) => void;
+      replace?: (index: number, length: number, content: string) => void;
+      toString?: () => string;
+    };
+  };
+};
+
+const fallbackDocTitle = 'Untitled';
+
+function normalizeDocTitle(title?: string): string {
+  const next = title?.trim();
+  return next || fallbackDocTitle;
+}
+
+function getStoreRootTitle(store: Store): string {
+  const rootTitle = (store.root as StoreRootTitle | null)?.props?.title;
+  return rootTitle?.toString?.().trim() ?? '';
+}
+
+function setStoreRootTitle(store: Store, title: string): void {
+  const rootTitle = (store.root as StoreRootTitle | null)?.props?.title;
+  if (!rootTitle) return;
+
+  const nextTitle = normalizeDocTitle(title);
+  const currentTitle = rootTitle.toString?.() ?? '';
+  if (normalizeDocTitle(currentTitle) === nextTitle) return;
+
+  if (rootTitle.replace) {
+    rootTitle.replace(0, rootTitle.length ?? currentTitle.length, nextTitle);
+    return;
+  }
+
+  if (rootTitle.clear && rootTitle.insert) {
+    rootTitle.clear();
+    rootTitle.insert(nextTitle, 0);
+  }
+}
+
 function DocEditorPage() {
   const navigate = useNavigate();
   const { workspaceId, docId } = Route.useParams();
@@ -183,6 +231,7 @@ function DocEditorPage() {
   const [showQuickSearch, setShowQuickSearch] = useState(false);
   const [quickSearchQuery, setQuickSearchQuery] = useState('');
   const [editorMode, setEditorMode] = useState<EditorMode>('page');
+  const [syncStatus, setSyncStatus] = useState<DocSyncStatus>('connecting');
   const [activeRightTab, setActiveRightTab] =
     useState<EditorRightSidebarTab>('outline');
   const [collapsedSections, setCollapsedSections] = useState<
@@ -208,6 +257,16 @@ function DocEditorPage() {
   const [titleDraft, setTitleDraft] = useState(title);
   const getTitle = (id: string) => getDocDisplayTitle(docMetadata, id);
   const isDocFavorite = (id: string) => getDocFavorite(docMetadata, id);
+  const syncStatusLabel =
+    syncStatus === 'connecting'
+      ? 'Connecting'
+      : syncStatus === 'loading'
+        ? 'Loading'
+        : syncStatus === 'syncing'
+          ? 'Saving'
+          : syncStatus === 'error'
+            ? 'Save failed'
+            : 'Saved';
 
   useEffect(() => {
     setDocMetadata(loadWorkspaceDocMetadata(workspaceId));
@@ -217,13 +276,33 @@ function DocEditorPage() {
     setTitleDraft(title);
   }, [title]);
 
-  const commitTitle = () => {
+  const applyTitle = (rawTitle: string, options?: { updateDraft?: boolean }) => {
+    const nextTitle = normalizeDocTitle(rawTitle);
+    if (store) {
+      setStoreRootTitle(store, nextTitle);
+    }
+    if (collectionRef.current) {
+      setDocTitle(collectionRef.current, docId, nextTitle);
+    }
     const next = updateDocMetadata(workspaceId, docId, {
-      title: titleDraft,
+      title: nextTitle,
       updatedAt: Date.now(),
     });
     setDocMetadata(next);
-    setTitleDraft(getDocDisplayTitle(next, docId));
+    if (options?.updateDraft !== false) {
+      setTitleDraft(getDocDisplayTitle(next, docId));
+    }
+  };
+
+  const commitTitle = () => {
+    applyTitle(titleDraft);
+  };
+
+  const handleTitleDraftChange = (value: string) => {
+    setTitleDraft(value);
+    if (value.trim()) {
+      applyTitle(value, { updateDraft: false });
+    }
   };
 
   const goWorkspace = () => {
@@ -243,6 +322,7 @@ function DocEditorPage() {
     setIsCreating(true);
     try {
       const nextDocId = createNewDoc(collectionRef.current);
+      setDocTitle(collectionRef.current, nextDocId, 'Untitled');
       const yjsUpdate = getDocYjsUpdate(collectionRef.current, nextDocId);
 
       if (yjsUpdate) {
@@ -744,16 +824,26 @@ function DocEditorPage() {
   useEffect(() => {
     const socket = new SocketProvider();
     const idb = new IDBDocStorage();
-    const frontend = new DocFrontend(socket, idb);
     const collection = createMadocWorkspace(workspaceId);
+    let mounted = true;
+    let metaSubscription: { unsubscribe?: () => void } | null = null;
+    const frontend = new DocFrontend(socket, idb, {
+      onSyncStatusChange: status => {
+        if (mounted) {
+          setSyncStatus(status);
+        }
+      },
+    });
 
     socketRef.current = socket;
     collectionRef.current = collection;
 
-    let mounted = true;
-
     const init = async () => {
       try {
+        setError(null);
+        setStore(null);
+        setSyncStatus('connecting');
+
         await frontend.start(workspaceId);
         const timestamps = await socket.loadDocTimestamps(workspaceId);
         if (mounted) {
@@ -776,7 +866,7 @@ function DocEditorPage() {
         // Ensure doc exists locally
         const existingDoc = getDoc(collection, docId);
         if (!existingDoc) {
-          createNewDoc(collection, docId);
+          createEmptyDoc(collection, docId);
         }
 
         // Get the Yjs doc and connect to sync
@@ -788,9 +878,50 @@ function DocEditorPage() {
 
         // Load from server and start sync
         await frontend.connectDoc(docId, yDoc);
+        initializeDocContent(currentDoc);
 
         // Get store for editor
         const docStore = currentDoc.getStore();
+        const localMetadata = loadWorkspaceDocMetadata(workspaceId);
+        const localTitle = getDocDisplayTitle(localMetadata, docId);
+        const rootTitle = getStoreRootTitle(docStore);
+        const syncedTitle = normalizeDocTitle(rootTitle || localTitle);
+
+        if (!rootTitle) {
+          setStoreRootTitle(docStore, syncedTitle);
+        }
+        setDocTitle(collection, docId, syncedTitle);
+        setDocMetadata(
+          updateDocMetadata(workspaceId, docId, {
+            title: syncedTitle,
+            updatedAt: timestamps[docId] ?? Date.now(),
+          })
+        );
+
+        metaSubscription = collection.meta.docMetaUpdated.subscribe(() => {
+          if (!mounted) return;
+
+          const nextTitle = normalizeDocTitle(
+            collection.meta.getDocMeta(docId)?.title
+          );
+          const currentTitle = getDocDisplayTitle(
+            loadWorkspaceDocMetadata(workspaceId),
+            docId
+          );
+          if (nextTitle === currentTitle) return;
+
+          setDocMetadata(
+            updateDocMetadata(workspaceId, docId, {
+              title: nextTitle,
+              updatedAt: Date.now(),
+            })
+          );
+          setDocTimestamps(prev => ({
+            ...prev,
+            [docId]: Date.now(),
+          }));
+        });
+
         if (mounted) {
           setStore(docStore);
         }
@@ -806,6 +937,7 @@ function DocEditorPage() {
 
     return () => {
       mounted = false;
+      metaSubscription?.unsubscribe?.();
       socketRef.current = null;
       collectionRef.current = null;
       frontend.disconnectDoc(docId);
@@ -833,10 +965,11 @@ function DocEditorPage() {
     return renderShell(
       <>
         <div className={editorTopbar}>
-        <div className={editorDocInfo}>
-          <div className={editorDocTitle}>{title}</div>
-          <div className={editorDocMeta}>Opening document</div>
-        </div>
+          <div className={editorTopbarPrimary}>
+            <div className={editorDocInfo}>
+              <div className={editorDocTitle}>{title}</div>
+            </div>
+          </div>
         </div>
         <div className={editorLoading}>Loading document...</div>
       </>
@@ -846,12 +979,15 @@ function DocEditorPage() {
   return renderShell(
     <>
       <div className={editorTopbar}>
-        <div className={editorDocInfo}>
+        <div className={editorTopbarPrimary}>
+          <span className={editorHeaderIconButton} title={editorMode}>
+            {editorMode === 'page' ? <PageIcon /> : <EdgelessIcon />}
+          </span>
           <input
             className={editorDocTitleInput}
             value={titleDraft}
             aria-label="Document title"
-            onChange={(event) => setTitleDraft(event.target.value)}
+            onChange={(event) => handleTitleDraftChange(event.target.value)}
             onBlur={commitTitle}
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
@@ -863,19 +999,81 @@ function DocEditorPage() {
               }
             }}
           />
-          <div className={editorDocMeta}>{docId}</div>
+          <div className={editorModeSwitch} aria-label="Editor mode">
+            <button
+              type="button"
+              className={`${editorModeButton} ${
+                editorMode === 'page' ? editorModeButtonActive : ''
+              }`}
+              onClick={() => setEditorMode('page')}
+              aria-pressed={editorMode === 'page'}
+              title="Page mode"
+            >
+              <PageIcon />
+            </button>
+            <button
+              type="button"
+              className={`${editorModeButton} ${
+                editorMode === 'edgeless' ? editorModeButtonActive : ''
+              }`}
+              onClick={() => setEditorMode('edgeless')}
+              aria-pressed={editorMode === 'edgeless'}
+              title="Edgeless mode"
+            >
+              <EdgelessIcon />
+            </button>
+          </div>
+          <div className={editorActions}>
+            <button
+              type="button"
+              className={`${editorHeaderIconButton} ${
+                currentDocFavorite ? editorHeaderIconButtonActive : ''
+              }`}
+              aria-pressed={currentDocFavorite}
+              title={
+                currentDocFavorite ? 'Remove from Favorites' : 'Add to Favorites'
+              }
+              onClick={toggleCurrentDocFavorite}
+            >
+              <FavoriteIcon />
+            </button>
+            <button
+              type="button"
+              className={editorHeaderIconButton}
+              title="Document info"
+              onClick={() => openRightSidebar('info')}
+            >
+              <InfoIcon />
+            </button>
+            <button
+              type="button"
+              className={editorHeaderIconButton}
+              title="More actions"
+            >
+              <MoreHorizontalIcon />
+            </button>
+          </div>
         </div>
         <div className={editorActions}>
-          <button type="button" className={editorQuietButton}>
-            Share
+          <span className={editorSyncStatus} data-status={syncStatus}>
+            {syncStatusLabel}
+          </span>
+          <button
+            type="button"
+            className={editorHeaderIconButton}
+            title="Present"
+          >
+            <PresentationIcon />
           </button>
-          <button type="button" className={editorQuietButton}>
-            More
+          <div className={editorHeaderDivider} />
+          <button type="button" className={editorShareButton}>
+            <ShareIcon />
+            Share
           </button>
         </div>
       </div>
       <div className={editorContainer}>
-        <Editor store={store} />
+        <Editor store={store} mode={editorMode} />
       </div>
     </>
   );

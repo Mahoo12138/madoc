@@ -7,6 +7,8 @@ export interface DocMeta {
 
 export interface LoadDocResult {
   missing: Uint8Array;
+  snapshot: Uint8Array;
+  updates: Uint8Array[];
   state: Uint8Array;
   timestamp: number;
 }

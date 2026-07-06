@@ -8,6 +8,8 @@ import * as Y from 'yjs';
 
 let schema: Schema | null = null;
 let storeManager: ReturnType<typeof getTestStoreManager> | null = null;
+type MadocDoc = ReturnType<TestWorkspace['createDoc']>;
+type MadocStore = ReturnType<MadocDoc['getStore']>;
 
 export function getSchema(): Schema {
   if (!schema) {
@@ -43,21 +45,43 @@ export function createNewDoc(collection: TestWorkspace, docId?: string): string 
   const id = docId ?? nanoid();
   const doc = collection.createDoc(id);
 
-  const store = doc.getStore();
-
-  doc.load(() => {
-    const rootId = store.addBlock('affine:page', {
-      title: new Text(),
-    });
-
-    store.addBlock('affine:surface', {}, rootId);
-
-    const noteId = store.addBlock('affine:note', {}, rootId);
-
-    store.addBlock('affine:paragraph', {}, noteId);
-  });
+  initializeDocContent(doc);
 
   return id;
+}
+
+export function createEmptyDoc(collection: TestWorkspace, docId?: string): string {
+  const id = docId ?? nanoid();
+  const doc = collection.createDoc(id);
+
+  doc.load();
+
+  return id;
+}
+
+function addDefaultBlocks(store: MadocStore): void {
+  const rootId = store.addBlock('affine:page', {
+    title: new Text(),
+  });
+
+  store.addBlock('affine:surface', {}, rootId);
+
+  const noteId = store.addBlock('affine:note', {}, rootId);
+
+  store.addBlock('affine:paragraph', {}, noteId);
+}
+
+export function initializeDocContent(doc: MadocDoc): void {
+  const store = doc.getStore();
+
+  if (store.root) return;
+
+  if (!doc.loaded) {
+    doc.load(() => addDefaultBlocks(store));
+    return;
+  }
+
+  addDefaultBlocks(store);
 }
 
 export function getDoc(collection: TestWorkspace, docId: string) {

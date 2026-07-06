@@ -14,7 +14,8 @@ export class SocketProvider {
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.socket = io('/', {
-        transports: ['websocket', 'polling'],
+        transports: ['polling'],
+        upgrade: false,
         withCredentials: true,
         autoConnect: false,
       });
@@ -124,6 +125,8 @@ export class SocketProvider {
   ): Promise<LoadDocResult> {
     const result = await this.emitWithAck<{
       missing: string;
+      snapshot?: string;
+      updates?: string[];
       state: string;
       timestamp: number;
     }>('space:load-doc', {
@@ -134,6 +137,12 @@ export class SocketProvider {
 
     return {
       missing: result.missing ? base64ToUint8Array(result.missing) : new Uint8Array(),
+      snapshot: result.snapshot ? base64ToUint8Array(result.snapshot) : new Uint8Array(),
+      updates: Array.isArray(result.updates)
+        ? result.updates
+            .filter((update): update is string => typeof update === 'string' && update.length > 0)
+            .map(base64ToUint8Array)
+        : [],
       state: result.state ? base64ToUint8Array(result.state) : new Uint8Array(),
       timestamp: result.timestamp,
     };

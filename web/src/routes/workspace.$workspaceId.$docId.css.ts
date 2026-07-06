@@ -911,12 +911,12 @@ export const editorRightSidebarTabLabel = style({
 });
 
 export const editorRightPanelHeader = style({
-  minHeight: '52px',
+  minHeight: '48px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '12px',
-  padding: '8px 12px',
+  padding: '7px 10px 7px 12px',
   borderBottom: border,
   flexShrink: 0,
 });
@@ -964,18 +964,21 @@ export const editorRightPanelBody = style({
   flex: 1,
   minHeight: 0,
   overflowY: 'auto',
-  padding: '12px',
+  padding: '8px',
 });
 
 export const editorRightInfoCard = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '4px',
-  marginBottom: '8px',
-  padding: '8px 0',
+  marginBottom: '2px',
+  padding: '8px',
   border: 'none',
-  borderRadius: 0,
+  borderRadius: '4px',
   backgroundColor: '#ffffff',
+  ':hover': {
+    backgroundColor: 'rgba(31, 35, 40, 0.035)',
+  },
 });
 
 export const editorRightInfoLabel = style({
@@ -994,7 +997,8 @@ export const editorRightInfoValue = style({
 });
 
 export const editorRightPanelMeta = style({
-  marginTop: '10px',
+  marginTop: '8px',
+  padding: '0 8px',
   color: textTertiary,
   fontSize: '12px',
   lineHeight: '18px',
@@ -1008,15 +1012,15 @@ export const editorRightTimeline = style({
 
 export const editorRightTimelineItem = style({
   width: '100%',
-  minHeight: '44px',
+  minHeight: '36px',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
   justifyContent: 'center',
   gap: '2px',
-  padding: '6px 8px',
+  padding: '5px 8px',
   border: 'none',
-  borderRadius: '8px',
+  borderRadius: '4px',
   backgroundColor: 'transparent',
   cursor: 'pointer',
   fontFamily: 'inherit',
@@ -1063,8 +1067,18 @@ export const editorTopbar = style({
   backgroundColor: '#ffffff',
 });
 
+export const editorTopbarPrimary = style({
+  minWidth: 0,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  flex: 1,
+});
+
 export const editorDocInfo = style({
   minWidth: 0,
+  display: 'flex',
+  alignItems: 'center',
 });
 
 export const editorDocTitle = style({
@@ -1077,18 +1091,18 @@ export const editorDocTitle = style({
 });
 
 export const editorDocTitleInput = style({
-  width: 'min(460px, 52vw)',
-  height: '30px',
+  width: 'min(360px, 36vw)',
+  height: '28px',
   margin: 0,
-  padding: '0 6px',
+  padding: '0 4px',
   border: '1px solid transparent',
-  borderRadius: '6px',
+  borderRadius: '4px',
   backgroundColor: 'transparent',
   color: textPrimary,
   fontFamily: 'inherit',
-  fontSize: '15px',
-  fontWeight: 680,
-  lineHeight: '22px',
+  fontSize: '14px',
+  fontWeight: 560,
+  lineHeight: '20px',
   outline: 'none',
   textOverflow: 'ellipsis',
   transition: 'border-color 0.16s, background-color 0.16s',
@@ -1099,6 +1113,48 @@ export const editorDocTitleInput = style({
     borderColor: 'rgba(30, 136, 229, 0.36)',
     backgroundColor: '#ffffff',
   },
+});
+
+export const editorModeSwitch = style({
+  height: '32px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '4px',
+  borderRadius: '8px',
+  backgroundColor: 'rgba(31, 35, 40, 0.055)',
+  flexShrink: 0,
+});
+
+export const editorModeButton = style({
+  width: '24px',
+  height: '24px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 0,
+  border: 'none',
+  borderRadius: '6px',
+  backgroundColor: 'transparent',
+  color: textSecondary,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  fontSize: '16px',
+  transition: 'background-color 0.16s, color 0.16s',
+  ':hover': {
+    backgroundColor: 'rgba(31, 35, 40, 0.06)',
+    color: textPrimary,
+  },
+  ':focus-visible': {
+    outline: `2px solid ${accent}`,
+    outlineOffset: '2px',
+  },
+});
+
+export const editorModeButtonActive = style({
+  backgroundColor: '#ffffff',
+  color: textPrimary,
+  boxShadow: '0 0 0 1px rgba(31, 35, 40, 0.08)',
 });
 
 export const editorDocMeta = style({
@@ -1113,11 +1169,102 @@ export const editorDocMeta = style({
 export const editorActions = style({
   display: 'flex',
   alignItems: 'center',
-  gap: '8px',
+  gap: '6px',
+  flexShrink: 0,
   '@media': {
     '(max-width: 760px)': {
       display: 'none',
     },
+  },
+});
+
+export const editorSyncStatus = style({
+  height: '24px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '0 6px',
+  borderRadius: '4px',
+  color: textTertiary,
+  fontSize: '12px',
+  lineHeight: '16px',
+  fontWeight: 520,
+  whiteSpace: 'nowrap',
+  selectors: {
+    '&[data-status="syncing"], &[data-status="connecting"], &[data-status="loading"]': {
+      color: textSecondary,
+      backgroundColor: 'rgba(31, 35, 40, 0.04)',
+    },
+    '&[data-status="error"]': {
+      color: '#b42318',
+      backgroundColor: 'rgba(180, 35, 24, 0.08)',
+    },
+  },
+});
+
+export const editorHeaderIconButton = style({
+  width: '28px',
+  height: '28px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 0,
+  border: 'none',
+  borderRadius: '4px',
+  backgroundColor: 'transparent',
+  color: textSecondary,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  fontSize: '18px',
+  flexShrink: 0,
+  transition: 'background-color 0.16s, color 0.16s',
+  ':hover': {
+    backgroundColor: 'rgba(31, 35, 40, 0.055)',
+    color: textPrimary,
+  },
+  ':focus-visible': {
+    outline: `2px solid ${accent}`,
+    outlineOffset: '2px',
+  },
+});
+
+export const editorHeaderIconButtonActive = style({
+  color: '#b87900',
+  selectors: {
+    '&:hover': {
+      color: '#8a5a00',
+    },
+  },
+});
+
+export const editorHeaderDivider = style({
+  width: '1px',
+  height: '20px',
+  margin: '0 4px',
+  backgroundColor: 'rgba(31, 35, 40, 0.1)',
+});
+
+export const editorShareButton = style({
+  height: '28px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '6px',
+  padding: '0 10px',
+  border: 'none',
+  borderRadius: '6px',
+  backgroundColor: accent,
+  color: '#ffffff',
+  fontSize: '13px',
+  fontWeight: 560,
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+  transition: 'background-color 0.16s, opacity 0.16s',
+  ':hover': {
+    backgroundColor: '#1688d8',
+  },
+  ':focus-visible': {
+    outline: `2px solid ${accent}`,
+    outlineOffset: '2px',
   },
 });
 
@@ -1158,7 +1305,7 @@ globalStyle(`${editorSidebarScrollable}:hover::-webkit-scrollbar-thumb`, {
 });
 
 globalStyle(
-  `${editorAppHeaderButton} svg, ${editorAppTabAdd} svg, ${editorAppTabClose} svg, ${editorAppTabFavorite} svg, ${editorAppTabIcon} svg, ${editorBackLink} svg, ${editorWorkspaceMark} svg, ${editorNavSectionChevron} svg, ${editorNavSectionAction} svg, ${editorQuickSearchButton} svg, ${editorQuickNewButton} svg, ${editorNavIcon} svg, ${editorRightSidebarTabIcon} svg, ${editorRightPanelClose} svg, ${editorQuietButton} svg`,
+  `${editorAppHeaderButton} svg, ${editorAppTabAdd} svg, ${editorAppTabClose} svg, ${editorAppTabFavorite} svg, ${editorAppTabIcon} svg, ${editorBackLink} svg, ${editorWorkspaceMark} svg, ${editorNavSectionChevron} svg, ${editorNavSectionAction} svg, ${editorQuickSearchButton} svg, ${editorQuickNewButton} svg, ${editorNavIcon} svg, ${editorRightSidebarTabIcon} svg, ${editorRightPanelClose} svg, ${editorModeButton} svg, ${editorHeaderIconButton} svg, ${editorShareButton} svg, ${editorQuietButton} svg`,
   {
     width: '1em',
     height: '1em',
@@ -1168,7 +1315,7 @@ globalStyle(
 );
 
 globalStyle(
-  `${editorQuickSearchButton} svg, ${editorQuickNewButton} svg, ${editorQuietButton} svg`,
+  `${editorQuickSearchButton} svg, ${editorQuickNewButton} svg, ${editorModeButton} svg, ${editorHeaderIconButton} svg, ${editorShareButton} svg, ${editorQuietButton} svg`,
   {
     width: '18px',
     height: '18px',
@@ -1183,8 +1330,44 @@ globalStyle(`${editorNavIcon} svg`, {
 export const editorContainer = style({
   flex: 1,
   minHeight: 0,
-  overflow: 'auto',
+  display: 'flex',
+  position: 'relative',
+  overflow: 'hidden',
   backgroundColor: '#ffffff',
+});
+
+globalStyle(`${editorContainer} > div`, {
+  flex: 1,
+  minWidth: 0,
+  minHeight: 0,
+});
+
+globalStyle(`${editorContainer} affine-editor-container`, {
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  minWidth: 0,
+  minHeight: 0,
+});
+
+globalStyle(`${editorContainer} .affine-page-viewport`, {
+  width: '100%',
+  height: '100%',
+  backgroundColor: '#ffffff',
+});
+
+globalStyle(`${editorContainer} .playground-page-editor-container`, {
+  minHeight: 0,
+});
+
+globalStyle(`${editorContainer} .affine-edgeless-viewport`, {
+  width: '100%',
+  height: '100%',
+  backgroundColor: '#ffffff',
+});
+
+globalStyle(`${editorContainer} .edgeless-editor-container`, {
+  height: '100%',
 });
 
 export const editorLoading = style({

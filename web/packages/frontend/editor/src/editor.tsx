@@ -9,6 +9,7 @@ import { getTestViewManager } from '@blocksuite/integration-test/view';
 import { useEffect, useRef } from 'react';
 
 const viewManager = getTestViewManager();
+type EditorMode = 'page' | 'edgeless';
 
 function getEditorExtensions(): ExtensionType[] {
   return [
@@ -18,10 +19,11 @@ function getEditorExtensions(): ExtensionType[] {
 
 export interface EditorProps {
   store: Store;
+  mode?: EditorMode;
   onDocLinkClicked?: (docId: string) => void;
 }
 
-export function Editor({ store, onDocLinkClicked }: EditorProps) {
+export function Editor({ store, mode = 'page', onDocLinkClicked }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<TestAffineEditorContainer | null>(null);
 
@@ -34,6 +36,7 @@ export function Editor({ store, onDocLinkClicked }: EditorProps) {
 
     editor.autofocus = true;
     editor.doc = store;
+    editor.mode = mode;
 
     const extensions = getEditorExtensions();
     editor.pageSpecs = [...viewManager.get('page'), ...extensions];
@@ -58,13 +61,22 @@ export function Editor({ store, onDocLinkClicked }: EditorProps) {
     };
   }, [store, onDocLinkClicked]);
 
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    editor.switchEditor(mode);
+  }, [mode]);
+
   return (
     <div
       ref={containerRef}
       style={{
+        display: 'block',
         width: '100%',
         height: '100%',
-        overflow: 'auto',
+        minHeight: 0,
+        overflow: 'hidden',
       }}
     />
   );

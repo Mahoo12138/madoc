@@ -1,4 +1,5 @@
 import { openDB, IDBPDatabase } from 'idb';
+import * as Y from 'yjs';
 
 const DB_NAME = 'madoc-cache';
 const DB_VERSION = 1;
@@ -107,14 +108,7 @@ export class IDBDocStorage {
 
     if (!snap && updates.length === 0) return null;
 
-    let merged = snap ? new Uint8Array(snap) : new Uint8Array();
-    for (const u of updates) {
-      const combined = new Uint8Array(merged.length + u.length);
-      combined.set(merged);
-      combined.set(u, merged.length);
-      merged = combined;
-    }
-    return merged;
+    return Y.mergeUpdates(snap ? [snap, ...updates] : updates);
   }
 
   async getDocTimestamps(workspaceId: string): Promise<Record<string, number>> {
