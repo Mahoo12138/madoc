@@ -60,8 +60,10 @@ import {
   getDocTrashedAt,
   getDocUpdatedAt,
   isDocTrashed,
+  deleteDocMetadata,
   loadWorkspaceDocMetadata,
   reconcileWorkspaceDocMetadata,
+  restoreDocMetadata,
   updateDocMetadata,
   type DocMetadataMap,
 } from '@/utils/doc-metadata';
@@ -174,6 +176,7 @@ import {
   panelList,
   panelRow,
   panelRowAction,
+  panelRowActions,
   panelRowButton,
   panelRowContent,
   panelRowIcon,
@@ -458,10 +461,7 @@ function WorkspaceHomePage({ workspaceId }: { workspaceId: string }) {
         })
       );
 
-      navigate({
-        to: '/workspace/$workspaceId/$docId',
-        params: { workspaceId, docId },
-      });
+      openDoc(docId);
     } catch (err) {
       console.error('[WorkspacePage] Failed to create document:', err);
     } finally {
@@ -685,12 +685,44 @@ function WorkspaceHomePage({ workspaceId }: { workspaceId: string }) {
     let nextMetadata = docMetadata;
 
     for (const targetDocId of targetDocIds) {
-      nextMetadata = updateDocMetadata(workspaceId, targetDocId, {
-        trashedAt: undefined,
-      });
+      nextMetadata = restoreDocMetadata(workspaceId, targetDocId);
     }
 
     setDocMetadata(nextMetadata);
+  };
+  const deleteDocsForever = async (targetDocIds: string[]) => {
+    if (!socketRef.current) {
+      return;
+    }
+
+    let nextMetadata = docMetadata;
+    const deletedDocIds: string[] = [];
+
+    for (const targetDocId of targetDocIds) {
+      try {
+        await socketRef.current.deleteDoc(workspaceId, targetDocId);
+        nextMetadata = deleteDocMetadata(workspaceId, targetDocId);
+        deletedDocIds.push(targetDocId);
+      } catch (err) {
+        console.error('[WorkspacePage] Failed to permanently delete document:', err);
+      }
+    }
+
+    if (deletedDocIds.length === 0) {
+      return;
+    }
+
+    setDocMetadata(nextMetadata);
+    setDocTimestamps((current) => {
+      const next = { ...current };
+      for (const deletedDocId of deletedDocIds) {
+        delete next[deletedDocId];
+      }
+      return next;
+    });
+    setSelectedDocIds((current) =>
+      current.filter((selectedId) => !deletedDocIds.includes(selectedId))
+    );
   };
   const handleDocClick = (
     docId: string,
@@ -1873,14 +1905,21 @@ function WorkspaceHomePage({ workspaceId }: { workspaceId: string }) {
                 </p>
                 {trashedDocIds.length > 0 ? (
                   <div className={panelList}>
-                    {trashedDocIds.map((trashedDocId) => (
-                      <div key={trashedDocId} className={panelRow}>
+                    {trashedDocIds.map((trashedDocId) => {
+                      const trashedTitle = getTitle(trashedDocId);
+
+                      return (
+                      <div
+                        key={trashedDocId}
+                        className={panelRow}
+                        data-trash-doc-id={trashedDocId}
+                      >
                         <span className={panelRowIcon}>
                           <PageIcon />
                         </span>
                         <span className={panelRowContent}>
                           <span className={panelRowTitle}>
-                            {getTitle(trashedDocId)}
+                            {trashedTitle}
                           </span>
                           <span className={panelRowMeta}>
                             Moved to Trash{' '}
@@ -1891,15 +1930,27 @@ function WorkspaceHomePage({ workspaceId }: { workspaceId: string }) {
                               : 'recently'}
                           </span>
                         </span>
-                        <button
-                          type="button"
-                          className={docSelectionButton}
-                          onClick={() => restoreDocsFromTrash([trashedDocId])}
-                        >
-                          Restore
-                        </button>
+                        <span className={panelRowActions}>
+                          <button
+                            type="button"
+                            className={docSelectionButton}
+                            aria-label={`Restore ${trashedTitle}`}
+                            onClick={() => restoreDocsFromTrash([trashedDocId])}
+                          >
+                            Restore
+                          </button>
+                          <button
+                            type="button"
+                            className={`${docSelectionButton} ${docActionMenuDanger}`}
+                            aria-label={`Delete ${trashedTitle} forever`}
+                            onClick={() => deleteDocsForever([trashedDocId])}
+                          >
+                            Delete forever
+                          </button>
+                        </span>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : null}
               </div>

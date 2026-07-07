@@ -103,6 +103,34 @@ export function updateDocMetadata(
   return saveWorkspaceDocMetadata(workspaceId, next);
 }
 
+export function deleteDocMetadata(
+  workspaceId: string,
+  docId: string
+): DocMetadataMap {
+  const current = loadWorkspaceDocMetadata(workspaceId);
+  const { [docId]: _removed, ...next } = current;
+
+  return saveWorkspaceDocMetadata(workspaceId, next);
+}
+
+export function restoreDocMetadata(
+  workspaceId: string,
+  docId: string
+): DocMetadataMap {
+  const current = loadWorkspaceDocMetadata(workspaceId);
+  const previous = current[docId] ?? {};
+  const { trashedAt: _trashedAt, ...rest } = previous;
+
+  return saveWorkspaceDocMetadata(workspaceId, {
+    ...current,
+    [docId]: {
+      ...rest,
+      title: normalizeTitle(rest.title),
+      updatedAt: Date.now(),
+    },
+  });
+}
+
 export function getDocCreatedAt(
   metadata: DocMetadataMap,
   docId: string

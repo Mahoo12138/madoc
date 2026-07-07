@@ -2177,6 +2177,14 @@ export const panelRowAction = style({
   lineHeight: 1,
 });
 
+export const panelRowActions = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '6px',
+  flexWrap: 'wrap',
+});
+
 export const panelAction = style({
   height: '24px',
   display: 'inline-flex',

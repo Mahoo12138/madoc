@@ -65,6 +65,10 @@ import {
 
 import {
   editorActions,
+  editorActionMenu,
+  editorActionMenuDanger,
+  editorActionMenuItem,
+  editorActionMenuRoot,
   editorAppHeaderButton,
   editorAppMeta,
   editorAppTab,
@@ -109,6 +113,11 @@ import {
   editorNavSectionRoot,
   editorNavSectionTitle,
   editorNavSectionTrigger,
+  editorOutlineEmpty,
+  editorOutlineItem,
+  editorOutlineItemLevel,
+  editorOutlineItemTitle,
+  editorOutlineList,
   editorQuickNewButton,
   editorQuickSearchButton,
   editorQuickSearchRow,
@@ -132,11 +141,8 @@ import {
   editorRightSidebarTabActive,
   editorRightSidebarTabIcon,
   editorRightSidebarTabLabel,
-  editorRightTimeline,
-  editorRightTimelineItem,
-  editorRightTimelineMeta,
-  editorRightTimelineTitle,
   editorShareButton,
+  editorShareButtonCopied,
   editorSidebar,
   editorSidebarClosed,
   editorSidebarHeader,
@@ -175,6 +181,12 @@ type EditorSidebarSectionId =
 
 type EditorRightSidebarTab = 'outline' | 'comments' | 'info';
 type EditorMode = 'page' | 'edgeless';
+
+type DocOutlineItem = {
+  id: string;
+  title: string;
+  level: number;
+};
 
 type StoreRootTitle = {
   props?: {
@@ -219,6 +231,66 @@ function setStoreRootTitle(store: Store, title: string): void {
   }
 }
 
+function areOutlineItemsEqual(
+  current: DocOutlineItem[],
+  next: DocOutlineItem[]
+): boolean {
+  if (current.length !== next.length) {
+    return false;
+  }
+
+  return current.every((item, index) => {
+    const nextItem = next[index];
+    return (
+      item.id === nextItem.id &&
+      item.title === nextItem.title &&
+      item.level === nextItem.level
+    );
+  });
+}
+
+function getRenderedOutlineItems(): DocOutlineItem[] {
+  return Array.from(
+    document.querySelectorAll<HTMLElement>('affine-paragraph[data-block-id]')
+  )
+    .map((block) => {
+      const headingWrapper = block.querySelector<HTMLElement>(
+        '.affine-paragraph-rich-text-wrapper'
+      );
+      const headingClass = Array.from(headingWrapper?.classList ?? []).find(
+        (className) => /^h[1-6]$/.test(className)
+      );
+      if (!headingWrapper || !headingClass) {
+        return null;
+      }
+
+      const textElement =
+        headingWrapper.querySelector<HTMLElement>('rich-text .inline-editor') ??
+        headingWrapper.querySelector<HTMLElement>('rich-text');
+      const title = textElement?.textContent?.replace(/\u200b/g, '').trim();
+      const id = block.dataset.blockId;
+      if (!title || !id) {
+        return null;
+      }
+
+      return {
+        id,
+        title,
+        level: Number(headingClass.slice(1)),
+      };
+    })
+    .filter((item): item is DocOutlineItem => Boolean(item));
+}
+
+function scrollToBlock(blockId: string): void {
+  const escapedBlockId = globalThis.CSS?.escape
+    ? CSS.escape(blockId)
+    : blockId.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
+  document
+    .querySelector(`affine-paragraph[data-block-id="${escapedBlockId}"]`)
+    ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
 function DocEditorPage() {
   const navigate = useNavigate();
   const { workspaceId, docId } = Route.useParams();
@@ -229,11 +301,16 @@ function DocEditorPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [showQuickSearch, setShowQuickSearch] = useState(false);
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState<'idle' | 'copied' | 'failed'>(
+    'idle'
+  );
   const [quickSearchQuery, setQuickSearchQuery] = useState('');
   const [editorMode, setEditorMode] = useState<EditorMode>('page');
   const [syncStatus, setSyncStatus] = useState<DocSyncStatus>('connecting');
   const [activeRightTab, setActiveRightTab] =
     useState<EditorRightSidebarTab>('outline');
+  const [outlineItems, setOutlineItems] = useState<DocOutlineItem[]>([]);
   const [collapsedSections, setCollapsedSections] = useState<
     Record<EditorSidebarSectionId, boolean>
   >({
@@ -252,6 +329,7 @@ function DocEditorPage() {
 
   const socketRef = useRef<SocketProvider | null>(null);
   const collectionRef = useRef<ReturnType<typeof createMadocWorkspace> | null>(null);
+  const actionsMenuRef = useRef<HTMLDivElement | null>(null);
 
   const title = getDocDisplayTitle(docMetadata, docId);
   const [titleDraft, setTitleDraft] = useState(title);
@@ -275,6 +353,79 @@ function DocEditorPage() {
   useEffect(() => {
     setTitleDraft(title);
   }, [title]);
+
+  useEffect(() => {
+    if (!actionsMenuOpen) {
+      return;
+    }
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!actionsMenuRef.current?.contains(event.target as Node)) {
+        setActionsMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActionsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [actionsMenuOpen]);
+
+  useEffect(() => {
+    if (shareFeedback === 'idle') {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setShareFeedback('idle');
+    }, 1600);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [shareFeedback]);
+
+  useEffect(() => {
+    if (!store || !rightSidebarOpen || activeRightTab !== 'outline') {
+      setOutlineItems([]);
+      return;
+    }
+
+    let frame = 0;
+    const updateOutline = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const nextItems = getRenderedOutlineItems();
+        setOutlineItems(currentItems =>
+          areOutlineItemsEqual(currentItems, nextItems) ? currentItems : nextItems
+        );
+      });
+    };
+
+    updateOutline();
+    const editorElement = document.querySelector('affine-editor-container');
+    const observer = new MutationObserver(updateOutline);
+
+    if (editorElement) {
+      observer.observe(editorElement, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    }
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [activeRightTab, rightSidebarOpen, store]);
 
   const applyTitle = (rawTitle: string, options?: { updateDraft?: boolean }) => {
     const nextTitle = normalizeDocTitle(rawTitle);
@@ -389,9 +540,42 @@ function DocEditorPage() {
       })
     );
   };
+  const openDocumentInfo = () => {
+    setActionsMenuOpen(false);
+    openRightSidebar('info');
+  };
+  const copyDocumentLink = async () => {
+    const url = `${window.location.origin}/workspace/${workspaceId}/${docId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareFeedback('copied');
+    } catch {
+      setShareFeedback('failed');
+    } finally {
+      setActionsMenuOpen(false);
+    }
+  };
+  const toggleFavoriteFromMenu = () => {
+    setActionsMenuOpen(false);
+    toggleCurrentDocFavorite();
+  };
+  const moveCurrentDocToTrash = () => {
+    setActionsMenuOpen(false);
+    updateDocMetadata(workspaceId, docId, {
+      trashedAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    navigate({
+      to: '/workspace/$workspaceId',
+      params: { workspaceId },
+    });
+  };
   const openRightSidebar = (tab: EditorRightSidebarTab) => {
     setActiveRightTab(tab);
     setRightSidebarOpen(true);
+  };
+  const openOutlineItem = (item: DocOutlineItem) => {
+    scrollToBlock(item.id);
   };
   const user = session.data?.user;
   const initials =
@@ -408,17 +592,26 @@ function DocEditorPage() {
       label: 'Outline',
       title: 'Outline',
       content: (
-        <>
-          <div className={editorRightTimeline}>
-            <button type="button" className={editorRightTimelineItem}>
-              <span className={editorRightTimelineTitle}>{title}</span>
-              <span className={editorRightTimelineMeta}>Top level document</span>
-            </button>
-          </div>
-          <div className={editorRightPanelMeta}>
-            Headings will appear here as the document grows.
-          </div>
-        </>
+        <div className={editorOutlineList}>
+          {outlineItems.length ? (
+            outlineItems.map(item => (
+              <button
+                key={item.id}
+                type="button"
+                className={editorOutlineItem}
+                data-level={item.level}
+                onClick={() => openOutlineItem(item)}
+              >
+                <span className={editorOutlineItemTitle}>{item.title}</span>
+                <span className={editorOutlineItemLevel}>H{item.level}</span>
+              </button>
+            ))
+          ) : (
+            <div className={editorOutlineEmpty}>
+              Add headings to build an outline.
+            </div>
+          )}
+        </div>
       ),
     },
     {
@@ -743,10 +936,20 @@ function DocEditorPage() {
           >
             <SidebarIcon />
           </button>
-          <button type="button" className={editorAppHeaderButton} onClick={goWorkspace}>
+          <button
+            type="button"
+            className={editorAppHeaderButton}
+            onClick={goWorkspace}
+            title="Back to all documents"
+          >
             <BackwardPanelIcon />
           </button>
-          <button type="button" className={editorAppHeaderButton} disabled>
+          <button
+            type="button"
+            className={editorAppHeaderButton}
+            disabled
+            title="Forward"
+          >
             <ForwardPanelIcon />
           </button>
         </div>
@@ -1045,13 +1248,56 @@ function DocEditorPage() {
             >
               <InfoIcon />
             </button>
-            <button
-              type="button"
-              className={editorHeaderIconButton}
-              title="More actions"
-            >
-              <MoreHorizontalIcon />
-            </button>
+            <div className={editorActionMenuRoot} ref={actionsMenuRef}>
+              <button
+                type="button"
+                className={editorHeaderIconButton}
+                title="More actions"
+                aria-expanded={actionsMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => setActionsMenuOpen(open => !open)}
+              >
+                <MoreHorizontalIcon />
+              </button>
+              {actionsMenuOpen ? (
+                <div className={editorActionMenu} role="menu">
+                  <button
+                    type="button"
+                    className={editorActionMenuItem}
+                    role="menuitem"
+                    onClick={copyDocumentLink}
+                  >
+                    Copy document link
+                  </button>
+                  <button
+                    type="button"
+                    className={editorActionMenuItem}
+                    role="menuitem"
+                    onClick={toggleFavoriteFromMenu}
+                  >
+                    {currentDocFavorite
+                      ? 'Remove from Favorites'
+                      : 'Add to Favorites'}
+                  </button>
+                  <button
+                    type="button"
+                    className={editorActionMenuItem}
+                    role="menuitem"
+                    onClick={openDocumentInfo}
+                  >
+                    Document info
+                  </button>
+                  <button
+                    type="button"
+                    className={`${editorActionMenuItem} ${editorActionMenuDanger}`}
+                    role="menuitem"
+                    onClick={moveCurrentDocToTrash}
+                  >
+                    Move to Trash
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
         <div className={editorActions}>
@@ -1062,13 +1308,25 @@ function DocEditorPage() {
             type="button"
             className={editorHeaderIconButton}
             title="Present"
+            disabled
           >
             <PresentationIcon />
           </button>
           <div className={editorHeaderDivider} />
-          <button type="button" className={editorShareButton}>
+          <button
+            type="button"
+            className={`${editorShareButton} ${
+              shareFeedback === 'copied' ? editorShareButtonCopied : ''
+            }`}
+            onClick={copyDocumentLink}
+            title="Copy document link"
+          >
             <ShareIcon />
-            Share
+            {shareFeedback === 'copied'
+              ? 'Copied'
+              : shareFeedback === 'failed'
+                ? 'Copy failed'
+                : 'Share'}
           </button>
         </div>
       </div>

@@ -5,6 +5,55 @@ const textPrimary = '#242424';
 const textSecondary = '#6f6f6f';
 const textTertiary = '#9b9b9b';
 const accent = '#1e96eb';
+const overlayPanelShadow =
+  '0 8px 24px rgba(31, 35, 40, 0.14), 0 0 0 1px rgba(31, 35, 40, 0.06)';
+const blockSuitePortalVars = {
+  '--affine-font-family':
+    'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  '--affine-font-number-family':
+    'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  '--affine-font-code-family':
+    '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
+  '--affine-font-base': '16px',
+  '--affine-font-sm': '14px',
+  '--affine-font-xs': '12px',
+  '--affine-line-height': '24px',
+  '--affine-brand-color': accent,
+  '--affine-primary-color': accent,
+  '--affine-hover-color': 'rgba(31, 35, 40, 0.06)',
+  '--affine-icon-color': textSecondary,
+  '--affine-icon-secondary': textTertiary,
+  '--affine-border-color': 'rgba(31, 35, 40, 0.12)',
+  '--affine-divider-color': 'rgba(31, 35, 40, 0.08)',
+  '--affine-text-emphasis-color': '#121212',
+  '--affine-text-primary-color': textPrimary,
+  '--affine-text-secondary-color': textSecondary,
+  '--affine-text-disable-color': textTertiary,
+  '--affine-background-primary-color': '#ffffff',
+  '--affine-background-secondary-color': '#fbfbfa',
+  '--affine-background-modal-color': '#ffffff',
+  '--affine-background-overlay-panel-color': '#ffffff',
+  '--affine-overlay-panel-shadow': overlayPanelShadow,
+  '--affine-popover-shadow': overlayPanelShadow,
+  '--affine-menu-shadow': overlayPanelShadow,
+  '--affine-z-index-popover': '1200',
+  '--affine-z-index-modal': '1300',
+  '--affine-v2-layer-background-primary': '#ffffff',
+  '--affine-v2-layer-background-secondary': '#fbfbfa',
+  '--affine-v2-layer-background-overlayPanel': '#ffffff',
+  '--affine-v2-layer-background-hoverOverlay': 'rgba(31, 35, 40, 0.06)',
+  '--affine-v2-layer-insideBorder-border': 'rgba(31, 35, 40, 0.12)',
+  '--affine-v2-icon-primary': textSecondary,
+  '--affine-v2-icon-secondary': textTertiary,
+  '--affine-v2-icon-activated': accent,
+  '--affine-v2-icon-disable': textTertiary,
+  '--affine-v2-text-primary': textPrimary,
+  '--affine-v2-text-secondary': textSecondary,
+  '--affine-v2-text-tertiary': textTertiary,
+  '--affine-v2-text-emphasis': '#121212',
+  '--light-textColor-textSecondaryColor': textSecondary,
+  '--textColor-textSecondaryColor': textSecondary,
+};
 
 export const editorLayout = style({
   display: 'flex',
@@ -1004,6 +1053,74 @@ export const editorRightPanelMeta = style({
   lineHeight: '18px',
 });
 
+export const editorOutlineList = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+});
+
+export const editorOutlineItem = style({
+  width: '100%',
+  minHeight: '30px',
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) auto',
+  alignItems: 'center',
+  columnGap: '8px',
+  padding: '4px 8px',
+  border: 'none',
+  borderRadius: '4px',
+  backgroundColor: 'transparent',
+  color: textSecondary,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  textAlign: 'left',
+  transition: 'background-color 0.16s, color 0.16s',
+  selectors: {
+    '&[data-level=\"2\"]': {
+      paddingLeft: '18px',
+    },
+    '&[data-level=\"3\"]': {
+      paddingLeft: '28px',
+    },
+    '&[data-level=\"4\"], &[data-level=\"5\"], &[data-level=\"6\"]': {
+      paddingLeft: '38px',
+    },
+  },
+  ':hover': {
+    backgroundColor: 'rgba(31, 35, 40, 0.055)',
+    color: textPrimary,
+  },
+  ':focus-visible': {
+    outline: `2px solid ${accent}`,
+    outlineOffset: '2px',
+  },
+});
+
+export const editorOutlineItemTitle = style({
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  color: 'inherit',
+  fontSize: '13px',
+  lineHeight: '18px',
+  fontWeight: 540,
+});
+
+export const editorOutlineItemLevel = style({
+  color: textTertiary,
+  fontSize: '10px',
+  lineHeight: '14px',
+  fontWeight: 620,
+});
+
+export const editorOutlineEmpty = style({
+  padding: '8px',
+  color: textTertiary,
+  fontSize: '12px',
+  lineHeight: '18px',
+});
+
 export const editorRightTimeline = style({
   display: 'flex',
   flexDirection: 'column',
@@ -1225,6 +1342,11 @@ export const editorHeaderIconButton = style({
     outline: `2px solid ${accent}`,
     outlineOffset: '2px',
   },
+  ':disabled': {
+    color: textTertiary,
+    cursor: 'default',
+    opacity: 0.48,
+  },
 });
 
 export const editorHeaderIconButtonActive = style({
@@ -1233,6 +1355,59 @@ export const editorHeaderIconButtonActive = style({
     '&:hover': {
       color: '#8a5a00',
     },
+  },
+});
+
+export const editorActionMenuRoot = style({
+  position: 'relative',
+  display: 'inline-flex',
+});
+
+export const editorActionMenu = style({
+  position: 'absolute',
+  top: '34px',
+  right: 0,
+  zIndex: 60,
+  width: '190px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  padding: '6px',
+  border: '1px solid rgba(31, 35, 40, 0.1)',
+  borderRadius: '8px',
+  backgroundColor: '#ffffff',
+  boxShadow: '0 8px 16px rgba(31, 35, 40, 0.12)',
+});
+
+export const editorActionMenuItem = style({
+  width: '100%',
+  height: '30px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  padding: '0 8px',
+  border: 'none',
+  borderRadius: '4px',
+  backgroundColor: 'transparent',
+  color: textPrimary,
+  fontFamily: 'inherit',
+  fontSize: '13px',
+  fontWeight: 520,
+  textAlign: 'left',
+  cursor: 'pointer',
+  ':hover': {
+    backgroundColor: 'rgba(31, 35, 40, 0.055)',
+  },
+  ':focus-visible': {
+    outline: `2px solid ${accent}`,
+    outlineOffset: '2px',
+  },
+});
+
+export const editorActionMenuDanger = style({
+  color: '#b42318',
+  ':hover': {
+    backgroundColor: 'rgba(202, 73, 73, 0.08)',
   },
 });
 
@@ -1265,6 +1440,15 @@ export const editorShareButton = style({
   ':focus-visible': {
     outline: `2px solid ${accent}`,
     outlineOffset: '2px',
+  },
+});
+
+export const editorShareButtonCopied = style({
+  backgroundColor: '#197a3d',
+  selectors: {
+    '&:hover': {
+      backgroundColor: '#166f37',
+    },
   },
 });
 
@@ -1334,12 +1518,103 @@ export const editorContainer = style({
   position: 'relative',
   overflow: 'hidden',
   backgroundColor: '#ffffff',
+  vars: {
+    ...blockSuitePortalVars,
+    '--affine-font-family':
+      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    '--affine-font-number-family':
+      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    '--affine-font-code-family':
+      '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
+    '--affine-font-h-1': '32px',
+    '--affine-font-h-2': '26px',
+    '--affine-font-h-3': '22px',
+    '--affine-font-h-4': '18px',
+    '--affine-font-h-5': '16px',
+    '--affine-font-h-6': '14px',
+    '--affine-font-base': '16px',
+    '--affine-font-sm': '14px',
+    '--affine-font-xs': '12px',
+    '--affine-line-height': '24px',
+    '--affine-paragraph-space': '4px',
+    '--affine-editor-width': '820px',
+    '--affine-editor-side-padding': '24px',
+    '--affine-editor-bottom-padding': '96px',
+    '--affine-brand-color': accent,
+    '--affine-primary-color': accent,
+    '--affine-secondary-color': '#6f6f6f',
+    '--affine-tertiary-color': '#9b9b9b',
+    '--affine-hover-color': 'rgba(31, 35, 40, 0.06)',
+    '--affine-icon-color': '#6f6f6f',
+    '--affine-icon-secondary': '#9b9b9b',
+    '--affine-border-color': 'rgba(31, 35, 40, 0.12)',
+    '--affine-divider-color': 'rgba(31, 35, 40, 0.08)',
+    '--affine-placeholder-color': '#b6b6b6',
+    '--affine-quote-color': 'rgba(31, 35, 40, 0.26)',
+    '--affine-link-color': accent,
+    '--affine-success-color': '#197a3d',
+    '--affine-warning-color': '#b87900',
+    '--affine-error-color': '#b42318',
+    '--affine-processing-color': accent,
+    '--affine-text-emphasis-color': '#121212',
+    '--affine-text-primary-color': textPrimary,
+    '--affine-text-secondary-color': textSecondary,
+    '--affine-text-disable-color': textTertiary,
+    '--affine-black-10': 'rgba(0, 0, 0, 0.04)',
+    '--affine-black-30': 'rgba(0, 0, 0, 0.18)',
+    '--affine-black-50': 'rgba(0, 0, 0, 0.32)',
+    '--affine-black-60': 'rgba(0, 0, 0, 0.48)',
+    '--affine-black-80': 'rgba(0, 0, 0, 0.72)',
+    '--affine-black-90': 'rgba(0, 0, 0, 0.88)',
+    '--affine-black': '#000000',
+    '--affine-white-10': 'rgba(255, 255, 255, 0.1)',
+    '--affine-white-30': 'rgba(255, 255, 255, 0.3)',
+    '--affine-white-50': 'rgba(255, 255, 255, 0.5)',
+    '--affine-white-60': 'rgba(255, 255, 255, 0.6)',
+    '--affine-white-80': 'rgba(255, 255, 255, 0.8)',
+    '--affine-white-90': 'rgba(255, 255, 255, 0.9)',
+    '--affine-white': '#ffffff',
+    '--affine-background-code-block': '#f7f7f5',
+    '--affine-background-tertiary-color': '#f7f7f5',
+    '--affine-background-processing-color': 'rgba(30, 150, 235, 0.08)',
+    '--affine-background-error-color': 'rgba(180, 35, 24, 0.08)',
+    '--affine-background-warning-color': 'rgba(184, 121, 0, 0.1)',
+    '--affine-background-success-color': 'rgba(25, 122, 61, 0.08)',
+    '--affine-background-primary-color': '#ffffff',
+    '--affine-background-secondary-color': '#fbfbfa',
+    '--affine-background-modal-color': '#ffffff',
+    '--affine-background-overlay-panel-color': '#ffffff',
+    '--affine-overlay-panel-shadow': overlayPanelShadow,
+    '--affine-popover-shadow': overlayPanelShadow,
+    '--affine-menu-shadow': overlayPanelShadow,
+    '--affine-float-button-shadow': '0 4px 12px rgba(31, 35, 40, 0.12)',
+    '--affine-shadow-1': '0 1px 2px rgba(31, 35, 40, 0.08)',
+    '--affine-shadow-2': '0 4px 12px rgba(31, 35, 40, 0.12)',
+    '--affine-shadow-3': '0 8px 24px rgba(31, 35, 40, 0.14)',
+    '--affine-popover-radius': '8px',
+    '--affine-z-index-popover': '1200',
+    '--affine-z-index-modal': '1300',
+    '--affine-scale': '1',
+  },
+});
+
+globalStyle('body', {
+  vars: blockSuitePortalVars,
 });
 
 globalStyle(`${editorContainer} > div`, {
   flex: 1,
   minWidth: 0,
   minHeight: 0,
+});
+
+globalStyle(`${editorContainer} [data-affine-editor-container]`, {
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  minWidth: 0,
+  minHeight: 0,
+  overflow: 'hidden',
 });
 
 globalStyle(`${editorContainer} affine-editor-container`, {
@@ -1353,11 +1628,104 @@ globalStyle(`${editorContainer} affine-editor-container`, {
 globalStyle(`${editorContainer} .affine-page-viewport`, {
   width: '100%',
   height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
   backgroundColor: '#ffffff',
+  color: textPrimary,
+  fontFamily:
+    'var(--affine-font-family), Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  scrollbarGutter: 'stable',
+  scrollPaddingTop: '24px',
+  paddingBottom: '100px',
 });
 
 globalStyle(`${editorContainer} .playground-page-editor-container`, {
-  minHeight: 0,
+  display: 'block',
+  flexGrow: 1,
+  height: 'auto',
+  minHeight: '220px',
+});
+
+globalStyle(`${editorContainer} doc-title .doc-title-container`, {
+  letterSpacing: '0',
+  wordBreak: 'break-word',
+});
+
+globalStyle(`${editorContainer} editor-host`, {
+  display: 'block',
+  minHeight: '220px',
+});
+
+globalStyle(`${editorContainer} affine-page-root`, {
+  display: 'block',
+  minHeight: '220px',
+});
+
+globalStyle(`${editorContainer} .affine-page-root-block-container`, {
+  minHeight: '220px',
+});
+
+globalStyle(`${editorContainer} affine-note`, {
+  display: 'block',
+});
+
+globalStyle(
+  `${editorContainer} .affine-paragraph-rich-text-wrapper.h1, ${editorContainer} .affine-paragraph-rich-text-wrapper.h2, ${editorContainer} .affine-paragraph-rich-text-wrapper.h3, ${editorContainer} .affine-paragraph-rich-text-wrapper.h4, ${editorContainer} .affine-paragraph-rich-text-wrapper.h5, ${editorContainer} .affine-paragraph-rich-text-wrapper.h6`,
+  {
+    letterSpacing: '0',
+  }
+);
+
+globalStyle(`${editorContainer} .affine-paragraph-rich-text-wrapper.h1`, {
+  marginTop: '20px',
+  marginBottom: '10px',
+});
+
+globalStyle(`${editorContainer} .affine-paragraph-rich-text-wrapper.h2`, {
+  marginTop: '16px',
+  marginBottom: '8px',
+});
+
+globalStyle(`${editorContainer} .affine-paragraph-rich-text-wrapper.h3`, {
+  marginTop: '14px',
+  marginBottom: '8px',
+});
+
+globalStyle(`${editorContainer} .affine-paragraph-rich-text-wrapper.quote`, {
+  color: textSecondary,
+});
+
+globalStyle(`${editorContainer} .affine-list-rich-text-wrapper`, {
+  minHeight: '24px',
+});
+
+globalStyle(`${editorContainer} .affine-code-block-container`, {
+  borderRadius: '8px',
+  backgroundColor: 'var(--affine-background-code-block)',
+});
+
+globalStyle(`${editorContainer} .affine-code-block-container .inline-editor`, {
+  fontFamily:
+    'var(--affine-font-code-family), "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
+});
+
+globalStyle(`${editorContainer} .affine-page-viewport::-webkit-scrollbar`, {
+  width: '10px',
+});
+
+globalStyle(`${editorContainer} .affine-page-viewport::-webkit-scrollbar-track`, {
+  backgroundColor: 'transparent',
+});
+
+globalStyle(`${editorContainer} .affine-page-viewport::-webkit-scrollbar-thumb`, {
+  border: '3px solid transparent',
+  borderRadius: '999px',
+  backgroundClip: 'content-box',
+  backgroundColor: 'transparent',
+});
+
+globalStyle(`${editorContainer} .affine-page-viewport:hover::-webkit-scrollbar-thumb`, {
+  backgroundColor: 'rgba(31, 35, 40, 0.22)',
 });
 
 globalStyle(`${editorContainer} .affine-edgeless-viewport`, {

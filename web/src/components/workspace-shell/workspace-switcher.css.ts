@@ -56,6 +56,7 @@ export const triggerText = style({
 });
 
 export const triggerTitle = style({
+  display: 'block',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -66,6 +67,7 @@ export const triggerTitle = style({
 });
 
 export const triggerMeta = style({
+  display: 'block',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -187,6 +189,7 @@ export const itemText = style({
 });
 
 export const itemTitle = style({
+  display: 'block',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -197,6 +200,7 @@ export const itemTitle = style({
 });
 
 export const itemMeta = style({
+  display: 'block',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
