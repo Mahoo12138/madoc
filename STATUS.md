@@ -54,6 +54,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 双窗口 Markdown / Whiteboard 协作回归
 - [x] Playwright 核心流程自动化
 - [x] 修复 Workspace 新建文档标题逐字输入时读取已失效事件 currentTarget 的问题，并加入 E2E 回归覆盖
+- [x] 修复 Markdown 标题 / 段落键盘输入回归断言，并将协同光标与远程选区改为 madoc 自定义样式
 
 ## 明确不进入当前 MVP
 

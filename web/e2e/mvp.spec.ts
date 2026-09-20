@@ -21,10 +21,17 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await page.getByRole('button', { name: '保存' }).click();
   await expect(page.locator('.ProseMirror')).toBeVisible();
   const documentURL = page.url();
-  await page.locator('.ProseMirror').fill('# System overview\n\nCollaborative Markdown works.');
+  const editor = page.locator('.ProseMirror');
+  await editor.click();
+  await editor.pressSequentially('# System overview');
+  await editor.press('Enter');
+  await editor.pressSequentially('Collaborative Markdown works.');
+  await expect(editor.locator('h1')).toHaveText('System overview');
+  await expect(editor.locator('p').filter({ hasText: 'Collaborative Markdown works.' })).toHaveCount(1);
   await expect(page.getByText('Saved', { exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.locator('.ProseMirror')).toHaveText('# System overviewCollaborative Markdown works.');
+  await expect(page.locator('.ProseMirror h1')).toHaveText('System overview');
+  await expect(page.locator('.ProseMirror p').filter({ hasText: 'Collaborative Markdown works.' })).toHaveCount(1);
   await page.screenshot({ path: '/tmp/madoc-mvp-final.png', fullPage: true });
 
   await page.getByRole('button', { name: '成员管理' }).click();
@@ -40,6 +47,10 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await member.getByLabel('设置密码').fill('password123');
   await member.getByRole('button', { name: '接受邀请' }).click();
   await member.getByText('Architecture', { exact: true }).click();
+  await member.locator('.ProseMirror').click();
+  await member.locator('.ProseMirror').press('End');
+  await expect(page.locator('.ProseMirror .madoc-remote-cursor')).toHaveCount(1);
+  await expect(page.locator('.ProseMirror .ProseMirror-yjs-cursor')).toHaveCount(0);
 
   await page.goto(documentURL);
   await page.locator('.ProseMirror').click();

@@ -13,6 +13,26 @@ import { fromBase64, RealtimeClient, toBase64 } from '@/features/realtime/client
 import * as styles from './markdown-editor.css';
 
 type InitPayload = { snapshot?: string | null; updates?: { seq: number; update: string }[]; headSeq: number; markdown: string };
+type Collaborator = { color?: string; name?: string };
+
+function buildRemoteCursor(user: Collaborator) {
+  const cursor = document.createElement('span');
+  cursor.className = 'madoc-remote-cursor';
+  cursor.style.setProperty('--madoc-remote-color', user.color ?? '#1f6feb');
+  cursor.setAttribute('aria-label', `${user.name ?? '协作者'} 的光标`);
+  const label = document.createElement('span');
+  label.className = 'madoc-remote-cursor-label';
+  label.textContent = user.name ?? '协作者';
+  cursor.append(label);
+  return cursor;
+}
+
+function buildRemoteSelection(user: Collaborator) {
+  return {
+    class: 'madoc-remote-selection',
+    style: `--madoc-remote-color: ${user.color ?? '#1f6feb'};`,
+  };
+}
 
 export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; user: User }) {
   const initial = useMarkdown(item.id); const mutations = useWorkspaceMutations(item.workspaceId);
@@ -64,7 +84,10 @@ export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; u
       const payload = await initialReady;
       if (destroyed) return;
       crepe.editor.action((ctx) => {
-        const service = ctx.get(collabServiceCtx).bindDoc(doc).setAwareness(awareness);
+        const service = ctx.get(collabServiceCtx)
+          .setOptions({ yCursorOpts: { cursorBuilder: buildRemoteCursor, selectionBuilder: buildRemoteSelection } })
+          .bindDoc(doc)
+          .setAwareness(awareness);
         service.connect();
         if (doc.getXmlFragment('prosemirror').length === 0 && payload.markdown) service.applyTemplate(payload.markdown);
       });

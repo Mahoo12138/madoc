@@ -22,3 +22,35 @@ globalStyle('.milkdown .ProseMirror h1', { fontSize: '32px', lineHeight: '1.2', 
 globalStyle('.milkdown .ProseMirror h2', { fontSize: '24px', lineHeight: '1.3', letterSpacing: '-0.018em' });
 globalStyle('.milkdown .ProseMirror pre', { borderRadius: '10px', overflowX: 'auto' });
 globalStyle('.milkdown .ProseMirror img', { maxWidth: '100%', borderRadius: '8px' });
+globalStyle('.milkdown .ProseMirror .madoc-remote-cursor', {
+  display: 'inline-block',
+  position: 'relative',
+  width: 0,
+  height: '1.35em',
+  marginLeft: -1,
+  borderLeft: '2px solid var(--madoc-remote-color, var(--mantine-primary-color-filled))',
+  verticalAlign: 'text-bottom',
+  pointerEvents: 'none',
+  zIndex: 1,
+});
+globalStyle('.milkdown .ProseMirror .madoc-remote-cursor-label', {
+  position: 'absolute',
+  top: '-1.65em',
+  left: -1,
+  display: 'block',
+  padding: '2px 5px',
+  border: '1px solid var(--madoc-remote-color, var(--mantine-primary-color-filled))',
+  borderRadius: '4px',
+  background: 'var(--mantine-color-dark-7)',
+  color: 'var(--mantine-color-white)',
+  fontFamily: 'var(--mantine-font-family)',
+  fontSize: '10px',
+  fontWeight: 600,
+  lineHeight: 1.2,
+  whiteSpace: 'nowrap',
+  pointerEvents: 'none',
+});
+globalStyle('.milkdown .ProseMirror .madoc-remote-selection', {
+  background: 'color-mix(in srgb, var(--madoc-remote-color, var(--mantine-primary-color-filled)), transparent 88%)',
+  borderBottom: '2px solid color-mix(in srgb, var(--madoc-remote-color, var(--mantine-primary-color-filled)), transparent 55%)',
+});
