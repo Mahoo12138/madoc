@@ -4,6 +4,26 @@
 
 这些项目是实现参考，不代表 madoc 要复制其整个架构。
 
+## Mantine
+
+- https://mantine.dev/
+- https://mantine.dev/theming/theme-object/
+- https://mantine.dev/styles/css-variables/
+
+在 madoc 中：
+
+- Mantine 负责基础 UI primitive；
+- Mantine Theme 是基础设计 token；
+- Vanilla Extract 负责应用级定制布局和视觉；
+- 优先消费 Mantine CSS variables，避免维护第二套完整 token。
+
+## Vanilla Extract
+
+- https://vanilla-extract.style/
+
+主要用于 madoc 的 Workspace Shell、复杂布局、响应式和产品级定制样式。
+
+
 ## Milkdown
 
 主页 / Docs：

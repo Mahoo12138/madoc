@@ -99,7 +99,8 @@ Invite：
 ```text
 GET  /api/workspaces/:workspaceId/invites
 POST /api/workspaces/:workspaceId/invites
-POST /api/invites/:inviteId/accept
+GET  /api/invites/:token
+POST /api/invites/:token/accept
 DELETE /api/workspaces/:workspaceId/invites/:inviteId
 ```
 
@@ -184,7 +185,10 @@ Markdown 图片如果直接 `<img src="/api/assets/id">`，浏览器自然携带
 
 ```text
 GET /api/items/:itemId/whiteboard
+PUT /api/items/:itemId/whiteboard
 ```
+
+单人 REST 更新携带 `baseRevision`；revision 冲突返回 `409`。协作中的 scene update 走 WebSocket。
 
 主要编辑同步仍走 WebSocket。
 

@@ -46,6 +46,7 @@ Workspace
 | Frontend | React 18+ + TypeScript |
 | Router | TanStack Router |
 | Server State | TanStack Query |
+| UI Components | Mantine |
 | Styling | Vanilla Extract |
 | Markdown Editor | Milkdown / Crepe |
 | Markdown Collaboration | Yjs + `@milkdown/plugin-collab` + madoc provider |
@@ -65,7 +66,8 @@ Workspace
 3. **Go 后端保持内容尽量“盲”。** Markdown Yjs update 由浏览器产生和合并，Go 负责权限、sequence、relay、persistence。
 4. **Markdown 是可移植格式，但实时协作的 canonical state 是 Yjs。** 服务端同时维护可导出的 Markdown cache。
 5. **不要为了技术统一造新的 BlockSuite。** 编辑器与白板是两个独立内容引擎，共享 Workspace、权限、资产、实时连接和应用 Shell。
-6. **先做小而完整的 MVP，再扩展。**
+6. **Mantine 与 Vanilla Extract 分工明确。** Mantine 负责成熟的通用 UI primitive 与交互组件；Vanilla Extract 负责 madoc 自己的产品级布局、视觉语言和复杂页面样式。不要重复实现 Mantine 已经成熟提供的基础组件，也不要维护第二套平行 Design Token。
+7. **先做小而完整的 MVP，再扩展。**
 
 ## MVP
 
@@ -108,7 +110,7 @@ Workspace
 - [PLAN.md](./PLAN.md)：MVP 实施计划
 - [STATUS.md](./STATUS.md)：当前迁移状态
 - [BUILD.md](./BUILD.md)：开发、构建与部署
-- [CODEX.md](./CODEX.md)：交给 Codex / ChatGPT Work 的执行约束
+- [AGENTS.md](./AGENTS.md)：仓库实现约束
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)：总体架构
 - [docs/EDITOR.md](./docs/EDITOR.md)：Markdown 编辑器设计
 - [docs/WHITEBOARD.md](./docs/WHITEBOARD.md)：白板设计

@@ -4,7 +4,7 @@
 
 这是 MVP 阶段内部的一次架构重置，不是正式版本升级。
 
-旧 MVP 路线的核心假设：
+旧原型路线的核心假设：
 
 > AFFiNE frontend + BlockSuite + AFFiNE-compatible backend.
 
@@ -29,11 +29,8 @@ main.go                 # 启动框架保留，route 重写
 
 internal/auth/
   password.go
-  session.go            # session model 简化后重写 repo binding
-  middleware.go
-  handler.go
-  setup.go
-  csrf.go               # header/cookie 命名去 AFFiNE
+  service.go            # session、setup、sign-in
+  http.go               # auth middleware 与 CSRF
 
 internal/db/db.go
 
@@ -95,7 +92,7 @@ editor UI
 预期移除：
 
 ```text
-github.com/zishang520/socket.io/旧 MVP 路线
+github.com/zishang520/socket.io/v2
 ```
 
 以及由它带来的 Engine.IO / WebTransport 依赖。
@@ -141,7 +138,7 @@ y-prosemirror
 
 ### Step A
 
-创建新 MVP 表，旧表原样保留。
+创建 canonical MVP 表，旧表原样保留。
 
 ### Step B
 
@@ -154,8 +151,8 @@ y-prosemirror
 若发现 legacy tables：
 
 ```text
-Legacy madoc 旧 MVP 路线 data detected.
-The 新 MVP runtime does not automatically convert AFFiNE/BlockSuite documents.
+Legacy madoc development data detected.
+The MVP runtime does not automatically convert AFFiNE/BlockSuite documents.
 Back up the database before removing legacy data.
 ```
 
@@ -180,8 +177,8 @@ madoc maintenance legacy-clean
 
 但字段 semantics 不同：
 
-- session 旧 MVP 路线 是 AFFiNE-style multi-user container；
-- role 旧 MVP 路线 是 numeric AFFiNE role；
+- session 在旧原型中是 AFFiNE-style multi-user container；
+- role 在旧原型中是 numeric AFFiNE role；
 - MVP role 是 owner/editor/viewer。
 
 如果项目尚无需要保留的真实数据，代码可以只保留 migration utility 设计而不投入大量时间做完整转换。
@@ -225,7 +222,7 @@ AFFiNE Edgeless ≠ Excalidraw scene。
 建议在 reset 前：
 
 ```sh
-git tag pre-MVP-affine-port
+git tag pre-mvp-affine-port
 ```
 
 这样旧实现仍可审阅和提取代码。
@@ -235,7 +232,7 @@ git tag pre-MVP-affine-port
 ```text
 docs: define MVP architecture
 
-chore: tag and preserve 旧 MVP 基线
+chore: tag and preserve pre-reset baseline
 
 refactor: remove affine graphql compatibility
 

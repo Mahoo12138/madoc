@@ -11,4 +11,10 @@
 /web/dist/*
 !/web/dist/.gitkeep
 node_modules
+*.tsbuildinfo
+/web/public/excalidraw-assets/
+/web/test-results/
+/web/playwright-report/
+/data/
 /tmp/
+.DS_Store

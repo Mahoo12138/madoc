@@ -161,7 +161,88 @@ MVP 不能因为旧代码已经存在而恢复这些方向：
 - cloud/local workspace mode；
 - 插件市场。
 
-## 10. 成功标准
+
+## 10. 前端设计系统
+
+madoc MVP 的基础 UI 技术栈固定为：
+
+```text
+React + TypeScript
+├── Vite
+├── TanStack Router
+├── TanStack Query
+├── Mantine
+└── Vanilla Extract
+```
+
+职责边界：
+
+### Mantine
+
+负责成熟、通用、可复用的 UI primitive 与交互组件，例如：
+
+- Button
+- ActionIcon
+- TextInput
+- Select
+- Menu
+- Popover
+- Tooltip
+- Modal
+- Drawer
+- Tabs
+- Avatar
+- Badge
+- Loader
+- Notification
+- Form controls
+
+原则：
+
+> Mantine 已经成熟提供的通用 UI，不再自行从零实现。
+
+### Vanilla Extract
+
+负责产品级样式：
+
+- Workspace Shell；
+- Sidebar；
+- Item Tree；
+- Markdown 编辑器布局；
+- Whiteboard 布局；
+- 页面间距；
+- Responsive；
+- 自定义状态；
+- 动效；
+- madoc 品牌视觉；
+- Mantine 无法覆盖的定制样式。
+
+### Design Token
+
+**不维护第二套平行 token。**
+
+Mantine Theme 是基础设计系统。Vanilla Extract 应尽量消费 Mantine 暴露的 CSS variables，例如：
+
+```css
+var(--mantine-color-gray-1)
+var(--mantine-color-gray-6)
+var(--mantine-primary-color-filled)
+var(--mantine-radius-md)
+```
+
+不要再另外建立一整套：
+
+```text
+madocGray100
+madocGray200
+madocBlue500
+...
+```
+
+Milkdown 与 Excalidraw 的视觉适配也应尽量映射到同一套 Mantine Theme / CSS Variables。
+
+
+## 11. 成功标准
 
 madoc 的成功不是“实现了 AFFiNE 百分之多少”，而是：
 

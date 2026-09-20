@@ -2,7 +2,7 @@
 
 ## 0. 总原则
 
-本计划是一次架构重置，不是对 AFFiNE-compatible 旧 MVP 路线 的继续补全。
+本计划是一次架构重置，不再继续补全旧的 AFFiNE-compatible 原型路线。
 
 执行顺序必须是：
 
@@ -56,7 +56,7 @@
 - `@madoc/doc` 旧 AFFiNE doc model；
 - `@madoc/editor` / BlockSuite 旧实现；
 - `@blocksuite/*` 依赖；
-- `github.com/zishang520/socket.io/旧 MVP 路线`；
+- `github.com/zishang520/socket.io/v2`；
 - `x-affine-*` 命名。
 
 保留并整理：
@@ -123,6 +123,7 @@ REST API 按 `docs/API.md` 建立。
 - Vite；
 - TanStack Router；
 - TanStack Query；
+- Mantine；
 - Vanilla Extract。
 
 重建：
@@ -140,7 +141,10 @@ REST API 按 `docs/API.md` 建立。
 - 不从 AFFiNE UI 搬运大块组件树；
 - Route component 不允许继续增长为 4–7 万字节的大文件；
 - 页面只负责 composition；
-- API、业务状态、UI component 分层。
+- API、业务状态、UI component 分层；
+- 通用交互组件优先使用 Mantine；
+- 产品级布局和定制视觉使用 Vanilla Extract；
+- 不建立与 Mantine Theme 平行的第二套 Design Token。
 
 推荐：
 

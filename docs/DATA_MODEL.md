@@ -232,7 +232,7 @@ PRAGMA user_version;
 ```text
 internal/db/migrations/
 ├── 0001_legacy_baseline.sql
-├── 0002_MVP_core.sql
+├── 0002_mvp_core.sql
 └── ...
 ```
 

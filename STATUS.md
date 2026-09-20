@@ -4,69 +4,56 @@
 
 ## 当前结论
 
-项目仍处于 MVP 阶段。当前仅调整 MVP 的技术路线：从“基于 AFFiNE 0.26.x 整体移植到 Go + SQLite”切换为：
+项目仍处于 MVP 阶段。本轮工作是内部架构重构，不是正式版本升级，也不引入公开 API 版本号。
 
-> Lightweight self-hosted collaborative Markdown workspace.
+madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Workspace：Go 单二进制、SQLite、本地 Asset、REST、原生 WebSocket、Milkdown/Crepe 和 Excalidraw。
 
-旧 旧 MVP 代码已经完成了大量 AFFiNE compatibility 工作，但 MVP 明确停止继续扩展该兼容层。
+## 已完成
 
-## 已存在且可复用的基础
+- [x] 为基线提交 `4657ab6` 创建 `pre-mvp-affine-port` tag
+- [x] 删除 GraphQL、Socket.IO、`space:*` / `realtime:*` compatibility
+- [x] 删除 BlockSuite、`@madoc/doc`、`@madoc/editor`
+- [x] 建立事务化 `schema_migrations` 与 canonical MVP schema
+- [x] 启动时拒绝 legacy schema，不自动删除旧表
+- [x] 提供显式 `maintenance legacy-clean --confirm`
+- [x] 建立 User、Session、Workspace、Membership、Invite、Item、Asset 数据模块
+- [x] 建立统一 `/api` REST error envelope、session 与 CSRF
+- [x] 建立 owner/editor/viewer 权限、最后 owner 与 Workspace 隔离
+- [x] 建立 folder/markdown/whiteboard Item tree 与安全移动
+- [x] 使用 `github.com/coder/websocket` 建立 multiplex realtime hub
+- [x] 建立 Mantine + Vanilla Extract Workspace Shell
+- [x] 接入 Milkdown/Crepe、Yjs、Markdown cache、ACK、重连与 compaction
+- [x] 接入 `.md` 导入/导出和私有图片上传
+- [x] 接入 Excalidraw scene persistence、revision CAS、element reconciliation 与导出
+- [x] 接入 Whiteboard room、presence、remote pointer 与 durable scene update
+- [x] 自托管 Excalidraw 字体与静态资源
+- [x] 建立 `/healthz`、安全 header、Origin 校验、消息大小限制与 graceful shutdown
+- [x] 建立一致性备份、验证与可回滚恢复命令
+- [x] 更新 Vite proxy、Docker、`go:embed` 与数据目录说明
 
-- Go + chi 应用骨架；
-- SQLite + WAL；
-- `modernc.org/sqlite`；
-- Email + Password；
-- Session；
-- CSRF 基础；
-- 首次初始化管理员概念；
-- Workspace / User 的部分 repository 代码；
-- Vite；
-- React；
-- TanStack Router；
-- TanStack Query；
-- Vanilla Extract；
-- `go:embed`；
-- Docker / dev script 基础。
+## 当前验证
 
-## 当前 legacy 架构
+- `go test ./...`：通过
+- `go test -race ./...`：通过
+- `go vet ./...`：通过
+- `pnpm --dir web typecheck`：通过
+- `pnpm --dir web build`：通过
+- Playwright 首次启动、邀请注册、双窗口 Markdown、双窗口 Whiteboard 与导出：通过
+- 浏览器深链接刷新、Markdown 单次初始化、桌面和移动端 Workspace Shell：通过
+- Docker image、`/healthz`、数据卷、secret `0600`：通过
+- SQLite、Asset、server secret 备份及恢复回滚：通过
 
-现有代码仍包括：
+## 发布门槛
 
-- 15 张 AFFiNE 映射表；
-- `internal/graphql/handler.go` AFFiNE-compatible GraphQL；
-- Socket.IO `space:*`；
-- `realtime:*` compatibility；
-- snapshot / updates AFFiNE semantics；
-- BlockSuite-based frontend package；
-- License / Git / Notification 等 compatibility stub。
+- [x] `go test ./...`
+- [x] `go test -race ./...`
+- [x] `go vet ./...`
+- [x] 前端 typecheck 与 production build
+- [x] Docker image 与持久卷 smoke test
+- [x] 备份 / 恢复端到端 smoke test
+- [x] 双窗口 Markdown / Whiteboard 协作回归
+- [x] Playwright 核心流程自动化
 
-这些属于待迁移范围，不再视为 MVP 产品能力。
+## 明确不进入当前 MVP
 
-## 当前 MVP 目标状态
-
-- [ ] 删除 GraphQL compatibility
-- [ ] 删除 AFFiNE Socket.IO protocol
-- [ ] 删除 BlockSuite
-- [ ] 删除 AFFiNE schema coupling
-- [ ] 建立 MVP schema
-- [ ] 建立 REST API
-- [ ] 建立 native WebSocket hub
-- [ ] 重建 Workspace Shell
-- [ ] Milkdown / Crepe
-- [ ] Yjs Markdown collaboration
-- [ ] Excalidraw
-- [ ] Whiteboard collaboration
-- [ ] MVP deployment / backup verification
-
-## 数据迁移状态
-
-MVP 重构初期不能自动删除旧 AFFiNE-compatible tables。
-
-旧数据的原则：
-
-- 若只是开发测试数据，可在人工确认后清理；
-- 若存在真实内容，必须先备份；
-- BlockSuite Yjs 文档不能被假定为标准 Markdown；
-- 若必须保留旧文档，应先做一次性 legacy exporter，而不是把 legacy runtime 永久留在 MVP。
-
-详见 `docs/MIGRATION.md`。
+AI、Calendar、Database/Kanban、Git、WebDAV、公开发布、插件系统以及 AFFiNE/BlockSuite 内容转换器均不在当前范围。

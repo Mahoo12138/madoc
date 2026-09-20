@@ -73,7 +73,7 @@ $MADOC_DATA/
 ├── madoc.db
 ├── assets/
 │   └── <workspace-id>/
-└── backups/
+└── server.secret
 ```
 
 默认：
@@ -92,7 +92,7 @@ $MADOC_DATA/
 | `MADOC_DEV` | unset | Development mode |
 | `MADOC_MAX_UPLOAD_MB` | `20` | 单文件上传限制 |
 
-生产环境中的 secret（session / CSRF）不得硬编码在 `main.go`。若未配置，应在首次启动时生成并持久化到 data directory 或 server config table。
+首次启动会生成 `$MADOC_DATA/server.secret`，权限为 `0600`。该文件与数据库、Asset 一起构成可恢复备份，不能单独丢弃。
 
 ## SQLite
 
@@ -134,10 +134,20 @@ docker run -d \
 
 不要仅复制处于活跃 WAL 写入状态的 `.db` 主文件并认为备份完整。
 
-MVP 可以提供：
+停止 madoc 进程后执行：
 
-1. 停服备份；
-2. SQLite online backup / `VACUUM INTO` 路线；
-3. assets directory archive。
+```sh
+madoc maintenance backup
+```
+
+命令会先执行 WAL checkpoint，再将 `madoc.db`、`assets/` 和 `server.secret` 复制到 `$MADOC_DATA/backups/backup-*`，并对备份数据库执行 `PRAGMA quick_check`。该目录位于 Docker 数据卷内；请再把需要长期保留的备份复制到卷外存储。
+
+恢复前同样先停止 madoc：
+
+```sh
+madoc maintenance restore /path/to/backup-directory --confirm
+```
+
+恢复命令会先把当前数据库、Asset 和 server secret 保存到 `$MADOC_DATA/backups/pre-restore-*`；恢复失败时自动回滚，因此旧数据仍可找回。恢复完成后启动服务并检查 `/healthz`、登录、文档图片与白板。
 
 自动定时备份可以在 MVP 之后实现。

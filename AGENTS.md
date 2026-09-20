@@ -1,4 +1,4 @@
-# Codex / ChatGPT Work Instructions — madoc MVP
+# Work Instructions — madoc MVP
 
 本文是 MVP 编码时的执行约束。
 
@@ -96,9 +96,48 @@
 
 - React；
 - TypeScript；
+- Vite；
 - TanStack Router；
 - TanStack Query；
+- Mantine；
 - Vanilla Extract。
+
+### Mantine / Vanilla Extract 边界
+
+Mantine 负责基础 UI primitive 和成熟交互组件：
+
+- Button；
+- ActionIcon；
+- Input / Select；
+- Menu；
+- Popover；
+- Tooltip；
+- Modal；
+- Drawer；
+- Tabs；
+- Avatar；
+- Notification；
+- Form controls。
+
+Vanilla Extract 负责：
+
+- Workspace Shell；
+- Sidebar；
+- Item Tree；
+- 编辑器布局；
+- Whiteboard 布局；
+- 响应式；
+- madoc 自定义视觉；
+- Mantine 无法覆盖的复杂样式。
+
+规则：
+
+- Mantine 已提供的通用组件，不自行重复造轮子；
+- 不要为了简单布局滥用 Mantine style props，复杂页面样式统一进入 Vanilla Extract；
+- 不创建第二套完整的颜色、圆角、间距 token；
+- Mantine Theme 为基础 token source；
+- Vanilla Extract 优先消费 Mantine CSS variables；
+- Milkdown / Excalidraw 的自定义主题尽量映射到同一套 CSS variables。
 
 编辑器：
 

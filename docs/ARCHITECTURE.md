@@ -29,6 +29,8 @@
 
 ```text
 React Application Shell
+├── Mantine UI primitives
+├── Vanilla Extract application styling
 ├── Workspace
 ├── Item Tree
 ├── Markdown
@@ -110,7 +112,59 @@ Frontend 负责：
 
 这不是“把业务逻辑都放前端”，而是把编辑器特有的数据结构留在最理解它们的运行时。
 
-## 5. REST 与 Realtime 分离
+## 5. Frontend Design System
+
+前端 UI 分为两层：
+
+```text
+Mantine Theme
+     │
+     ├───────────────┐
+     ▼               ▼
+Mantine UI      Vanilla Extract
+Primitives      Application CSS
+```
+
+### Mantine
+
+负责成熟通用组件和交互状态：
+
+- form controls；
+- modal / drawer；
+- menu / popover / tooltip；
+- button / action icon；
+- avatar / badge / loader；
+- notification；
+- tabs 等。
+
+### Vanilla Extract
+
+负责：
+
+- Workspace Shell；
+- 页面布局；
+- Item Tree；
+- 编辑器和白板容器；
+- 复杂 responsive；
+- 产品视觉；
+- Mantine 组件之外的定制状态。
+
+### Token 规则
+
+Mantine Theme 是基础 token source。
+
+Vanilla Extract 不再定义一套完整平行 design token，而是优先使用 Mantine CSS variables。只有 Mantine 没有表达能力的 madoc-specific semantic token 才允许增加，例如：
+
+```text
+--madoc-editor-max-width
+--madoc-sidebar-width
+--madoc-canvas-grid-size
+```
+
+不能重新定义另一套完整的 gray / blue / radius / spacing scale。
+
+
+## 6. REST 与 Realtime 分离
 
 REST 适合：
 
@@ -132,7 +186,7 @@ WebSocket 适合：
 
 不要在 WebSocket 中重新复制全部 REST API。
 
-## 6. 单 WebSocket 连接
+## 7. 单 WebSocket 连接
 
 推荐每个浏览器 session 只维护一条：
 
@@ -160,7 +214,7 @@ leave board:<item-id>
 - 统一 presence；
 - 更容易实现 graceful shutdown。
 
-## 7. Native WebSocket
+## 8. Native WebSocket
 
 MVP 删除 Socket.IO。
 
@@ -175,7 +229,7 @@ Go 推荐 `github.com/coder/websocket`。
 
 MVP 可先使用 JSON envelope + base64 binary payload，换取可调试性。数据量验证后再决定是否切 binary framing。
 
-## 8. Dependency Direction
+## 9. Dependency Direction
 
 建议：
 
@@ -196,7 +250,7 @@ board adapter -> Excalidraw
 - Excalidraw adapter 依赖 Workspace 页面；
 - Milkdown provider 依赖具体 route。
 
-## 9. Deployment
+## 10. Deployment
 
 生产：
 
@@ -212,7 +266,7 @@ madoc binary
 
 Asset 使用文件系统，避免大 BLOB 让 SQLite 数据库膨胀。
 
-## 10. Scale Assumption
+## 11. Scale Assumption
 
 设计目标是单实例、小团队：
 
