@@ -1,100 +1,143 @@
-# madoc — selfhosted build
+# madoc MVP Build & Development
 
 ## Prerequisites
 
 - Go 1.25+
-- Node.js 20+ with corepack enabled
-- pnpm 9+ (`corepack enable && corepack install pnpm@latest`)
-- [air](https://github.com/air-verse/air) for Go hot reload: `go install github.com/air-verse/air@latest`
+- Node.js 20+
+- corepack
+- pnpm
+- 可选：air
 
-## Build locally
+## Development
+
+推荐保留两个进程：
+
+```text
+Browser :8080
+  ├─ Vite frontend
+  └─ /api + /ws proxy
+          ↓
+      Go :3000
+```
+
+建议命令：
 
 ```sh
-# frontend
+./dev.sh
+```
+
+后端：
+
+```sh
+MADOC_DEV=true MADOC_ADDR=:3000 air
+```
+
+前端：
+
+```sh
+cd web
+pnpm install
+pnpm dev
+```
+
+MVP Vite proxy 只需要：
+
+- `/api`
+- `/ws`
+- `/info` 或 `/healthz`
+
+删除：
+
+- `/graphql`
+- `/socket.io`
+
+## Production Build
+
+```sh
 cd web
 pnpm install --frozen-lockfile
 pnpm build
 cd ..
 
-# backend
-CGO_ENABLED=0 go build -ldflags="-s -w" -o madoc .
+CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o madoc .
 ```
+
+Go 使用 `go:embed` 嵌入 `web/dist`。
+
+## Runtime Data
+
+建议统一使用：
+
+```text
+$MADOC_DATA/
+├── madoc.db
+├── assets/
+│   └── <workspace-id>/
+└── backups/
+```
+
+默认：
+
+```text
+./data/
+```
+
+推荐环境变量：
+
+| Variable | Default | Description |
+|---|---|---|
+| `MADOC_DATA` | `./data` | 数据目录 |
+| `MADOC_DB` | `$MADOC_DATA/madoc.db` | 可选覆盖 DB |
+| `MADOC_ADDR` | `:3000` | Listen address |
+| `MADOC_DEV` | unset | Development mode |
+| `MADOC_MAX_UPLOAD_MB` | `20` | 单文件上传限制 |
+
+生产环境中的 secret（session / CSRF）不得硬编码在 `main.go`。若未配置，应在首次启动时生成并持久化到 data directory 或 server config table。
+
+## SQLite
+
+启动必须设置：
+
+```sql
+PRAGMA journal_mode = WAL;
+PRAGMA foreign_keys = ON;
+PRAGMA busy_timeout = 5000;
+```
+
+写入事务保持短小。
+
+不要把大文件内容塞入 SQLite。Asset 文件写本地文件系统，SQLite 只保存 metadata。
 
 ## Docker
 
+目标仍然是一个容器：
+
 ```sh
 docker build -t madoc .
-docker run -d -p 3000:3000 -v madoc-data:/data madoc
+docker run -d \
+  --name madoc \
+  -p 3000:3000 \
+  -v madoc-data:/data \
+  -e MADOC_DATA=/data \
+  madoc
 ```
 
-## Configuration
+不需要 PostgreSQL、Redis、MinIO。
 
-| Variable      | Default      | Description                            |
-|---------------|-------------|----------------------------------------|
-| `MADOC_DB`    | `madoc.db`  | SQLite database path                   |
-| `MADOC_ADDR`  | `:3000`     | Listen address                         |
-| `MADOC_DEV`   | (unset)     | Set to `true` to enable CORS for dev   |
+## Backup
 
-## Development
+最低可接受备份包含：
 
-### Development prerequisites
+- SQLite consistent backup；
+- `assets/`；
+- server secret/config。
 
-- Frontend dependencies installed (see First-time frontend install below)
+不要仅复制处于活跃 WAL 写入状态的 `.db` 主文件并认为备份完整。
 
-### Quick start (recommended)
+MVP 可以提供：
 
-```sh
-# Start both backend (hot reload) and frontend (dev server) together
-./dev.sh
-```
+1. 停服备份；
+2. SQLite online backup / `VACUUM INTO` 路线；
+3. assets directory archive。
 
-This starts:
-- **Backend**: `http://localhost:3000` (Go, with air hot reload, CORS enabled)
-- **Frontend**: `http://localhost:8080` (Vite dev server, proxies API calls to :3000)
-
-Open `http://localhost:8080` in your browser. The dev server serves `index.html`
-and proxies `/api`, `/graphql`, `/socket.io`, `/info` requests to the Go backend.
-
-### Start services individually
-
-```sh
-# Backend only (with hot reload via air)
-./dev.sh backend
-
-# Or manually:
-MADOC_DEV=true MADOC_ADDR=:3000 air
-
-# Frontend only (Vite dev server)
-./dev.sh frontend
-
-# Or manually:
-cd web && pnpm dev
-```
-
-### How dev mode works
-
-```
-Browser (localhost:8080)
-  │
-  ├── HTML/JS/CSS  ← Vite dev server (port 8080)
-  │
-  └── /api/*          ─┐
-      /graphql          ├──→ proxy → Go backend (port 3000)
-      /socket.io        │
-      /info            ─┘
-```
-
-- `MADOC_DEV=true` enables CORS headers on the Go backend
-- The Vite dev server proxy forwards API/WebSocket traffic to `localhost:3000`
-- Air watches `.go`, `.sql` files and rebuilds on change
-
-### First-time frontend install
-
-```sh
-cd web
-corepack enable
-corepack install pnpm@latest
-pnpm install
-```
-
-Data is stored in a SQLite file. No external database required.
+自动定时备份可以在 MVP 之后实现。

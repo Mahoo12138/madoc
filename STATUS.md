@@ -1,409 +1,72 @@
-# madoc 项目状态
-
-> 本文记录 [PLAN.md](./PLAN.md) 中各项任务的推进情况，以及项目整体状态和技术决策。
-
-## 构建与验证
-
-- 构建：`go build -o madoc.exe .` ✅
-- 当前全量测试：`go test ./...` ✅
-- 当前静态检查：`go vet ./...` ✅
-- Db 测试：`go test -timeout 30s -count=1 -v ./internal/db/` — 6/6 通过 ✅
-- 冒烟测试：info、setup admin、登录、GraphQL CRUD、blob 上传下载、Engine.IO 握手 — 全部通过 ✅
-- GraphQL Phase 3 测试：currentUser(token/features/quota)、publishDoc、revokePublicDoc、updateWorkspace、workspace(publicDocs) — 全部通过 ✅
-- GraphQL Phase 4：构建（`go build`）+ vet 通过 ✅
-- GraphQL Phase 5：构建 + vet + db 测试通过 ✅
-
----
-
-## Phase 0 — Go 基础设施（已完成）
-
-- SQLite 连接 + modernc.org/sqlite（无 CGO）
-- Schema：当前 15 张 AFFiNE 映射表（全部使用 `DATETIME` 类型，确保 time.Time 扫描正确）
-- `db.Repo`：Snapshot/Upsert、DocUpdate CRUD、Blob CRUD、Workspace/User 生命周期、AppConfig
-- 构建/测试通过
-
----
-
-## Phase 0.5 — 前端分支清理（已完成）
-
-- `web/` 独立 pnpm workspace，使用 Vite 构建到 `web/dist`
-- 删除所有 AI / 本地工作区 / 支付 / OAuth / 遥测相关源文件
-- Blocksuite 0.22.4 npm 依赖通过 SWC exclude 规则接入
-
----
-
-## Phase 1 — Go 后端核心（已完成）
-
-### Schema 清理
-- 删除旧表：`docs`、`doc_updates`、`doc_search`
-- 所有 `created_at` / `updated_at` / `expires_at` 从 `TEXT` 改为 `DATETIME`
-
-### Repo.go 重写
-- 新增 AFFiNE 风格 CRUD：Snapshot（upsert/get）、DocUpdate（append/list/count/delete-before）、Blob（create/get/delete）、WorkspacePage（upsert/get）、UserSnapshot（get/save）
-- `AppendUpdate` 使用 `time.RFC3339Nano` 获取毫秒级唯一时间戳
-
-### Auth 包 (`internal/auth/`)
-- `SessionManager`：crypto/rand 32 字节 session ID、30 天过期、SQLite 存储
-- `CSRFProtector`：gorilla/securecookie、csrf_token cookie + x-affine-csrf-token 头部验证
-- `password.go`：bcrypt hash/check
-- `middleware.go`：RequireAuth（阻断）、OptionalAuth（注入 user）、GetUser(ctx)
-- `handler.go`：Preflight / SignIn / SignOut / Session
-- `setup.go`：首次管理员创建 + 初始化守卫
-
-### GraphQL 包 (`internal/graphql/`)
-- 手写 pattern-match 执行器
-- 解析器：serverConfig、currentUser、workspaces、workspace(id)、appConfig、createWorkspace、deleteWorkspace
-
-### main.go 重构
-- 旧路由删除，新路由：`/info`、`/api/setup/create-admin-user`、auth REST、`POST /graphql`、`/*` SPA fallback
-
-### 旧代码清理
-- 删除 `internal/ws/`（hub、client、room、protocol）
-- 删除 `internal/api/docs.go`、`internal/api/ws.go`
-- 移除 `gorilla/websocket` 依赖（Phase 2 再引入）
-
----
-
-## Phase 2 — Socket.IO 同步引擎 + Blob 存储（已完成）
-
-### Socket.IO 服务端 — `github.com/zishang520/socket.io/v2`
-- 当前实现直接使用 `github.com/zishang520/socket.io/v2/socket`
-- 路由挂载：`/socket.io`
-- 支持 Socket.IO 客户端连接、事件 ACK、房间广播和断开清理
-
-### `internal/sync/` — 文档同步 + 在线感知 + 房间管理
-- `RoomManager`：按 workspace 隔离的房间，Peer 跟踪
-- `space:join`：加入 workspace 房间，返回 clientId
-- `space:leave`：离开房间
-- `space:push-doc-update`：追加 Yjs update 到 DB + 广播到房间
-- `space:load-doc`：返回该文档的 `snapshot` + ordered `updates`；`missing` 仅保留兼容，不再拼接多条 Yjs update
-- `space:load-doc-timestamps`：返回 `docId → 最新时间戳` 映射
-- `space:delete-doc`：删除文档所有 updates
-- `space:join-awareness` / `space:leave-awareness`：awareness 房间注册
-- `space:update-awareness`：fire-and-forget 广播给同房间其他人
-- `space:load-awarenesses`：请求房间内所有对端重新上报 awareness
-- 断开连接时清理房间
-
-### Blob 存储 — REST 上传下载 + GraphQL
-- `POST /api/workspaces/{workspaceId}/blobs/{key}` — 直传（可选 OptionalAuth）
-- `GET /api/workspaces/{workspaceId}/blobs/{key}` — 下载（公开）
-- GraphQL `createBlobUpload` 变更（返回 `{ method: "GRAPHQL" }`）
-- GraphQL `setBlob` 变更（支持 multipart/form-data Upload 标量）
-- GraphQL `completeBlobUpload` / `deleteBlob` / `listBlobs` / `workspaceBlobQuota` / `releaseDeletedBlobs`
-- multipart GraphQL 请求解析器，包含文件上传提取
-
-### DB 层新增
-- `blobs` 表新增 `data BLOB` 列
-- `DeleteUpdates(ctx, workspaceID, guid)`：删除文档所有 updates
-- `ListDocIDsByWorkspace(ctx, workspaceID)`：从 updates + snapshots 获取所有文档 ID
-- `ListBlobs(ctx, workspaceID)`：列出未删除的 blob
-- `CreateBlob` 新增 `data []byte` 参数
-
----
-
-## Phase 3 — 鉴权协议增强 + GraphQL 补全 + 快照压缩（已完成）
-
-### Socket.IO 鉴权（`internal/sync/server.go`）
-- 从 Socket.IO handshake cookie 提取 `sid` → `SessionManager.GetUserID()` → 映射当前连接用户 ID
-- `auth/middleware.go`：存储 `sessionID` 到 context，`GetSessionID(ctx)` 辅助函数
-- 空 cookie 或无效 session 时用户 ID 为空字符串（向后兼容）
-
-### `realtime:request` 协议（`internal/sync/server.go`）
-- `user.profile.get`：返回当前用户信息（id、name、email、avatarUrl、features）
-- `workspace.access.get`：返回用户在 workspace 的权限类型 + 接受状态
-- `workspace.config.get`：返回静态配置（enableSharing、enableUrlPreview 等）
-- `notification.count.get`：返回 `{ count: 0 }`（通知系统推迟）
-- 未知操作返回 `{ error: { name: "ERROR", message: "unknown op" } }`
-
-### `realtime:subscribe / unsubscribe` 协议（`internal/sync/server.go`）
-- `realtime:subscribe`：记录订阅，返回 `subscriptionId`
-- `realtime:unsubscribe`：取消订阅
-- 当前为桩实现，消息推送推迟到后续
-
-### GraphQL 补全（`internal/graphql/handler.go`、`internal/db/repo.go`）
-
-**`currentUser` 增强：**
-- `token { sessionToken }`：返回当前会话 token
-- `features`：返回空数组（自部署无特性开关）
-- `quota`：静态配额（blobLimit=100MB、storageQuota=1GB、memberLimit=10）
-- `quotaUsage`：静态用量
-- `settings`：静态通知偏好
-- `emailVerified`：默认 true
-- 兼容所有被前端 `getCurrentUserQuery`、`getCurrentUserFeaturesQuery`、`quotaQuery`、`getUserSettingsQuery` 等查询的字段
-
-**`workspace(id)` 嵌套字段：**
-- `publicDocs { id mode }`：返回已发布的公开文档列表
-- `doc(docId:) { id mode public title }`：返回单个文档的页面元数据
-- `quota`：静态配额
-- `subscription`、`calendars`、`byokSettings`、`commentChanges`：返回空桩
-- `resolveVar(vars, query, names...)` 辅助函数：兼容变量名别名（`id` / `workspaceId`、`docId` / `pageId`）
-
-**新增变更：**
-- `publishDoc(workspaceId, docId, mode)`：将文档设为公开
-- `revokePublicDoc(workspaceId, docId)`：撤销文档公开状态
-- `updateWorkspace(input: {id, public, name})`：更新工作区属性
-- `leaveWorkspace(workspaceId)`：移除当前用户的 workspace 权限
-
-**DB 层新增：**
-- `ListPublicDocsByWorkspace(ctx, workspaceID)`：列出公开文档
-- `UpdateWorkspace(ctx, id, public, name, avatarKey)`：更新工作区
-- `ListAllDocPairs(ctx)`：列出所有 (workspaceID, docID) 对（快照压缩使用）
-
-### 快照压缩（`internal/sync/server.go`、`main.go`）
-- 按数量触发：`push-doc-update` 后检查 updates 数量 ≥ 100，异步执行压缩
-- 定时触发：启动时 + 每小时扫描全量文档
-- 压缩策略：合并所有 updates blob → UpsertSnapshot → DeleteUpdatesBefore(最新时间戳)
-- `StartCompactionLoop()`：后台 goroutine，`main.go` 启动时调用
-
----
-
-## Phase 4 — 工作区增强 + 成员邀请（已完成）
-
-### `workspace(id)` 增强（`internal/graphql/handler.go`）
-- 重构 `workspaceResponse` → `workspaceDetail`，根据查询参数动态返回：
-  - `owner { id }`：从 `workspace_user_permissions type=100` 查找所有者
-  - `memberCount`：`COUNT(workspace_user_permissions)`
-  - `role`：当前用户的 role 字符串（Owner / Admin / Collaborator / External）
-  - `permissions`：基于 role 的权限 map（20 项权限布尔值）
-  - `team`：始终 `false`（自部署无 team 概念）
-  - `enableAi`、`enableSharing`、`enableUrlPreview`、`enableDocEmbedding`：读/写 `app_configs ws:{id}:config`
-
-### `workspaces` 列表增强
-- 列表项现包含 `owner { id }`、`team`、`role`、`memberCount`
-
-### `updateWorkspace` 增强
-- 支持 config 字段（`enableAi`、`enableSharing`、`enableUrlPreview`、`enableDocEmbedding`）
-- 配置以 JSON 形式持久化到 `app_configs` key `ws:{id}:config`
-- 返回完整 workspace detail
-
-### 成员邀请（`internal/db/repo.go` + `internal/graphql/handler.go`）
-- 新增 `workspace_invites` 表（id、workspace_id、email、inviter_id、status、created_at、updated_at）
-- DB 方法：`CreateWorkspaceInvite`、`GetWorkspaceInvite`、`UpdateWorkspaceInviteStatus`、`FindUserByEmail`、`ListWorkspaceInvites`
-- `inviteMembers(workspaceId, emails)`：创建邀请记录，返回 `[{ email, inviteId }]`
-- `acceptInviteById(workspaceId, inviteId)`：验证邮箱匹配 → 添加 `Collaborator` 权限 → 标记 `Accepted`
-- `getInviteInfo(inviteId)`：返回 `{ workspace { id name avatar }, user { id name avatarUrl }, status, invitee { id name email avatarUrl } }`
-- 额外 `acceptInviteByInviteId` 操作名别名兼容
-
-### Git / DocTree / Worktree 存根
-- 新增存根操作：`updateDocTree`、`regeneratePubToken`、`createWorktreeWorkspace`、`getGitStatus`、`gitAdd`、`gitStageFiles`、`gitCommit`、`gitPush`、`gitPull`、`gitDiff`、`gitLog`
-
-### License 存根（自部署无授权体系）
-- 前端调用的 `generateLicenseKey`、`activateLicense`、`deactivateLicense`、`installLicense`、`previewLicense` 返回空/不可用值
-- `workspace { license }` 始终返回 `null`
-
-### DB 层新增
-- `ListWorkspacePermissions`、`CountWorkspaceMembers`、`GetWorkspaceOwner`
-- `GetUserByID`（已有）、`FindUserByEmail`
-- 邀请方法（见上文）
-- `workspace_invites` 索引
-
----
-
-## Phase 5 — User & Admin APIs + Dockerfile（已完成）
-
-### Schema 扩展
-- `schema.sql` 新增 2 表：`user_features`、`user_access_tokens`，当前总数 15 张
-- `user_features`：user_id → feature name → activated 标识
-- `user_access_tokens`：带名称/令牌哈希/过期时间的个人访问令牌
-
-### DB 层新增（`internal/db/repo.go`）
-- `ListUsers(filter)` — 分页 + 关键词搜索（name/email LIKE）
-- `CountUsersFiltered(keyword)` — 搜索总数
-- `CreateUser` / `UpdateUser` / `DeleteUser` — 用户 CRUD
-- `ToggleUserDisabled` — 启用/禁用用户
-- `UpdateUserPassword` — 密码更新
-- `GetPublicUserByID` — 公开用户信息
-- `GetUserFeatures` / `SetUserFeature` — 特性标志管理
-- `CreateAccessToken` / `RevokeAccessToken` / `ListAccessTokens` — 访问令牌 CRUD
-
-### GraphQL 新增变更（`internal/graphql/handler.go`）
-
-**用户管理（管理员）：**
-- `listUsers(filter)` → 分页列表
-- `usersCount(filter)` → 列表总数
-- `users(filter)` → 别名
-- `userByEmail(email)` → 用户详情（含 features、hasPassword）
-- `user(email)` → 返回 UserType / LimitedUserType（兼容前端查询）
-- `publicUserById(id)` → 公开信息
-- `createUser(input)` → 带 bcrypt 密码哈希
-- `deleteUser(id)` / `banUser(id)` / `enableUser(id)` → 禁用/启用/删除
-- `importUsers(input)` → 批量导入，逐条错误报告
-- `updateUserFeatures(userId, features)` → 设置特性标志
-- `updateUser(id, input)` → 修改名称/邮箱
-
-**应用配置（管理员）：**
-- `updateAppConfig(updates)` → 写入 `app_configs`
-- `validateConfig(updates)` → 配置验证（直接返回 valid）
-
-**工作区成员管理：**
-- `revokeMemberPermission(workspaceId, userId)` → 移除权限
-- `approveWorkspaceTeamMember(workspaceId, userId)` → 批准成员
-- `grantWorkspaceTeamMember(workspaceId, userId, permission)` → 新增权限（Admin/Owner/External/Collaborator）
-
-**邀请链接：**
-- `createInviteLink(workspaceId)` → 生成短链接码（存 `app_configs`）
-- `revokeInviteLink(workspaceId)` → 清除链接码
-
-**用户自助：**
-- `uploadAvatar` / `removeAvatar` → 头像引用
-- `updateProfile(input)` → 修改名称
-- `updateSettings(input)` → 通知偏好（存 `app_configs`）
-- `changeEmail(email)` → 修改邮箱
-- `changePassword(userId, newPassword)` → 密码修改（含 bcrypt）
-- `deleteAccount` → 删除当前用户
-
-**访问令牌：**
-- `generateUserAccessToken(input)` → 生成 32 字节 hex token
-- `revokeUserAccessToken(id)` → 撤销令牌
-
-### Dockerfile + BUILD.md
-- `Dockerfile`：多阶段构建（node:20-alpine 前端 → golang:1.25-alpine 后端 → alpine:3.19 运行时）
-- `BUILD.md`：本地构建 + Docker 运行 + 环境变量参考
-
----
-
-## 技术决策
-
-### Yjs 策略 — Relay 模式
-服务端只存储和转发原始 Yjs update，不做 CRDT 理解。`load-doc` 返回 snapshot 和 ordered updates，客户端逐条应用；不能将多条 Yjs update 直接字节拼接为单条 update。
-
-### Socket.IO — 库实现
-当前使用 `github.com/zishang520/socket.io/v2`，避免维护自研 Engine.IO/Socket.IO 协议栈；`gorilla/websocket` 仅作为间接依赖存在。
-
-### Auth — 双层鉴权
-GraphQL 使用 `OptionalAuth` 中间件（`sid` cookie → `SessionManager.GetUserID`），Socket.IO 使用 `AuthFunc` 回调（同一机制），CSRF 保护变更端点。
-
-### Blob — GraphQL + REST 双通道
-上传可通过 REST POST 或 GraphQL `setBlob` multipart 变更，下载走 REST GET。不支持 presigned URL/S3。
-
-### 变量名兼容
-`resolveVar()` 辅助函数按优先级查找：直接变量键 → 查询语句中 `argName: $varName` 映射。支持别名如 `id`/`workspaceId`、`docId`/`pageId`，确保前后端 GraphQL 操作名差异不导致 400。
-
-### 前端图标 — 复用 Blocksuite
-工作区 UI 直接复用 AFFiNE 同源的 `@blocksuite/icons`，React 组件统一从 `@blocksuite/icons/rc` 导入。当前不再引入 `lucide-react`、`react-icons` 等第二套图标库，避免图标线宽、尺寸和依赖来源不一致。
-
-### 快照压缩 — 暂停服务端合并
-服务端没有 Yjs merge 实现，当前禁止把 updates 直接拼接后写入 snapshot。后续需要接 y-octo、纯 Go Yjs 库，或由客户端上传合法 merged snapshot。
-
-### 文档广播 — 仅单条发送
-仅支持 `space:broadcast-doc-update`（单条 update），不支持批量广播。
-
-### 路由汇总
-
-| 路由 | 用途 |
-|---|---|
-| `GET /socket.io/?EIO=4&transport=polling` | Engine.IO polling 握手 |
-| `POST /socket.io/?EIO=4&transport=polling` | Engine.IO polling 发送 |
-| `GET /socket.io/?EIO=4&transport=websocket` | Engine.IO WebSocket 升级 |
-| `POST /api/workspaces/{workspaceId}/blobs/{key}` | Blob 上传 |
-| `GET /api/workspaces/{workspaceId}/blobs/{key}` | Blob 下载 |
-| `POST /graphql` | GraphQL 端点（含 multipart） |
-| `GET /info` | 服务器信息 |
-
-### GraphQL 操作一览
-
-| 操作名 | 类型 | 说明 |
-|---|---|---|
-| `appConfig` | Query | 是否已初始化 |
-| `currentUser` | Query | 当前用户（含 token/features/quota/settings） |
-| `serverConfig` | Query | 服务器配置 |
-| `workspaces` | Query | 用户的工作区列表（含 owner/team/role/memberCount） |
-| `workspace(id)` | Query | 单个工作区（含 owner/role/permissions/license/config 等） |
-| `createWorkspace` | Mutation | 创建工作区 |
-| `deleteWorkspace` | Mutation | 删除工作区 |
-| `updateWorkspace` | Mutation | 更新工作区（public/name/config 字段） |
-| `publishDoc` | Mutation | 公开文档 |
-| `revokePublicDoc` | Mutation | 撤销文档公开 |
-| `leaveWorkspace` | Mutation | 退出工作区 |
-| `inviteMembers` | Mutation | 邀请成员（按邮箱） |
-| `acceptInviteById` / `acceptInviteByInviteId` | Mutation | 接受邀请 |
-| `getInviteInfo` | Query | 查询邀请信息 |
-| `updateDocTree` | Mutation | 更新文档树（存根） |
-| `regeneratePubToken` | Mutation | 重新生成公开 token（存根） |
-| `createWorktreeWorkspace` | Mutation | 创建工作树工作区（存根） |
-| `getGitStatus` | Query | Git 状态（存根） |
-| `gitAdd` | Mutation | Git add（存根） |
-| `gitStageFiles` | Mutation | Git stage（存根） |
-| `gitCommit` | Mutation | Git 提交（存根） |
-| `gitPush` | Mutation | Git 推送（存根） |
-| `gitPull` | Mutation | Git 拉取（存根） |
-| `gitDiff` | Query | Git diff（存根） |
-| `gitLog` | Query | Git 日志（存根） |
-| `generateLicenseKey` | Mutation | 生成授权密钥（存根） |
-| `activateLicense` | Mutation | 激活授权（存根） |
-| `deactivateLicense` | Mutation | 停用授权（存根） |
-| `installLicense` | Mutation | 安装授权文件（存根） |
-| `previewLicense` | Mutation | 预览授权（存根） |
-| `createBlobUpload` | Mutation | 创建 blob 上传 |
-| `setBlob` | Mutation | 上传 blob（支持 multipart） |
-| `completeBlobUpload` | Mutation | 完成上传 |
-| `deleteBlob` | Mutation | 删除 blob |
-| `listBlobs` | Query | 列出 blob |
-| `workspaceBlobQuota` | Query | 配额查询 |
-| `releaseDeletedBlobs` | Mutation | 释放已删除 blob |
-| `listUsers` / `users` / `usersCount` | Query | 分页用户列表（管理员） |
-| `userByEmail` / `user` | Query | 用户详情（管理员） |
-| `publicUserById` | Query | 公开用户信息 |
-| `createUser` | Mutation | 创建用户 |
-| `deleteUser` / `banUser` / `enableUser` | Mutation | 禁用/启用/删除用户 |
-| `importUsers` | Mutation | 批量导入用户 |
-| `updateUserFeatures` | Mutation | 设置用户特性标志 |
-| `updateUser` | Mutation | 修改用户名称/邮箱 |
-| `updateAppConfig` | Mutation | 更新应用配置 |
-| `validateConfig` | Mutation | 验证配置 |
-| `revokeMemberPermission` | Mutation | 移除工作区成员权限 |
-| `approveWorkspaceTeamMember` | Mutation | 批准工作区成员 |
-| `grantWorkspaceTeamMember` | Mutation | 授予工作区成员权限 |
-| `createInviteLink` | Mutation | 创建邀请链接 |
-| `revokeInviteLink` | Mutation | 撤销邀请链接 |
-| `uploadAvatar` / `removeAvatar` | Mutation | 头像管理 |
-| `updateProfile` | Mutation | 修改个人资料 |
-| `updateSettings` | Mutation | 更新通知偏好 |
-| `changeEmail` | Mutation | 修改邮箱 |
-| `changePassword` | Mutation | 修改密码 |
-| `deleteAccount` | Mutation | 删除账号 |
-| `generateUserAccessToken` | Mutation | 生成个人访问令牌 |
-| `revokeUserAccessToken` | Mutation | 撤销访问令牌 |
-
----
-
-## 推迟到后续
-
-- Yjs state vector diff 计算（服务端按需同步）
-- `space:broadcast-doc-updates`（批量广播）
-- Blob presigned URL / multipart 分片上传（用于 S3 兼容存储）
-- `telemetry:batch` 事件
-- `realtime:*` 消息推送（目前仅桩处理 subscribe/unsubscribe）
-- 快照历史 / 版本管理（`snapshot_histories` 表已就绪）
-- 通知系统（`notification.count.get` 返回 0）
-- 评论 / Calendar / BYOK / Copilot GraphQL 字段
-- `workspace(id)` 的 `blobs` 嵌套展开
-- 邀请链接 / 权限管理 GraphQL 字段（基本实现，可增强）
-- 管理员审计日志 / 操作记录
-
----
-
-## 主要文件索引
-
-| 文件 | 说明 |
-|---|---|
-| `main.go` | 入口，路由配置，go:embed 前端，快照压缩循环 |
-| `internal/db/schema.sql` | 15 张 AFFiNE 映射表（全部 DATETIME） |
-| `internal/db/repo.go` | 所有 CRUD（用户、会话、工作区、快照、更新、blob、页面、配置、邀请、doc pairs） |
-| `internal/db/db_test.go` | 数据库测试（6 个测试用例） |
-| `internal/auth/session.go` | SessionManager |
-| `internal/auth/middleware.go` | RequireAuth / OptionalAuth / GetUser / GetSessionID |
-| `internal/auth/handler.go` | AuthHandler（登录/登出/会话） |
-| `internal/auth/setup.go` | SetupHandler（创建管理员） |
-| `internal/auth/password.go` | bcrypt hash/check |
-| `internal/auth/csrf.go` | CSRFProtector |
-| `internal/graphql/handler.go` | GraphQL 执行器（pattern-match + multipart 解析 + 70+ 解析器） |
-| `internal/sync/server.go` | SyncServer（事件路由 + 房间管理 + realtime 协议 + 快照压缩） |
-| `internal/sync/room.go` | RoomManager + Peer/Room 定义 |
-| `Dockerfile` | 多阶段容器构建（web → backend → runtime） |
-| `BUILD.md` | 构建与运行说明 |
-| `go.mod` | 依赖：chi、sqlite、securecookie、socket.io、crypto/bcrypt |
-
----
-
-## 无阻塞项
+# madoc MVP Status
+
+更新时间：2026-09-20
+
+## 当前结论
+
+项目仍处于 MVP 阶段。当前仅调整 MVP 的技术路线：从“基于 AFFiNE 0.26.x 整体移植到 Go + SQLite”切换为：
+
+> Lightweight self-hosted collaborative Markdown workspace.
+
+旧 旧 MVP 代码已经完成了大量 AFFiNE compatibility 工作，但 MVP 明确停止继续扩展该兼容层。
+
+## 已存在且可复用的基础
+
+- Go + chi 应用骨架；
+- SQLite + WAL；
+- `modernc.org/sqlite`；
+- Email + Password；
+- Session；
+- CSRF 基础；
+- 首次初始化管理员概念；
+- Workspace / User 的部分 repository 代码；
+- Vite；
+- React；
+- TanStack Router；
+- TanStack Query；
+- Vanilla Extract；
+- `go:embed`；
+- Docker / dev script 基础。
+
+## 当前 legacy 架构
+
+现有代码仍包括：
+
+- 15 张 AFFiNE 映射表；
+- `internal/graphql/handler.go` AFFiNE-compatible GraphQL；
+- Socket.IO `space:*`；
+- `realtime:*` compatibility；
+- snapshot / updates AFFiNE semantics；
+- BlockSuite-based frontend package；
+- License / Git / Notification 等 compatibility stub。
+
+这些属于待迁移范围，不再视为 MVP 产品能力。
+
+## 当前 MVP 目标状态
+
+- [ ] 删除 GraphQL compatibility
+- [ ] 删除 AFFiNE Socket.IO protocol
+- [ ] 删除 BlockSuite
+- [ ] 删除 AFFiNE schema coupling
+- [ ] 建立 MVP schema
+- [ ] 建立 REST API
+- [ ] 建立 native WebSocket hub
+- [ ] 重建 Workspace Shell
+- [ ] Milkdown / Crepe
+- [ ] Yjs Markdown collaboration
+- [ ] Excalidraw
+- [ ] Whiteboard collaboration
+- [ ] MVP deployment / backup verification
+
+## 数据迁移状态
+
+MVP 重构初期不能自动删除旧 AFFiNE-compatible tables。
+
+旧数据的原则：
+
+- 若只是开发测试数据，可在人工确认后清理；
+- 若存在真实内容，必须先备份；
+- BlockSuite Yjs 文档不能被假定为标准 Markdown；
+- 若必须保留旧文档，应先做一次性 legacy exporter，而不是把 legacy runtime 永久留在 MVP。
+
+详见 `docs/MIGRATION.md`。

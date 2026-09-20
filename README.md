@@ -1,203 +1,125 @@
-# Project Spec: madoc (Open-Source Self-Hosted Collaborative Workspace)
+# madoc
 
-## 1. 项目简介
-madoc 是一款面向小团队（5-10人）和家庭的高效、轻量级、开源自部署协同文档/白板工具。
-基于 AFFiNE 0.26.x 整体移植到 Go + SQLite，走纯开源极客自部署路线。
-专注于实现"单二进制文件、开箱即用、极低内存占用、数据完全私有化"的极客部署体验。
+**madoc** 是一个面向个人、小团队和家庭的轻量级、开源、自部署协同 Markdown 工作区。
 
-## 2. 技术栈核心 (Tech Stack)
+项目仍处于 MVP 阶段，但 MVP 的实现路线不再以“将 AFFiNE 0.26.x 整体移植到 Go + SQLite”为目标。AFFiNE 仅作为产品体验和协同架构参考，不再作为前端代码基座、API 兼容目标或数据模型规范。
 
-| 组件 | AFFiNE 现状 | madoc 替代 |
-|------|-------------|-----------|
-| 运行时 | NestJS, `SERVER_FLAVOR=allinone` 单进程 | Go 单进程 |
-| 数据库 | PostgreSQL + Prisma ORM | SQLite + WAL (`modernc.org/sqlite`，纯 Go，无需 CGO) |
-| 缓存/消息 | Redis (pub/sub + cache + mutex) | 内存 (进程内 channel) |
-| 对象存储 | S3/R2 (blob) | 本地文件系统 |
-| 实时同步 | Socket.io (非裸 WebSocket) | Go Socket.io 库 (`github.com/zishang520/socket.io/v2`) |
-| API | GraphQL (NestJS @Resolver) + REST | gqlgen (schema-first) + chi |
-| 认证 | Cookie-based session + CSRF | 同样 cookie session (`gorilla/securecookie`) |
-| 密码 | bcrypt | `golang.org/x/crypto/bcrypt` |
-| 前端 | `@affine/web` | Fork 为 `@madoc/web`，裁剪定制 |
+当前 MVP 只聚焦两类内容：
 
-核心编辑器：**BlockSuite**（Document 文档、Edgeless 白板、Database 数据表）
-协同算法：**Yjs (CRDT)**，协同逻辑完全运行在前端（浏览器）
-静态资源：使用 `go:embed` 内嵌前端构建产物，编译为单二进制
+- **Markdown Document**：接近 Typora 的所见即所得 Markdown 编辑体验，并支持多人实时协作。
+- **Whiteboard**：基于 Excalidraw 的在线白板，并支持多人实时协作。
 
----
+## 产品目标
 
-## 3. 核心架构与数据流 (Architecture & Data Flow)
-后端对 Yjs 的文档内容保持"内容盲人"状态，不解析富文本，只做二进制流的转发与顺序存储。
+madoc 希望提供一种比 AFFiNE、Notion 类产品更克制的自部署体验：
 
-### A. 实时协同流 (Socket.io)
+- 单机即可运行；
+- 默认 SQLite；
+- 不依赖 PostgreSQL、Redis、S3；
+- Go 后端；
+- React + TypeScript 前端；
+- 尽量保持单二进制分发；
+- 数据完全由部署者掌控；
+- 优先服务 5–10 人的小型协作场景；
+- 不追求“全能工作空间”。
 
-前端使用 `socket.io-client` 连接（**不是裸 WebSocket**），消息格式为 JSON + base64 编码的 Yjs 二进制。
+核心产品体验应当是：
 
-**核心事件：**
-| 事件 | 方向 | 载荷 | 说明 |
-|------|------|------|------|
-| `space:join` | C→S | `{ spaceType, spaceId, clientVersion }` | 加入房间 |
-| `space:leave` | C→S | — | 离开房间 |
-| `space:load-doc` | C→S | `{ spaceType, spaceId, docId, stateVector? }` | 返回 `{ snapshot, updates, state, timestamp }`，`missing` 仅保留兼容 |
-| `space:push-doc-update` | C→S | `{ spaceType, spaceId, docId, update:"base64" }` | 返回 `{ timestamp }` |
-| `space:broadcast-doc-update` | S→C | — | 服务端广播给房间内其他客户端 |
-| `space:load-doc-timestamps` | C→S | — | 批量获取文档时间戳 |
-| `space:join-awareness` / `space:update-awareness` / `space:load-awarenesses` | 双向 | — | 光标/在线状态 |
-
-SpaceType: `workspace` | `userspace`
-
-**数据流：**
-1. 客户端 A 修改文档 → BlockSuite/Yjs 生成二进制 `Update` → 通过 Socket.io `space:push-doc-update` 发送给 Go 后端。
-2. Go 后端收到后执行两步：
-   - **广播**: 通过 `space:broadcast-doc-update` 转发给同房间其他客户端。
-   - **落库**: 将 base64 解码后的二进制 `Update` 写入 SQLite 的 `updates` 表（顺序追加）。
-
-### B. 状态初始化与瘦身 (Snapshot & Compaction)
-1. 客户端打开文档 → 发送 `space:load-doc` 事件。
-2. Go 从 SQLite 读取最新的 `Snapshot` + ordered `Updates`，分别以 base64 返回；不能把多条 Yjs update 直接字节拼接成一条 update。
-3. 前端先应用 `snapshot`，再按顺序逐条应用 `updates`，渲染出最终界面。
-4. **瘦身策略**: 服务端暂不做 Yjs 合并压缩，后续接 y-octo、纯 Go Yjs 库，或由客户端上传合法 merged snapshot。
-
-### C. 认证流程
-- Cookie-based session: HTTPOnly cookie `sid` + CSRF header `x-affine-csrf-token`
-- selfhost 初始化: 首次访问跳转 setup 页面 → `POST /api/setup/create-admin-user` 创建管理员
-- 仅支持 email + password 登录，不实现 OAuth / Magic link
-
-### D. 用户注册策略
-- 可配置：管理员可通过 `appConfig` 控制是否允许自助注册，默认关闭（仅邀请制）
-- 默认流程：管理员/工作区 Owner 邀请 → 被邀请人通过链接设置密码 → 加入工作区
-- 可选：开启后任何人可通过注册页面创建账号
-
----
-
-## 4. API 设计
-
-### REST 端点 (MVP 子集)
-
-| 方法 | 路径 | 用途 |
-|------|------|------|
-| GET | `/info` | 服务器版本信息 |
-| POST | `/api/setup/create-admin-user` | selfhost 初始化管理员 |
-| POST | `/api/auth/preflight` | 检查邮箱注册状态 |
-| POST | `/api/auth/sign-in` | 登录 (email + password) |
-| POST | `/api/auth/sign-out` | 登出 |
-| GET | `/api/auth/session` | 获取当前会话/用户 |
-| GET | `/api/auth/sessions` | 列出当前 session 中的用户 |
-| GET | `/api/workspaces/:id/blobs/:name` | 下载 blob |
-| GET | `/api/workspaces/:id/docs/:guid` | 获取文档二进制 |
-| GET | `/api/workspaces/:id/docs/:guid/histories/:ts` | 历史快照 |
-| GET | `/api/avatars/:id` | 用户头像 |
-| GET | `/api/worker/image-proxy` | 图片代理 |
-
-### GraphQL (gqlgen, schema-first)
-
-从 AFFiNE 的 `schema.gql` 裁剪出 MVP 子集，用 gqlgen 生成 Go 代码。
-
-**Queries:**
-- `serverConfig` — 服务器配置（版本、功能开关、认证要求；关闭 payment/copilot/oauth）
-- `currentUser` — 当前登录用户
-- `workspaces` — 用户的所有工作区
-- `workspace(id)` — 单个工作区详情（成员、权限、配额）
-- `appConfig` — 应用配置
-
-**Mutations:**
-- `createWorkspace(init)` — 创建工作区（init 是可选的初始 Yjs binary upload）
-- `deleteWorkspace` — 删除工作区
-- `createBlobUpload` / `completeBlobUpload` / `abortBlobUpload` — blob 上传流程
-- `deleteBlob` — 删除 blob
-- `invite` / `acceptInviteById` / `leaveWorkspace` — 成员管理（Phase 2）
-
----
-
-## 5. 数据库设计 (SQLite Schema)
-
-强制开启 WAL 模式。从 AFFiNE 的 Prisma 模型映射 12 张表：
-
-| Prisma Model | SQLite 表名 | 关键字段 |
-|--------------|------------|---------|
-| User | users | id, name, email, password, avatar_url, registered, disabled |
-| Session | sessions | id, created_at |
-| UserSession | user_sessions | id, session_id, user_id, expires_at |
-| Workspace | workspaces | id, public, name, avatar_key, created_at |
-| WorkspaceUserRole | workspace_user_permissions | workspace_id, user_id, type(role), status |
-| WorkspaceDoc | workspace_pages | workspace_id, doc_id, public, mode, title |
-| Snapshot | snapshots | workspace_id, guid, blob, state, updated_at, created_by, updated_by |
-| Update | updates | workspace_id, guid, blob, created_at, created_by |
-| SnapshotHistory | snapshot_histories | workspace_id, guid, timestamp, blob, state, expired_at |
-| UserSnapshot | user_snapshots | user_id, id, blob |
-| Blob | blobs | workspace_id, key, size, mime, status |
-| AppConfig | app_configs | id, value(JSON) |
-
-**MVP 不需要的表：** ConnectedAccount, VerificationToken, MagicLinkOtp, WorkspaceFeature, WorkspaceDocUserRole, 所有 AI/Copilot/Payment/Calendar/Notification/Comment 表
-
----
-
-## 6. 前端方案 (Fork @affine/web → @madoc/web)
-
-- **源码位置**：从 AFFiNE `packages/frontend/apps/web` 及其依赖整理到 `web/`（madoc 仓库内独立管理）
-- **结构**：保留 monorepo 结构（pnpm workspace），保留必要的内部包（core、env、graphql、blocksuite 等），改动最小，方便跟踪上游更新
-- **参考源码**：`AFFiNE/` 或 `AFFiNE-*` 仅用于开发参考，已在 `.gitignore` 中排除，不入仓库
-- **包管理器**：pnpm
-- **构建**：SPA 入口 `index.html`，构建产物输出到 `web/dist/`（`cd web && pnpm install && pnpm build`）
-- **裁剪清单**：
-  - 删除 AI/Copilot 相关 UI（侧栏 AI 按钮、chat panel、AI actions）
-  - 删除 cloud/local 工作区切换——所有工作区强制走服务端同步，移除 IndexedDB 本地工作区入口
-  - 删除订阅/付费相关 UI（升级提示、plan 页面、价格弹窗）
-  - 删除 OAuth 登录按钮（仅保留 email+password）
-  - 删除 admin 管理面板入口
-  - 简化 serverConfig 消费逻辑——硬编码关闭 AI/payment/oauth 的 feature flags
-- **保留**：编辑器核心（BlockSuite）、工作区管理、成员邀请、设置、搜索、i18n 多语言、文档导出（PDF/Markdown/HTML）、移动端视图（`/mobile/*`）
-
----
-
-## 7. 代码编写规范
-
-1. **纯净与轻量**: 尽量使用 Go 标准库 + 极少第三方库（socket.io、gqlgen、modernc.org/sqlite、chi 路由、securecookie、bcrypt）。不依赖 CGO，确保交叉编译友好。
-2. **错误处理**: Go 代码必须严格检查 `err`，对 SQLite 的写入必须包含超时容错和重试。
-3. **单文件打包**: 前端构建产物输出至 `web/dist/`，后端使用 `//go:embed all:web/dist` 内嵌。
-4. **性能优化**: 针对 5-10 人场景，限制 SQLite 的并发写入连接数，Go 端对 Write 操作加锁，确保无锁冲突风险。
-5. **Blob 存储**: 本地文件系统，数据目录 `$MADOC_DATA/`（默认 `./data/`），子目录 `blobs/`, `avatars/`。
-
----
-
-## 8. 可裁剪的功能（madoc 不实现）
-
-- Copilot / AI — 全部删除（前端 UI + 后端 resolver）
-- Payment / Subscription / License — 全部删除
-- OAuth 第三方登录 — 仅保留 email+password
-- Magic link 登录 — 删除
-- Cloud/Local 工作区切换 — 删除本地工作区概念，所有数据走服务端
-- Calendar 集成 — 删除
-- 文档评论 (Comment / Reply) — 后续再加
-- Admin 面板 — 后续再加
-- Doc SSR renderer — 删除
-- Telemetry — 删除
-- 通知系统 — 后续再加
-
----
-
-## 9. 目录布局
-
+```text
+Workspace
+├── README.md
+├── API Design.md
+├── Project Notes.md
+├── Architecture.board
+└── Brainstorm.board
 ```
-madoc/
-├── main.go                     # 入口 + 路由装配 + go:embed
-├── internal/
-│   ├── db/                     # SQLite 连接 + schema + migrations
-│   ├── auth/                   # Session + Cookie + CSRF + 密码
-│   ├── graphql/                # gqlgen 生成 + resolvers
-│   │   ├── schema.graphql      # 从 AFFiNE schema.gql 裁剪
-│   │   ├── generated.go
-│   │   └── resolver_*.go
-│   ├── sync/                   # Socket.io gateway + space:* 事件
-│   ├── doc/                    # Doc 存储适配器 (snapshot + update)
-│   ├── blob/                   # Blob 文件系统存储
-│   └── api/                    # REST handlers (auth, blobs, docs, setup)
-├── web/                        # @madoc/web 前端源码（从 AFFiNE 整理而来）
-│   ├── ...                     # 前端源码 + 依赖
-│   └── dist/                   # 构建产物 (go:embed)
-├── go.mod / go.sum
-├── PLAN.md                     # 详细开发计划与分阶段实施
-└── BUILD.md                    # 构建说明
 
-# 不入仓库（.gitignore）:
-# AFFiNE/ 或 AFFiNE-*/        # 仅作为开发参考源码
-```
+打开 Markdown 文档时进入干净的 Typora-like 编辑器；打开白板时进入 Excalidraw。侧边栏统一提供工作区、目录树、成员和基础设置。
+
+## 技术栈
+
+| 层 | 方案 |
+|---|---|
+| Backend | Go |
+| HTTP Router | chi |
+| Database | SQLite + WAL |
+| Frontend | React 18+ + TypeScript |
+| Router | TanStack Router |
+| Server State | TanStack Query |
+| Styling | Vanilla Extract |
+| Markdown Editor | Milkdown / Crepe |
+| Markdown Collaboration | Yjs + `@milkdown/plugin-collab` + madoc provider |
+| Whiteboard | `@excalidraw/excalidraw` |
+| Whiteboard Collaboration | madoc Excalidraw collaboration adapter |
+| Realtime Transport | Native WebSocket |
+| WebSocket Library | `github.com/coder/websocket` |
+| Asset Storage | Local filesystem + SQLite metadata |
+| Frontend Packaging | `go:embed` |
+
+依赖版本不在设计文档中永久写死。编码时选择当前稳定版本，并由 `go.mod`、`package.json`、`pnpm-lock.yaml` 固定。
+
+## 架构原则
+
+1. **不兼容 AFFiNE API。** 不保留 GraphQL、`space:*`、`realtime:*`、License、Quota 等 AFFiNE compatibility stub。
+2. **产品层统一，协同协议不强求统一。** Markdown 使用 Yjs；Whiteboard 使用适合 Excalidraw 的 element-level reconciliation。
+3. **Go 后端保持内容尽量“盲”。** Markdown Yjs update 由浏览器产生和合并，Go 负责权限、sequence、relay、persistence。
+4. **Markdown 是可移植格式，但实时协作的 canonical state 是 Yjs。** 服务端同时维护可导出的 Markdown cache。
+5. **不要为了技术统一造新的 BlockSuite。** 编辑器与白板是两个独立内容引擎，共享 Workspace、权限、资产、实时连接和应用 Shell。
+6. **先做小而完整的 MVP，再扩展。**
+
+## MVP
+
+当前 MVP 的发布边界只要求：
+
+- 首次初始化管理员；
+- Email + Password 登录；
+- Workspace 创建与成员管理；
+- Markdown / Whiteboard 两种 Item；
+- 树形目录；
+- Milkdown Crepe Markdown 编辑；
+- Markdown 多人实时同步、远程光标和在线状态；
+- 图片上传；
+- Markdown `.md` 导入/导出；
+- Excalidraw 白板；
+- Whiteboard 多人实时协作；
+- 自动保存；
+- Docker 和单二进制部署；
+- 基础备份说明。
+
+暂不进入 MVP：
+
+- Database / Kanban；
+- Calendar；
+- AI；
+- 评论；
+- 知识图谱；
+- Notion-style database；
+- OAuth；
+- 第三方云存储；
+- WebDAV；
+- Git 双向同步；
+- 完整历史版本 UI；
+- 公开发布站点；
+- 插件系统。
+
+## 文档导航
+
+- [PRODUCT.md](./PRODUCT.md)：产品定位与功能边界
+- [PLAN.md](./PLAN.md)：MVP 实施计划
+- [STATUS.md](./STATUS.md)：当前迁移状态
+- [BUILD.md](./BUILD.md)：开发、构建与部署
+- [CODEX.md](./CODEX.md)：交给 Codex / ChatGPT Work 的执行约束
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)：总体架构
+- [docs/EDITOR.md](./docs/EDITOR.md)：Markdown 编辑器设计
+- [docs/WHITEBOARD.md](./docs/WHITEBOARD.md)：白板设计
+- [docs/COLLABORATION.md](./docs/COLLABORATION.md)：实时协同协议
+- [docs/DATA_MODEL.md](./docs/DATA_MODEL.md)：SQLite 数据模型
+- [docs/API.md](./docs/API.md)：REST / WebSocket API
+- [docs/MIGRATION.md](./docs/MIGRATION.md)：从旧 AFFiNE-compatible 代码迁移
+- [docs/REFERENCES.md](./docs/REFERENCES.md)：上游项目与官方资料
+
+## 不变的长期目标
+
+madoc 的竞争力不在“比 AFFiNE 功能更多”，而在：
+
+> **Markdown-first、协作、轻量、自部署、可理解、可维护。**
