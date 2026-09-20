@@ -53,6 +53,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 备份 / 恢复端到端 smoke test
 - [x] 双窗口 Markdown / Whiteboard 协作回归
 - [x] Playwright 核心流程自动化
+- [x] 修复 Workspace 新建文档标题逐字输入时读取已失效事件 currentTarget 的问题，并加入 E2E 回归覆盖
 
 ## 明确不进入当前 MVP
 

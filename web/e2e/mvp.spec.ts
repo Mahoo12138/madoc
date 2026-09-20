@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 
 test('first run, invite, collaborative Markdown, whiteboard and export', async ({ page, browser }) => {
+  const pageErrors: Error[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error));
+
   await page.goto('/');
   await page.getByLabel('姓名').fill('Owner');
   await page.getByLabel('邮箱').fill('owner@example.test');
@@ -11,7 +14,10 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await page.getByRole('button', { name: '创建', exact: true }).click();
 
   await page.getByRole('button', { name: '新建文档' }).click();
-  await page.getByLabel('名称').fill('Architecture');
+  const documentTitle = page.getByLabel('名称');
+  await documentTitle.pressSequentially('Architecture');
+  await expect(documentTitle).toHaveValue('Architecture');
+  expect(pageErrors).toEqual([]);
   await page.getByRole('button', { name: '保存' }).click();
   await expect(page.locator('.ProseMirror')).toBeVisible();
   const documentURL = page.url();
