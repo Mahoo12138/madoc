@@ -1,196 +1,49 @@
 package db
 
 import (
-	"context"
+	"database/sql"
+	"errors"
 	"path/filepath"
 	"testing"
-	"time"
+
+	_ "modernc.org/sqlite"
 )
 
-func openTestDB(t *testing.T) *Repo {
-	t.Helper()
-	dir := t.TempDir()
-	conn, err := Open(filepath.Join(dir, "test.db"))
-	if err != nil {
-		t.Fatalf("open: %v", err)
-	}
-	t.Cleanup(func() { conn.Close() })
-	return NewRepo(conn)
-}
-
-func TestSnapshotUpsert(t *testing.T) {
-	ctx := context.Background()
-	r := openTestDB(t)
-
-	snap := &Snapshot{
-		WorkspaceID: "ws1",
-		GUID:        "doc1",
-		Blob:        []byte("hello"),
-		State:       []byte("state"),
-		Size:        5,
-	}
-	if err := r.UpsertSnapshot(ctx, snap); err != nil {
-		t.Fatal(err)
-	}
-	got, err := r.GetSnapshot(ctx, "ws1", "doc1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(got.Blob) != "hello" {
-		t.Fatalf("expected 'hello', got %q", string(got.Blob))
-	}
-}
-
-func TestUpdates(t *testing.T) {
-	ctx := context.Background()
-	r := openTestDB(t)
-
-	if _, err := r.AppendUpdate(ctx, "ws1", "doc1", []byte{1, 2, 3}, nil); err != nil {
-		t.Fatal(err)
-	}
-	time.Sleep(time.Millisecond)
-	ts2, err := r.AppendUpdate(ctx, "ws1", "doc1", []byte{4, 5, 6}, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ups, err := r.ListUpdates(ctx, "ws1", "doc1")
-	if err != nil || len(ups) != 2 {
-		t.Fatalf("expect 2 updates, got %d err=%v", len(ups), err)
-	}
-
-	if err := r.DeleteUpdatesBefore(ctx, "ws1", "doc1", ts2); err != nil {
-		t.Fatal(err)
-	}
-	ups, err = r.ListUpdates(ctx, "ws1", "doc1")
-	if err != nil || len(ups) != 1 {
-		t.Fatalf("expect 1 update remain, got %d err=%v", len(ups), err)
-	}
-}
-
-func TestAppendUpdateRetriesTimestampConflict(t *testing.T) {
-	ctx := context.Background()
-	r := openTestDB(t)
-
-	now := time.Now().UTC()
-	oldNowUTC := nowUTC
-	nowUTC = func() time.Time { return now }
-	t.Cleanup(func() { nowUTC = oldNowUTC })
-
-	for i := 0; i < 10; i++ {
-		_, err := r.db.ExecContext(ctx,
-			`INSERT INTO updates(workspace_id, guid, created_at, blob) VALUES(?, ?, ?, ?)`,
-			"ws1", "doc1", now.Add(time.Duration(i)*time.Nanosecond).Format(time.RFC3339Nano), []byte{byte(i)})
+func TestOpenAppliesMigrationsIdempotently(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "madoc.db")
+	for i := 0; i < 2; i++ {
+		conn, err := Open(path)
 		if err != nil {
 			t.Fatal(err)
 		}
+		conn.Close()
 	}
-
-	ts, err := r.AppendUpdate(ctx, "ws1", "doc1", []byte{10}, nil)
+	conn, err := sql.Open("sqlite", "file:"+path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !ts.Equal(now.Add(10 * time.Nanosecond)) {
-		t.Fatalf("expected retry timestamp %s, got %s", now.Add(10*time.Nanosecond), ts)
-	}
-
-	ups, err := r.ListUpdates(ctx, "ws1", "doc1")
-	if err != nil {
+	defer conn.Close()
+	var count int
+	if err := conn.QueryRow(`SELECT count(*) FROM schema_migrations`).Scan(&count); err != nil {
 		t.Fatal(err)
 	}
-	if len(ups) != 11 {
-		t.Fatalf("expect 11 updates, got %d", len(ups))
+	if count != 2 {
+		t.Fatalf("expected 2 migrations, got %d", count)
 	}
 }
 
-func TestUserSession(t *testing.T) {
-	ctx := context.Background()
-	r := openTestDB(t)
-
-	if err := r.CreateUser(ctx, "u1", "test", "test@test.com", "hash"); err != nil {
-		t.Fatal(err)
-	}
-	u, err := r.GetUserByEmail(ctx, "test@test.com")
+func TestOpenRejectsLegacySchema(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "legacy.db")
+	conn, err := sql.Open("sqlite", "file:"+path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u.Name != "test" {
-		t.Fatalf("expected 'test', got %q", u.Name)
-	}
-	users, err := r.ListUsers(ctx, ListUsersFilter{})
-	if err != nil || len(users) != 1 {
-		t.Fatalf("expect 1 user, got %d", len(users))
-	}
-}
-
-func TestWorkspaceLifecycle(t *testing.T) {
-	ctx := context.Background()
-	r := openTestDB(t)
-
-	name := "My Workspace"
-	if err := r.CreateUser(ctx, "u1", "admin", "admin@test.com", "hash"); err != nil {
+	if _, err := conn.Exec(`CREATE TABLE user_sessions (id TEXT PRIMARY KEY)`); err != nil {
 		t.Fatal(err)
 	}
-	if err := r.CreateWorkspace(ctx, "ws1", false, &name); err != nil {
-		t.Fatal(err)
-	}
-	if err := r.AddWorkspacePermission(ctx, "p1", "ws1", "u1", PermOwner); err != nil {
-		t.Fatal(err)
-	}
-	list, err := r.ListWorkspacesByUser(ctx, "u1")
-	if err != nil || len(list) != 1 {
-		t.Fatalf("expect 1 workspace, got %d err=%v", len(list), err)
-	}
-	if err := r.DeleteWorkspace(ctx, "ws1"); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestAppConfig(t *testing.T) {
-	ctx := context.Background()
-	r := openTestDB(t)
-
-	val, err := r.GetAppConfig(ctx, "theme")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if val != "{}" {
-		t.Fatalf("expected '{}', got %q", val)
-	}
-	if err := r.SetAppConfig(ctx, "theme", `"dark"`); err != nil {
-		t.Fatal(err)
-	}
-	val, err = r.GetAppConfig(ctx, "theme")
-	if err != nil || val != `"dark"` {
-		t.Fatalf("expected '\"dark\"', got %q err=%v", val, err)
-	}
-}
-
-func TestBlobCRUD(t *testing.T) {
-	ctx := context.Background()
-	r := openTestDB(t)
-
-	name := "Test WS"
-	if err := r.CreateWorkspace(ctx, "ws1", false, &name); err != nil {
-		t.Fatal(err)
-	}
-	if err := r.CreateBlob(ctx, "ws1", "img.png", 1024, "image/png", []byte("fake-image-data")); err != nil {
-		t.Fatal(err)
-	}
-	b, err := r.GetBlob(ctx, "ws1", "img.png")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if b.Size != 1024 || b.Mime != "image/png" {
-		t.Fatalf("unexpected blob: %+v", b)
-	}
-	if err := r.DeleteBlob(ctx, "ws1", "img.png"); err != nil {
-		t.Fatal(err)
-	}
-	b, err = r.GetBlob(ctx, "ws1", "img.png")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if b.DeletedAt == nil {
-		t.Fatal("expected deleted_at to be set")
+	conn.Close()
+	_, err = Open(path)
+	if !errors.Is(err, ErrLegacySchema) {
+		t.Fatalf("expected ErrLegacySchema, got %v", err)
 	}
 }

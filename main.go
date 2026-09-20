@@ -1,242 +1,172 @@
 package main
 
 import (
+	"context"
 	"embed"
-	"encoding/json"
-	"io"
+	"errors"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
+	"os/signal"
+	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-
+	"madoc/internal/api"
+	"madoc/internal/asset"
 	"madoc/internal/auth"
+	"madoc/internal/config"
+	"madoc/internal/core"
 	"madoc/internal/db"
-	"madoc/internal/graphql"
-	"madoc/internal/sync"
+	"madoc/internal/maintenance"
+	"madoc/internal/realtime"
 )
 
 //go:embed all:web/dist
 var frontendFS embed.FS
 
 func main() {
-	dbPath := envOr("MADOC_DB", "madoc.db")
-	addr := envOr("MADOC_ADDR", ":3000")
-
-	conn, err := db.Open(dbPath)
+	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("open db: %v", err)
+		log.Fatal(err)
+	}
+	if len(os.Args) > 2 && os.Args[1] == "maintenance" && os.Args[2] == "backup" {
+		backup, err := maintenance.Backup(cfg.DataDir, cfg.DBPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("backup verified at %s", backup)
+		return
+	}
+	if len(os.Args) > 3 && os.Args[1] == "maintenance" && os.Args[2] == "restore" {
+		confirmed := false
+		for _, arg := range os.Args[4:] {
+			if arg == "--confirm" {
+				confirmed = true
+			}
+		}
+		recovery, err := maintenance.Restore(cfg.DataDir, cfg.DBPath, os.Args[3], confirmed)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("restore verified; previous data preserved at %s", recovery)
+		return
+	}
+	if len(os.Args) > 2 && os.Args[1] == "maintenance" && os.Args[2] == "legacy-clean" {
+		confirmed := false
+		for _, arg := range os.Args[3:] {
+			if arg == "--confirm" {
+				confirmed = true
+			}
+		}
+		if !confirmed {
+			log.Fatal("legacy-clean requires --confirm")
+		}
+		fullBackup, err := maintenance.Backup(cfg.DataDir, cfg.DBPath)
+		if err != nil {
+			log.Fatalf("back up legacy data: %v", err)
+		}
+		backup, err := maintenance.CleanLegacy(cfg.DBPath, filepath.Join(cfg.DataDir, "backups"), confirmed)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("full backup verified at %s; legacy database preserved at %s", fullBackup, backup)
+		return
+	}
+	conn, err := db.Open(cfg.DBPath)
+	if err != nil {
+		log.Fatalf("open database: %v", err)
 	}
 	defer conn.Close()
-	repo := db.NewRepo(conn)
-
-	sm := auth.NewSessionManager(repo)
-	csrf := auth.NewCSRFProtector([]byte("madoc-csrf-hash-key-32bytes!"))
-	authH := auth.NewAuthHandler(sm, csrf, repo)
-	setupH := auth.NewSetupHandler(repo, sm, csrf)
-	gqlH := graphql.NewHandler(repo)
-	syncSrv := sync.NewServer(repo, sm)
-
-	isDev := os.Getenv("MADOC_DEV") == "true"
+	authService := auth.New(conn)
+	domain := core.New(conn)
+	assetService := asset.New(conn, domain, cfg.AssetDir, cfg.MaxUploadMB)
+	hub := realtime.New(authService, domain, cfg.Dev)
+	apiHandler := api.New(authService, auth.NewCSRF(cfg.Secret), domain, assetService, hub, !cfg.Dev)
 
 	r := chi.NewRouter()
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	if isDev {
-		r.Use(corsMiddleware)
-		log.Println("MADOC_DEV=true: CORS enabled for development")
+	r.Use(middleware.RequestID, middleware.RealIP, middleware.Logger, middleware.Recoverer, securityHeaders)
+	if cfg.Dev {
+		r.Use(devCORS)
 	}
-
-	r.Get("/info", infoHandler(repo))
-	r.Post("/api/setup/create-admin-user", setupH.ServeHTTP)
-	r.Post("/api/auth/preflight", authH.Preflight)
-	r.Post("/api/auth/sign-in", authH.SignIn)
-	r.Post("/api/auth/sign-out", authH.SignOut)
-	r.Get("/api/auth/session", authH.Session)
-	r.Get("/api/auth/methods", authMethodsHandler)
-	r.With(sm.OptionalAuth).Post("/graphql", gqlH.ServeHTTP)
-
-	r.Mount("/socket.io", syncSrv.Router())
-	syncSrv.StartCompactionLoop()
-
-	r.Get("/api/workspaces/{workspaceId}/blobs/{key}", blobDownloadHandler(repo))
-	r.With(sm.OptionalAuth).Post("/api/workspaces/{workspaceId}/blobs/{key}", blobUploadHandler(repo))
-
-	// Doc binary endpoint (used by frontend for initial doc loading)
-	r.With(sm.OptionalAuth).Get("/api/workspaces/{workspaceId}/docs/{guid}", docDownloadHandler(repo))
-
-	// Public doc endpoints (madoc doesn't support public docs yet, return 404)
-	r.Head("/api/workspaces/{workspaceId}/public-docs/{docId}", publicDocHandler)
-	r.Get("/api/workspaces/{workspaceId}/public-docs/{docId}", publicDocHandler)
-
+	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	})
+	r.Mount("/api", apiHandler.Routes())
+	r.Get("/ws", hub.ServeHTTP)
 	static, err := fs.Sub(frontendFS, "web/dist")
 	if err != nil {
-		log.Fatalf("static fs: %v", err)
+		log.Fatal(err)
 	}
 	fileServer := http.FileServer(http.FS(static))
 	r.Get("/*", spaHandler(static, fileServer))
+	r.Head("/*", spaHandler(static, fileServer))
 
-	srv := &http.Server{
-		Addr:              addr,
-		Handler:           r,
-		ReadHeaderTimeout: 10 * time.Second,
-	}
-	log.Printf("madoc listening on %s (db: %s)", addr, dbPath)
-	if err := srv.ListenAndServe(); err != nil {
+	server := &http.Server{Addr: cfg.Addr, Handler: r, ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second}
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-stop
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = hub.Close(ctx)
+		_ = server.Shutdown(ctx)
+	}()
+	log.Printf("madoc listening on %s (data: %s)", cfg.Addr, cfg.DataDir)
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatal(err)
 	}
-}
-
-func infoHandler(repo *db.Repo) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		initialized, err := repo.IsInitialized(r.Context())
-		if err != nil {
-			http.Error(w, "server error", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{
-			"version":     "0.26.2",
-			"type":        "selfhosted",
-			"flavor":      "allinone",
-			"initialized": initialized,
-		})
+	if _, err := conn.Exec(`PRAGMA wal_checkpoint(TRUNCATE)`); err != nil {
+		log.Printf("checkpoint database during shutdown: %v", err)
 	}
 }
 
 func spaHandler(static fs.FS, fileServer http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		p := strings.TrimPrefix(r.URL.Path, "/")
-		if p == "" {
-			r2 := r.Clone(r.Context())
-			r2.URL.Path = "/index.html"
-			fileServer.ServeHTTP(w, r2)
-			return
+		path := strings.TrimPrefix(r.URL.Path, "/")
+		if path == "" {
+			path = "index.html"
 		}
-		if _, err := fs.Stat(static, p); err != nil {
-			r2 := r.Clone(r.Context())
-			r2.URL.Path = "/index.html"
-			fileServer.ServeHTTP(w, r2)
+		if _, err := fs.Stat(static, path); err != nil {
+			index, readErr := fs.ReadFile(static, "index.html")
+			if readErr != nil {
+				http.Error(w, "frontend unavailable", http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			_, _ = w.Write(index)
 			return
 		}
 		fileServer.ServeHTTP(w, r)
 	}
 }
 
-func blobDownloadHandler(repo *db.Repo) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		workspaceID := chi.URLParam(r, "workspaceId")
-		key := chi.URLParam(r, "key")
-		b, err := repo.GetBlob(r.Context(), workspaceID, key)
-		if err != nil {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-		w.Header().Set("Content-Type", b.Mime)
-		w.Header().Set("Content-Length", strconv.Itoa(len(b.Data)))
-		w.Write(b.Data)
-	}
+func securityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Referrer-Policy", "same-origin")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+		next.ServeHTTP(w, r)
+	})
 }
 
-func blobUploadHandler(repo *db.Repo) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		workspaceID := chi.URLParam(r, "workspaceId")
-		key := chi.URLParam(r, "key")
-		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "read error", http.StatusBadRequest)
-			return
-		}
-		mimeType := r.Header.Get("Content-Type")
-		if mimeType == "" {
-			mimeType = "application/octet-stream"
-		}
-		if err := repo.CreateBlob(r.Context(), workspaceID, key, int64(len(data)), mimeType, data); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"success":true}`))
-	}
-}
-
-func envOr(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return def
-}
-
-// authMethodsHandler returns available auth methods for the current user.
-func authMethodsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"password":{"bound":true},"oauth":{"bound":false,"providers":[]},"passkey":{"bound":false,"count":0}}`))
-}
-
-// docDownloadHandler returns the binary representation of a doc (snapshot + updates).
-func docDownloadHandler(repo *db.Repo) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		workspaceID := chi.URLParam(r, "workspaceId")
-		guid := chi.URLParam(r, "guid")
-		ctx := r.Context()
-
-		// Collect all updates for this doc
-		updates, err := repo.ListUpdates(ctx, workspaceID, guid)
-		if err != nil {
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
-		}
-
-		var bin []byte
-		for _, u := range updates {
-			bin = append(bin, u.Blob...)
-		}
-
-		// If no updates, try snapshot
-		if len(bin) == 0 {
-			snap, err := repo.GetSnapshot(ctx, workspaceID, guid)
-			if err != nil || snap == nil {
-				http.Error(w, "not found", http.StatusNotFound)
-				return
-			}
-			bin = snap.Blob
-		}
-
-		w.Header().Set("Content-Type", "application/octet-stream")
-		w.Write(bin)
-	}
-}
-
-// publicDocHandler returns 404 for public-doc requests since madoc doesn't support public docs yet.
-func publicDocHandler(w http.ResponseWriter, r *http.Request) {
-	// For HEAD requests, only write headers (no body)
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.WriteHeader(http.StatusNotFound)
-	if r.Method != "HEAD" {
-		w.Write([]byte("not found"))
-	}
-}
-
-// corsMiddleware adds permissive CORS headers for local development.
-// Only active when MADOC_DEV=true.
-func corsMiddleware(next http.Handler) http.Handler {
+func devCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-		if origin != "" {
+		if origin != "" && (strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "http://127.0.0.1:")) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, x-madoc-csrf-token")
+			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
 		}
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, x-affine-csrf-token, x-operation-name")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 		next.ServeHTTP(w, r)

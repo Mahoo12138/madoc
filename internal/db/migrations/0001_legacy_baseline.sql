@@ -1,0 +1,2 @@
+-- Marker migration for databases created after the MVP architecture reset.
+-- Legacy databases are detected before migrations run and are never modified automatically.
