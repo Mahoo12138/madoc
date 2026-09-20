@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { ActionIcon, Badge, Group, Loader, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { Crepe } from '@milkdown/crepe';
+import { inlineCodeSchema } from '@milkdown/kit/preset/commonmark';
+import { Plugin, TextSelection } from '@milkdown/kit/prose/state';
+import { $prose } from '@milkdown/kit/utils';
 import { collab, collabServiceCtx } from '@milkdown/plugin-collab';
 import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate } from 'y-protocols/awareness';
 import * as Y from 'yjs';
@@ -14,6 +17,80 @@ import * as styles from './markdown-editor.css';
 
 type InitPayload = { snapshot?: string | null; updates?: { seq: number; update: string }[]; headSeq: number; markdown: string };
 type Collaborator = { color?: string; name?: string };
+
+// Keep the single-backtick input rule from consuming a literal backtick inside a double-delimited span.
+const doubleBacktickInput = $prose((ctx) => {
+  const inlineCodeMark = inlineCodeSchema.type(ctx);
+  return new Plugin({
+    props: {
+      handleTextInput(view, from, to, text) {
+        if (text !== '`' || from !== to) return false;
+        const $from = view.state.doc.resolve(from);
+        if ($from.parent.type.spec.code) return false;
+        const textBefore = $from.parent.textBetween(0, $from.parentOffset, '\n', '\n');
+        const openingIndex = textBefore.indexOf('``');
+        if (openingIndex < 0) return false;
+
+        const transaction = view.state.tr.insertText(text, from, to);
+        const cursor = transaction.selection.from;
+        const $cursor = transaction.doc.resolve(cursor);
+        const blockText = $cursor.parent.textBetween(0, $cursor.parentOffset, '\n', '\n');
+        if (!blockText.endsWith('``')) {
+          view.dispatch(transaction);
+          return true;
+        }
+
+        const content = blockText.slice(openingIndex + 2, -2);
+        if (!content.trim()) {
+          view.dispatch(transaction);
+          return true;
+        }
+
+        const blockStart = $cursor.start($cursor.depth);
+        const spanFrom = blockStart + openingIndex;
+        const spanTo = cursor;
+        transaction.replaceWith(spanFrom, spanTo, transaction.doc.type.schema.text(content, [inlineCodeMark.create()]));
+        transaction.setSelection(TextSelection.create(transaction.doc, spanFrom + content.length));
+        view.dispatch(transaction);
+        return true;
+      },
+    },
+  });
+});
+
+// Crepe's virtual cursor can decouple browser selection from ProseMirror state, so this stays DOM-driven.
+function updateActiveMarkDecorations(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>('.madoc-active-mark').forEach((element) => {
+    element.classList.remove('madoc-active-mark');
+    element.removeAttribute('data-mark-name');
+  });
+
+  const selection = document.getSelection();
+  if (!selection?.isCollapsed || !selection.anchorNode || !root.contains(selection.anchorNode)) return;
+
+  const activeMarks = new Set<HTMLElement>();
+  const addMarksFromNode = (node: Node | null) => {
+    let element = node instanceof Element ? node : node?.parentElement;
+    while (element && element !== root) {
+      if (element.matches('strong, em')) activeMarks.add(element as HTMLElement);
+      element = element.parentElement;
+    }
+  };
+
+  addMarksFromNode(selection.anchorNode);
+  if (activeMarks.size === 0) {
+    const container = selection.anchorNode.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection.anchorNode.parentElement;
+    if (container) {
+      addMarksFromNode(container.childNodes[selection.anchorOffset - 1] ?? null);
+      addMarksFromNode(container.childNodes[selection.anchorOffset] ?? null);
+    }
+  }
+
+  activeMarks.forEach((element) => {
+    element.classList.add('madoc-active-mark');
+    element.dataset.markName = element.tagName.toLowerCase();
+  });
+}
 
 function buildRemoteCursor(user: Collaborator) {
   const cursor = document.createElement('span');
@@ -50,6 +127,19 @@ export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; u
     let resolveInitial!: (payload: InitPayload) => void; let initialResolved = false;
     const initialReady = new Promise<InitPayload>((resolve) => { resolveInitial = resolve; });
     const crepe = new Crepe({ root, defaultValue: '', featureConfigs: { [Crepe.Feature.ImageBlock]: { onUpload: (file) => api.uploadAsset(item.workspaceId, file, item.id).then((r) => r.url), inlineOnUpload: (file) => api.uploadAsset(item.workspaceId, file, item.id).then((r) => r.url), blockOnUpload: (file) => api.uploadAsset(item.workspaceId, file, item.id).then((r) => r.url) } }, features: { [Crepe.Feature.Latex]: true } });
+    crepe.editor.use(doubleBacktickInput);
+    let activeMarkFrame = 0;
+    const onSelectionChange = () => {
+      window.cancelAnimationFrame(activeMarkFrame);
+      activeMarkFrame = window.requestAnimationFrame(() => {
+        activeMarkFrame = window.requestAnimationFrame(() => updateActiveMarkDecorations(root));
+      });
+    };
+    const markObserver = new MutationObserver(onSelectionChange);
+    markObserver.observe(root, { childList: true, subtree: true });
+    document.addEventListener('selectionchange', onSelectionChange);
+    root.addEventListener('keyup', onSelectionChange);
+    root.addEventListener('mouseup', onSelectionChange);
     crepe.editor.use(collab);
     crepe.on((listener) => listener.markdownUpdated((_ctx, markdown, previous) => {
       if (markdown === previous || role === 'viewer') return;
@@ -93,7 +183,7 @@ export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; u
       });
       crepe.setReadonly(role === 'viewer');
     });
-    return () => { destroyed = true; window.clearTimeout(cacheTimer); realtime.send('room.leave', item.id); unsubscribe(); realtime.close(); doc.off('update', onDocUpdate); awareness.off('update', onAwareness); awareness.destroy(); doc.destroy(); void crepe.destroy(); };
+    return () => { destroyed = true; window.clearTimeout(cacheTimer); window.cancelAnimationFrame(activeMarkFrame); markObserver.disconnect(); document.removeEventListener('selectionchange', onSelectionChange); root.removeEventListener('keyup', onSelectionChange); root.removeEventListener('mouseup', onSelectionChange); realtime.send('room.leave', item.id); unsubscribe(); realtime.close(); doc.off('update', onDocUpdate); awareness.off('update', onAwareness); awareness.destroy(); doc.destroy(); void crepe.destroy(); };
   }, [item.id, initial.data?.markdown, role, user.id]);
 
   const rename = async () => { if (title.trim() && title !== item.title && role !== 'viewer') await mutations.renameItem.mutateAsync({ id: item.id, title }); };

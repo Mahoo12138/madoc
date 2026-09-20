@@ -56,6 +56,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 修复 Workspace 新建文档标题逐字输入时读取已失效事件 currentTarget 的问题，并加入 E2E 回归覆盖
 - [x] 修复 Markdown 标题 / 段落键盘输入回归断言，并将协同光标与远程选区改为 madoc 自定义样式
 - [x] 修复 Markdown h1-h6 字号阶梯，避免 h3-h6 继续使用 Milkdown 默认字号
+- [x] 对齐 Typora 风格的 Mark 编辑态标记、代码块语言栏悬停行为和双反引号行内代码输入
 
 ## 明确不进入当前 MVP
 
