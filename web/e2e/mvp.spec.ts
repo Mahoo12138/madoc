@@ -32,6 +32,18 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await page.reload();
   await expect(page.locator('.ProseMirror h1')).toHaveText('System overview');
   await expect(page.locator('.ProseMirror p').filter({ hasText: 'Collaborative Markdown works.' })).toHaveCount(1);
+  const contentParagraph = page.locator('.ProseMirror p').filter({ hasText: 'Collaborative Markdown works.' });
+  await contentParagraph.click();
+  await editor.press('End');
+  await editor.press('Enter');
+  for (const [level, text] of [[2, 'Heading two'], [3, 'Heading three'], [4, 'Heading four'], [5, 'Heading five'], [6, 'Heading six']] as const) {
+    await editor.pressSequentially(`${'#'.repeat(level)} ${text}`);
+    if (level !== 6) await editor.press('Enter');
+  }
+  for (const [level, size] of [[1, 32], [2, 24], [3, 20], [4, 18], [5, 16], [6, 14]] as const) {
+    await expect(editor.locator(`h${level}`)).toHaveCount(1);
+    await expect(editor.locator(`h${level}`)).toHaveCSS('font-size', `${size}px`);
+  }
   await page.screenshot({ path: '/tmp/madoc-mvp-final.png', fullPage: true });
 
   await page.getByRole('button', { name: '成员管理' }).click();

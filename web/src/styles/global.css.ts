@@ -20,6 +20,10 @@ globalStyle('.milkdown .ProseMirror', {
 });
 globalStyle('.milkdown .ProseMirror h1', { fontSize: '32px', lineHeight: '1.2', letterSpacing: '-0.025em' });
 globalStyle('.milkdown .ProseMirror h2', { fontSize: '24px', lineHeight: '1.3', letterSpacing: '-0.018em' });
+globalStyle('.milkdown .ProseMirror h3', { fontSize: '20px', lineHeight: '1.4', letterSpacing: '-0.012em' });
+globalStyle('.milkdown .ProseMirror h4', { fontSize: '18px', lineHeight: '1.45', letterSpacing: '-0.008em' });
+globalStyle('.milkdown .ProseMirror h5', { fontSize: '16px', lineHeight: '1.5' });
+globalStyle('.milkdown .ProseMirror h6', { fontSize: '14px', lineHeight: '1.5' });
 globalStyle('.milkdown .ProseMirror pre', { borderRadius: '10px', overflowX: 'auto' });
 globalStyle('.milkdown .ProseMirror img', { maxWidth: '100%', borderRadius: '8px' });
 globalStyle('.milkdown .ProseMirror .madoc-remote-cursor', {
