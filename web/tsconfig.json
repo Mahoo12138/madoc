@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "composite": true,
+    "tsBuildInfoFile": "../node_modules/.cache/madoc-web.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

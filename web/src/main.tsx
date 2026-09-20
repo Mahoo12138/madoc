@@ -1,33 +1,25 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { RouterProvider } from '@tanstack/react-router';
+import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
+import '@milkdown/crepe/theme/common/style.css';
+import '@milkdown/crepe/theme/frame.css';
+import '@/styles/global.css';
+import { queryClient } from '@/api/query-client';
+import { router } from '@/app/router';
+import { theme } from '@/app/theme';
 
-import { createQueryClient } from './api/query-client';
-import { routeTree } from './routeTree.gen';
-import './styles/global.css';
-
-const queryClient = createQueryClient();
-
-const router = createRouter({
-  routeTree,
-  defaultPreload: 'intent',
-  context: { queryClient },
-});
-
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router;
-  }
-}
-
-const root = document.getElementById('root');
-if (!root) throw new Error('Root element not found');
-
-createRoot(root).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  </StrictMode>,
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <MantineProvider theme={theme} defaultColorScheme="light">
+      <Notifications position="bottom-right" />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </MantineProvider>
+  </React.StrictMode>,
 );
