@@ -1,6 +1,6 @@
 # madoc MVP Status
 
-更新时间：2026-09-20
+更新时间：2026-09-21
 
 ## 当前结论
 
@@ -57,6 +57,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 修复 Markdown 标题 / 段落键盘输入回归断言，并将协同光标与远程选区改为 madoc 自定义样式
 - [x] 修复 Markdown h1-h6 字号阶梯，避免 h3-h6 继续使用 Milkdown 默认字号
 - [x] 对齐 Typora 风格的 Mark 编辑态标记、代码块语言栏悬停行为和双反引号行内代码输入
+- [x] 对齐 MarkText 风格的 Markdown 输入体验：成对补全与选区包裹、专注模式、打字机模式、文档统计和快捷键提示
 
 ## 明确不进入当前 MVP
 

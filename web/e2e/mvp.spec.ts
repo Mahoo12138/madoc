@@ -40,7 +40,7 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await editor.pressSequentially('Collaborative Markdown works.');
   await expect(editor.locator('h1')).toHaveText('System overview');
   await expect(editor.locator('p').filter({ hasText: 'Collaborative Markdown works.' })).toHaveCount(1);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.locator('.ProseMirror h1')).toHaveText('System overview');
   await expect(page.locator('.ProseMirror p').filter({ hasText: 'Collaborative Markdown works.' })).toHaveCount(1);
@@ -89,6 +89,40 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await expect(inlineCode).toHaveText('inline ` code');
 
   await placeCaretAtLineEnd(editor.locator('p').filter({ hasText: 'inline ` code' }));
+  await page.keyboard.press('Enter');
+  await editor.pressSequentially('(');
+  await expect(editor.locator('p').last()).toHaveText('()');
+  await editor.pressSequentially('paired');
+  await editor.pressSequentially(')');
+  await expect(editor.locator('p').last()).toHaveText('(paired)');
+
+  await page.keyboard.press('Enter');
+  await editor.pressSequentially('中文文本');
+  const chineseParagraph = editor.locator('p').last();
+  await chineseParagraph.evaluate((element) => {
+    const selection = document.getSelection();
+    if (!selection) return;
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    (element.closest('.ProseMirror') as HTMLElement | null)?.focus();
+  });
+  await page.keyboard.type('"');
+  await expect(chineseParagraph).toHaveText('"中文文本"');
+
+  await page.getByRole('button', { name: '切换专注模式' }).click();
+  await expect(page.locator('[data-focus-mode="true"]')).toBeVisible();
+  await expect(chineseParagraph).toHaveCSS('opacity', '1');
+  await expect(editor.locator('h1')).toHaveCSS('opacity', '0.24');
+  await page.getByRole('button', { name: '切换打字机模式' }).click();
+  await expect(page.locator('[data-typewriter-mode="true"]')).toBeVisible();
+  await expect(page.getByLabel('文档统计')).toContainText('字');
+  await page.getByRole('button', { name: '查看编辑快捷键' }).click();
+  await expect(page.getByText('选择文本后会出现格式工具栏')).toBeVisible();
+  await page.keyboard.press('Escape');
+
+  await placeCaretAtLineEnd(chineseParagraph);
   await page.keyboard.press('Enter');
   await editor.pressSequentially('```typescript');
   await editor.press('Enter');
