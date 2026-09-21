@@ -26,17 +26,25 @@ globalStyle('.milkdown .ProseMirror h5', { fontSize: '16px', lineHeight: '1.5' }
 globalStyle('.milkdown .ProseMirror h6', { fontSize: '14px', lineHeight: '1.5' });
 globalStyle('.milkdown .ProseMirror pre', { borderRadius: '10px', overflowX: 'auto' });
 globalStyle('.milkdown .ProseMirror img', { maxWidth: '100%', borderRadius: '8px' });
-globalStyle('.milkdown .ProseMirror .madoc-active-mark::before, .milkdown .ProseMirror .madoc-active-mark::after', {
-  color: 'var(--mantine-color-gray-6)',
-  fontFamily: 'var(--mantine-font-family)',
-  fontSize: '0.85em',
+globalStyle('.milkdown .ProseMirror .madoc-inline-source-shell', {
+  display: 'inline',
+});
+globalStyle('.milkdown .ProseMirror .madoc-inline-source', {
+  maxWidth: '100%',
+  padding: 0,
+  border: 0,
+  outline: 0,
+  background: 'transparent',
+  color: 'var(--mantine-color-dark-8)',
+  fontFamily: 'var(--mantine-font-family-monospace)',
+  fontSize: '0.95em',
   fontStyle: 'normal',
   fontWeight: 400,
-  opacity: 0.8,
-  marginInline: '2px',
+  lineHeight: 'inherit',
+  verticalAlign: 'baseline',
+  caretColor: 'var(--mantine-primary-color-filled)',
 });
-globalStyle('.milkdown .ProseMirror .madoc-active-mark[data-mark-name="strong"]::before, .milkdown .ProseMirror .madoc-active-mark[data-mark-name="strong"]::after', { content: '"**"' });
-globalStyle('.milkdown .ProseMirror .madoc-active-mark[data-mark-name="em"]::before, .milkdown .ProseMirror .madoc-active-mark[data-mark-name="em"]::after', { content: '"*"' });
+globalStyle('.milkdown .ProseMirror .madoc-inline-hidden', { display: 'none' });
 globalStyle('.milkdown .ProseMirror .milkdown-code-block .tools', { minHeight: '28px' });
 globalStyle('.milkdown .ProseMirror .milkdown-code-block .language-button', { opacity: 0, transition: 'opacity 0.2s ease-in-out' });
 globalStyle('.milkdown .ProseMirror .milkdown-code-block:hover .language-button', { opacity: 1 });

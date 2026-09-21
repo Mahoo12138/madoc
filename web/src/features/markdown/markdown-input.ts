@@ -19,10 +19,7 @@ function characterAt(doc: Parameters<NonNullable<Plugin['props']['handleTextInpu
   return doc.textBetween(position, position + 1, '\n', '\n');
 }
 
-/**
- * Adds the small input affordances writers expect from a desktop Markdown editor
- * without changing the Milkdown document model.
- */
+/** Adds common desktop-editor input affordances without changing the document model. */
 export const comfortableMarkdownInput = $prose((ctx) => {
   const emphasisMark = emphasisSchema.type(ctx);
   const inlineCodeMark = inlineCodeSchema.type(ctx);
@@ -90,7 +87,7 @@ export const comfortableMarkdownInput = $prose((ctx) => {
   });
 });
 
-/** Marks the selected top-level block through ProseMirror decorations. */
+/** Marks the selected text block through ProseMirror decorations. */
 export const activeBlockDecoration = $prose(() => new Plugin({
   props: {
     decorations(state) {

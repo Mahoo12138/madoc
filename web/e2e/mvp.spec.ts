@@ -62,30 +62,79 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await expect(editor.locator('strong')).toHaveText('bold');
   await expect(editor.locator('em')).toHaveText('italic');
   const strong = editor.locator('strong');
-  const strongBox = await strong.boundingBox();
-  if (!strongBox) throw new Error('Bold mark is not visible');
-  for (const x of [1, strongBox.width / 2, Math.max(1, strongBox.width - 1)]) {
-    await strong.click({ position: { x, y: strongBox.height / 2 } });
-    await page.mouse.move(0, 0);
-    const activeStrong = editor.locator('.madoc-active-mark[data-mark-name="strong"]');
-    await expect(activeStrong).toHaveCount(1);
-    await expect.poll(() => activeStrong.evaluate((element) => getComputedStyle(element, '::before').content)).toBe('"**"');
-    await expect.poll(() => activeStrong.evaluate((element) => getComputedStyle(element, '::after').content)).toBe('"**"');
-  }
+  await strong.click();
+  const strongSource = page.getByLabel('编辑加粗源码');
+  await expect(strongSource).toBeVisible();
+  await expect(strongSource).toHaveValue('**bold**');
+  await strongSource.evaluate((element: HTMLInputElement) => element.setSelectionRange(0, 0));
+  await strongSource.press('ArrowRight');
+  await expect.poll(() => strongSource.evaluate((element: HTMLInputElement) => element.selectionStart)).toBe(1);
+  await strongSource.press('ArrowRight');
+  await expect.poll(() => strongSource.evaluate((element: HTMLInputElement) => element.selectionStart)).toBe(2);
   const italic = editor.locator('em');
-  const italicBox = await italic.boundingBox();
-  if (!italicBox) throw new Error('Italic mark is not visible');
-  await italic.click({ position: { x: italicBox.width / 2, y: italicBox.height / 2 } });
-  await page.mouse.move(0, 0);
-  const activeItalic = editor.locator('.madoc-active-mark[data-mark-name="em"]');
-  await expect(activeItalic).toHaveCount(1);
-  await expect.poll(() => activeItalic.evaluate((element) => getComputedStyle(element, '::before').content)).toBe('"*"');
-  await expect.poll(() => activeItalic.evaluate((element) => getComputedStyle(element, '::after').content)).toBe('"*"');
+  await italic.click();
+  await expect(page.getByLabel('编辑斜体源码')).toHaveValue('*italic*');
 
-  await placeCaretAtLineEnd(editor.locator('p').filter({ hasText: 'bold' }));
+  // Typing inside pre-created delimiter pairs should promote them to rendered inline elements.
+  await placeCaretAtLineEnd(editor.locator('p').filter({ hasText: 'bold' }).first());
+  await page.keyboard.press('Enter');
+  await editor.pressSequentially('****');
+  await editor.press('ArrowLeft');
+  await editor.press('ArrowLeft');
+  await editor.pressSequentially('p');
+  const pairBoldSource = editor.locator('.madoc-inline-source:visible');
+  await expect(pairBoldSource).toHaveValue('**p**');
+  await pairBoldSource.pressSequentially('air bold');
+  await pairBoldSource.evaluate((element: HTMLInputElement) => element.setSelectionRange(element.value.length, element.value.length));
+  await pairBoldSource.press('ArrowRight');
+  await expect(editor.locator('strong').filter({ hasText: 'pair bold' })).toHaveCount(1);
+
+  await placeCaretAtLineEnd(editor.locator('p').filter({ hasText: 'pair bold' }));
+  await page.keyboard.press('Enter');
+  await editor.pressSequentially('``');
+  await editor.press('ArrowLeft');
+  await editor.pressSequentially('p');
+  const pairCodeSource = editor.locator('.madoc-inline-source:visible');
+  await expect(pairCodeSource).toHaveValue('`p`');
+  await pairCodeSource.pressSequentially('air code');
+  await pairCodeSource.evaluate((element: HTMLInputElement) => element.setSelectionRange(element.value.length, element.value.length));
+  await pairCodeSource.press('ArrowRight');
+  await expect(editor.locator('code').filter({ hasText: 'pair code' })).toHaveCount(1);
+
+  await placeCaretAtLineEnd(editor.locator('p').filter({ hasText: 'pair code' }));
+  await page.keyboard.press('Enter');
+  await editor.pressSequentially('$$');
+  await editor.press('ArrowLeft');
+  await editor.pressSequentially('x');
+  await expect(editor.locator('[data-type="math_inline"]')).toHaveCount(1);
+  const mathSource = page.getByLabel('编辑行内公式');
+  await expect(mathSource).toHaveValue('$x$');
+  await mathSource.pressSequentially('^2');
+  await expect(mathSource).toHaveValue('$x^2$');
+  await mathSource.evaluate((element: HTMLInputElement) => element.setSelectionRange(element.value.length, element.value.length));
+  await mathSource.press('ArrowRight');
+
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(editor.locator('strong').filter({ hasText: 'pair bold' })).toHaveCount(1);
+  await expect(editor.locator('code').filter({ hasText: 'pair code' })).toHaveCount(1);
+  const persistedMath = editor.locator('[data-type="math_inline"]');
+  await expect(persistedMath).toHaveCount(1);
+  await persistedMath.click();
+  const persistedMathSource = page.getByLabel('编辑行内公式');
+  await expect(persistedMathSource).toHaveValue('$x^2$');
+  await persistedMathSource.evaluate((element: HTMLInputElement) => {
+    const cursor = element.value.length - 1;
+    element.setSelectionRange(cursor, cursor);
+  });
+  await persistedMathSource.pressSequentially('+1');
+  await expect(persistedMathSource).toHaveValue('$x^2+1$');
+  await persistedMathSource.evaluate((element: HTMLInputElement) => element.setSelectionRange(element.value.length, element.value.length));
+  await persistedMathSource.press('ArrowRight');
+
   await page.keyboard.press('Enter');
   await editor.pressSequentially('``inline ` code``');
-  const inlineCode = editor.locator('code');
+  const inlineCode = editor.locator('code').filter({ hasText: 'inline ` code' });
   await expect(inlineCode).toHaveText('inline ` code');
 
   await placeCaretAtLineEnd(editor.locator('p').filter({ hasText: 'inline ` code' }));

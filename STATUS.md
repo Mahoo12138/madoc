@@ -1,6 +1,6 @@
 # madoc MVP Status
 
-更新时间：2026-09-21
+更新时间：2026-09-22
 
 ## 当前结论
 
@@ -39,6 +39,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - `pnpm --dir web typecheck`：通过
 - `pnpm --dir web build`：通过
 - Playwright 首次启动、邀请注册、双窗口 Markdown、双窗口 Whiteboard 与导出：通过
+- 行内编辑专项回归：定界符逐字符移动、先建空定界符再填内容、原位公式、嵌套格式、即时同步、撤销 / 重做、IME 组合事件、viewer 只读与清空保存通过
 - 浏览器深链接刷新、Markdown 单次初始化、桌面和移动端 Workspace Shell：通过
 - Docker image、`/healthz`、数据卷、secret `0600`：通过
 - SQLite、Asset、server secret 备份及恢复回滚：通过
@@ -58,6 +59,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 修复 Markdown h1-h6 字号阶梯，避免 h3-h6 继续使用 Milkdown 默认字号
 - [x] 对齐 Typora 风格的 Mark 编辑态标记、代码块语言栏悬停行为和双反引号行内代码输入
 - [x] 对齐 MarkText 风格的 Markdown 输入体验：成对补全与选区包裹、专注模式、打字机模式、文档统计和快捷键提示
+- [x] 修复加粗、斜体、行内代码和公式的原位源码编辑，以及先建空分隔符再输入内容时不渲染的问题
 
 ## 明确不进入当前 MVP
 

@@ -9,6 +9,7 @@ import { api } from '@/api/client';
 import type { Item, Role, User } from '@/api/types';
 import { fromBase64, RealtimeClient, toBase64 } from '@/features/realtime/client';
 import { activeBlockDecoration, comfortableMarkdownInput } from './markdown-input';
+import { inlineSourceEditing } from './markdown-inline-source';
 import { getMarkdownStats, type MarkdownStats } from './markdown-stats';
 
 type InitPayload = {
@@ -75,39 +76,6 @@ const doubleBacktickInput = $prose((ctx) => {
   });
 });
 
-function updateActiveMarkDecorations(root: HTMLElement) {
-  root.querySelectorAll<HTMLElement>('.madoc-active-mark').forEach((element) => {
-    element.classList.remove('madoc-active-mark');
-    element.removeAttribute('data-mark-name');
-  });
-
-  const selection = document.getSelection();
-  if (!selection?.isCollapsed || !selection.anchorNode || !root.contains(selection.anchorNode)) return;
-
-  const activeMarks = new Set<HTMLElement>();
-  const addMarksFromNode = (node: Node | null) => {
-    let element = node instanceof Element ? node : node?.parentElement;
-    while (element && element !== root) {
-      if (element.matches('strong, em')) activeMarks.add(element as HTMLElement);
-      element = element.parentElement;
-    }
-  };
-
-  addMarksFromNode(selection.anchorNode);
-  if (activeMarks.size === 0) {
-    const container = selection.anchorNode.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection.anchorNode.parentElement;
-    if (container) {
-      addMarksFromNode(container.childNodes[selection.anchorOffset - 1] ?? null);
-      addMarksFromNode(container.childNodes[selection.anchorOffset] ?? null);
-    }
-  }
-
-  activeMarks.forEach((element) => {
-    element.classList.add('madoc-active-mark');
-    element.dataset.markName = element.tagName.toLowerCase();
-  });
-}
-
 function findActiveBlock(root: HTMLElement) {
   const selection = document.getSelection();
   if (!selection?.anchorNode || !root.contains(selection.anchorNode)) return null;
@@ -167,6 +135,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   let centerCursor = false;
   let latestMarkdown = initialMarkdown;
   let destroyed = false;
+  let editorReady = false;
   let resolveInitial!: (payload: InitPayload) => void;
   let initialResolved = false;
   const initialReady = new Promise<InitPayload>((resolve) => { resolveInitial = resolve; });
@@ -176,6 +145,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     root,
     defaultValue: '',
     featureConfigs: {
+      [Crepe.Feature.Cursor]: { virtual: false },
       [Crepe.Feature.ImageBlock]: {
         onUpload: uploadImage,
         inlineOnUpload: uploadImage,
@@ -219,10 +189,16 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       },
     },
   });
-  crepe.editor.use(comfortableMarkdownInput).use(activeBlockDecoration).use(doubleBacktickInput).use(collab);
+  crepe.editor
+    // Keep Crepe's math schema and renderer, replacing only its floating editor.
+    .config((ctx) => { ctx.set('INLINE_LATEX_TOOLTIP_SPEC', {}); })
+    .use(comfortableMarkdownInput)
+    .use(inlineSourceEditing)
+    .use(activeBlockDecoration)
+    .use(doubleBacktickInput)
+    .use(collab);
 
   const updateEditorAffordances = () => {
-    updateActiveMarkDecorations(root);
     const activeBlock = root.querySelector<HTMLElement>('.madoc-current-block') ?? findActiveBlock(root);
     if (activeBlock && centerCursor && isTypewriterMode()) {
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -255,7 +231,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   root.addEventListener('keydown', onEditorKeyDown);
 
   const flushMarkdownCache = () => {
-    if (role === 'viewer' || !latestMarkdown) return;
+    if (role === 'viewer' || !editorReady) return;
     window.clearTimeout(cacheTimer);
     realtime.send('markdown.cache.update', item.id, { markdown: latestMarkdown, seenSeq: headSeq });
   };
@@ -354,6 +330,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       if (doc.getXmlFragment('prosemirror').length === 0 && payload.markdown) service.applyTemplate(payload.markdown);
     });
     crepe.setReadonly(role === 'viewer');
+    editorReady = true;
     latestMarkdown = crepe.getMarkdown();
     onStatsChange(getMarkdownStats(latestMarkdown));
     scheduleEditorAffordances();
