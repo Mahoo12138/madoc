@@ -29,6 +29,12 @@ globalStyle('.milkdown .ProseMirror img', { maxWidth: '100%', borderRadius: '8px
 globalStyle('.milkdown .ProseMirror .madoc-inline-source-shell', {
   display: 'inline',
 });
+globalStyle('.milkdown .ProseMirror .madoc-inline-measure', {
+  position: 'absolute',
+  visibility: 'hidden',
+  pointerEvents: 'none',
+  whiteSpace: 'pre',
+});
 globalStyle('.milkdown .ProseMirror .madoc-inline-source', {
   maxWidth: '100%',
   padding: 0,
@@ -36,15 +42,25 @@ globalStyle('.milkdown .ProseMirror .madoc-inline-source', {
   outline: 0,
   background: 'transparent',
   color: 'var(--mantine-color-dark-8)',
-  fontFamily: 'var(--mantine-font-family-monospace)',
-  fontSize: '0.95em',
-  fontStyle: 'normal',
-  fontWeight: 400,
+  font: 'inherit',
   lineHeight: 'inherit',
   verticalAlign: 'baseline',
   caretColor: 'var(--mantine-primary-color-filled)',
 });
 globalStyle('.milkdown .ProseMirror .madoc-inline-hidden', { display: 'none' });
+// The hidden code text still has a padded mark wrapper; collapse that wrapper too.
+globalStyle('.milkdown .ProseMirror code:has(> .madoc-inline-hidden:only-child)', { display: 'none' });
+globalStyle('.madoc-inline-math-preview', {
+  maxWidth: 'calc(100vw - 24px)',
+  padding: '12px 16px',
+  overflowX: 'auto',
+  background: 'var(--mantine-color-body)',
+  color: 'var(--mantine-color-text)',
+  border: '1px solid var(--mantine-color-gray-3)',
+  borderRadius: 'var(--mantine-radius-md)',
+  boxShadow: 'var(--mantine-shadow-sm)',
+  fontSize: 'var(--mantine-font-size-md)',
+});
 globalStyle('.milkdown .ProseMirror .milkdown-code-block .tools', { minHeight: '28px' });
 globalStyle('.milkdown .ProseMirror .milkdown-code-block .language-button', { opacity: 0, transition: 'opacity 0.2s ease-in-out' });
 globalStyle('.milkdown .ProseMirror .milkdown-code-block:hover .language-button', { opacity: 1 });

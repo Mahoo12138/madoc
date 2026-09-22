@@ -40,6 +40,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - `pnpm --dir web build`：通过
 - Playwright 首次启动、邀请注册、双窗口 Markdown、双窗口 Whiteboard 与导出：通过
 - 行内编辑专项回归：定界符逐字符移动、先建空定界符再填内容、原位公式、嵌套格式、即时同步、撤销 / 重做、IME 组合事件、viewer 只读与清空保存通过
+- 行内呈现专项回归：两侧边界选区与鼠标点击、展开态样式、真实字形宽度、公式实时预览，以及桌面 / 390px 窄屏截图与控制台检查通过
 - 浏览器深链接刷新、Markdown 单次初始化、桌面和移动端 Workspace Shell：通过
 - Docker image、`/healthz`、数据卷、secret `0600`：通过
 - SQLite、Asset、server secret 备份及恢复回滚：通过
@@ -60,6 +61,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 对齐 Typora 风格的 Mark 编辑态标记、代码块语言栏悬停行为和双反引号行内代码输入
 - [x] 对齐 MarkText 风格的 Markdown 输入体验：成对补全与选区包裹、专注模式、打字机模式、文档统计和快捷键提示
 - [x] 修复加粗、斜体、行内代码和公式的原位源码编辑，以及先建空分隔符再输入内容时不渲染的问题
+- [x] 补齐原位公式的下方渲染预览，修复边界未展开、展开后字体样式丢失及右侧额外留白
 
 ## 明确不进入当前 MVP
 

@@ -10,6 +10,7 @@ import type { Item, Role, User } from '@/api/types';
 import { fromBase64, RealtimeClient, toBase64 } from '@/features/realtime/client';
 import { activeBlockDecoration, comfortableMarkdownInput } from './markdown-input';
 import { inlineSourceEditing } from './markdown-inline-source';
+import type { InlineMathPreview } from './markdown-inline-presentation';
 import { getMarkdownStats, type MarkdownStats } from './markdown-stats';
 
 type InitPayload = {
@@ -35,6 +36,7 @@ type MarkdownSessionOptions = {
   onRealtimeChange: (client?: RealtimeClient) => void;
   onStatsChange: (stats: MarkdownStats) => void;
   onStatusChange: (status: SaveStatus) => void;
+  onInlinePreviewChange: (preview: InlineMathPreview | null) => void;
 };
 
 // Keep the single-backtick input rule from consuming a literal backtick inside a double-delimited span.
@@ -120,6 +122,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     onRealtimeChange,
     onStatsChange,
     onStatusChange,
+    onInlinePreviewChange,
   } = options;
 
   root.replaceChildren();
@@ -193,7 +196,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     // Keep Crepe's math schema and renderer, replacing only its floating editor.
     .config((ctx) => { ctx.set('INLINE_LATEX_TOOLTIP_SPEC', {}); })
     .use(comfortableMarkdownInput)
-    .use(inlineSourceEditing)
+    .use(inlineSourceEditing(onInlinePreviewChange))
     .use(activeBlockDecoration)
     .use(doubleBacktickInput)
     .use(collab);

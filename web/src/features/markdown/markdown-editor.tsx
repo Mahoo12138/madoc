@@ -8,6 +8,8 @@ import type { RealtimeClient } from '@/features/realtime/client';
 import { MarkdownEditorControls } from './markdown-editor-controls';
 import { startMarkdownSession, type SaveStatus } from './markdown-session';
 import { getMarkdownStats } from './markdown-stats';
+import { MarkdownMathPreview } from './markdown-math-preview';
+import type { InlineMathPreview } from './markdown-inline-presentation';
 import * as styles from './markdown-editor.css';
 
 const preferenceKeys = {
@@ -40,6 +42,7 @@ export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; u
   const typewriterModeRef = useRef(false);
   const [status, setStatus] = useState<SaveStatus>('Reconnecting');
   const [presence, setPresence] = useState(1);
+  const [inlinePreview, setInlinePreview] = useState<InlineMathPreview | null>(null);
   const [title, setTitle] = useState(item.title);
   const [stats, setStats] = useState(() => getMarkdownStats(''));
   const [focusMode, setFocusMode] = useState(() => readPreference(preferenceKeys.focusMode));
@@ -83,6 +86,7 @@ export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; u
       onRealtimeChange: (client) => { realtimeRef.current = client; },
       onStatsChange: setStats,
       onStatusChange: setStatus,
+      onInlinePreviewChange: setInlinePreview,
     });
   }, [item.id, item.workspaceId, initial.data?.cacheSeq, initial.data?.markdown, role, user.id, user.name]);
 
@@ -164,6 +168,7 @@ export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; u
         data-focus-mode={focusMode || undefined}
         data-typewriter-mode={typewriterMode || undefined}
       />
+      <MarkdownMathPreview preview={inlinePreview} />
     </article>
   );
 }

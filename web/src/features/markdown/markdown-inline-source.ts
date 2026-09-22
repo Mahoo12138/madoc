@@ -11,6 +11,7 @@ import {
   filledPairAt, inlineRangeAt, mapSourceOffset, mergeComposition, parseInline,
   type InlineRange, type InlineSource,
 } from './markdown-inline-codec';
+import { createInlinePresentation, type InlineMathPreview } from './markdown-inline-presentation';
 
 const sourceKey = new PluginKey<InlineRange | null>('madoc-inline-source');
 type SourceMeta = { range: InlineRange | null; activate?: InlineSource };
@@ -20,14 +21,13 @@ const labels: Record<string, string> = {
   inlineCode: '编辑行内代码源码',
   math_inline: '编辑行内公式',
 };
-const wideCharacter = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
 
 /**
  * The source field is a local editing view. Every input is parsed into standard
  * Milkdown nodes/marks and applied as a minimal transaction to the same Y.Doc.
  * No draft waits for blur, and remote updates map the range and refresh the field.
  */
-export const inlineSourceEditing = $prose((ctx) => {
+export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview | null) => void) => $prose((ctx) => {
   let view: EditorView;
   let composing = false;
   let syncing = false;
@@ -40,6 +40,7 @@ export const inlineSourceEditing = $prose((ctx) => {
   let compositionRemote: string | undefined;
   let source: HTMLInputElement;
   let shell: HTMLSpanElement;
+  let presentation: ReturnType<typeof createInlinePresentation>;
 
   const serialize = (range: InlineRange) => {
     const state = view.state;
@@ -51,20 +52,18 @@ export const inlineSourceEditing = $prose((ctx) => {
     return ctx.get(serializerCtx)(state.schema.topNodeType.create(null, paragraph)).replace(/\n+$/, '');
   };
   const resize = () => {
-    const columns = Array.from(source.value).reduce(
-      (total, character) => total + (wideCharacter.test(character) ? 2 : 1), 0,
-    );
-    source.style.width = `${Math.max(3, columns + 1)}ch`;
+    const range = sourceKey.getState(view.state);
+    if (range) presentation.update(view, range);
   };
   const open = (range: InlineRange, cursor?: number, raw?: string) => {
     if (!view.editable || composing) return;
     source.value = raw ?? serialize(range);
     source.setAttribute('aria-label', labels[range.kind]);
-    resize();
     yUndoPluginKey.getState(view.state)?.undoManager.stopCapturing();
     opening = true;
     view.dispatch(view.state.tr.setMeta(sourceKey, { range } satisfies SourceMeta).setMeta('addToHistory', false));
     opening = false;
+    resize();
     source.focus({ preventScroll: true });
     const offset = cursor ?? Math.max(0, source.value.length - (range.kind === 'strong' ? 2 : 1));
     source.setSelectionRange(offset, offset);
@@ -87,11 +86,12 @@ export const inlineSourceEditing = $prose((ctx) => {
   };
   const sync = () => {
     const range = sourceKey.getState(view.state);
-    if (!range || composing || !view.editable) return;
+    if (!range || !view.editable) return;
+    if (composing) { resize(); return; }
     const parsed = parseInline(source.value, ctx.get(parserCtx), view.state);
     const current = view.state.doc.slice(range.from, range.to).content;
     const start = current.findDiffStart(parsed);
-    if (start === null) return;
+    if (start === null) { resize(); return; }
     const end = current.findDiffEnd(parsed)!;
     const overlap = start - Math.min(end.a, end.b);
     if (overlap > 0) { end.a += overlap; end.b += overlap; }
@@ -136,12 +136,12 @@ export const inlineSourceEditing = $prose((ctx) => {
   const activateAt = (editor: EditorView, position: number, target: EventTarget | null) => {
     if (!editor.editable || !(target instanceof Element) || shell?.contains(target)) return false;
     const element = target.closest('strong, em, code, [data-type="math_inline"]');
-    if (!element || element.closest('pre')) return false;
-    const kind = element.matches('strong') ? 'strong' : element.matches('em') ? 'emphasis' : element.matches('code') ? 'inlineCode' : 'math_inline';
+    if (target.closest('pre')) return false;
+    const kind = !element ? undefined : element.matches('strong') ? 'strong' : element.matches('em') ? 'emphasis' : element.matches('code') ? 'inlineCode' : 'math_inline';
     const range = inlineRangeAt(editor.state, position, kind) ?? inlineRangeAt(editor.state, Math.max(0, position - 1), kind);
     if (!range) return false;
     const raw = serialize(range);
-    const markerLength = kind === 'strong' ? 2 : kind === 'inlineCode' ? (raw.match(/^`+/)?.[0].length ?? 1) : 1;
+    const markerLength = range.kind === 'strong' ? 2 : range.kind === 'inlineCode' ? (raw.match(/^`+/)?.[0].length ?? 1) : 1;
     open(range, Math.min(raw.length - markerLength, markerLength + Math.max(0, position - range.from)), raw);
     return true;
   };
@@ -221,6 +221,17 @@ export const inlineSourceEditing = $prose((ctx) => {
     appendTransaction(transactions, _oldState, state) {
       if (!view?.editable || view.composing || sourceKey.getState(state)) return null;
       if (transactions.some((transaction) => transaction.getMeta(sourceKey) || transaction.getMeta(ySyncPluginKey))) return null;
+      // DOM selections can land on the adjacent plain text node at either edge.
+      // Listen to selection changes, not only clicks whose target is a mark.
+      if (view.hasFocus() && state.selection.empty && transactions.some((transaction) => transaction.selectionSet && !transaction.docChanged)) {
+        const position = state.selection.from;
+        const range = inlineRangeAt(state, position) ?? inlineRangeAt(state, Math.max(0, position - 1));
+        if (range) {
+          const raw = serialize(range);
+          const cursor = position <= range.from ? 0 : position >= range.to ? raw.length : position - range.from + (range.kind === 'strong' ? 2 : 1);
+          return state.tr.setMeta(sourceKey, { range, activate: { ...range, raw, cursor } } satisfies SourceMeta).setMeta('addToHistory', false);
+        }
+      }
       if (!transactions.some((transaction) => transaction.docChanged || transaction.getMeta('inline-composition-end'))) return null;
       const pair = filledPairAt(state, ctx.get(parserCtx));
       if (!pair) return null;
@@ -239,8 +250,11 @@ export const inlineSourceEditing = $prose((ctx) => {
       source.className = 'madoc-inline-source';
       source.spellcheck = false;
       shell.append(source);
+      presentation = createInlinePresentation(shell, source, onPreviewChange);
       source.addEventListener('focus', () => { focused = true; });
       source.addEventListener('input', sync);
+      window.addEventListener('resize', resize);
+      document.fonts.addEventListener('loadingdone', resize);
       source.addEventListener('compositionstart', () => {
         composing = true;
         compositionBase = source.value;
@@ -272,6 +286,7 @@ export const inlineSourceEditing = $prose((ctx) => {
         update(nextView, previousState) {
           view = nextView;
           const range = sourceKey.getState(view.state);
+          if (!range) presentation.hidePreview();
           if (pendingActivation) {
             const pending = pendingActivation;
             pendingActivation = undefined;
@@ -310,7 +325,13 @@ export const inlineSourceEditing = $prose((ctx) => {
             } else anchors = undefined;
           });
         },
-        destroy() { generation += 1; pendingActivation = undefined; },
+        destroy() {
+          generation += 1;
+          pendingActivation = undefined;
+          window.removeEventListener('resize', resize);
+          document.fonts.removeEventListener('loadingdone', resize);
+          presentation.hidePreview();
+        },
       };
     },
   });
