@@ -20,9 +20,10 @@ import {
 } from 'lucide-react';
 import type { MarkdownStats } from './markdown-stats';
 
-type SaveStatus = 'Saving' | 'Saved' | 'Offline' | 'Reconnecting';
+import type { SaveStatus } from './markdown-save-state';
 
 const statusLabels: Record<SaveStatus, string> = {
+  Error: '保存已停止',
   Saving: '保存中',
   Saved: '已保存',
   Offline: '离线',

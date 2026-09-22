@@ -15,12 +15,17 @@ func (s *Service) Markdown(ctx context.Context, userID, itemID string) (Markdown
 	if item.Type != "markdown" {
 		return MarkdownState{}, ErrInvalid
 	}
-	var state MarkdownState
-	err = s.db.QueryRowContext(ctx, `SELECT snapshot,snapshot_seq,markdown_cache,cache_seq FROM markdown_states WHERE item_id=?`, itemID).Scan(&state.Snapshot, &state.SnapshotSeq, &state.Markdown, &state.CacheSeq)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return MarkdownState{}, err
 	}
-	rows, err := s.db.QueryContext(ctx, `SELECT id,update_blob,COALESCE(created_by,'') FROM markdown_updates WHERE item_id=? AND id>? ORDER BY id`, itemID, state.SnapshotSeq)
+	defer tx.Rollback()
+	var state MarkdownState
+	err = tx.QueryRowContext(ctx, `SELECT snapshot,snapshot_seq,markdown_cache,cache_seq,generation FROM markdown_states WHERE item_id=?`, itemID).Scan(&state.Snapshot, &state.SnapshotSeq, &state.Markdown, &state.CacheSeq, &state.Generation)
+	if err != nil {
+		return MarkdownState{}, err
+	}
+	rows, err := tx.QueryContext(ctx, `SELECT id,update_blob,COALESCE(created_by,'') FROM markdown_updates WHERE item_id=? AND id>? ORDER BY id`, itemID, state.SnapshotSeq)
 	if err != nil {
 		return MarkdownState{}, err
 	}
@@ -58,14 +63,14 @@ func (s *Service) ResetMarkdown(ctx context.Context, userID, itemID string, snap
 	if _, err := tx.ExecContext(ctx, `DELETE FROM markdown_update_receipts WHERE item_id=?`, itemID); err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, `UPDATE markdown_states SET snapshot=?,snapshot_seq=0,markdown_cache=?,cache_seq=0,updated_at=? WHERE item_id=?`, snapshot, markdown, time.Now().UTC(), itemID)
+	_, err = tx.ExecContext(ctx, `UPDATE markdown_states SET generation=generation+1,snapshot=?,snapshot_seq=0,markdown_cache=?,cache_seq=0,updated_at=? WHERE item_id=?`, snapshot, markdown, time.Now().UTC(), itemID)
 	if err != nil {
 		return err
 	}
 	return tx.Commit()
 }
 
-func (s *Service) AppendMarkdownUpdate(ctx context.Context, userID, itemID, clientUpdateID string, update []byte) (int64, error) {
+func (s *Service) AppendMarkdownUpdate(ctx context.Context, userID, itemID, clientUpdateID string, update []byte, generation int64) (int64, error) {
 	item, err := s.ItemAccess(ctx, userID, itemID, true)
 	if err != nil {
 		return 0, err
@@ -78,6 +83,9 @@ func (s *Service) AppendMarkdownUpdate(ctx context.Context, userID, itemID, clie
 		return 0, err
 	}
 	defer tx.Rollback()
+	if err := checkMarkdownGeneration(ctx, tx, itemID, generation); err != nil {
+		return 0, err
+	}
 	var seq int64
 	err = tx.QueryRowContext(ctx, `SELECT seq FROM markdown_update_receipts WHERE item_id=? AND client_update_id=?`, itemID, clientUpdateID).Scan(&seq)
 	if err == nil {
@@ -100,7 +108,7 @@ func (s *Service) AppendMarkdownUpdate(ctx context.Context, userID, itemID, clie
 	return seq, tx.Commit()
 }
 
-func (s *Service) UpdateMarkdownCache(ctx context.Context, userID, itemID, markdown string, seenSeq int64) error {
+func (s *Service) UpdateMarkdownCache(ctx context.Context, userID, itemID, markdown string, seenSeq int64, generation int64) error {
 	item, err := s.ItemAccess(ctx, userID, itemID, true)
 	if err != nil {
 		return err
@@ -108,7 +116,15 @@ func (s *Service) UpdateMarkdownCache(ctx context.Context, userID, itemID, markd
 	if item.Type != "markdown" {
 		return ErrInvalid
 	}
-	result, err := s.db.ExecContext(ctx, `UPDATE markdown_states SET markdown_cache=?,cache_seq=?,updated_at=? WHERE item_id=? AND cache_seq<=? AND ?<=MAX(snapshot_seq,(SELECT COALESCE(MAX(id),0) FROM markdown_updates WHERE item_id=?))`, markdown, seenSeq, time.Now().UTC(), itemID, seenSeq, seenSeq, itemID)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err := checkMarkdownGeneration(ctx, tx, itemID, generation); err != nil {
+		return err
+	}
+	result, err := tx.ExecContext(ctx, `UPDATE markdown_states SET markdown_cache=?,cache_seq=?,updated_at=? WHERE item_id=? AND cache_seq<=? AND ?<=MAX(snapshot_seq,(SELECT COALESCE(MAX(id),0) FROM markdown_updates WHERE item_id=?))`, markdown, seenSeq, time.Now().UTC(), itemID, seenSeq, seenSeq, itemID)
 	if err != nil {
 		return err
 	}
@@ -116,10 +132,10 @@ func (s *Service) UpdateMarkdownCache(ctx context.Context, userID, itemID, markd
 	if rows == 0 {
 		return ErrConflict
 	}
-	return nil
+	return tx.Commit()
 }
 
-func (s *Service) CommitMarkdownSnapshot(ctx context.Context, userID, itemID string, baseSeq int64, snapshot []byte, markdown string) error {
+func (s *Service) CommitMarkdownSnapshot(ctx context.Context, userID, itemID string, baseSeq int64, snapshot []byte, markdown string, generation int64) error {
 	item, err := s.ItemAccess(ctx, userID, itemID, true)
 	if err != nil {
 		return err
@@ -132,6 +148,9 @@ func (s *Service) CommitMarkdownSnapshot(ctx context.Context, userID, itemID str
 		return err
 	}
 	defer tx.Rollback()
+	if err := checkMarkdownGeneration(ctx, tx, itemID, generation); err != nil {
+		return err
+	}
 	var head int64
 	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(MAX(id),0) FROM markdown_updates WHERE item_id=?`, itemID).Scan(&head); err != nil {
 		return err
@@ -190,4 +209,15 @@ func (s *Service) UpdateWhiteboard(ctx context.Context, userID, itemID string, b
 		return WhiteboardState{}, ErrConflict
 	}
 	return s.Whiteboard(ctx, userID, itemID)
+}
+
+func checkMarkdownGeneration(ctx context.Context, tx *sql.Tx, itemID string, expected int64) error {
+	var generation int64
+	if err := tx.QueryRowContext(ctx, `SELECT generation FROM markdown_states WHERE item_id=?`, itemID).Scan(&generation); err != nil {
+		return err
+	}
+	if generation != expected {
+		return ErrGeneration
+	}
+	return nil
 }

@@ -253,3 +253,9 @@ migration 必须事务化（SQLite 不允许事务处理的 pragma 除外）。
 - 不随快照压缩清除，保证 ACK 丢失后的重试仍返回同一 seq。
 - Item 删除时级联删除；显式正文重置时在同一事务清除。
 - 当前无基于时间的自动清理；内容代际与持久化 outbox 的后续约束见 `RELIABILITY.md`。
+
+## Markdown content generation
+
+`0006_markdown_generation.sql` 为 `markdown_states` 增加非空整数 `generation`，
+默认 0。正文重置时与更新日志 / receipt 清除一起递增；普通编辑及 compaction
+不改变代际。正文、缓存及快照写入都在事务中校验代际，避免旧客户端写入新正文。

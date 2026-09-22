@@ -123,17 +123,17 @@ func TestItemValidationOrderingAndCascade(t *testing.T) {
 func TestMarkdownIdempotenceAndCompactionRace(t *testing.T) {
 	f := newFixture(t)
 	doc, _ := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "markdown", "Doc", nil)
-	seq1, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "client-1", []byte{1})
+	seq1, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "client-1", []byte{1}, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	retried, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "client-1", []byte{1})
+	retried, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "client-1", []byte{1}, 0)
 	if err != nil || retried != seq1 {
 		t.Fatalf("idempotent retry = %d, %v", retried, err)
 	}
-	seq2, _ := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "client-2", []byte{2})
-	seq3, _ := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "client-3", []byte{3})
-	if err := f.core.CommitMarkdownSnapshot(f.ctx, f.owner.ID, doc.ID, seq2, []byte{9}, "snapshot"); err != nil {
+	seq2, _ := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "client-2", []byte{2}, 0)
+	seq3, _ := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "client-3", []byte{3}, 0)
+	if err := f.core.CommitMarkdownSnapshot(f.ctx, f.owner.ID, doc.ID, seq2, []byte{9}, "snapshot", 0); err != nil {
 		t.Fatal(err)
 	}
 	state, err := f.core.Markdown(f.ctx, f.owner.ID, doc.ID)
@@ -152,7 +152,7 @@ func TestMarkdownHandlesLargeUpdateLogAndRejectsFutureCache(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i := 0; i < 1001; i++ {
-		if _, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, fmt.Sprintf("client-%d", i), []byte{byte(i)}); err != nil {
+		if _, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, fmt.Sprintf("client-%d", i), []byte{byte(i)}, 0); err != nil {
 			t.Fatalf("append update %d: %v", i, err)
 		}
 	}
@@ -164,7 +164,7 @@ func TestMarkdownHandlesLargeUpdateLogAndRejectsFutureCache(t *testing.T) {
 	if err != nil || len(state.Updates) != 1001 {
 		t.Fatalf("large update state = %d, %v", len(state.Updates), err)
 	}
-	if err := f.core.UpdateMarkdownCache(f.ctx, f.owner.ID, doc.ID, "future", state.HeadSeq+1); !errors.Is(err, ErrConflict) {
+	if err := f.core.UpdateMarkdownCache(f.ctx, f.owner.ID, doc.ID, "future", state.HeadSeq+1, 0); !errors.Is(err, ErrConflict) {
 		t.Fatalf("future cache error = %v", err)
 	}
 }

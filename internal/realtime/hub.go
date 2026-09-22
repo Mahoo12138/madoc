@@ -180,13 +180,20 @@ func (h *Hub) markdownJoin(ctx context.Context, c *client, m Envelope) {
 	if len(state.Snapshot) > 0 {
 		snapshot = base64.StdEncoding.EncodeToString(state.Snapshot)
 	}
-	h.send(c, "markdown.init", m.ItemID, map[string]any{"snapshot": snapshot, "snapshotSeq": state.SnapshotSeq, "updates": updates, "headSeq": state.HeadSeq, "markdown": state.Markdown})
+	h.send(c, "markdown.init", m.ItemID, map[string]any{"snapshot": snapshot, "snapshotSeq": state.SnapshotSeq, "updates": updates, "headSeq": state.HeadSeq, "markdown": state.Markdown, "generation": state.Generation})
 }
 
 func (h *Hub) markdownUpdate(ctx context.Context, c *client, m Envelope) {
-	var p struct{ ClientUpdateID, Update string }
+	var p struct {
+		ClientUpdateID, Update string
+		Generation             *int64
+	}
 	if json.Unmarshal(m.Payload, &p) != nil {
 		h.sendError(c, m.RequestID, "INVALID_PAYLOAD", "invalid payload")
+		return
+	}
+	if p.Generation == nil {
+		h.sendError(c, m.RequestID, "GENERATION_REQUIRED", "refresh this page before editing")
 		return
 	}
 	blob, err := base64.StdEncoding.DecodeString(p.Update)
@@ -194,37 +201,43 @@ func (h *Hub) markdownUpdate(ctx context.Context, c *client, m Envelope) {
 		h.sendError(c, m.RequestID, "INVALID_UPDATE", "invalid update")
 		return
 	}
-	seq, err := h.core.AppendMarkdownUpdate(ctx, c.user.ID, m.ItemID, p.ClientUpdateID, blob)
+	seq, err := h.core.AppendMarkdownUpdate(ctx, c.user.ID, m.ItemID, p.ClientUpdateID, blob, *p.Generation)
 	if err != nil {
 		h.coreError(c, m, err)
 		return
 	}
-	h.send(c, "markdown.update.ack", m.ItemID, map[string]any{"clientUpdateId": p.ClientUpdateID, "seq": seq})
-	h.broadcast(c, "markdown:"+m.ItemID, "markdown.update.remote", m.ItemID, map[string]any{"seq": seq, "update": p.Update, "userId": c.user.ID})
+	h.send(c, "markdown.update.ack", m.ItemID, map[string]any{"clientUpdateId": p.ClientUpdateID, "seq": seq, "generation": *p.Generation})
+	h.broadcast(c, "markdown:"+m.ItemID, "markdown.update.remote", m.ItemID, map[string]any{"seq": seq, "update": p.Update, "userId": c.user.ID, "generation": *p.Generation})
 	count, bytes, _ := h.core.MarkdownUpdateStats(ctx, m.ItemID)
 	if count >= 200 || bytes >= 4<<20 {
-		h.send(c, "markdown.snapshot.request", m.ItemID, map[string]any{"baseSeq": seq})
+		h.send(c, "markdown.snapshot.request", m.ItemID, map[string]any{"baseSeq": seq, "generation": *p.Generation})
 	}
 }
 
 func (h *Hub) markdownCache(ctx context.Context, c *client, m Envelope) {
 	var p struct {
-		Markdown string
-		SeenSeq  int64
+		Markdown   string
+		Generation *int64
+		SeenSeq    int64
 	}
 	if json.Unmarshal(m.Payload, &p) != nil {
 		h.sendError(c, m.RequestID, "INVALID_PAYLOAD", "invalid payload")
 		return
 	}
-	if err := h.core.UpdateMarkdownCache(ctx, c.user.ID, m.ItemID, p.Markdown, p.SeenSeq); err != nil {
+	if p.Generation == nil {
+		h.sendError(c, m.RequestID, "GENERATION_REQUIRED", "refresh this page before editing")
+		return
+	}
+	if err := h.core.UpdateMarkdownCache(ctx, c.user.ID, m.ItemID, p.Markdown, p.SeenSeq, *p.Generation); err != nil {
 		h.coreError(c, m, err)
 		return
 	}
-	h.send(c, "markdown.cache.ack", m.ItemID, map[string]any{"seenSeq": p.SeenSeq})
+	h.send(c, "markdown.cache.ack", m.ItemID, map[string]any{"seenSeq": p.SeenSeq, "generation": *p.Generation})
 }
 
 func (h *Hub) markdownSnapshot(ctx context.Context, c *client, m Envelope) {
 	var p struct {
+		Generation         *int64
 		BaseSeq            int64
 		Snapshot, Markdown string
 	}
@@ -232,16 +245,20 @@ func (h *Hub) markdownSnapshot(ctx context.Context, c *client, m Envelope) {
 		h.sendError(c, m.RequestID, "INVALID_PAYLOAD", "invalid payload")
 		return
 	}
+	if p.Generation == nil {
+		h.sendError(c, m.RequestID, "GENERATION_REQUIRED", "refresh this page before editing")
+		return
+	}
 	snapshot, err := base64.StdEncoding.DecodeString(p.Snapshot)
 	if err != nil {
 		h.sendError(c, m.RequestID, "INVALID_SNAPSHOT", "invalid snapshot")
 		return
 	}
-	if err := h.core.CommitMarkdownSnapshot(ctx, c.user.ID, m.ItemID, p.BaseSeq, snapshot, p.Markdown); err != nil {
+	if err := h.core.CommitMarkdownSnapshot(ctx, c.user.ID, m.ItemID, p.BaseSeq, snapshot, p.Markdown, *p.Generation); err != nil {
 		h.coreError(c, m, err)
 		return
 	}
-	h.send(c, "markdown.snapshot.ack", m.ItemID, map[string]any{"baseSeq": p.BaseSeq})
+	h.send(c, "markdown.snapshot.ack", m.ItemID, map[string]any{"baseSeq": p.BaseSeq, "generation": *p.Generation})
 }
 
 func (h *Hub) whiteboardJoin(ctx context.Context, c *client, m Envelope) {
@@ -456,7 +473,9 @@ func (h *Hub) sendError(c *client, requestID, code, message string) {
 func (h *Hub) coreError(c *client, m Envelope, err error) {
 	code := "INTERNAL"
 	message := "internal error"
-	if errors.Is(err, core.ErrForbidden) {
+	if errors.Is(err, core.ErrGeneration) {
+		code, message = "GENERATION_CHANGED", "content was replaced; keep a local copy before reloading"
+	} else if errors.Is(err, core.ErrForbidden) {
 		code, message = "FORBIDDEN", "operation is not allowed"
 	} else if errors.Is(err, core.ErrNotFound) {
 		code, message = "NOT_FOUND", "item not found"

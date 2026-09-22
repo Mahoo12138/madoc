@@ -28,6 +28,7 @@ import { configureReferences, preserveReferences, referenceDefinition, resolveRe
 import { blockImageSource, inlineImageSource, configureImageSource } from './markdown-image-source';
 
 type InitPayload = {
+  generation: number;
   snapshot?: string | null;
   updates?: { seq: number; update: string }[];
   headSeq: number;
@@ -38,6 +39,7 @@ type Collaborator = { color?: string; name?: string };
 export type { SaveStatus } from './markdown-save-state';
 
 type MarkdownSessionOptions = {
+  onFailure: (message: string, download: () => void) => void;
   onOutlineChange: (outline: MarkdownOutline | null) => void;
   root: HTMLElement;
   item: Item;
@@ -140,6 +142,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     onStatusChange,
     onInlinePreviewChange,
     onOutlineChange,
+    onFailure,
   } = options;
 
   root.replaceChildren();
@@ -160,6 +163,8 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   };
   awareness.setLocalStateField('user', { id: user.id, name: user.name, color: '#1f6feb' });
 
+  let generation: number | undefined;
+  let halted = false;
   let headSeq = initialCacheSeq;
   let cacheTimer = 0;
   let activeMarkFrame = 0;
@@ -295,9 +300,9 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   root.addEventListener('keydown', onEditorKeyDown);
 
   const flushMarkdownCache = () => {
-    if (role === 'viewer' || !editorReady) return;
+    if (role === 'viewer' || !editorReady || halted || generation === undefined) return;
     window.clearTimeout(cacheTimer);
-    realtime.send('markdown.cache.update', item.id, { markdown: latestMarkdown, seenSeq: headSeq });
+    realtime.send('markdown.cache.update', item.id, { markdown: latestMarkdown, seenSeq: headSeq, generation });
   };
   const onPageHide = () => flushMarkdownCache();
   const onVisibilityChange = () => {
@@ -315,7 +320,29 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     cacheTimer = window.setTimeout(flushMarkdownCache, 1200);
   }));
 
+  const halt = (message: string) => {
+    halted = true;
+    saveState.fail();
+    crepe.setReadonly(true);
+    publishSaveStatus();
+    onFailure(message, () => {
+      const markdown = editorReady ? crepe.getMarkdown() : latestMarkdown;
+      const url = URL.createObjectURL(new Blob([markdown], { type: 'text/markdown;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${item.title}-本地副本.md`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+  };
+
   const unsubscribe = realtime.subscribe((message) => {
+    if (message.type === 'error') {
+      const error = message.payload as { code: string };
+      if (error.code === 'GENERATION_CHANGED' || error.code === 'GENERATION_REQUIRED') {
+        halt('文档内容已被替换或服务已升级，保存已停止。请先下载本地副本，再刷新页面。');
+      }
+    }
     if (message.type === 'connection.changed') {
       const state = (message.payload as { state: 'online' | 'connecting' | 'offline' }).state;
       saveState.connectionChanged(state);
@@ -325,6 +352,12 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     if (message.itemId !== item.id) return;
     if (message.type === 'markdown.init') {
       const payload = message.payload as InitPayload;
+      if (!Number.isSafeInteger(payload.generation) || (generation !== undefined && generation !== payload.generation)) {
+        halt('文档内容已被替换，保存已停止。请先下载本地副本，再刷新页面。');
+        return;
+      }
+      if (halted) return;
+      generation = payload.generation;
       if (payload.snapshot) Y.applyUpdate(doc, fromBase64(payload.snapshot), 'remote');
       for (const update of payload.updates ?? []) Y.applyUpdate(doc, fromBase64(update.update), 'remote');
       headSeq = payload.headSeq ?? 0;
@@ -337,22 +370,29 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       saveState.initialized();
       publishSaveStatus();
     }
-    if (message.type === 'markdown.update.remote') {
-      const payload = message.payload as { seq: number; update: string };
+    if (message.type === 'markdown.update.remote' && !halted) {
+      const payload = message.payload as { seq: number; update: string; generation: number };
+      if (payload.generation !== generation) {
+        halt('文档内容已被替换，保存已停止。请先下载本地副本，再刷新页面。');
+        return;
+      }
       headSeq = Math.max(headSeq, payload.seq);
       Y.applyUpdate(doc, fromBase64(payload.update), 'remote');
     }
     if (message.type === 'markdown.update.ack') {
-      const payload = message.payload as { clientUpdateId: string; seq: number };
+      const payload = message.payload as { clientUpdateId: string; seq: number; generation: number };
+      if (payload.generation !== generation || halted) return;
       if (saveState.acknowledge(payload.clientUpdateId)) {
         headSeq = Math.max(headSeq, payload.seq);
       }
       publishSaveStatus();
     }
     // Cache acknowledgements never confirm canonical Yjs updates.
-    if (message.type === 'markdown.snapshot.request' && role !== 'viewer') {
-      const payload = message.payload as { baseSeq: number };
+    if (message.type === 'markdown.snapshot.request' && role !== 'viewer' && !halted) {
+      const payload = message.payload as { baseSeq: number; generation: number };
+      if (payload.generation !== generation) return;
       realtime.send('markdown.snapshot.commit', item.id, {
+        generation,
         baseSeq: payload.baseSeq,
         snapshot: toBase64(Y.encodeStateAsUpdate(doc)),
         markdown: crepe.getMarkdown(),
@@ -372,11 +412,11 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   });
 
   const onDocUpdate = (update: Uint8Array, origin: unknown) => {
-    if (origin !== 'remote' && role !== 'viewer') {
+    if (origin !== 'remote' && role !== 'viewer' && !halted) {
       const clientUpdateId = crypto.randomUUID();
       saveState.add(clientUpdateId);
       publishSaveStatus();
-      realtime.send('markdown.update', item.id, { clientUpdateId, update: toBase64(update) });
+      realtime.send('markdown.update', item.id, { clientUpdateId, update: toBase64(update), generation });
     }
   };
   const onAwareness = (
@@ -403,7 +443,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       service.connect();
       if (doc.getXmlFragment('prosemirror').length === 0 && payload.markdown) service.applyTemplate(payload.markdown);
     });
-    crepe.setReadonly(role === 'viewer');
+    crepe.setReadonly(role === 'viewer' || halted);
     editorReady = true;
     latestMarkdown = crepe.getMarkdown();
     onStatsChange(getMarkdownStats(latestMarkdown));

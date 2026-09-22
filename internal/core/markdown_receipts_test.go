@@ -13,11 +13,11 @@ func TestMarkdownRetryAfterCompactionAndRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	seq, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "lost-ack", []byte{1})
+	seq, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "lost-ack", []byte{1}, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := f.core.CommitMarkdownSnapshot(f.ctx, f.owner.ID, doc.ID, seq, []byte{9}, "snapshot"); err != nil {
+	if err := f.core.CommitMarkdownSnapshot(f.ctx, f.owner.ID, doc.ID, seq, []byte{9}, "snapshot", 0); err != nil {
 		t.Fatal(err)
 	}
 	var index int
@@ -34,7 +34,7 @@ func TestMarkdownRetryAfterCompactionAndRestart(t *testing.T) {
 	}
 	defer conn.Close()
 	service := New(conn)
-	retried, err := service.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "lost-ack", []byte{1})
+	retried, err := service.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "lost-ack", []byte{1}, 0)
 	if err != nil || retried != seq {
 		t.Fatalf("retry = %d, %v; want %d", retried, err, seq)
 	}
@@ -45,7 +45,7 @@ func TestMarkdownRetryAfterCompactionAndRestart(t *testing.T) {
 	if len(state.Updates) != 0 || state.HeadSeq != seq || state.Markdown != "snapshot" {
 		t.Fatalf("retry changed compacted state: %#v", state)
 	}
-	next, err := service.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "new-edit", []byte{2})
+	next, err := service.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "new-edit", []byte{2}, 0)
 	if err != nil || next <= seq {
 		t.Fatalf("new edit = %d, %v", next, err)
 	}
@@ -55,21 +55,21 @@ func TestMarkdownReceiptsKeepPermissionAndItemBoundaries(t *testing.T) {
 	f := newFixture(t)
 	doc, _ := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "markdown", "Doc", nil)
 	other, _ := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "markdown", "Other", nil)
-	seq, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "same-id", []byte{1})
+	seq, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "same-id", []byte{1}, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := f.core.CommitMarkdownSnapshot(f.ctx, f.owner.ID, doc.ID, seq, []byte{9}, "snapshot"); err != nil {
+	if err := f.core.CommitMarkdownSnapshot(f.ctx, f.owner.ID, doc.ID, seq, []byte{9}, "snapshot", 0); err != nil {
 		t.Fatal(err)
 	}
 	viewer := f.addUser("viewer@test.example", "viewer")
 	outsider := f.addUser("outsider@test.example", "")
 	for _, user := range []string{viewer.ID, outsider.ID} {
-		if _, err := f.core.AppendMarkdownUpdate(f.ctx, user, doc.ID, "same-id", []byte{1}); !errors.Is(err, ErrForbidden) {
+		if _, err := f.core.AppendMarkdownUpdate(f.ctx, user, doc.ID, "same-id", []byte{1}, 0); !errors.Is(err, ErrForbidden) {
 			t.Fatalf("unauthorized retry: %v", err)
 		}
 	}
-	otherSeq, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, other.ID, "same-id", []byte{2})
+	otherSeq, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, other.ID, "same-id", []byte{2}, 0)
 	if err != nil || otherSeq == seq {
 		t.Fatalf("item isolation = %d, %v", otherSeq, err)
 	}
@@ -91,7 +91,7 @@ func TestMarkdownReceiptFailureRollsBackUpdate(t *testing.T) {
 	if _, err := f.db.Exec(`CREATE TRIGGER fail_receipt BEFORE INSERT ON markdown_update_receipts BEGIN SELECT RAISE(ABORT, 'test failure'); END`); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "failed", []byte{1}); err == nil {
+	if _, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "failed", []byte{1}, 0); err == nil {
 		t.Fatal("expected write failure")
 	}
 	count, _, err := f.core.MarkdownUpdateStats(f.ctx, doc.ID)
@@ -103,7 +103,7 @@ func TestMarkdownReceiptFailureRollsBackUpdate(t *testing.T) {
 func TestMarkdownResetClearsReceiptsAtomically(t *testing.T) {
 	f := newFixture(t)
 	doc, _ := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "markdown", "Doc", nil)
-	if _, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "old", []byte{1}); err != nil {
+	if _, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "old", []byte{1}, 0); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := f.db.Exec(`CREATE TRIGGER fail_reset BEFORE UPDATE ON markdown_states BEGIN SELECT RAISE(ABORT, 'test failure'); END`); err != nil {

@@ -337,3 +337,13 @@ WebSocket：
 - update 大小限制；
 - rate limit 基础防护；
 - 禁止通过 itemId 读取其他 Workspace。
+
+## 14. Markdown content generation
+
+`markdown.init` 含整数 `generation`。所有 `markdown.update`、
+`markdown.cache.update`、`markdown.snapshot.commit` payload 必须包含此值。
+相应 ACK、远端正文更新及快照请求也携带代际。正文重置递增代际，与清除旧状态
+同事务提交；服务端写入时在事务中校验编号。缺少编号返回 `GENERATION_REQUIRED`，
+不匹配返回 `GENERATION_CHANGED`。客户端不得将不同代际的 Y.Doc 合并。
+
+升级前已打开的旧客户端需要先确认保存、关闭，再随服务升级重新打开。

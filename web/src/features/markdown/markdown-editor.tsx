@@ -1,7 +1,7 @@
 import { usePreferences } from '@/features/account/preferences-provider';
 import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Loader } from '@mantine/core';
+import { Alert, Button, Loader } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { api } from '@/api/client';
 import { useMarkdown, useWorkspaceMutations } from '@/api/hooks';
@@ -30,6 +30,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const realtimeRef = useRef<RealtimeClient>();
   const typewriterModeRef = useRef(false);
   const [status, setStatus] = useState<SaveStatus>('Reconnecting');
+  const [failure, setFailure] = useState<{ message: string; download: () => void } | null>(null);
   const [presence, setPresence] = useState(1);
   const [inlinePreview, setInlinePreview] = useState<InlineMathPreview | null>(null);
   const [title, setTitle] = useState(item.title);
@@ -52,8 +53,10 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
     if (!rootRef.current || !initial.data) return;
     let active = true;
     onOutlineChange(null);
+    setFailure(null);
     const stop = startMarkdownSession({
       root: rootRef.current,
+      onFailure: (message, download) => { if (active) setFailure({ message, download }); },
       onOutlineChange: (outline) => {
         if (active) onOutlineChange(outline);
       },
@@ -152,6 +155,12 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
           onChange={(event) => void importMarkdown(event.target.files?.[0])}
         />
       </div>
+      {failure && (
+        <Alert color="red" title="保存已停止" role="alert">
+          {failure.message}
+          <Button variant="light" onClick={failure.download}>下载本地副本</Button>
+        </Alert>
+      )}
       <div
         ref={rootRef}
         className={editorClassName}

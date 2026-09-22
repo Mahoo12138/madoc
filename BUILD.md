@@ -151,3 +151,10 @@ madoc maintenance restore /path/to/backup-directory --confirm
 恢复命令会先把当前数据库、Asset 和 server secret 保存到 `$MADOC_DATA/backups/pre-restore-*`；恢复失败时自动回滚，因此旧数据仍可找回。恢复完成后启动服务并检查 `/healthz`、登录、文档图片与白板。
 
 自动定时备份可以在 MVP 之后实现。
+
+### Markdown 保存可靠性协议升级
+
+包含 migration 0006 的版本要求 Markdown WebSocket 写入携带内容代际编号。
+升级前请让协作者确认已保存并关闭编辑页，再按本文停服、备份、升级步骤操作。
+服务与内嵌前端应一起升级，完成后重新打开页面；不要继续使用旧标签页写入。
+旧标签页缺少编号的写入会被拒绝。迁移仅新增字段，不重写已有正文。

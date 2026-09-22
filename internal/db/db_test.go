@@ -27,8 +27,8 @@ func TestOpenAppliesMigrationsIdempotently(t *testing.T) {
 	if err := conn.QueryRow(`SELECT count(*) FROM schema_migrations`).Scan(&count); err != nil {
 		t.Fatal(err)
 	}
-	if count != 5 {
-		t.Fatalf("expected 5 migrations, got %d", count)
+	if count != 6 {
+		t.Fatalf("expected 6 migrations, got %d", count)
 	}
 }
 

@@ -6,10 +6,11 @@ import (
 )
 
 var (
-	ErrNotFound  = errors.New("not found")
-	ErrForbidden = errors.New("forbidden")
-	ErrConflict  = errors.New("conflict")
-	ErrInvalid   = errors.New("invalid request")
+	ErrGeneration = errors.New("content generation changed")
+	ErrNotFound   = errors.New("not found")
+	ErrForbidden  = errors.New("forbidden")
+	ErrConflict   = errors.New("conflict")
+	ErrInvalid    = errors.New("invalid request")
 )
 
 type Workspace struct {
@@ -52,6 +53,7 @@ type Item struct {
 }
 
 type MarkdownState struct {
+	Generation  int64            `json:"generation"`
 	Snapshot    []byte           `json:"snapshot"`
 	SnapshotSeq int64            `json:"snapshotSeq"`
 	Markdown    string           `json:"markdown"`
