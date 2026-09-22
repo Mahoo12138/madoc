@@ -36,7 +36,7 @@ import {
   useWorkspace,
   useWorkspaceMutations,
 } from '@/api/hooks';
-import type { Item, ItemType } from '@/api/types';
+import { APIError, type Item, type ItemType } from '@/api/types';
 import { WorkspaceNavigation } from './workspace-navigation';
 import type { MarkdownOutline } from '@/features/markdown/markdown-outline-model';
 import { MemberDrawer } from './member-drawer';
@@ -68,7 +68,16 @@ export function WorkspacePage() {
   const session = useSession();
   const workspace = useWorkspace(workspaceId);
   const items = useItems(workspaceId);
-  const unavailable = useWorkspaceEvents(workspaceId, session.data?.user?.id);
+  const realtimeUnavailable = useWorkspaceEvents(
+    workspaceId,
+    session.data?.user?.id,
+  );
+  const unavailable =
+    realtimeUnavailable ||
+    [workspace.error, items.error].some(
+      (error) =>
+        error instanceof APIError && [401, 403, 404].includes(error.status),
+    );
   const retained = useRef<Item>();
   const currentItem = items.data?.find((item) => item.id === itemId);
   if (currentItem) retained.current = currentItem;
@@ -107,7 +116,10 @@ export function WorkspacePage() {
     item?: Item;
     title: string;
   }>({ mode: 'create', type: 'markdown', parentId: null, title: '' });
-  if (session.isLoading || workspace.isLoading || items.isLoading)
+  if (
+    session.isLoading ||
+    (!unavailable && (workspace.isLoading || items.isLoading))
+  )
     return (
       <Center mih="100vh">
         <Loader />
@@ -348,7 +360,12 @@ export function WorkspacePage() {
           </Group>
         </header>
         <section className={styles.content}>
-          {missing && (
+          {itemId && !active && (
+            <Alert color="orange" role="alert">
+              无法打开此链接：内容可能已删除，或当前账号没有访问权限。请从内容导航选择其他条目。
+            </Alert>
+          )}
+          {missing && active && (
             <Alert color="orange" role="alert">
               此内容已删除或访问权限已变更。已停止保存，请保留本地副本；可从内容树选择其他条目。
             </Alert>
@@ -356,27 +373,31 @@ export function WorkspacePage() {
           {!active ? (
             <div className={styles.empty}>
               <div>
-                <Title order={2}>从一个文档或白板开始</Title>
+                <Title order={2}>
+                  {itemId ? '内容暂不可用' : '从一个文档或白板开始'}
+                </Title>
                 <Text c="dimmed" mt="xs">
                   左侧内容树是这个 Workspace 的唯一结构来源。
                 </Text>
-                {!unavailable && workspace.data?.role !== 'viewer' && (
-                  <Group justify="center" mt="xl">
-                    <Button
-                      leftSection={<IconFileText size={16} />}
-                      onClick={() => openCreate('markdown')}
-                    >
-                      新建文档
-                    </Button>
-                    <Button
-                      variant="light"
-                      leftSection={<IconWhiteboard size={16} />}
-                      onClick={() => openCreate('whiteboard')}
-                    >
-                      新建白板
-                    </Button>
-                  </Group>
-                )}
+                {!itemId &&
+                  !unavailable &&
+                  workspace.data?.role !== 'viewer' && (
+                    <Group justify="center" mt="xl">
+                      <Button
+                        leftSection={<IconFileText size={16} />}
+                        onClick={() => openCreate('markdown')}
+                      >
+                        新建文档
+                      </Button>
+                      <Button
+                        variant="light"
+                        leftSection={<IconWhiteboard size={16} />}
+                        onClick={() => openCreate('whiteboard')}
+                      >
+                        新建白板
+                      </Button>
+                    </Group>
+                  )}
               </div>
             </div>
           ) : (

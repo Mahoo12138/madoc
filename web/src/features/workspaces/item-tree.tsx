@@ -1,19 +1,14 @@
 import type { Dispatch, SetStateAction } from 'react';
-import { ActionIcon, Menu, UnstyledButton } from '@mantine/core';
+import { ActionIcon, UnstyledButton } from '@mantine/core';
 import {
   ChevronDown as IconChevronDown,
   ChevronRight as IconChevronRight,
   FileText as IconFileText,
   Folder as IconFolder,
-  FolderPlus as IconFolderPlus,
-  Ellipsis as IconDots,
-  Pencil as IconPencil,
-  Plus as IconPlus,
-  Trash as IconTrash,
   PenTool as IconWhiteboard,
-  Move as IconMove,
   Star as IconStar,
 } from 'lucide-react';
+import { ItemActions } from './item-actions';
 import { useFavorite, usePersonalItems } from '@/api/personal-items';
 import { useNavigate } from '@tanstack/react-router';
 import type { Item, ItemType, Role } from '@/api/types';
@@ -116,63 +111,14 @@ export function ItemTree({
                 fill={favorites.has(item.id) ? 'currentColor' : 'none'}
               />
             </ActionIcon>
-            {role !== 'viewer' && (
-              <Menu position="bottom-end" withinPortal>
-                <Menu.Target>
-                  <ActionIcon
-                    size="xs"
-                    aria-label={`${item.title} 的操作`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <IconDots size={13} />
-                  </ActionIcon>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  {isFolder && (
-                    <>
-                      <Menu.Item
-                        leftSection={<IconPlus size={14} />}
-                        onClick={() => onCreate('markdown', item.id)}
-                      >
-                        新建文档
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={<IconWhiteboard size={14} />}
-                        onClick={() => onCreate('whiteboard', item.id)}
-                      >
-                        新建白板
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={<IconFolderPlus size={14} />}
-                        onClick={() => onCreate('folder', item.id)}
-                      >
-                        新建文件夹
-                      </Menu.Item>
-                      <Menu.Divider />
-                    </>
-                  )}
-                  <Menu.Item
-                    leftSection={<IconPencil size={14} />}
-                    onClick={() => onRename(item)}
-                  >
-                    重命名
-                  </Menu.Item>
-                  <Menu.Item
-                    leftSection={<IconMove size={14} />}
-                    onClick={() => onMove(item)}
-                  >
-                    移动到…
-                  </Menu.Item>
-                  <Menu.Item
-                    color="red"
-                    leftSection={<IconTrash size={14} />}
-                    onClick={() => onDelete(item)}
-                  >
-                    删除
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            )}
+            <ItemActions
+              item={item}
+              role={role}
+              onCreate={onCreate}
+              onRename={onRename}
+              onMove={onMove}
+              onDelete={onDelete}
+            />
           </div>
           {isFolder && !closed && render(item.id, depth + 1)}
         </div>
