@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import {
   ActionIcon,
   Alert,
@@ -26,6 +26,7 @@ import {
   Home as IconHome,
   Settings as IconSettings,
   Trash2 as IconTrash,
+  Search as IconSearch,
   Users as IconUsers,
   PenTool as IconWhiteboard,
 } from 'lucide-react';
@@ -41,6 +42,7 @@ import type { MarkdownOutline } from '@/features/markdown/markdown-outline-model
 import { MemberDrawer } from './member-drawer';
 import { AccountMenu } from '@/features/account/account-menu';
 import { useWorkspaceEvents } from './use-workspace-events';
+import { WorkspaceSearch, useSearchShortcut } from './workspace-search';
 import { WorkspaceTrash } from './workspace-trash';
 import { WorkspaceSettings } from './workspace-settings';
 import * as styles from './workspace-shell.css';
@@ -79,6 +81,11 @@ export function WorkspacePage() {
 
   const mutations = useWorkspaceMutations(workspaceId);
   const [membersOpened, membersDrawer] = useDisclosure(false);
+  const [searchOpened, searchModal] = useDisclosure(false);
+  useSearchShortcut(searchModal.open, !unavailable);
+  useEffect(() => {
+    searchModal.close();
+  }, [workspaceId, itemId, searchModal.close]);
   const [trashOpened, trashModal] = useDisclosure(false);
   const [settingsOpened, settingsModal] = useDisclosure(false);
   const [itemModal, itemActions] = useDisclosure(false);
@@ -253,6 +260,15 @@ export function WorkspacePage() {
             )}
           </Menu.Dropdown>
         </Menu>
+        <Button
+          variant="subtle"
+          color="gray"
+          leftSection={<IconSearch size={15} />}
+          onClick={searchModal.open}
+          disabled={unavailable}
+        >
+          快速打开与搜索
+        </Button>
         <WorkspaceNavigation
           {...navigationProps}
           onNavigateHeading={(position) => outline?.navigate(position)}
@@ -286,6 +302,15 @@ export function WorkspacePage() {
             )}
           </Group>
           <Group>
+            <span className={styles.mobileMenu}>
+              <ActionIcon
+                aria-label="快速打开与搜索"
+                onClick={searchModal.open}
+                disabled={unavailable}
+              >
+                <IconSearch size={17} />
+              </ActionIcon>
+            </span>
             {!unavailable &&
               workspace.data &&
               workspace.data.role !== 'viewer' && (
@@ -416,11 +441,40 @@ export function WorkspacePage() {
         workspace.data &&
         workspace.data.role !== 'viewer' && (
           <WorkspaceTrash
-            key={workspaceId}
+            key={`trash:${workspaceId}`}
             workspace={workspace.data}
             onClose={trashModal.close}
           />
         )}
+      {!unavailable && (
+        <WorkspaceSearch
+          key={`search:${workspaceId}`}
+          workspaceId={workspaceId}
+          opened={searchOpened}
+          onClose={searchModal.close}
+          onSelect={async (id, type) => {
+            if (type === 'folder') {
+              searchModal.close();
+              const expanded: Record<string, boolean> = {};
+              let node = items.data?.find((item) => item.id === id);
+              while (node && !(node.id in expanded)) {
+                expanded[node.id] = false;
+                node = items.data?.find((item) => item.id === node?.parentId);
+              }
+              setCollapsedFolders((previous) => ({ ...previous, ...expanded }));
+              setNavigationPanel('files');
+              if (window.matchMedia('(max-width: 760px)').matches)
+                mobileDrawer.open();
+              return;
+            }
+            await navigate({
+              to: '/workspace/$workspaceId/$itemId',
+              params: { workspaceId, itemId: id },
+            });
+            searchModal.close();
+          }}
+        />
+      )}
       <MemberDrawer
         opened={membersOpened}
         onClose={membersDrawer.close}
@@ -429,7 +483,7 @@ export function WorkspacePage() {
       />
       {workspace.data && (
         <WorkspaceSettings
-          key={workspaceId}
+          key={`settings:${workspaceId}`}
           opened={settingsOpened}
           workspace={workspace.data}
           onClose={settingsModal.close}

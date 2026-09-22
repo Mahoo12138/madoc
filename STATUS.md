@@ -65,9 +65,12 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第四部分：服务端 Workspace watch / unwatch、提交后 metadata 失效通知、投递时会话 / 成员复查和删除后内容房间清理。重订阅主动失效，断线恢复以 REST 为准，不引入持久事件日志。
 - 第五部分：Workspace 与编辑器共用单条连接，metadata 失效自动刷新目录 / 权限 / 回收站，断线重订阅补读。删除 / 撤权时保留当前编辑器为只读救援，降级不重建会话、不丢未提交文本；错误按 Item 隔离。
 - 第六部分：当前 Workspace 搜索 core / REST，标题 / 路径 / Markdown 缓存正文、中文短词、字面符号及 Markdown 标点转义归一化；同事务权限隔离、结果限制、正文缓存水位和独立滞后提示。无数据迁移或新服务，详见 `docs/SEARCH.md`。
-- 待完成：快速打开和搜索界面、个人收藏 / 最近访问。不启用自动清理。设计与 API 见 `docs/CONTENT_LIFECYCLE.md`。
+- 第七部分：桌面 / 移动端快速打开与 Ctrl/Cmd+K 搜索，类型 / 路径 / 正文片段、缓存水位提示、重试、IME 与过期请求隔离、目录变化后的结果刷新；文件夹结果展开内容树。修复同级弹窗 key 冲突及切换时延迟协作事务访问已销毁编辑器。
+- 待完成：个人收藏 / 最近访问。不启用自动清理。设计与 API 见 `docs/CONTENT_LIFECYCLE.md`。
 
 ## 当前验证
+
+- 阶段 1 第七部分（基于 `164aa58`）：首轮测试暴露组合框语义、同级弹窗 key 冲突和 Milkdown 延迟事务销毁顺序问题，修复后 7 项搜索 / 回收站专项通过；新增文件夹定位后 18 项搜索 / outbox / 权限 / 实时回归通过。桌面与 390px 截图已检查；独立 MVP 核心流程、Go test / vet、前端 typecheck / build 通过。
 
 - 阶段 1 第六部分（基于 `54e3ccc`）：新增 3 项 core 搜索测试及转义归一化测试，覆盖中文 1–2 字、混合标识符、字面符号、路径、限制、viewer / 非成员 / 跨工作区、删除恢复与撤权、缓存滞后、compaction 和代际重置。HTTP 初测发现编辑器转义的下划线导致漏检，增加归一化并保留源码匹配后专项通过；4 项目录实时回归、独立 MVP 核心流程通过。Go test / vet、core / db race、前端 typecheck / build 通过。搜索 UI 尚待接入，未宣称大语料性能达标。
 

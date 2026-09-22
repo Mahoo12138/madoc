@@ -467,6 +467,9 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     onRealtimeChange(undefined);
     doc.off('update', onDocUpdate);
     awareness.off('update', onAwareness);
+    // Remove Yjs plugin bindings while Milkdown's editor context still exists.
+    // Deferred awareness transactions must not target a destroyed editor.
+    if (editorReady) crepe.editor.action((ctx) => ctx.get(collabServiceCtx).disconnect());
     awareness.destroy();
     doc.destroy();
     void crepe.destroy();

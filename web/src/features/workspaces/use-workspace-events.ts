@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { keys } from '@/api/hooks';
+import { searchKey } from '@/api/search';
 import { trashKey } from '@/api/trash';
 import { RealtimeClient } from '@/features/realtime/client';
 
@@ -37,6 +38,7 @@ export function useWorkspaceEvents(workspaceId: string, userId?: string) {
         keys.members(workspaceId),
         keys.invites(workspaceId),
         trashKey(workspaceId),
+        searchKey(workspaceId),
       ]) {
         void queries.invalidateQueries({ queryKey: key });
       }
