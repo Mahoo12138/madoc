@@ -399,17 +399,21 @@ func (h *Hub) remove(c *client) {
 }
 func (h *Hub) presence(room string) {
 	h.mu.RLock()
-	members := []map[string]any{}
-	for c := range h.rooms[room] {
-		members = append(members, map[string]any{"id": c.user.ID, "name": h.profile(c).Name, "avatarUrl": h.profile(c).AvatarURL})
-	}
 	targets := make([]*client, 0, len(h.rooms[room]))
 	for c := range h.rooms[room] {
 		targets = append(targets, c)
 	}
 	h.mu.RUnlock()
-	parts := strings.SplitN(room, ":", 2)
+	members := []map[string]any{}
+	authorized := targets[:0]
 	for _, c := range targets {
+		if h.roomAccess(c, room) {
+			authorized = append(authorized, c)
+			members = append(members, map[string]any{"id": c.user.ID, "name": h.profile(c).Name, "avatarUrl": h.profile(c).AvatarURL})
+		}
+	}
+	parts := strings.SplitN(room, ":", 2)
+	for _, c := range authorized {
 		h.send(c, "presence.changed", parts[1], map[string]any{"room": parts[0], "members": members})
 	}
 }
@@ -417,7 +421,7 @@ func (h *Hub) relay(sender *client, room string, m Envelope) {
 	h.mu.RLock()
 	_, joined := sender.rooms[room]
 	h.mu.RUnlock()
-	if !joined {
+	if !joined || !h.roomAccess(sender, room) {
 		return
 	}
 	var payload any
@@ -428,7 +432,7 @@ func (h *Hub) relayWithUser(sender *client, room string, m Envelope) {
 	h.mu.RLock()
 	_, joined := sender.rooms[room]
 	h.mu.RUnlock()
-	if !joined {
+	if !joined || !h.roomAccess(sender, room) {
 		return
 	}
 	payload := map[string]any{}
@@ -448,6 +452,9 @@ func (h *Hub) broadcast(sender *client, room, messageType, itemID string, payloa
 	}
 	h.mu.RUnlock()
 	for _, c := range targets {
+		if !h.roomAccess(c, room) {
+			continue
+		}
 		select {
 		case c.send <- data:
 		default:

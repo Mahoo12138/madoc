@@ -333,6 +333,8 @@ WebSocket：
 - cookie session；
 - 每次 join 查 membership；
 - 每次 durable write 查 write permission；
+- 房间广播接收者及瞬时消息发送者重新校验 session / Item read permission，失效时退订该 Item；
+- presence 列表仅包含当前有效成员，房间订阅不作为永久授权；
 - 消息大小限制；
 - update 大小限制；
 - rate limit 基础防护；
