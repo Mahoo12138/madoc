@@ -51,8 +51,8 @@ export function MarkdownEditorControls({
   readonly,
   focusMode,
   typewriterMode,
-  exportHref,
-  exportName,
+  onExport,
+  exporting,
   onImport,
   onToggleFocus,
   onToggleTypewriter,
@@ -63,8 +63,8 @@ export function MarkdownEditorControls({
   readonly: boolean;
   focusMode: boolean;
   typewriterMode: boolean;
-  exportHref: string;
-  exportName: string;
+  onExport: () => void;
+  exporting: boolean;
   onImport: () => void;
   onToggleFocus: () => void;
   onToggleTypewriter: () => void;
@@ -141,9 +141,8 @@ export function MarkdownEditorControls({
         <Tooltip label="导出 Markdown">
           <ActionIcon
             aria-label="导出 Markdown"
-            component="a"
-            href={exportHref}
-            download={exportName}
+            onClick={onExport}
+            loading={exporting}
           >
             <IconDownload size={17} />
           </ActionIcon>

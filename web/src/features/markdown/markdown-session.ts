@@ -1,3 +1,4 @@
+import type { MarkdownExportSource } from './markdown-export';
 import { MarkdownOutbox } from './markdown-outbox';
 import { MarkdownSaveState, type SaveStatus } from './markdown-save-state';
 import { createMarkdownCrepe } from './markdown-session-editor';
@@ -24,6 +25,7 @@ type Collaborator = { color?: string; name?: string };
 export type { SaveStatus } from './markdown-save-state';
 
 type MarkdownSessionOptions = {
+  onExportReady: (source?: MarkdownExportSource) => void;
   onFailure: (message: string, download: () => void, retry?: () => void) => void;
   onRecovered: () => void;
   onLeaveGuardChange: (guard: { unsafe: () => boolean; settle: () => Promise<void> }) => void;
@@ -90,6 +92,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     onInlinePreviewChange,
     onOutlineChange,
     onFailure,
+    onExportReady,
     onRecovered,
     onLeaveGuardChange,
   } = options;
@@ -172,6 +175,14 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     window.clearTimeout(cacheTimer);
     realtime.sendOnline('markdown.cache.update', item.id, { markdown: crepe.getMarkdown(), seenSeq: headSeq, generation });
   };
+  onExportReady({
+    state: () => ({ ready: editorReady && !destroyed, online: joined && realtime.state === 'online', stopped: halted || destroyed, pending: saveState.hasPendingUpdates, generation, seq: headSeq }),
+    flush: flushMarkdownCache,
+    markdown: () => {
+      if (!editorReady || destroyed) throw new Error('本地正文尚未准备完成。');
+      return crepe.getMarkdown();
+    },
+  });
   const onPageHide = () => flushMarkdownCache();
   const onVisibilityChange = () => {
     if (document.visibilityState === 'hidden') flushMarkdownCache();
@@ -436,6 +447,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
 
   return () => {
     destroyed = true;
+    onExportReady(undefined);
     window.clearInterval(retryTimer);
     setPendingChanges(pendingKey, false);
     window.removeEventListener('madoc-profile-changed', updateIdentity);

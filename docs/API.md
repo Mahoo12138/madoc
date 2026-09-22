@@ -154,6 +154,13 @@ GET /api/items/:itemId/export.md
 
 `GET /markdown` 返回最新 Markdown cache。
 
+`GET /export.md` 要求 cacheSeq 达到当前 headSeq，否则返回 409 `EXPORT_NOT_READY`。
+可同时传入 `generation` / `minSeq` 两个非负整数查询参数，要求同一代际且 cacheSeq
+至少达到 minSeq；允许返回比该最低水位更新的缓存。缺少配对参数、重复参数或非法数字
+返回 400；代际不符返回 409 `GENERATION_CHANGED`。登录和 Workspace 读权限照常检查。
+成功返回 `text/markdown` 附件，以及 `X-Madoc-Content-Generation`、`X-Madoc-Content-Seq`
+响应头，后者为实际 cacheSeq。导出响应使用 `Cache-Control: no-store`。
+
 `PUT /markdown` 的用途是**明确的整篇替换 / 导入**，不能作为实时 autosave endpoint。
 
 整篇替换必须：

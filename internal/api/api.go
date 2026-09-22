@@ -450,13 +450,35 @@ func (a *API) resetMarkdown(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
 }
 func (a *API) exportMarkdown(w http.ResponseWriter, r *http.Request) {
-	v, e := a.core.Markdown(r.Context(), userID(r), chi.URLParam(r, "itemId"))
+	w.Header().Set("Cache-Control", "no-store")
+	var target *core.MarkdownExportTarget
+	query := r.URL.Query()
+	if query.Has("generation") || query.Has("minSeq") {
+		generation, genErr := strconv.ParseInt(query.Get("generation"), 10, 64)
+		minSeq, seqErr := strconv.ParseInt(query.Get("minSeq"), 10, 64)
+		if genErr != nil || seqErr != nil || generation < 0 || minSeq < 0 || len(query["generation"]) != 1 || len(query["minSeq"]) != 1 {
+			domainError(w, core.ErrInvalid)
+			return
+		}
+		target = &core.MarkdownExportTarget{Generation: generation, MinSeq: minSeq}
+	}
+	v, e := a.core.ExportMarkdown(r.Context(), userID(r), chi.URLParam(r, "itemId"), target)
+	if errors.Is(e, core.ErrMarkdownExportPending) {
+		writeError(w, http.StatusConflict, "EXPORT_NOT_READY", "Markdown 导出内容尚未追上已确认修改，请稍后重试")
+		return
+	}
+	if errors.Is(e, core.ErrGeneration) {
+		writeError(w, http.StatusConflict, "GENERATION_CHANGED", "文档已被替换，请重新打开后导出")
+		return
+	}
 	if e != nil {
 		domainError(w, e)
 		return
 	}
 	w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
 	w.Header().Set("Content-Disposition", `attachment; filename="document.md"`)
+	w.Header().Set("X-Madoc-Content-Generation", strconv.FormatInt(v.Generation, 10))
+	w.Header().Set("X-Madoc-Content-Seq", strconv.FormatInt(v.CacheSeq, 10))
 	_, _ = io.WriteString(w, v.Markdown)
 }
 func (a *API) getWhiteboard(w http.ResponseWriter, r *http.Request) {

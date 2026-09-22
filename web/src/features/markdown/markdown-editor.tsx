@@ -1,3 +1,4 @@
+import { useMarkdownExport } from './use-markdown-export';
 import { useBlocker } from '@tanstack/react-router';
 import { usePreferences } from '@/features/account/preferences-provider';
 import type { CSSProperties } from 'react';
@@ -25,6 +26,7 @@ type Props = {
 
 export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const initial = useMarkdown(item.id);
+  const exporter = useMarkdownExport(item.id, item.title);
   const mutations = useWorkspaceMutations(item.workspaceId);
   const rootRef = useRef<HTMLDivElement>(null);
   const importRef = useRef<HTMLInputElement>(null);
@@ -65,6 +67,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
     setFailure(null);
     const stop = startMarkdownSession({
       root: rootRef.current,
+      onExportReady: exporter.register,
       onFailure: (message, download, retry) => { if (active) setFailure({ message, download, retry }); },
       onRecovered: () => { if (active) setFailure(null); },
       onLeaveGuardChange: (guard) => { leaveGuard.current = guard; },
@@ -152,8 +155,8 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
           readonly={role === 'viewer'}
           focusMode={focusMode}
           typewriterMode={typewriterMode}
-          exportHref={`/api/items/${item.id}/export.md`}
-          exportName={`${item.title}.md`}
+          onExport={() => void exporter.run()}
+          exporting={exporter.busy}
           onImport={() => importRef.current?.click()}
           onToggleFocus={toggleFocusMode}
           onToggleTypewriter={toggleTypewriterMode}
@@ -166,6 +169,14 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
           onChange={(event) => void importMarkdown(event.target.files?.[0])}
         />
       </div>
+      {exporter.busy && <div role="status">正在确认修改并准备导出…</div>}
+      {exporter.error && (
+        <Alert color="orange" title="导出尚未完成" role="alert">
+          {exporter.error}
+          <Button variant="light" onClick={() => void exporter.run()}>重试导出</Button>
+          <Button variant="light" onClick={exporter.local}>下载本地副本</Button>
+        </Alert>
+      )}
       {failure && (
         <Alert color="red" title="保存已停止" role="alert">
           {failure.message}

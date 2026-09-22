@@ -149,6 +149,10 @@ Reconnecting…
 - Yjs update 已被服务器确认持久化；
 - Markdown cache 可能稍后 debounce，但 snapshot 时必须一致。
 
+导出另行等待当前本地更新确认，并校验 Markdown cache 已达到选定的 generation / seq
+最低水位。8 秒内未完成或连接 / 权限失效时提供重试与明确的本地副本下载，不静默导出
+滞后缓存；详见 `RELIABILITY.md`。
+
 ## 9. Large Documents
 
 MVP 不针对几十 MB 文档优化。
