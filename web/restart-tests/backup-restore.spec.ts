@@ -1,0 +1,64 @@
+import { expect, test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { openDocument } from '../e2e/helpers/writing';
+import { RestartServer } from './server';
+
+test('CLI backup restores Markdown, board, asset and session into an independent data directory', async ({ page }) => {
+  const server = await RestartServer.create();
+  try {
+    await server.start();
+    const itemId = await openDocument(page, 'Verified backup content');
+    const documentURL = page.url();
+    const workspaceId = new URL(documentURL).pathname.split('/')[2];
+    const { csrfToken } = await (await page.request.get('/api/auth/session')).json();
+    const headers = { 'x-madoc-csrf-token': csrfToken, Origin: 'http://127.0.0.1:3100' };
+    const image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aH7sAAAAASUVORK5CYII=', 'base64');
+    const upload = await page.request.post(`/api/workspaces/${workspaceId}/assets`, {
+      headers, multipart: { file: { name: 'backup.png', mimeType: 'image/png', buffer: image }, itemId },
+    });
+    expect(upload.ok()).toBeTruthy();
+    const { asset } = await upload.json();
+    expect(await (await page.request.get(`/api/assets/${asset.id}`)).body()).toEqual(image);
+    const boardResponse = await page.request.post(`/api/workspaces/${workspaceId}/items`, { headers, data: { type: 'whiteboard', title: 'Restored board' } });
+    expect(boardResponse.ok()).toBeTruthy();
+    const board = await boardResponse.json();
+    const boardURL = `http://127.0.0.1:3100/workspace/${workspaceId}/${board.id}`;
+    await page.goto(boardURL);
+    await expect(page.locator('.excalidraw')).toBeVisible();
+    await page.locator('label').filter({ has: page.getByRole('radio', { name: 'Rectangle', exact: true }) }).click();
+    await page.mouse.move(650, 300);
+    await page.mouse.down();
+    await page.mouse.move(850, 450, { steps: 10 });
+    await page.mouse.up();
+    await expect.poll(async () => (await (await page.request.get(`/api/items/${board.id}/whiteboard`)).json()).scene.elements.length).toBe(1);
+    const before = await (await page.request.get(`/api/items/${board.id}/whiteboard`)).json();
+    expect(before.scene.elements[0].type).toBe('rectangle');
+    await page.goto(documentURL);
+    await expect(page.locator('.ProseMirror')).toHaveText('Verified backup content');
+    await expect.poll(async () => (await page.request.get(`/api/items/${itemId}/export.md`)).status()).toBe(200);
+    const secret = await readFile(join(server.directory, 'data/server.secret'));
+    await page.goto('about:blank');
+    await server.stop();
+    await server.restoreIntoIndependentDirectory();
+    expect(await readFile(join(server.directory, 'restored/server.secret'))).toEqual(secret);
+    await server.start();
+    await page.goto(documentURL);
+    await expect(page.locator('.ProseMirror')).toHaveText('Verified backup content');
+    await expect(page.getByText('已保存', { exact: true })).toBeVisible();
+    expect((await page.request.get('/api/auth/session')).ok()).toBeTruthy();
+    expect(await (await page.request.get(`/api/assets/${asset.id}`)).body()).toEqual(image);
+    const after = await (await page.request.get(`/api/items/${board.id}/whiteboard`)).json();
+    expect(after).toEqual(before);
+    await page.goto(boardURL);
+    await expect(page.locator('.excalidraw')).toBeVisible();
+    const ready = page.waitForEvent('download');
+    await page.getByRole('button', { name: '导出', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Excalidraw JSON' }).click();
+    const exported = JSON.parse(await readFile((await (await ready).path())!, 'utf8'));
+    expect(exported.elements).toEqual(before.scene.elements);
+  } finally {
+    await page.close();
+    await server.dispose();
+  }
+});

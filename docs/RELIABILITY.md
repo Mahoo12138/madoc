@@ -136,3 +136,14 @@ viewer 只能读取已存在的缓存，不发起缓存写入；缓存滞后时�
 测试：`internal/realtime/access_test.go` 覆盖两种内容的撤权广播、过期会话、禁用账号、
 删除 Item、瞬时消息与成员列表、降级及移除后的持久化写入拒绝；
 `markdown-permission-revocation.spec.ts` 验证真实双页面撤权后无新正文泄漏且未提交内容可救援。
+
+## 阶段 0：真实进程恢复回归
+
+`web/playwright.restart.config.ts` 使用独立测试进程，不复用普通 E2E 的 webServer。
+Markdown 测试分别向真实二进制发送 SIGTERM / SIGKILL，覆盖正文发送前失败与服务端
+已写入但 ACK 丢失两种情况，停服期间继续编辑，重启后验证稳定更新 ID、原确认序号、
+导出、会话与刷新后的正文。测试只终止自己启动的进程，数据位于独立临时目录。
+
+备份恢复用例通过正式 maintenance CLI 停服备份，再初始化另一目录并恢复，检查
+Markdown、真实画布创建的白板元素、附件二进制及 server secret / 会话保留。
+这是进程与文件持久化验证，不等同于断电或磁盘硬件损坏模拟。运行步骤见 `BUILD.md`。

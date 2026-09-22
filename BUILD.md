@@ -150,7 +150,25 @@ madoc maintenance restore /path/to/backup-directory --confirm
 
 恢复命令会先把当前数据库、Asset 和 server secret 保存到 `$MADOC_DATA/backups/pre-restore-*`；恢复失败时自动回滚，因此旧数据仍可找回。恢复完成后启动服务并检查 `/healthz`、登录、文档图片与白板。
 
+恢复到另一台机器或独立空目录时，先使用目标 `MADOC_DATA` 启动一次 madoc，待健康检查
+通过后停止服务，以创建目标数据库、assets 和 secret；无需创建管理员。然后在相同目标
+环境变量下执行上述 restore 命令。当前 restore 不直接接受尚无数据库的空目录。
+
 自动定时备份可以在 MVP 之后实现。
+
+## 独立进程重启验证
+
+先构建嵌入前端，再单独运行重启测试（不要与普通 E2E 同时运行）：
+
+```sh
+pnpm --dir web build
+pnpm --dir web exec playwright test --config playwright.restart.config.ts
+```
+
+测试要求本机 `127.0.0.1:3100` 空闲；每例自行构建二进制、创建临时数据目录并管理进程，
+不会终止占用端口的外部进程。正常停服与 SIGKILL 分别覆盖发送前失败、ACK 丢失、
+停服期间编辑和重启后刷新恢复；另验证维护命令备份并恢复到独立目录。测试结束清理
+自身临时数据，失败轨迹位于 `web/test-results/`。
 
 ### Markdown 保存可靠性协议升级
 
