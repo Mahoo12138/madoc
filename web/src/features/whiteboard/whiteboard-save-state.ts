@@ -9,8 +9,8 @@ export class WhiteboardSaveState {
   get pending() { return this.confirmed < this.version; }
   get requestId() { return this.pending ? this.latest?.id : undefined; }
 
-  changed() {
-    this.latest = { id: crypto.randomUUID(), version: ++this.version };
+  changed(id: string = crypto.randomUUID()) {
+    this.latest = { id, version: ++this.version };
   }
 
   sending(id: string) {

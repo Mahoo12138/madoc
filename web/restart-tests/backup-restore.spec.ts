@@ -26,6 +26,7 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     const boardURL = `http://127.0.0.1:3100/workspace/${workspaceId}/${board.id}`;
     await page.goto(boardURL);
     await expect(page.locator('.excalidraw')).toBeVisible();
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
     await page.locator('label').filter({ has: page.getByRole('radio', { name: 'Rectangle', exact: true }) }).click();
     await page.mouse.move(650, 300);
     await page.mouse.down();
@@ -52,6 +53,7 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     expect(after).toEqual(before);
     await page.goto(boardURL);
     await expect(page.locator('.excalidraw')).toBeVisible();
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
     const ready = page.waitForEvent('download');
     await page.getByRole('button', { name: '导出', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Excalidraw JSON' }).click();

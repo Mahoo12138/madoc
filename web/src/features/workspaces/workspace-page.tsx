@@ -330,7 +330,7 @@ export function WorkspacePage() {
                 />
               ) : active.type === 'whiteboard' ? (
                 <WhiteboardEditor
-                  key={active.id}
+                  key={`${session.data.user.id}:${active.id}`}
                   item={active}
                   role={workspace.data!.role}
                   user={session.data.user}
