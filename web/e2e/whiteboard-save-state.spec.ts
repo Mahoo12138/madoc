@@ -130,3 +130,81 @@ test('switching boards keeps editor contents isolated', async ({ page }) => {
   expect((await (await page.request.get(`/api/items/${first}/whiteboard`)).json()).scene.elements).toHaveLength(1);
   expect((await (await page.request.get(`/api/items/${second.id}/whiteboard`)).json()).scene.elements).toEqual([]);
 });
+
+for (const editOffline of [false, true]) {
+  test(`lost ACK is retried after reconnect with offline editing=${editOffline}`, async ({ page }) => {
+    let holdACK = false;
+    let offline = false;
+    let disconnect = () => {};
+    const frames: string[] = [];
+    const ids: string[] = [];
+    await page.routeWebSocket('**/ws', socket => {
+      if (offline) { socket.close({ code: 1000 }); return; }
+      const server = socket.connectToServer();
+      disconnect = () => { server.close({ code: 1000 }); socket.close({ code: 1000 }); };
+      socket.onMessage(message => { const frame = JSON.parse(String(message)); frames.push(frame.type); if (frame.type === 'whiteboard.scene.update') ids.push(frame.requestId); server.send(message); });
+      server.onMessage(message => {
+        if (holdACK && JSON.parse(String(message)).type === 'whiteboard.scene.ack') return;
+        socket.send(message);
+      });
+    });
+    const id = await openBoard(page);
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    holdACK = true;
+    await rectangle(page);
+    await expect.poll(async () => (await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements.length).toBe(1);
+    await expect(page.getByText('Saving', { exact: true })).toBeVisible();
+    const pendingId = ids.at(-1);
+    offline = true;
+    disconnect();
+    await expect(page.getByText('Offline', { exact: true })).toBeVisible();
+    if (editOffline) await rectangle(page, 60);
+    await page.waitForTimeout(500);
+    frames.length = 0;
+    holdACK = false;
+    offline = false;
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    const durableFrames = frames.filter(type => type === 'whiteboard.join' || type === 'whiteboard.scene.update');
+    expect(durableFrames[0]).toBe('whiteboard.join');
+    if (!editOffline) expect(ids.at(-1)).toBe(pendingId);
+    await expect.poll(async () => (await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements.length).toBe(editOffline ? 2 : 1);
+    await page.reload();
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    expect((await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements).toHaveLength(editOffline ? 2 : 1);
+  });
+}
+
+test('server rejection stops writes and preserves an explicit local board copy', async ({ page }, testInfo) => {
+  let rejectWrites = false;
+  let attempted = 0;
+  await page.routeWebSocket('**/ws', socket => {
+    const server = socket.connectToServer();
+    socket.onMessage(message => {
+      const frame = JSON.parse(String(message));
+      if (rejectWrites && frame.type === 'whiteboard.scene.update') {
+        attempted += 1;
+        socket.send(JSON.stringify({ type: 'error', requestId: frame.requestId, payload: { code: 'FORBIDDEN', message: 'operation is not allowed' } }));
+        return;
+      }
+      server.send(message);
+    });
+  });
+  await openBoard(page);
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  rejectWrites = true;
+  await rectangle(page);
+  await expect(page.getByRole('alert')).toContainText('白板保存已停止');
+  await expect(page.getByRole('radio', { name: 'Rectangle', exact: true })).toHaveCount(0);
+  const before = attempted;
+  await page.waitForTimeout(3200);
+  expect(attempted).toBe(before);
+  const ready = page.waitForEvent('download');
+  await page.getByRole('button', { name: '下载本地白板副本', exact: true }).click();
+  const download = await ready;
+  expect(download.suggestedFilename()).toContain('本地副本');
+  const { readFile } = await import('node:fs/promises');
+  expect(JSON.parse(await readFile((await download.path())!, 'utf8')).elements).toHaveLength(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole('button', { name: '下载本地白板副本', exact: true })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('whiteboard-save-rejected-mobile.png') });
+});

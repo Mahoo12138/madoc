@@ -1,6 +1,7 @@
 package realtime
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 )
@@ -28,5 +29,27 @@ func TestMergeScenesReconcilesByElementVersion(t *testing.T) {
 		if element["id"] == "a" && element["version"] != float64(2) {
 			t.Fatalf("older incoming element won: %#v", element)
 		}
+	}
+}
+
+func TestWhiteboardAckIdentifiesTheSubmittedRequest(t *testing.T) {
+	f := newAccessFixture(t, "whiteboard")
+	f.hub.handle(context.Background(), f.owner, Envelope{
+		Type: "whiteboard.scene.update", ItemID: f.item.ID, RequestID: "stable-scene-id",
+		Payload: json.RawMessage(`{"baseRevision":0,"scene":{"elements":[]}}`),
+	})
+	got := messages(f.owner)
+	if len(got) != 1 || got[0].Type != "whiteboard.scene.ack" {
+		t.Fatalf("response: %v", got)
+	}
+	var payload struct {
+		ClientUpdateID string `json:"clientUpdateId"`
+		Revision       int64  `json:"revision"`
+	}
+	if err := json.Unmarshal(got[0].Payload, &payload); err != nil {
+		t.Fatal(err)
+	}
+	if payload.ClientUpdateID != "stable-scene-id" || payload.Revision != 1 {
+		t.Fatalf("ACK: %+v", payload)
 	}
 }

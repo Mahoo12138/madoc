@@ -23,12 +23,12 @@ export class RealtimeClient {
 
   private emit(message: Envelope) { for (const listener of this.listeners) listener(message); }
   subscribe(handler: Handler) { this.listeners.add(handler); return () => this.listeners.delete(handler); }
-  send(type: string, itemId: string, payload: unknown = {}, requestId = crypto.randomUUID()) {
+  send(type: string, itemId: string, payload: unknown = {}, requestId: string = crypto.randomUUID()) {
     const message = JSON.stringify({ type, itemId, payload, requestId });
     if (this.socket?.readyState === WebSocket.OPEN) this.socket.send(message); else this.queue.push(message);
     return requestId;
   }
-  sendOnline(type: string, itemId: string, payload: unknown = {}, requestId = crypto.randomUUID()) {
+  sendOnline(type: string, itemId: string, payload: unknown = {}, requestId: string = crypto.randomUUID()) {
     if (this.stopped || this.socket?.readyState !== WebSocket.OPEN) return false;
     this.socket.send(JSON.stringify({ type, itemId, payload, requestId }));
     return true;

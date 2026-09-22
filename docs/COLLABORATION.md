@@ -318,6 +318,10 @@ whiteboard.presence
 
 Server 分配 revision 并 relay。
 
+`whiteboard.scene.ack` payload 包含 `revision` 与 `clientUpdateId`，后者回显当前请求
+envelope 的 `requestId`。前端使用它匹配本地已发送场景版本；重连后先完成 init，再
+重发尚未确认的最新完整场景。此 ID 用于客户端确认关联，不是数据库 revision 的幂等键。
+
 客户端使用 Excalidraw element reconciliation，不用 whole-scene last-write-wins。
 
 ## 12. Backpressure

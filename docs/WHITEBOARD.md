@@ -126,6 +126,17 @@ Excalidraw 内嵌图片不能依赖浏览器 local-only file。
 本地元素按其版本规则合并，避免较旧整篇场景清除本地元素。每个 Item 使用独立编辑器
 实例，切换白板不会把上一张画布的本地元素带入新 Item。
 
+白板 ACK 的 `clientUpdateId` 对应请求 envelope 的 `requestId`。前端按已发送请求 ID
+确认完整场景版本，不按 ACK 到达次数确认；新版本完整场景的 ACK 可以覆盖更早本地版本，
+未知或重复 ACK 不推进状态。待确认场景每 3 秒重试，沿用当前请求 ID。
+断线后先 join、合并 init，再发送最新待确认场景；离线不把正文或指针放进通用发送队列。
+重试依赖元素版本合并保持内容一致，服务端 revision 仍可能递增，不宣称 revision 去重。
+
+明确拒绝保存时停止自动发送、进入只读并提供“下载本地白板副本”；导出文件名带
+“本地副本”。这里的待提交状态仍在内存中，白板跨刷新 / 关闭恢复尚待接入，不能显示
+“已保存到此设备”。部署时服务与内嵌前端一起升级；旧服务没有对应 ID 时新前端不会
+误报 Saved。
+
 ## 8. Self-host Assets
 
 Excalidraw npm 默认字体可能从外部路径获取。madoc 自部署必须把 Excalidraw 所需字体静态文件复制进 web public/build，并设置正确的 `EXCALIDRAW_ASSET_PATH`。

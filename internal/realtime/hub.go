@@ -305,7 +305,7 @@ func (h *Hub) whiteboardUpdate(ctx context.Context, c *client, m Envelope) {
 		h.coreError(c, m, err)
 		return
 	}
-	h.send(c, "whiteboard.scene.ack", m.ItemID, map[string]any{"revision": state.Revision})
+	h.send(c, "whiteboard.scene.ack", m.ItemID, map[string]any{"revision": state.Revision, "clientUpdateId": m.RequestID})
 	var scene any
 	_ = json.Unmarshal([]byte(state.Scene), &scene)
 	h.broadcast(c, "whiteboard:"+m.ItemID, "whiteboard.scene.remote", m.ItemID, map[string]any{"revision": state.Revision, "scene": scene, "userId": c.user.ID})

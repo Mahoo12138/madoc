@@ -48,9 +48,12 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第八部分：独立进程回归覆盖正常停服 / 强制终止、未发送 / ACK 丢失、停服期间编辑与重启重试；增加真实维护命令向独立目录恢复的验收入口。
 - 第九部分：白板持久化按实际正文变化去重，工具 / 选区 / 指针及相同场景重渲染不再循环写入；远端场景不能提前确认本地修改，并通过 Excalidraw 元素合并保留本地内容，切换 Item 隔离编辑器实例。
 - 第十部分：WebSocket 正文初始化、持久化和广播入队按单实例顺序执行，消除 join 与更新间的窗口及广播乱序，覆盖 Markdown / Whiteboard。
-- 后续：白板断线与并发待提交场景复核及固定提交发布回归。阶段 0 尚未完成，不进入阶段 1。
+- 第十一部分：白板请求 ID 关联 ACK、完整场景版本确认、稳定 ID 重试与 join 后重发；明确拒绝保存时停止发送并提供只读本地 JSON 救援。
+- 后续：白板跨刷新待提交持久化与固定提交发布回归。阶段 0 尚未完成，不进入阶段 1。
 
 ## 当前验证
+
+- 阶段 0 第十一部分（基于 `f50ae3c`）：修改前复现丢失 ACK 后重连仍无法恢复 Saved。8 项白板状态 / 浏览器测试通过，覆盖请求 ID 匹配、重复 / 未知 / 部分 ACK、完整场景新版确认、丢 ACK 重连原 ID 重试、离线绘图合并、join 先于重发、拒绝后停止写入与本地副本；390px 救援提示截图已检查。后端 ACK ID 回显测试、Go test / race / vet、前端 typecheck / production build、独立备份恢复和 MVP 核心 E2E 通过。新增后端用例后 realtime test / race 与 vet 复核通过。
 
 - 阶段 0 第十部分（基于 `95ad949`）：并发 join / 16 路写入测试在修改前首轮复现 init 水位 4 后收到 seq 1；串行化后 Markdown 40 轮、白板 20 轮验证初始化在前、版本递增、完整内容及全部 ACK，Markdown 专项另连续运行 3 次通过。Go test / race / vet、前端 typecheck / production build、18 项保存 / outbox / 代际 / 白板专项及独立 MVP 核心 E2E 通过。
 
