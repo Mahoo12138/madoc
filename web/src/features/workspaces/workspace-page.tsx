@@ -37,6 +37,7 @@ import {
   useWorkspaceMutations,
 } from '@/api/hooks';
 import { APIError, type Item, type ItemType } from '@/api/types';
+import { CreateDocument } from './create-document';
 import { WorkspaceNavigation } from './workspace-navigation';
 import type { MarkdownOutline } from '@/features/markdown/markdown-outline-model';
 import { MemberDrawer } from './member-drawer';
@@ -98,6 +99,9 @@ export function WorkspacePage() {
   const [trashOpened, trashModal] = useDisclosure(false);
   const [settingsOpened, settingsModal] = useDisclosure(false);
   const [itemModal, itemActions] = useDisclosure(false);
+  const [documentParent, setDocumentParent] = useState<{
+    parentId: string | null;
+  }>();
   const [mobileOpened, mobileDrawer] = useDisclosure(false);
   const [navigationPanel, setNavigationPanel] = useState('files');
   const [returnNavigationFocus, setReturnNavigationFocus] = useState(true);
@@ -131,6 +135,10 @@ export function WorkspacePage() {
   }
   const active = currentItem ?? retained.current;
   const openCreate = (type: ItemType, parentId: string | null = null) => {
+    if (type === 'markdown') {
+      setDocumentParent({ parentId });
+      return;
+    }
     setDraft({ mode: 'create', type, parentId, title: '' });
     itemActions.open();
   };
@@ -508,6 +516,14 @@ export function WorkspacePage() {
           opened={settingsOpened}
           workspace={workspace.data}
           onClose={settingsModal.close}
+        />
+      )}
+      {documentParent && !unavailable && workspace.data?.role !== 'viewer' && (
+        <CreateDocument
+          workspaceId={workspaceId}
+          parentId={documentParent.parentId}
+          onClose={() => setDocumentParent(undefined)}
+          onCreated={mobileDrawer.close}
         />
       )}
       <Modal

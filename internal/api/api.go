@@ -383,14 +383,15 @@ func (a *API) getItem(w http.ResponseWriter, r *http.Request) {
 }
 func (a *API) createItem(w http.ResponseWriter, r *http.Request) {
 	var b struct {
-		Type, Title string
-		ParentID    *string `json:"parentId"`
+		Type, Title     string
+		ParentID        *string               `json:"parentId"`
+		InitialMarkdown *core.InitialMarkdown `json:"initialMarkdown"`
 	}
 	if decode(r, &b) != nil {
 		domainError(w, core.ErrInvalid)
 		return
 	}
-	v, e := a.core.CreateItem(r.Context(), userID(r), chi.URLParam(r, "workspaceId"), b.Type, b.Title, b.ParentID)
+	v, e := a.core.CreateItemWithMarkdown(r.Context(), userID(r), chi.URLParam(r, "workspaceId"), b.Type, b.Title, b.ParentID, b.InitialMarkdown)
 	if e != nil {
 		domainError(w, e)
 		return

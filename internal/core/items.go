@@ -39,7 +39,19 @@ func (s *Service) GetItem(ctx context.Context, id string) (Item, error) {
 	return item, err
 }
 
+type InitialMarkdown struct {
+	Snapshot []byte `json:"snapshot"`
+	Markdown string `json:"markdown"`
+}
+
 func (s *Service) CreateItem(ctx context.Context, userID, workspaceID, itemType, title string, parentID *string) (Item, error) {
+	return s.CreateItemWithMarkdown(ctx, userID, workspaceID, itemType, title, parentID, nil)
+}
+
+func (s *Service) CreateItemWithMarkdown(ctx context.Context, userID, workspaceID, itemType, title string, parentID *string, initial *InitialMarkdown) (Item, error) {
+	if initial != nil && (itemType != "markdown" || len(initial.Snapshot) == 0) {
+		return Item{}, ErrInvalid
+	}
 	if itemType != "folder" && itemType != "markdown" && itemType != "whiteboard" {
 		return Item{}, ErrInvalid
 	}
@@ -68,7 +80,7 @@ func (s *Service) CreateItem(ctx context.Context, userID, workspaceID, itemType,
 		return Item{}, err
 	}
 	if itemType == "markdown" {
-		if _, err := tx.ExecContext(ctx, `INSERT INTO markdown_states(item_id,updated_at) VALUES(?,?)`, item.ID, now); err != nil {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO markdown_states(item_id,snapshot,markdown_cache,updated_at) VALUES(?,?,?,?)`, item.ID, initialSnapshot(initial), initialText(initial), now); err != nil {
 			return Item{}, err
 		}
 	}
@@ -242,4 +254,17 @@ func validateParent(ctx context.Context, q itemQuerier, workspaceID string, pare
 		return ErrInvalid
 	}
 	return nil
+}
+
+func initialSnapshot(initial *InitialMarkdown) []byte {
+	if initial == nil {
+		return nil
+	}
+	return initial.Snapshot
+}
+func initialText(initial *InitialMarkdown) string {
+	if initial == nil {
+		return ""
+	}
+	return initial.Markdown
 }
