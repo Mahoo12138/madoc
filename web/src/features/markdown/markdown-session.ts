@@ -1,5 +1,6 @@
+import { configureEscapes, escapedText, preserveEscapes } from './markdown-escape';
 import { Crepe } from '@milkdown/crepe';
-import { inlineCodeSchema } from '@milkdown/kit/preset/commonmark';
+import { inlineCodeSchema, remarkInlineLinkPlugin, remarkLineBreak } from '@milkdown/kit/preset/commonmark';
 import { Plugin, TextSelection } from '@milkdown/kit/prose/state';
 import { $prose } from '@milkdown/kit/utils';
 import { collab, collabServiceCtx } from '@milkdown/plugin-collab';
@@ -13,6 +14,12 @@ import { inlineSourceEditing } from './markdown-inline-source';
 import type { InlineMathPreview } from './markdown-inline-presentation';
 import { getMarkdownStats, type MarkdownStats } from './markdown-stats';
 import './markdown-code-block.css';
+import { markdownOutline } from './markdown-outline-plugin';
+import type { MarkdownOutline } from './markdown-outline-model';
+import { hardbreakIndicators } from './markdown-break';
+import { asymmetricEmphasisInput } from './markdown-emphasis';
+import { configureReferences, preserveReferences, referenceDefinition, resolveReferences } from './markdown-reference';
+import { blockImageSource, inlineImageSource, configureImageSource } from './markdown-image-source';
 
 type InitPayload = {
   snapshot?: string | null;
@@ -25,6 +32,7 @@ type Collaborator = { color?: string; name?: string };
 export type SaveStatus = 'Saving' | 'Saved' | 'Offline' | 'Reconnecting';
 
 type MarkdownSessionOptions = {
+  onOutlineChange: (outline: MarkdownOutline | null) => void;
   root: HTMLElement;
   item: Item;
   role: Role;
@@ -52,6 +60,7 @@ const doubleBacktickInput = $prose((ctx) => {
         const textBefore = $from.parent.textBetween(0, $from.parentOffset, '\n', '\n');
         const openingIndex = textBefore.indexOf('``');
         if (openingIndex < 0) return false;
+        if (view.state.doc.rangeHasMark($from.start() + openingIndex, from, escapedText.type(ctx))) return false;
 
         const transaction = view.state.tr.insertText(text, from, to);
         const cursor = transaction.selection.from;
@@ -124,6 +133,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     onStatsChange,
     onStatusChange,
     onInlinePreviewChange,
+    onOutlineChange,
   } = options;
 
   root.replaceChildren();
@@ -198,11 +208,32 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       },
     },
   });
+  void crepe.editor.remove(remarkInlineLinkPlugin);
+  // Preserve escapes before line-break normalization discards text positions.
+  void crepe.editor.remove(remarkLineBreak);
   crepe.editor
+    .config(configureEscapes)
+    .use(escapedText)
+    .use(preserveEscapes)
+    .use(remarkLineBreak)
+    .config(configureReferences)
+    .config(configureImageSource)
+    .use(referenceDefinition)
+    .use(preserveReferences)
+    .use(resolveReferences)
+    .use(hardbreakIndicators)
+    .use(blockImageSource)
+    .use(inlineImageSource)
     // Keep Crepe's math schema and renderer, replacing only its floating editor.
-    .config((ctx) => { ctx.set('INLINE_LATEX_TOOLTIP_SPEC', {}); })
+    .config((ctx) => {
+      ctx.set('INLINE_LATEX_TOOLTIP_SPEC', {});
+      // Existing links edit in place; keep the toolbar's add-link dialog.
+      ctx.set('LINK_PREVIEW_TOOLTIP_SPEC', {});
+    })
     .use(comfortableMarkdownInput)
+    .use(asymmetricEmphasisInput)
     .use(inlineSourceEditing(onInlinePreviewChange))
+    .use(markdownOutline(item.id, onOutlineChange))
     .use(activeBlockDecoration)
     .use(doubleBacktickInput)
     .use(collab);

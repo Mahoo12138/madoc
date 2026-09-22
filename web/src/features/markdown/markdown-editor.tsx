@@ -10,6 +10,7 @@ import { startMarkdownSession, type SaveStatus } from './markdown-session';
 import { getMarkdownStats } from './markdown-stats';
 import { MarkdownMathPreview } from './markdown-math-preview';
 import type { InlineMathPreview } from './markdown-inline-presentation';
+import type { MarkdownOutline } from './markdown-outline-model';
 import * as styles from './markdown-editor.css';
 
 const preferenceKeys = {
@@ -33,7 +34,14 @@ function writePreference(key: string, value: boolean) {
   }
 }
 
-export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; user: User }) {
+type Props = {
+  item: Item;
+  role: Role;
+  user: User;
+  onOutlineChange: (outline: MarkdownOutline | null) => void;
+};
+
+export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const initial = useMarkdown(item.id);
   const mutations = useWorkspaceMutations(item.workspaceId);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -73,8 +81,13 @@ export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; u
 
   useEffect(() => {
     if (!rootRef.current || !initial.data) return;
-    return startMarkdownSession({
+    let active = true;
+    onOutlineChange(null);
+    const stop = startMarkdownSession({
       root: rootRef.current,
+      onOutlineChange: (outline) => {
+        if (active) onOutlineChange(outline);
+      },
       item,
       role,
       user,
@@ -88,7 +101,11 @@ export function MarkdownEditor({ item, role, user }: { item: Item; role: Role; u
       onStatusChange: setStatus,
       onInlinePreviewChange: setInlinePreview,
     });
-  }, [item.id, item.workspaceId, initial.data?.cacheSeq, initial.data?.markdown, role, user.id, user.name]);
+    return () => {
+      active = false;
+      stop();
+    };
+  }, [item.id, item.workspaceId, initial.data?.cacheSeq, initial.data?.markdown, role, user.id, user.name, onOutlineChange]);
 
   const rename = async () => {
     const nextTitle = title.trim();
