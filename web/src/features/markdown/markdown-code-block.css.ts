@@ -14,8 +14,8 @@ globalStyle(block, {
 });
 globalStyle(`${block} .cm-activeLineGutter`, {
   backgroundColor: 'transparent',
-  color: 'var(--mantine-color-gray-7)',
-  fontWeight: 500,
+  color: 'inherit',
+  fontWeight: 'inherit',
 });
 globalStyle(`${block} .tools`, {
   position: 'absolute',
@@ -101,4 +101,12 @@ globalStyle(`${language}, ${buttons}`, {
     '(hover: none), (pointer: coarse)': { opacity: 1, minHeight: 32, minWidth: 32 },
     '(prefers-reduced-motion: reduce)': { transition: 'none' },
   },
+});
+
+
+// Cursor position never paints a row; only explicit fence metadata does.
+globalStyle(`${block} .cm-activeLine`, { backgroundColor: 'transparent' });
+globalStyle(`${block} .cm-line.madoc-code-highlight`, {
+  backgroundColor: 'var(--mantine-primary-color-light)',
+  boxShadow: 'inset 2px 0 var(--mantine-primary-color-filled)',
 });

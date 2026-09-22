@@ -1,3 +1,7 @@
+import { configureFootnotes, footnotes, preserveFootnoteReferences } from './markdown-footnote';
+import { footnoteDefinitionView } from './markdown-footnote-view';
+import { blockMathNavigation } from './markdown-block-math';
+import { codeHighlights, codeHighlightSchema } from './markdown-code-highlights';
 import { configureEscapes, escapedText, preserveEscapes } from './markdown-escape';
 import { Crepe } from '@milkdown/crepe';
 import { inlineCodeSchema, remarkInlineLinkPlugin, remarkLineBreak } from '@milkdown/kit/preset/commonmark';
@@ -212,10 +216,17 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   // Preserve escapes before line-break normalization discards text positions.
   void crepe.editor.remove(remarkLineBreak);
   crepe.editor
+    .use(codeHighlightSchema)
+    .use(codeHighlights)
+    .use(blockMathNavigation)
     .config(configureEscapes)
     .use(escapedText)
+    .use(preserveFootnoteReferences)
     .use(preserveEscapes)
     .use(remarkLineBreak)
+    .config(configureFootnotes)
+    .use(footnotes)
+    .use(footnoteDefinitionView)
     .config(configureReferences)
     .config(configureImageSource)
     .use(referenceDefinition)

@@ -24,16 +24,29 @@ globalStyle('.milkdown .ProseMirror h3', { fontSize: '20px', lineHeight: '1.4', 
 globalStyle('.milkdown .ProseMirror h4', { fontSize: '18px', lineHeight: '1.45', letterSpacing: '-0.008em' });
 globalStyle('.milkdown .ProseMirror h5', { fontSize: '16px', lineHeight: '1.5' });
 globalStyle('.milkdown .ProseMirror h6', { fontSize: '14px', lineHeight: '1.5' });
+// Inline code participates in normal line wrapping, including unbroken tokens.
+// Fenced code blocks keep their own scrolling and whitespace behavior.
+globalStyle('.milkdown .ProseMirror :not(pre) > code', {
+  display: 'inline',
+  whiteSpace: 'break-spaces',
+  overflowWrap: 'anywhere',
+  wordBreak: 'normal',
+});
 globalStyle('.milkdown .ProseMirror pre', { borderRadius: '10px', overflowX: 'auto' });
 globalStyle('.milkdown .ProseMirror img', { maxWidth: '100%', borderRadius: '8px' });
 globalStyle('.milkdown .ProseMirror .madoc-inline-source-shell', {
   display: 'inline',
+});
+globalStyle('.milkdown .ProseMirror .madoc-inline-measure-clip', {
+  position: 'absolute', width: 0, height: 0, overflow: 'hidden',
+  visibility: 'hidden', pointerEvents: 'none',
 });
 globalStyle('.milkdown .ProseMirror .madoc-inline-measure', {
   position: 'absolute',
   visibility: 'hidden',
   pointerEvents: 'none',
   whiteSpace: 'pre',
+  width: 'max-content',
 });
 globalStyle('.milkdown .ProseMirror .madoc-inline-source', {
   maxWidth: '100%',
@@ -93,3 +106,14 @@ globalStyle('.milkdown .ProseMirror .madoc-remote-selection', {
   background: 'color-mix(in srgb, var(--madoc-remote-color, var(--mantine-primary-color-filled)), transparent 88%)',
   borderBottom: '2px solid color-mix(in srgb, var(--madoc-remote-color, var(--mantine-primary-color-filled)), transparent 55%)',
 });
+
+
+globalStyle('.milkdown .ProseMirror .madoc-escape-source-shell', {
+  display: 'inline-block', position: 'relative', verticalAlign: 'baseline',
+});
+globalStyle('.milkdown .ProseMirror .madoc-escape-source-paint', {
+  position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+  whiteSpace: 'pre', pointerEvents: 'none', userSelect: 'none',
+});
+globalStyle('.milkdown .ProseMirror .madoc-escape-source-paint[hidden]', { display: 'none' });
+globalStyle('.milkdown .ProseMirror .madoc-escape-marker', { color: 'var(--mantine-color-dimmed)' });

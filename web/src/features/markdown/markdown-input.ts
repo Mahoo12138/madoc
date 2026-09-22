@@ -2,6 +2,7 @@ import { emphasisSchema, inlineCodeSchema } from '@milkdown/kit/preset/commonmar
 import { Plugin, TextSelection } from '@milkdown/kit/prose/state';
 import { Decoration, DecorationSet } from '@milkdown/kit/prose/view';
 import { $prose } from '@milkdown/kit/utils';
+import { escapable, escapedText } from './markdown-escape';
 
 const textPairs = new Map([
   ['(', ')'],
@@ -50,6 +51,18 @@ export const comfortableMarkdownInput = $prose((ctx) => {
           return true;
         }
 
+        // Consume only an unescaped backslash. A literal \ carries its own
+        // mark, so doubled backslashes do not escape the following character.
+        const preceding = state.doc.resolve(from).nodeBefore;
+        if (escapable.test(text) && preceding?.isText && preceding.text?.endsWith('\\')
+          && !escapedText.type(ctx).isInSet(preceding.marks)) {
+          const transaction = state.tr.insertText(text, from - 1, to);
+          transaction.addMark(from - 1, from, escapedText.type(ctx).create());
+          transaction.removeStoredMark(escapedText.type(ctx));
+          view.dispatch(transaction);
+          return true;
+        }
+
         const next = characterAt(state.doc, from);
         if (closingCharacters.has(text) && next === text) {
           view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, from + 1)));
@@ -74,6 +87,7 @@ export const comfortableMarkdownInput = $prose((ctx) => {
         const { from } = view.state.selection;
         if (from <= 0) return false;
 
+        if (view.state.doc.rangeHasMark(from - 1, Math.min(from + 1, view.state.doc.content.size), escapedText.type(ctx))) return false;
         const previous = characterAt(view.state.doc, from - 1);
         const next = characterAt(view.state.doc, from);
         if (textPairs.get(previous) !== next) return false;

@@ -154,7 +154,7 @@ test('IME composition stays intact until compositionend and empty content is sav
 });
 
 test('viewer cannot enter editable inline source', async ({ page, browser }) => {
-  await openDocument(page, '**readonly** and $x^2$');
+  await openDocument(page, '**readonly** and $x^2$ and [link](#section)');
   const workspaceId = new URL(page.url()).pathname.split('/')[2];
   const session = await (await page.request.get('/api/auth/session')).json();
   const invitation = await (await page.request.post(`/api/workspaces/${workspaceId}/invites`, {
@@ -171,6 +171,7 @@ test('viewer cannot enter editable inline source', async ({ page, browser }) => 
   await expect(reader.locator('.ProseMirror')).toHaveAttribute('contenteditable', 'false');
   await reader.locator('.ProseMirror strong').click();
   await reader.locator('.ProseMirror [data-type="math_inline"]').click();
+  await reader.locator('.ProseMirror a').click();
   await expect(reader.locator('.madoc-inline-source')).toHaveCount(0);
   await context.close();
 });

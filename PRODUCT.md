@@ -122,6 +122,14 @@ MVP 要求：
 
 Markdown 页面尽量最大化正文区域；Whiteboard 页面尽量最大化画布。
 
+Workspace 基础设置由 owner 管理：
+
+- 桌面端从 Workspace 菜单打开，移动端从顶部设置按钮打开。
+- 可修改 Workspace 名称；名称不能为空，保存后同步更新当前 Shell 和 Workspace 列表。
+- 删除前展示影响范围，并要求输入完整 Workspace 名称确认；取消不修改数据，请求失败保留输入以便重试，成功后返回 Workspace 列表。
+- editor / viewer 不显示设置入口，后端继续独立校验 owner 权限。
+- 设置只使用既有 Workspace REST API，不引入新的数据模型或协作协议。
+
 ## 8. 权限
 
 Workspace MVP 只需要三档：

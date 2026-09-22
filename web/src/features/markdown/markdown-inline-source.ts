@@ -8,7 +8,7 @@ import {
 } from 'y-prosemirror';
 import { createAbsolutePositionFromRelativePosition, createRelativePositionFromTypeIndex, type RelativePosition } from 'yjs';
 import {
-  filledPairAt, inlineRangeAt, mapSourceOffset, mergeComposition, parseInline,
+  escapeSourceOffset, filledPairAt, inlineRangeAt, mapSourceOffset, mergeComposition, parseInline,
   type InlineRange, type InlineSource,
 } from './markdown-inline-codec';
 import { createInlinePresentation, type InlineMathPreview } from './markdown-inline-presentation';
@@ -16,10 +16,13 @@ import { createInlinePresentation, type InlineMathPreview } from './markdown-inl
 const sourceKey = new PluginKey<InlineRange | null>('madoc-inline-source');
 type SourceMeta = { range: InlineRange | null; activate?: InlineSource };
 const labels: Record<string, string> = {
+  escaped_text: '编辑转义文本源码',
+  link: '编辑链接源码',
   strong: '编辑加粗源码',
   emphasis: '编辑斜体源码',
   inlineCode: '编辑行内代码源码',
   math_inline: '编辑行内公式',
+  footnote_reference: '编辑脚注引用源码',
 };
 
 /**
@@ -45,6 +48,16 @@ export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview
   const serialize = (range: InlineRange) => {
     const state = view.state;
     const fragment = state.doc.slice(range.from, range.to).content;
+    if (range.kind === 'escaped_text') {
+      let raw = '';
+      let literal = true;
+      fragment.forEach((node) => {
+        if (!node.isText || node.marks.some((mark) => mark.type.name !== 'escaped_text')) literal = false;
+        raw += node.marks.some((mark) => mark.type.name === 'escaped_text')
+          ? (node.text ?? '').replace(/[!-/:-@\[-`{-~]/g, '\\$&') : node.text ?? '';
+      });
+      if (literal) return raw;
+    }
     let plain = true;
     fragment.forEach((node) => { if (!node.isText || node.marks.length > 0) plain = false; });
     if (plain) return fragment.textBetween(0, fragment.size);
@@ -72,6 +85,19 @@ export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview
     const range = sourceKey.getState(view.state);
     if (!range) return;
     const transaction = view.state.tr.setMeta(sourceKey, { range: null } satisfies SourceMeta).setMeta('addToHistory', false);
+    // Removing a line-start escape can turn a complete paragraph into a
+    // heading, quote or list. Apply that block change when leaving source.
+    const $start = view.state.doc.resolve(range.from);
+    if (range.kind === 'escaped_text' && $start.parent.type.name === 'paragraph'
+      && range.from === $start.start() && range.to === $start.end()) {
+      const parsed = ctx.get(parserCtx)(source.value);
+      if (parsed?.childCount === 1 && parsed.firstChild?.isBlock && parsed.firstChild.type.name !== 'paragraph') {
+        const from = $start.before();
+        transaction.replaceWith(from, $start.after(), parsed.content).setMeta('addToHistory', true);
+        transaction.setSelection(TextSelection.near(transaction.doc.resolve(from + 1)));
+        position = undefined;
+      }
+    }
     if (position !== undefined) {
       const $position = transaction.doc.resolve(position);
       transaction.setSelection(TextSelection.near($position));
@@ -99,7 +125,7 @@ export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview
     const next = { ...range, to: range.from + parsed.size };
     // The native field owns the exact source selection; the shared cursor stays
     // inside its canonical range and never points into synthetic delimiters.
-    const offset = Math.min(parsed.size, Math.max(0, (source.selectionStart ?? 0) - (range.kind === 'strong' ? 2 : 1)));
+    const offset = Math.min(parsed.size, Math.max(0, range.kind === 'escaped_text' ? escapeSourceOffset(source.value, source.selectionStart ?? 0, false) : (source.selectionStart ?? 0) - (range.kind === 'strong' ? 2 : 1)));
     transaction.setSelection(TextSelection.near(transaction.doc.resolve(range.from + offset)));
     transaction.setMeta(sourceKey, { range: next } satisfies SourceMeta);
     syncing = true;
@@ -127,22 +153,44 @@ export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview
     }
     if (event.key === 'Escape' || event.key === 'Enter' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       event.preventDefault();
-      const offset = Math.min(range.to - range.from, Math.max(0, (source.selectionStart ?? 0) - (range.kind === 'strong' ? 2 : 1)));
+      const offset = Math.min(range.to - range.from, Math.max(0, range.kind === 'escaped_text' ? escapeSourceOffset(source.value, source.selectionStart ?? 0, false) : (source.selectionStart ?? 0) - (range.kind === 'strong' ? 2 : 1)));
       close(range.from + offset);
       if (event.key !== 'Escape') view.someProp('handleKeyDown', (handler) => handler(view, event));
     }
   };
 
-  const activateAt = (editor: EditorView, position: number, target: EventTarget | null) => {
+  const activateAt = (editor: EditorView, position: number, event: MouseEvent) => {
+    const target = event.target;
     if (!editor.editable || !(target instanceof Element) || shell?.contains(target)) return false;
-    const element = target.closest('strong, em, code, [data-type="math_inline"]');
+    if ((event.ctrlKey || event.metaKey) && target.closest('[data-type="footnote_reference"]')) return false;
+    const active = sourceKey.getState(editor.state);
+    if (active && position >= active.from && position <= active.to) {
+      // The source widget hides the canonical text, so posAtCoords can report
+      // its start even when clicking beyond its right edge. Use the visible
+      // field's bounds without reserializing an in-progress source edit.
+      const bounds = source.getBoundingClientRect();
+      if (event.clientY >= bounds.top && event.clientY <= bounds.bottom
+        && (event.clientX <= bounds.left || event.clientX >= bounds.right)) {
+        const cursor = event.clientX >= bounds.right ? source.value.length : 0;
+        source.focus({ preventScroll: true });
+        source.setSelectionRange(cursor, cursor);
+        return true;
+      }
+    }
+    const element = target.closest('a') ?? target.closest('strong, em, code, [data-type="math_inline"], [data-type="footnote_reference"]');
     if (target.closest('pre')) return false;
-    const kind = !element ? undefined : element.matches('strong') ? 'strong' : element.matches('em') ? 'emphasis' : element.matches('code') ? 'inlineCode' : 'math_inline';
+    const kind = !element ? undefined : element.matches('a') ? 'link' : element.matches('strong') ? 'strong' : element.matches('em') ? 'emphasis' : element.matches('code') ? 'inlineCode' : element.matches('[data-type="footnote_reference"]') ? 'footnote_reference' : 'math_inline';
     const range = inlineRangeAt(editor.state, position, kind) ?? inlineRangeAt(editor.state, Math.max(0, position - 1), kind);
     if (!range) return false;
     const raw = serialize(range);
     const markerLength = range.kind === 'strong' ? 2 : range.kind === 'inlineCode' ? (raw.match(/^`+/)?.[0].length ?? 1) : 1;
-    open(range, Math.min(raw.length - markerLength, markerLength + Math.max(0, position - range.from)), raw);
+    // A click outside the rendered span maps to its document boundary. Keep
+    // that boundary outside the complete source, including closing delimiters
+    // and link destinations, rather than clamping it into the visible label.
+    const cursor = position <= range.from ? 0 : position >= range.to ? raw.length
+      : range.kind === 'escaped_text' ? escapeSourceOffset(raw, position - range.from, true)
+        : Math.min(raw.length - markerLength, markerLength + position - range.from);
+    open(range, cursor, raw);
     return true;
   };
 
@@ -184,7 +232,7 @@ export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview
         return DecorationSet.create(state.doc, decorations);
       },
       handleClick(editor, position, event) {
-        return activateAt(editor, position, event.target);
+        return activateAt(editor, position, event);
       },
       handleKeyDown(editor, event) {
         if (!editor.editable || !editor.state.selection.empty || event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) return false;
@@ -196,7 +244,7 @@ export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview
         if (!range) return false;
         const raw = serialize(range);
         // Enter through the outside delimiter so each arrow has a real position.
-        const cursor = position <= range.from ? 1 : position >= range.to ? raw.length - 1 : Math.min(raw.length, position - range.from + (range.kind === 'strong' ? 2 : 1));
+        const cursor = position <= range.from ? 1 : position >= range.to ? raw.length - 1 : range.kind === 'escaped_text' ? escapeSourceOffset(raw, position - range.from, true) : Math.min(raw.length, position - range.from + (range.kind === 'strong' ? 2 : 1));
         open(range, cursor, raw);
         return true;
       },
@@ -204,7 +252,7 @@ export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview
         mousedown(editor, event) {
           if (event.button !== 0 || event.shiftKey) return false;
           const position = editor.posAtCoords({ left: event.clientX, top: event.clientY });
-          if (!position || !activateAt(editor, position.pos, event.target)) return false;
+          if (!position || !activateAt(editor, position.pos, event)) return false;
           event.preventDefault();
           return true;
         },
@@ -220,7 +268,7 @@ export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview
     },
     appendTransaction(transactions, _oldState, state) {
       if (!view?.editable || view.composing || sourceKey.getState(state)) return null;
-      if (transactions.some((transaction) => transaction.getMeta(sourceKey) || transaction.getMeta(ySyncPluginKey))) return null;
+      if (transactions.some((transaction) => transaction.getMeta(sourceKey) || transaction.getMeta('madoc-footnote-input') || transaction.getMeta(ySyncPluginKey))) return null;
       // DOM selections can land on the adjacent plain text node at either edge.
       // Listen to selection changes, not only clicks whose target is a mark.
       if (view.hasFocus() && state.selection.empty && transactions.some((transaction) => transaction.selectionSet && !transaction.docChanged)) {
@@ -228,7 +276,7 @@ export const inlineSourceEditing = (onPreviewChange: (preview: InlineMathPreview
         const range = inlineRangeAt(state, position) ?? inlineRangeAt(state, Math.max(0, position - 1));
         if (range) {
           const raw = serialize(range);
-          const cursor = position <= range.from ? 0 : position >= range.to ? raw.length : position - range.from + (range.kind === 'strong' ? 2 : 1);
+          const cursor = position <= range.from ? 0 : position >= range.to ? raw.length : range.kind === 'escaped_text' ? escapeSourceOffset(raw, position - range.from, true) : position - range.from + (range.kind === 'strong' ? 2 : 1);
           return state.tr.setMeta(sourceKey, { range, activate: { ...range, raw, cursor } } satisfies SourceMeta).setMeta('addToHistory', false);
         }
       }

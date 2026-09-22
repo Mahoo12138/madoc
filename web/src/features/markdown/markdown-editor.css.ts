@@ -89,8 +89,29 @@ globalStyle(`${editor} .milkdown-slash-menu`, {
   boxShadow: '0 12px 32px rgba(15, 23, 42, 0.14)',
 });
 
-globalStyle(`${editor} .milkdown .ProseMirror`, {
+// Gap/node selections draw their own indicator and hide the native caret.
+globalStyle(`${editor} .milkdown .ProseMirror:not(.ProseMirror-hideselection)`, {
   caretColor: 'var(--mantine-primary-color-filled)',
+});
+
+// The gap widget is a local insertion affordance, not a document paragraph.
+// Give it a text line while focused so dividers open up around the caret.
+// ProseMirror hides the widget on blur and removes it when selection moves.
+globalStyle(`${editor} .milkdown .ProseMirror-gapcursor`, {
+  position: 'relative',
+  lineHeight: 1.5,
+  height: 'calc(1lh + 8px)',
+  paddingBlock: 4,
+  marginBlock: '0.7em',
+});
+
+globalStyle(`${editor} .milkdown .ProseMirror-gapcursor::after`, {
+  top: 'calc(4px + (1lh - 1em) / 2)',
+  left: 0,
+  width: 0,
+  height: '1em',
+  borderTop: 0,
+  borderLeft: '1px solid var(--mantine-primary-color-filled)',
 });
 
 globalStyle(`${editor} .milkdown .ProseMirror ::selection`, {
@@ -112,4 +133,92 @@ globalStyle(`${editor} .milkdown .crepe-placeholder::before`, {
 
 globalStyle(`${focusMode} .milkdown .ProseMirror :is(p, h1, h2, h3, h4, h5, h6, pre, blockquote, table)`, {
   '@media': { '(prefers-reduced-motion: reduce)': { transition: 'none' } },
+});
+
+
+globalStyle(`${editor} .milkdown .ProseMirror blockquote`, {
+  paddingLeft: 16,
+});
+
+globalStyle(`${editor} .madoc-hardbreak`, {
+  color: 'var(--mantine-color-gray-5)',
+  fontSize: '0.8em',
+  paddingInline: '0.35em',
+  userSelect: 'none',
+  pointerEvents: 'none',
+});
+
+globalStyle(`${editor} .madoc-reference-definition`, {
+  fontSize: '0.9em',
+  color: 'var(--mantine-color-dimmed)',
+  paddingBlock: 4,
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
+});
+
+globalStyle(`${editor} .madoc-image-source-view`, {
+  position: 'relative',
+  maxWidth: '100%',
+});
+
+globalStyle(`${editor} .madoc-image-source-view.is-inline`, {
+  display: 'inline-block',
+  verticalAlign: 'middle',
+});
+
+globalStyle(`${editor} .madoc-image-source`, {
+  display: 'block',
+  width: '100%',
+  minWidth: 0,
+  flex: '1 1 0',
+  boxSizing: 'border-box',
+  resize: 'none',
+  overflow: 'hidden',
+  padding: '4px 0',
+  marginBottom: 4,
+  border: 0,
+  outline: 0,
+  background: 'transparent',
+  color: 'var(--mantine-color-text)',
+  caretColor: 'var(--mantine-primary-color-filled)',
+  fontFamily: 'var(--mantine-font-family-monospace)',
+  fontSize: '0.85em',
+  lineHeight: 1.5,
+});
+
+globalStyle(`${editor} .madoc-image-source[hidden], ${editor} .madoc-image-source-indicator[hidden], ${editor} .madoc-image-source-row[hidden]`, {
+  display: 'none',
+});
+
+globalStyle(`${editor} .madoc-image-source-row`, {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 4,
+  width: '100%',
+});
+
+globalStyle(`${editor} .madoc-image-source-indicator`, {
+  display: 'inline-flex',
+  flex: '0 0 16px',
+  marginTop: 6,
+  color: 'var(--mantine-color-dimmed)',
+  userSelect: 'none',
+  pointerEvents: 'none',
+});
+
+
+// Markdown title is edited in the source and exposed as the image tooltip.
+globalStyle(`${editor} .milkdown .madoc-image-source-view .milkdown-image-block .caption-input, ${editor} .milkdown .madoc-image-source-view .milkdown-image-block .operation`, {
+  display: 'none',
+});
+
+
+globalStyle(`${editor} .milkdown .madoc-image-source-view .image-wrapper img`, {
+  objectFit: 'contain',
+  minHeight: 0,
+});
+
+// Failed images keep their editable source, without a broken-image placeholder.
+globalStyle(`${editor} .madoc-image-source-view.is-failed > .milkdown-image-block, ${editor} .madoc-image-source-view.is-failed > .milkdown-image-inline`, {
+  display: 'none',
 });

@@ -8,14 +8,16 @@ type Parser = (markdown: string) => ProseMirrorNode | null | undefined;
 /** A plain prefix keeps *, $$ and backticks in inline (rather than block) context. */
 export function parseInline(raw: string, parse: Parser, state: EditorState): Fragment {
   const prefix = 'madoc ';
-  const parsed = parse(prefix + raw);
-  if (parsed?.childCount === 1 && parsed.firstChild?.type.name === 'paragraph') {
+  const definitions: string[] = [];
+  state.doc.descendants((node) => { if (node.type.name === 'reference_definition') definitions.push(node.textContent); });
+  const parsed = parse(prefix + raw + (definitions.length ? '\n\n' + definitions.join('\n\n') : ''));
+  if (parsed?.firstChild?.type.name === 'paragraph' && parsed.childCount === 1 + definitions.length) {
     return parsed.firstChild.content.cut(prefix.length);
   }
   return state.schema.nodes.paragraph.create(null, raw ? state.schema.text(raw) : undefined).content;
 }
 
-const editableMarks = new Set(['strong', 'emphasis', 'inlineCode']);
+const editableMarks = new Set(['link', 'strong', 'emphasis', 'inlineCode']);
 
 export function inlineRangeAt(state: Pick<EditorState, 'doc'>, position: number, preferredKind?: string): InlineRange | null {
   const $pos = state.doc.resolve(position);
@@ -26,8 +28,17 @@ export function inlineRangeAt(state: Pick<EditorState, 'doc'>, position: number,
   const index = children.findIndex(({ from, to }) => position >= from && position < to);
   const current = children[index < 0 ? children.length - 1 : index];
   if (!current) return null;
-  if (current.node.type.name === 'math_inline') return { from: current.from, to: current.to, kind: 'math_inline' };
-  const mark = current.node.marks.find((mark) => preferredKind ? mark.type.name === preferredKind : editableMarks.has(mark.type.name));
+  // Only reveal the escape belonging to the character at the caret. Adjacent
+  // escaped punctuation can share a mark, but must remain separate edit targets.
+  if ((!preferredKind || preferredKind === 'escaped_text') && current.node.isText
+    && current.node.marks.some((mark) => mark.type.name === 'escaped_text')
+    && current.node.marks.every((mark) => mark.type.name === 'escaped_text')) {
+    const from = Math.min(Math.max(position, current.from), current.to - 1);
+    return { from, to: from + 1, kind: 'escaped_text' };
+  }
+  if (['math_inline', 'footnote_reference'].includes(current.node.type.name)) return { from: current.from, to: current.to, kind: current.node.type.name };
+  // Expand the complete link even when its label contains other inline marks.
+  const mark = current.node.marks.find((mark) => mark.type.name === 'link') ?? current.node.marks.find((mark) => preferredKind ? mark.type.name === preferredKind : editableMarks.has(mark.type.name));
   if (!mark) return null;
   let first = children.indexOf(current);
   let last = first;
@@ -101,4 +112,19 @@ export function mergeComposition(base: string, edited: string, remote: string) {
   const from = mapSourceOffset(base, remote, start);
   const to = mapSourceOffset(base, remote, oldEnd);
   return remote.slice(0, from) + edited.slice(start, newEnd) + remote.slice(to);
+}
+
+
+/** Map the caret through visible backslash escapes in a literal source span. */
+export function escapeSourceOffset(raw: string, offset: number, toSource: boolean) {
+  let source = 0;
+  let literal = 0;
+  while (source < raw.length && (toSource ? literal < offset : source < offset)) {
+    if (raw[source] === '\\' && /^[!-/:-@\[-`{-~]$/.test(raw[source + 1] ?? '')) {
+      if (!toSource && source + 1 === offset) break;
+      source += 2;
+    } else source += 1;
+    literal += 1;
+  }
+  return toSource ? source : literal;
 }

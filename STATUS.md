@@ -22,6 +22,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 建立 folder/markdown/whiteboard Item tree 与安全移动
 - [x] 使用 `github.com/coder/websocket` 建立 multiplex realtime hub
 - [x] 建立 Mantine + Vanilla Extract Workspace Shell
+- [x] 补齐 Workspace 设置：owner 重命名、名称确认删除、失败重试及桌面 / 移动端入口
 - [x] 接入 Milkdown/Crepe、Yjs、Markdown cache、ACK、重连与 compaction
 - [x] 接入 `.md` 导入/导出和私有图片上传
 - [x] 接入 Excalidraw scene persistence、revision CAS、element reconciliation 与导出
@@ -32,6 +33,16 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 更新 Vite proxy、Docker、`go:embed` 与数据目录说明
 
 ## 当前验证
+
+- 脚注：补齐按首次引用编号、重复引用、带 `[^标识]:` 的多段落定义区、原位引用源码编辑、定义重命名联动、跳转与返回；未完成引用在保存刷新后保留并可补定义，转义 / 实体 / 代码示例不误识别，viewer 仅阅读与跳转。新增 12 项回归，137 项编辑器完整回归通过；最后收紧输入识别并简化行内解析后，12 项专项复核通过。Go test / vet、前端 typecheck / build 和桌面 / 390px 截图检查通过
+
+- 块级公式呈现：按 Typora 参考改为灰底源码、`$$` 边界、独立白底实时预览与 `Math ✓` 完成按钮，移除行号 / 语言菜单 / PREVIEW 标签；点击或方向键进入编辑、离开后收起，空公式保持入口，展开状态不影响其他协作者。新增 7 项回归，覆盖桌面 / 390px、编号、保存刷新、同步撤销、错误恢复、只读与语言切换；125 项编辑器回归、Go test / vet、前端 typecheck / build 和截图检查通过，既有代码块指定行高亮保持正常
+
+- 超长行内代码：渲染态按容器宽度换行，源码编辑时裁剪隐藏字宽测量区域，消除连续长字符造成的横向溢出；新增 6 项桌面 / 390px 回归，覆盖段落、引用、列表、编辑、窗口缩放、保存导出与刷新。118 项编辑器回归、Go test / vet、前端 typecheck / build 及桌面 / 窄屏截图检查通过
+
+- Workspace 设置：启用桌面菜单与手机顶部入口，重命名同步刷新 Shell / 列表，删除要求完整名称确认，失败保留输入，提交期间阻止重复请求；editor / viewer 无入口且 REST 拒绝越权。新增 2 项 Go 权限 / 隔离测试和 7 项设置 E2E，MVP 核心流程、Go test / vet、前端 typecheck / build 通过；Chromium 1280×720 与 390×844 截图、正常流程控制台及手机关闭后的焦点恢复检查通过。浏览器测试使用独立临时数据目录，不操作现有工作数据
+
+- 代码块行高亮：取消默认当前行背景与行号强调；支持围栏元数据 `{2,3}`、`{2-4,6}` 指定行高亮，按一基行号计算并忽略无效 / 越界范围；保留切换语言、内容编辑、双窗口同步、导出再导入与块级公式行为。新增 13 项解析 / 编辑回归，112 项编辑器测试、Go test / vet、前端 typecheck / build 和指定行截图检查通过
 
 - Outline 层级折叠增强：独立分支箭头、全部展开 / 折叠、嵌套状态保留与折叠父分支当前章节提示；桌面 / 手机共享本地会话状态，远端更新通过 Yjs 相对位置保持折叠标题对应关系。10 项 Outline 单元 / E2E（含远端重命名、删除不误折叠其他分支及 viewer 无内容写入）、11 项 writing 编辑器回归、Go test / vet、前端 typecheck / build 通过，桌面与 390px 截图及独立审阅通过
 

@@ -17,6 +17,7 @@ test('inline formula shows a live rendered preview below its source', async ({ p
 });
 
 for (const [syntax, selector, label] of [
+  ['[链接](https://example.com)', 'a', '编辑链接源码'],
   ['**粗体**', 'strong', '编辑加粗源码'],
   ['*斜体*', 'em', '编辑斜体源码'],
   ['`代码`', 'code', '编辑行内代码源码'],

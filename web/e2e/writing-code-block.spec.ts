@@ -17,7 +17,8 @@ async function expectFloatingTools(block: Locator) {
   for (const gutter of await block.locator('.cm-activeLineGutter').all()) {
     await expect(gutter).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   }
-  await expect(block.locator('.cm-lineNumbers .cm-activeLineGutter')).toHaveCSS('font-weight', '500');
+  await expect(block.locator('.cm-lineNumbers .cm-activeLineGutter')).toHaveCSS('font-weight', '400');
+  await expect(block.locator('.cm-activeLine')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 }
 
 test('code tools float outside/inside the panel without adding a header row', async ({ page, context }) => {
