@@ -137,6 +137,18 @@ Excalidraw 内嵌图片不能依赖浏览器 local-only file。
 “已保存到此设备”。部署时服务与内嵌前端一起升级；旧服务没有对应 ID 时新前端不会
 误报 Saved。
 
+### 本地 outbox 存储层（待接入编辑器）
+
+`whiteboard-outbox.ts` 使用独立 IndexedDB `madoc-whiteboard-outbox`，按 origin / 用户 /
+Workspace / Item 分区，每个标签页占一个独立草稿槽。完整场景连同附件映射、请求 ID、
+baseRevision、标题和更新时间在事务内替换本标签页旧草稿，不覆盖其他标签页。
+调用保存时立即复制场景，避免异步开库期间原对象变化导致保存内容漂移。
+
+确认清理仅删除调用者已捕获且 ID 仍一致的记录；迟到 ACK 不清理新草稿，也不能跨
+Item / 账号清理。失败事务保留原记录。账号索引供后续独立恢复入口使用。
+目前仅完成此存储层及浏览器事务测试；编辑器写入、恢复合并、本地保存状态及失败救援
+接入尚未完成，不能据此声称白板跨刷新可恢复。
+
 ## 8. Self-host Assets
 
 Excalidraw npm 默认字体可能从外部路径获取。madoc 自部署必须把 Excalidraw 所需字体静态文件复制进 web public/build，并设置正确的 `EXCALIDRAW_ASSET_PATH`。
