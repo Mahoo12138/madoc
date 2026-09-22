@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ActionIcon, Menu, Modal, Stack, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
+  Copy,
   Ellipsis,
   FolderPlus,
   Link,
@@ -11,6 +12,7 @@ import {
   Plus,
   Trash,
 } from 'lucide-react';
+import { DuplicateItem } from './duplicate-item';
 import type { Item, ItemType, Role } from '@/api/types';
 
 // Titles and parent folders are deliberately absent from the destination.
@@ -23,6 +25,8 @@ export function itemURL(item: Pick<Item, 'workspaceId' | 'id'>) {
 
 export function ItemActions({
   item,
+  active,
+  onOpen,
   role,
   onCreate,
   onRename,
@@ -30,6 +34,8 @@ export function ItemActions({
   onDelete,
 }: {
   item: Item;
+  active: boolean;
+  onOpen?: () => void;
   role: Role;
   onCreate: (type: ItemType, parentId: string | null) => void;
   onRename: (item: Item) => void;
@@ -37,6 +43,7 @@ export function ItemActions({
   onDelete: (item: Item) => void;
 }) {
   const [manualLink, setManualLink] = useState('');
+  const [copyOpened, setCopyOpened] = useState(false);
   const folder = item.type === 'folder';
   if (role === 'viewer' && folder) return null;
   const copyLink = async () => {
@@ -69,6 +76,14 @@ export function ItemActions({
               onClick={() => void copyLink()}
             >
               复制链接
+            </Menu.Item>
+          )}
+          {role !== 'viewer' && !folder && (
+            <Menu.Item
+              leftSection={<Copy size={14} />}
+              onClick={() => setCopyOpened(true)}
+            >
+              复制内容
             </Menu.Item>
           )}
           {role !== 'viewer' && (
@@ -119,6 +134,14 @@ export function ItemActions({
           )}
         </Menu.Dropdown>
       </Menu>
+      {copyOpened && role !== 'viewer' && (
+        <DuplicateItem
+          item={item}
+          active={active}
+          onOpen={onOpen}
+          onClose={() => setCopyOpened(false)}
+        />
+      )}
       {manualLink && (
         <Modal opened onClose={() => setManualLink('')} title="复制链接">
           <Stack>

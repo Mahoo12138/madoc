@@ -1,3 +1,5 @@
+import { registerContentSave } from '@/features/content/content-save';
+import { exportConfirmedMarkdown } from './markdown-export';
 import { useRecordVisit } from '@/api/personal-items';
 import { useMarkdownExport } from './use-markdown-export';
 import { useBlocker } from '@tanstack/react-router';
@@ -68,13 +70,20 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   useEffect(() => {
     if (!rootRef.current || !initial.data) return;
     let active = true;
+    let unregisterCopy: (() => void) | undefined;
     onOutlineChange(null);
     setFailure(null);
     setReady(false);
     const stop = startMarkdownSession({
       onReady: () => { if (active) setReady(true); },
       root: rootRef.current,
-      onExportReady: exporter.register,
+      onExportReady: (source) => {
+        exporter.register(source);
+        unregisterCopy?.();
+        if (source) unregisterCopy = registerContentSave(item.id, async (signal) => {
+          await exportConfirmedMarkdown(item.id, source, signal);
+        });
+      },
       onFailure: (message, download, retry) => { if (active) setFailure({ message, download, retry }); },
       onRecovered: () => { if (active) setFailure(null); },
       onLeaveGuardChange: (guard) => { leaveGuard.current = guard; },
@@ -96,6 +105,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
     });
     return () => {
       active = false;
+      unregisterCopy?.();
       stop();
     };
   }, [item.id, item.workspaceId, initial.data?.cacheSeq, initial.data?.markdown, user.id, onOutlineChange]);

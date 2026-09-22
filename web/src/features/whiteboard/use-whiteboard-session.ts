@@ -1,3 +1,4 @@
+import { registerContentSave, waitForSave } from '@/features/content/content-save';
 import { useEffect, useRef, useState } from 'react';
 import { useBlocker } from '@tanstack/react-router';
 import { reconcileElements } from '@excalidraw/excalidraw';
@@ -36,6 +37,16 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
     },
     enableBeforeUnload: () => !drafts.safe(saveState.current.requestId),
   });
+  useEffect(() => registerContentSave(item.id, async (signal) => {
+    while (true) {
+      signal.throwIfAborted();
+      if (halted.current) throw new Error('白板保存已停止，请先保留本地副本并处理保存错误。');
+      if (realtimeRef.current?.state !== 'online') throw new Error('尚未连接服务器，请重连后再复制。');
+      if (!hydrating.current && joined.current && !saveState.current.pending) return;
+      flushRef.current();
+      await waitForSave(signal);
+    }
+  }), [item.id]);
   const failStorage = () => {
     halted.current = true;
     setStorageFailed(true);
