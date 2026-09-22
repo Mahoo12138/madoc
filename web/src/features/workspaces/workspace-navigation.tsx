@@ -1,9 +1,17 @@
 import { ActionIcon, Group, Menu, Tabs, Text } from '@mantine/core';
-import { FileText, FolderPlus, ListTree, Plus, PenTool } from 'lucide-react';
+import {
+  FileText,
+  FolderPlus,
+  ListTree,
+  Plus,
+  PenTool,
+  Star,
+} from 'lucide-react';
 import type { ComponentProps } from 'react';
 import type { Item } from '@/api/types';
 import { MarkdownOutline } from '@/features/markdown/markdown-outline';
 import type { MarkdownOutline as Outline } from '@/features/markdown/markdown-outline-model';
+import { PersonalNavigation } from './personal-navigation';
 import { ItemTree } from './item-tree';
 import * as styles from './workspace-shell.css';
 
@@ -26,7 +34,7 @@ export function WorkspaceNavigation({
   const isDocument = active?.type === 'markdown';
   return (
     <Tabs
-      value={isDocument ? panel : 'files'}
+      value={!isDocument && panel === 'outline' ? 'files' : panel}
       onChange={(value) => onPanelChange(value ?? 'files')}
       className={styles.navigation}
       keepMounted
@@ -41,6 +49,9 @@ export function WorkspaceNavigation({
           disabled={!isDocument}
         >
           Outline
+        </Tabs.Tab>
+        <Tabs.Tab value="personal" leftSection={<Star size={14} />}>
+          我的
         </Tabs.Tab>
       </Tabs.List>
       <Tabs.Panel value="files" className={styles.navigationPanel}>
@@ -81,6 +92,30 @@ export function WorkspaceNavigation({
         <nav className={styles.tree} aria-label="文件列表">
           <ItemTree {...treeProps} />
         </nav>
+      </Tabs.Panel>
+      <Tabs.Panel value="personal" className={styles.navigationPanel}>
+        {panel === 'personal' && (
+          <PersonalNavigation
+            workspaceId={treeProps.workspaceId}
+            items={treeProps.items}
+            onSelect={treeProps.onSelect}
+            onFolder={(item) => {
+              const expanded: Record<string, boolean> = {};
+              let node: Item | undefined = item;
+              while (node && !(node.id in expanded)) {
+                expanded[node.id] = false;
+                node = treeProps.items.find(
+                  (entry) => entry.id === node?.parentId,
+                );
+              }
+              treeProps.onCollapsedChange((previous) => ({
+                ...previous,
+                ...expanded,
+              }));
+              onPanelChange('files');
+            }}
+          />
+        )}
       </Tabs.Panel>
       <Tabs.Panel value="outline" className={styles.navigationPanel}>
         {isDocument && (

@@ -67,9 +67,12 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第六部分：当前 Workspace 搜索 core / REST，标题 / 路径 / Markdown 缓存正文、中文短词、字面符号及 Markdown 标点转义归一化；同事务权限隔离、结果限制、正文缓存水位和独立滞后提示。无数据迁移或新服务，详见 `docs/SEARCH.md`。
 - 第七部分：桌面 / 移动端快速打开与 Ctrl/Cmd+K 搜索，类型 / 路径 / 正文片段、缓存水位提示、重试、IME 与过期请求隔离、目录变化后的结果刷新；文件夹结果展开内容树。修复同级弹窗 key 冲突及切换时延迟协作事务访问已销毁编辑器。
 - 第八部分：migration 0008 与个人收藏 / 最近访问 core、REST；按用户和 Item 隔离，viewer 可管理自己状态，访问时间独立，软删除隐藏 / 恢复重现 / 彻底删除级联，写入鉴权与个人状态修改同事务。
-- 待完成：个人收藏 / 最近访问导航界面。不启用自动清理。设计与 API 见 `docs/CONTENT_LIFECYCLE.md`。
+- 第九部分：桌面 / 移动端「我的」导航、文件树收藏星标、个人路径与最近访问时间；编辑器成功准备后记录访问，失败提示重试，目录删除 / 恢复刷新入口。查询按账号隔离，viewer 可使用自己的收藏。
+- 待完成：阶段 1 整体验收。不启用自动清理。设计与 API 见 `docs/CONTENT_LIFECYCLE.md`、`docs/PERSONAL_NAVIGATION.md`。
 
 ## 当前验证
+
+- 阶段 1 第九部分（基于 `00cf64c`）：个人导航 3 项桌面 / 手机 / 失败重试测试通过；首轮两项测试改为点击 Mantine 可见标签后通过。个人 API、搜索与实时目录 10 项、编辑与 outbox 19 项、独立 MVP 和 CLI 备份恢复各 1 项通过；手机截图检查通过。Go test / vet、前端 typecheck / production build 通过。
 
 - 阶段 1 第八部分（基于 `6f4708f`）：新增 3 项 core 测试和 schema 7 升级保留测试；修正两处旧迁移数量断言后 Go test / vet、core / db race 通过。5 项 HTTP 回归覆盖 CSRF、viewer 自有状态、账号隔离、删除恢复 / 撤权及既有搜索 / 回收站；真实 CLI 备份恢复新增收藏与访问时间保留验证并通过。独立 MVP 核心流程、前端 typecheck / build 通过。导航界面尚未接入。
 

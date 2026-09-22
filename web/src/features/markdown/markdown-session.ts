@@ -25,6 +25,7 @@ type Collaborator = { color?: string; name?: string };
 export type { SaveStatus } from './markdown-save-state';
 
 type MarkdownSessionOptions = {
+  onReady: () => void;
   onExportReady: (source?: MarkdownExportSource) => void;
   onFailure: (message: string, download: () => void, retry?: () => void) => void;
   onRecovered: () => void;
@@ -440,6 +441,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     });
     crepe.setReadonly(role === 'viewer' || halted);
     editorReady = true;
+    options.onReady();
     latestMarkdown = crepe.getMarkdown();
     onStatsChange(getMarkdownStats(latestMarkdown));
     scheduleEditorAffordances();

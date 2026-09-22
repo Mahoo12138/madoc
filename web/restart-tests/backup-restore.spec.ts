@@ -53,6 +53,7 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     await server.restoreIntoIndependentDirectory();
     expect(await readFile(join(server.directory, 'restored/server.secret'))).toEqual(secret);
     await server.start();
+    expect(await (await page.request.get(`/api/workspaces/${workspaceId}/personal-items`)).json()).toEqual(personalBefore);
     await page.goto(documentURL);
     await expect(page.locator('.ProseMirror')).toHaveText('Verified backup content');
     await expect(page.getByText('已保存', { exact: true })).toBeVisible();
@@ -60,7 +61,6 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     expect(await (await page.request.get(`/api/assets/${asset.id}`)).body()).toEqual(image);
     const after = await (await page.request.get(`/api/items/${board.id}/whiteboard`)).json();
     expect(after).toEqual(before);
-    expect(await (await page.request.get(`/api/workspaces/${workspaceId}/personal-items`)).json()).toEqual(personalBefore);
     expect(await (await page.request.get(`/api/workspaces/${workspaceId}/trash`)).json()).toEqual(trashBefore);
     expect((await page.request.get(`/api/items/${trashed.id}/markdown`)).status()).toBe(404);
     expect((await page.request.post(`/api/workspaces/${workspaceId}/trash/${trashBefore[0].id}/restore`, { headers, data: {} })).status()).toBe(204);

@@ -1,3 +1,4 @@
+import { useRecordVisit } from '@/api/personal-items';
 import { Alert, Badge, Button, Menu } from '@mantine/core';
 import { Excalidraw, exportToBlob, exportToSvg, serializeAsJSON } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
@@ -10,6 +11,7 @@ function download(blob: Blob, filename: string) { const url = URL.createObjectUR
 
 export function WhiteboardEditor({ item, role, user }: { item: Item; role: Role; user: User }) {
   const { initial, apiRef, onAPIReady, recovery, editorReady, status, presence, failure, storageFailed, retryStorage, onChange, halted, joined, realtimeRef } = useWhiteboardSession(item, role, user);
+  useRecordVisit(item, editorReady && !failure, user.id);
   if (!initial.data || !recovery) return null;
   const exportScene = async (type: 'png' | 'svg' | 'json', local = false) => { const api = apiRef.current; if (!api) return; const elements = api.getSceneElements(); const appState = api.getAppState(); const files = api.getFiles(); if (type === 'png') return download(await exportToBlob({ elements, appState, files, mimeType: 'image/png' }), `${item.title}.png`); if (type === 'svg') return download(new Blob([(await exportToSvg({ elements, appState, files })).outerHTML], { type: 'image/svg+xml' }), `${item.title}.svg`); download(new Blob([serializeAsJSON(elements, appState, files, 'local')], { type: 'application/json' }), `${item.title}${local ? '-本地副本' : ''}.excalidraw`); };
   return (

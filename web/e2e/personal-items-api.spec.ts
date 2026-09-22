@@ -10,10 +10,13 @@ test('personal navigation is private, viewer writable and hidden while trashed',
   const workspace = new URL(page.url()).pathname.split('/')[2];
   const headers = await accountHeaders(page, 'http://127.0.0.1:3100');
   const list = `/api/workspaces/${workspace}/personal-items`;
-  expect(await (await page.request.get(list)).json()).toEqual({
-    favorites: [],
-    recent: [],
-  });
+  await expect
+    .poll(
+      async () => (await (await page.request.get(list)).json()).recent.length,
+    )
+    .toBe(1);
+  const ownerBefore = await (await page.request.get(list)).json();
+  expect(ownerBefore.favorites).toEqual([]);
   expect((await page.request.put(`/api/items/${item}/favorite`)).status()).toBe(
     403,
   );
@@ -60,10 +63,7 @@ test('personal navigation is private, viewer writable and hidden while trashed',
     expect(state.favorites[0].id).toBe(item);
     expect(state.recent[0].item.id).toBe(item);
     expect(Date.parse(state.recent[0].visitedAt)).not.toBeNaN();
-    expect(await (await page.request.get(list)).json()).toEqual({
-      favorites: [],
-      recent: [],
-    });
+    expect(await (await page.request.get(list)).json()).toEqual(ownerBefore);
     expect(
       (
         await context.request.patch(`http://127.0.0.1:3100/api/items/${item}`, {

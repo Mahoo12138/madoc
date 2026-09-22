@@ -12,7 +12,9 @@ import {
   Trash as IconTrash,
   PenTool as IconWhiteboard,
   Move as IconMove,
+  Star as IconStar,
 } from 'lucide-react';
+import { useFavorite, usePersonalItems } from '@/api/personal-items';
 import { useNavigate } from '@tanstack/react-router';
 import type { Item, ItemType, Role } from '@/api/types';
 import * as styles from './workspace-shell.css';
@@ -51,6 +53,9 @@ export function ItemTree({
   onSelect,
 }: Props) {
   const navigate = useNavigate();
+  const personal = usePersonalItems(workspaceId);
+  const favorite = useFavorite(workspaceId);
+  const favorites = new Set(personal.data?.favorites.map((item) => item.id));
   const children = (parentId: string | null) =>
     items
       .filter((item) => item.parentId === parentId)
@@ -92,6 +97,25 @@ export function ItemTree({
               <Icon size={15} />
               <span className={styles.rowTitle}>{item.title}</span>
             </UnstyledButton>
+            <ActionIcon
+              size="xs"
+              variant="subtle"
+              color={favorites.has(item.id) ? 'yellow' : 'gray'}
+              aria-label={`${favorites.has(item.id) ? '取消收藏' : '收藏'} ${item.title}`}
+              aria-pressed={favorites.has(item.id)}
+              disabled={!personal.isSuccess || favorite.isPending}
+              onClick={() =>
+                favorite.mutate({
+                  id: item.id,
+                  favorite: !favorites.has(item.id),
+                })
+              }
+            >
+              <IconStar
+                size={13}
+                fill={favorites.has(item.id) ? 'currentColor' : 'none'}
+              />
+            </ActionIcon>
             {role !== 'viewer' && (
               <Menu position="bottom-end" withinPortal>
                 <Menu.Target>

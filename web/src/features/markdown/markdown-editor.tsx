@@ -1,3 +1,4 @@
+import { useRecordVisit } from '@/api/personal-items';
 import { useMarkdownExport } from './use-markdown-export';
 import { useBlocker } from '@tanstack/react-router';
 import { usePreferences } from '@/features/account/preferences-provider';
@@ -34,8 +35,10 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const importRef = useRef<HTMLInputElement>(null);
   const realtimeRef = useRef<RealtimeClient>();
   const typewriterModeRef = useRef(false);
+  const [ready, setReady] = useState(false);
   const [status, setStatus] = useState<SaveStatus>('Reconnecting');
   const [failure, setFailure] = useState<{ message: string; download: () => void; retry?: () => void } | null>(null);
+  useRecordVisit(item, ready && !failure, user.id);
   const leaveGuard = useRef<{ unsafe: () => boolean; settle: () => Promise<void> }>({ unsafe: () => false, settle: async () => {} });
   useBlocker({
     shouldBlockFn: async () => {
@@ -67,7 +70,9 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
     let active = true;
     onOutlineChange(null);
     setFailure(null);
+    setReady(false);
     const stop = startMarkdownSession({
+      onReady: () => { if (active) setReady(true); },
       root: rootRef.current,
       onExportReady: exporter.register,
       onFailure: (message, download, retry) => { if (active) setFailure({ message, download, retry }); },
