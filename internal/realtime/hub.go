@@ -486,8 +486,12 @@ func (h *Hub) send(c *client, messageType, itemID string, payload any) {
 		go c.conn.Close(websocket.StatusPolicyViolation, "slow client")
 	}
 }
-func (h *Hub) sendError(c *client, requestID, code, message string) {
-	data, _ := json.Marshal(map[string]any{"type": "error", "requestId": requestID, "payload": map[string]string{"code": code, "message": message}})
+func (h *Hub) sendError(c *client, requestID, code, message string, itemIDs ...string) {
+	itemID := ""
+	if len(itemIDs) > 0 {
+		itemID = itemIDs[0]
+	}
+	data, _ := json.Marshal(map[string]any{"type": "error", "requestId": requestID, "itemId": itemID, "payload": map[string]string{"code": code, "message": message}})
 	select {
 	case c.send <- data:
 	default:
@@ -507,7 +511,7 @@ func (h *Hub) coreError(c *client, m Envelope, err error) {
 	} else if errors.Is(err, core.ErrInvalid) {
 		code, message = "INVALID_REQUEST", "invalid request"
 	}
-	h.sendError(c, m.RequestID, code, message)
+	h.sendError(c, m.RequestID, code, message, m.ItemID)
 }
 
 func (h *Hub) Close(ctx context.Context) error {

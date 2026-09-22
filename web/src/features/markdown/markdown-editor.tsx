@@ -26,6 +26,8 @@ type Props = {
 
 export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const initial = useMarkdown(item.id);
+  const initialRole = useRef(role);
+  useEffect(() => { if (role === 'viewer' && initialRole.current !== 'viewer') realtimeRef.current?.rejectItem(item.id); }, [role, item.id]);
   const exporter = useMarkdownExport(item.id, item.title);
   const mutations = useWorkspaceMutations(item.workspaceId);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -75,7 +77,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
         if (active) onOutlineChange(outline);
       },
       item,
-      role,
+      role: initialRole.current,
       user,
       initialMarkdown: initial.data.markdown ?? '',
       initialCacheSeq: initial.data.cacheSeq ?? 0,
@@ -91,7 +93,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
       active = false;
       stop();
     };
-  }, [item.id, item.workspaceId, initial.data?.cacheSeq, initial.data?.markdown, role, user.id, onOutlineChange]);
+  }, [item.id, item.workspaceId, initial.data?.cacheSeq, initial.data?.markdown, user.id, onOutlineChange]);
 
   const rename = async () => {
     const nextTitle = title.trim();

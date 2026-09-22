@@ -63,9 +63,12 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第二部分：owner 彻底删除与批次条目查看 API；完整名称确认、CSRF、跨批次子树保护、异常活动子项拒绝和失败回滚。清除选中批次的正文 / receipt，保留附件 metadata 与文件。
 - 第三部分：桌面 / 移动端回收站界面，批次详情、原位恢复、显式位置选择和 owner 完整名称确认彻底删除；失败保留输入并允许重试，恢复后刷新目录。
 - 第四部分：服务端 Workspace watch / unwatch、提交后 metadata 失效通知、投递时会话 / 成员复查和删除后内容房间清理。重订阅主动失效，断线恢复以 REST 为准，不引入持久事件日志。
-- 待完成：前端目录订阅 / 刷新与删除反馈；随后快速打开、搜索及个人收藏 / 最近访问。不启用自动清理。设计与 API 见 `docs/CONTENT_LIFECYCLE.md`。
+- 第五部分：Workspace 与编辑器共用单条连接，metadata 失效自动刷新目录 / 权限 / 回收站，断线重订阅补读。删除 / 撤权时保留当前编辑器为只读救援，降级不重建会话、不丢未提交文本；错误按 Item 隔离。
+- 待完成：快速打开、搜索及个人收藏 / 最近访问。不启用自动清理。设计与 API 见 `docs/CONTENT_LIFECYCLE.md`。
 
 ## 当前验证
+
+- 阶段 1 第五部分（基于 `d05c08a`）：25 项保存 / 权限 / 实时 E2E 通过，覆盖 Markdown 与白板 outbox、ACK 丢失、存储失败、关闭 / 切换 / 账号隔离、断线恢复。最终 4 项目录专项验证单连接、改名 / 移动 / 删除 / 恢复、空目录客户端刷新、断线补读、降级保留未发送文本、删除白板后本地下载；另有桌面 / 移动回收站复核及独立 MVP 核心流程通过。Go test / vet、realtime race、前端 typecheck / production build 通过。
 
 - 阶段 1 第四部分（基于 `57bcf83`）：新增 3 项 Go 测试（含 Markdown / Whiteboard 子用例），覆盖 watch / unwatch、跨 Workspace 隔离、非法订阅、删除退房、撤权和会话失效。真实 HTTP / WebSocket 验证新建 / 改名 / 移动 / 删除 / 恢复 / 彻底删除提交后通知、失败不广播、重订阅与 Workspace 删除。4 项专项 E2E、独立 MVP 核心流程、Go test / vet、realtime race、前端 typecheck / build 通过。此部分仅完成通知服务端，前端 metadata 刷新仍待接入。
 

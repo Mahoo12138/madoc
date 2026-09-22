@@ -12,6 +12,7 @@ import { WhiteboardSaveState } from './whiteboard-save-state';
 import { durableBoardScene } from './whiteboard-scene';
 
 export function useWhiteboardSession(item: Item, role: Role, user: User) {
+  useEffect(() => { if (role === 'viewer') realtimeRef.current?.rejectItem(item.id); }, [role, item.id]);
   const initial = useWhiteboard(item.id); const apiRef = useRef<ExcalidrawImperativeAPI>(); const revisionRef = useRef(0); const [status, setStatus] = useState<'Saving' | 'Saved' | 'Offline' | 'Reconnecting' | 'Local'>('Reconnecting'); const [presence, setPresence] = useState(1);
   const realtimeRef = useRef<RealtimeClient>(); const timerRef = useRef(0); const remoteRef = useRef(false); const collaboratorsRef = useRef(new Map());
   const lastScene = useRef<string>();
@@ -136,7 +137,7 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
         publish();
         if (state === 'online' && !halted.current) realtime.sendOnline('whiteboard.join', item.id);
       }
-      if (message.type === 'error') {
+      if (message.type === 'error' && (!message.itemId || message.itemId === item.id)) {
         halted.current = true;
         setStatus('Offline');
         setFailure('服务器拒绝了白板保存。请先导出 Excalidraw JSON 副本，再重新打开白板；当前内容尚未确认保存。');

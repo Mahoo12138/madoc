@@ -41,7 +41,7 @@ test('removed member receives no further content and can rescue pending local ed
     await page.locator('.ProseMirror').click();
     await page.keyboard.press('End');
     await page.keyboard.insertText(' secret after removal');
-    await expect(member.getByRole('alert')).toContainText('服务器拒绝了保存');
+    await expect(member.getByRole('alert').filter({ hasText: '服务器拒绝了保存' })).toBeVisible();
     await expect(member.locator('.ProseMirror')).toHaveAttribute('contenteditable', 'false');
     await expect(member.locator('.ProseMirror')).toContainText('local unsent rescue');
     await expect(member.locator('.ProseMirror')).not.toContainText('secret after removal');

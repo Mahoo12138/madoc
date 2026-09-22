@@ -278,7 +278,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     messageChain = messageChain.then(async () => {
       if (destroyed) return;
 
-      if (message.type === 'error') {
+      if (message.type === 'error' && (!message.itemId || message.itemId === item.id)) {
         const error = message.payload as { code: string };
         if (['FORBIDDEN', 'NOT_FOUND', 'INVALID_UPDATE', 'INVALID_REQUEST'].includes(error.code)) {
           halt('服务器拒绝了保存，可能是权限已变更、文档已删除或修改超过大小限制。请下载本地副本后重新打开文档。');

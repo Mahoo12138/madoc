@@ -1,6 +1,7 @@
 import { lazy, Suspense, useRef, useState } from 'react';
 import {
   ActionIcon,
+  Alert,
   Avatar,
   Burger,
   Button,
@@ -39,6 +40,7 @@ import { WorkspaceNavigation } from './workspace-navigation';
 import type { MarkdownOutline } from '@/features/markdown/markdown-outline-model';
 import { MemberDrawer } from './member-drawer';
 import { AccountMenu } from '@/features/account/account-menu';
+import { useWorkspaceEvents } from './use-workspace-events';
 import { WorkspaceTrash } from './workspace-trash';
 import { WorkspaceSettings } from './workspace-settings';
 import * as styles from './workspace-shell.css';
@@ -64,6 +66,17 @@ export function WorkspacePage() {
   const session = useSession();
   const workspace = useWorkspace(workspaceId);
   const items = useItems(workspaceId);
+  const unavailable = useWorkspaceEvents(workspaceId, session.data?.user?.id);
+  const retained = useRef<Item>();
+  const currentItem = items.data?.find((item) => item.id === itemId);
+  if (currentItem) retained.current = currentItem;
+  else if (
+    retained.current?.id !== itemId ||
+    retained.current?.workspaceId !== workspaceId
+  )
+    retained.current = undefined;
+  const missing = unavailable || (!!retained.current && !currentItem);
+
   const mutations = useWorkspaceMutations(workspaceId);
   const [membersOpened, membersDrawer] = useDisclosure(false);
   const [trashOpened, trashModal] = useDisclosure(false);
@@ -97,7 +110,7 @@ export function WorkspacePage() {
     void navigate({ to: '/sign-in', replace: true });
     return null;
   }
-  const active = items.data?.find((item) => item.id === itemId);
+  const active = currentItem ?? retained.current;
   const openCreate = (type: ItemType, parentId: string | null = null) => {
     setDraft({ mode: 'create', type, parentId, title: '' });
     itemActions.open();
@@ -174,7 +187,9 @@ export function WorkspacePage() {
     items: items.data ?? [],
     activeId: itemId,
     active,
-    role: workspace.data?.role ?? ('viewer' as const),
+    role: unavailable
+      ? ('viewer' as const)
+      : (workspace.data?.role ?? ('viewer' as const)),
     onCreate: openCreate,
     onRename: openRename,
     onMove: openMove,
@@ -218,15 +233,17 @@ export function WorkspacePage() {
             >
               成员管理
             </Menu.Item>
-            {workspace.data && workspace.data.role !== 'viewer' && (
-              <Menu.Item
-                leftSection={<IconTrash size={15} />}
-                onClick={trashModal.open}
-              >
-                回收站
-              </Menu.Item>
-            )}
-            {workspace.data?.role === 'owner' && (
+            {!unavailable &&
+              workspace.data &&
+              workspace.data.role !== 'viewer' && (
+                <Menu.Item
+                  leftSection={<IconTrash size={15} />}
+                  onClick={trashModal.open}
+                >
+                  回收站
+                </Menu.Item>
+              )}
+            {!unavailable && workspace.data?.role === 'owner' && (
               <Menu.Item
                 leftSection={<IconSettings size={15} />}
                 onClick={settingsModal.open}
@@ -269,14 +286,16 @@ export function WorkspacePage() {
             )}
           </Group>
           <Group>
-            {workspace.data && workspace.data.role !== 'viewer' && (
-              <span className={styles.mobileMenu}>
-                <ActionIcon aria-label="回收站" onClick={trashModal.open}>
-                  <IconTrash size={17} />
-                </ActionIcon>
-              </span>
-            )}
-            {workspace.data?.role === 'owner' && (
+            {!unavailable &&
+              workspace.data &&
+              workspace.data.role !== 'viewer' && (
+                <span className={styles.mobileMenu}>
+                  <ActionIcon aria-label="回收站" onClick={trashModal.open}>
+                    <IconTrash size={17} />
+                  </ActionIcon>
+                </span>
+              )}
+            {!unavailable && workspace.data?.role === 'owner' && (
               <span className={styles.mobileMenu}>
                 <ActionIcon
                   aria-label="Workspace 设置"
@@ -291,7 +310,7 @@ export function WorkspacePage() {
                 <IconUsers size={17} />
               </ActionIcon>
             </Tooltip>
-            {active && workspace.data?.role !== 'viewer' && (
+            {active && !unavailable && workspace.data?.role !== 'viewer' && (
               <Button
                 variant="subtle"
                 color="gray"
@@ -304,6 +323,11 @@ export function WorkspacePage() {
           </Group>
         </header>
         <section className={styles.content}>
+          {missing && (
+            <Alert color="orange" role="alert">
+              此内容已删除或访问权限已变更。已停止保存，请保留本地副本；可从内容树选择其他条目。
+            </Alert>
+          )}
           {!active ? (
             <div className={styles.empty}>
               <div>
@@ -311,7 +335,7 @@ export function WorkspacePage() {
                 <Text c="dimmed" mt="xs">
                   左侧内容树是这个 Workspace 的唯一结构来源。
                 </Text>
-                {workspace.data?.role !== 'viewer' && (
+                {!unavailable && workspace.data?.role !== 'viewer' && (
                   <Group justify="center" mt="xl">
                     <Button
                       leftSection={<IconFileText size={16} />}
@@ -342,7 +366,7 @@ export function WorkspacePage() {
                 <MarkdownEditor
                   key={active.id}
                   item={active}
-                  role={workspace.data!.role}
+                  role={missing ? 'viewer' : workspace.data!.role}
                   user={session.data.user}
                   onOutlineChange={setOutline}
                 />
@@ -350,7 +374,7 @@ export function WorkspacePage() {
                 <WhiteboardEditor
                   key={`${session.data.user.id}:${active.id}`}
                   item={active}
-                  role={workspace.data!.role}
+                  role={missing ? 'viewer' : workspace.data!.role}
                   user={session.data.user}
                 />
               ) : null}
@@ -387,13 +411,16 @@ export function WorkspacePage() {
           }}
         />
       </Drawer>
-      {trashOpened && workspace.data && workspace.data.role !== 'viewer' && (
-        <WorkspaceTrash
-          key={workspaceId}
-          workspace={workspace.data}
-          onClose={trashModal.close}
-        />
-      )}
+      {trashOpened &&
+        !unavailable &&
+        workspace.data &&
+        workspace.data.role !== 'viewer' && (
+          <WorkspaceTrash
+            key={workspaceId}
+            workspace={workspace.data}
+            onClose={trashModal.close}
+          />
+        )}
       <MemberDrawer
         opened={membersOpened}
         onClose={membersDrawer.close}

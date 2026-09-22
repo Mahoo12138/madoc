@@ -58,7 +58,7 @@ func TestWorkspaceNotificationRechecksPermissionAndLeavesDeletedRooms(t *testing
 			}
 			f.hub.NotifyWorkspace(f.space.ID)
 			got := messages(f.reader)
-			if len(got) != 2 || got[0].Type != "error" || got[1].Type != "workspace.changed" {
+			if len(got) != 2 || got[0].Type != "error" || got[0].ItemID != f.item.ID || got[1].Type != "workspace.changed" {
 				t.Fatalf("deleted content: %v", got)
 			}
 			if len(f.reader.rooms) != 0 {
