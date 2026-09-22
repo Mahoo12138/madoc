@@ -266,3 +266,9 @@ chore: finalize MVP build and deployment
 普通删除 API 改为软删除；恢复 API、权限和并发边界见 `CONTENT_LIFECYCLE.md`。
 升级前按 `BUILD.md` 停服备份。不要把旧二进制接回已启用回收站的数据库：旧版不会
 过滤删除标记，且旧删除逻辑仍执行物理级联；需要回退时使用升级前的完整备份。
+
+## 12. 个人导航增量迁移
+
+`0008_personal_items.sql` 仅新增按用户和 Item 隔离的收藏 / 最近访问表及索引。
+不重写 Item、正文、白板或删除批次；反复启动不清除个人状态。权限和生命周期见
+`PERSONAL_NAVIGATION.md`。升级前停服备份，回退使用升级前完整备份。

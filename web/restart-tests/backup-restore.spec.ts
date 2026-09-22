@@ -44,6 +44,9 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     expect((await page.request.delete(`/api/items/${trashed.id}`, { headers })).ok()).toBeTruthy();
     const trashBefore = await (await page.request.get(`/api/workspaces/${workspaceId}/trash`)).json();
     expect(trashBefore).toHaveLength(1);
+    expect((await page.request.put(`/api/items/${itemId}/favorite`, { headers })).status()).toBe(204);
+    expect((await page.request.post(`/api/items/${itemId}/visit`, { headers })).status()).toBe(204);
+    const personalBefore = await (await page.request.get(`/api/workspaces/${workspaceId}/personal-items`)).json();
     const secret = await readFile(join(server.directory, 'data/server.secret'));
     await page.goto('about:blank');
     await server.stop();
@@ -57,6 +60,7 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     expect(await (await page.request.get(`/api/assets/${asset.id}`)).body()).toEqual(image);
     const after = await (await page.request.get(`/api/items/${board.id}/whiteboard`)).json();
     expect(after).toEqual(before);
+    expect(await (await page.request.get(`/api/workspaces/${workspaceId}/personal-items`)).json()).toEqual(personalBefore);
     expect(await (await page.request.get(`/api/workspaces/${workspaceId}/trash`)).json()).toEqual(trashBefore);
     expect((await page.request.get(`/api/items/${trashed.id}/markdown`)).status()).toBe(404);
     expect((await page.request.post(`/api/workspaces/${workspaceId}/trash/${trashBefore[0].id}/restore`, { headers, data: {} })).status()).toBe(204);
