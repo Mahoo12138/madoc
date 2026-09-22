@@ -12,6 +12,7 @@ import { activeBlockDecoration, comfortableMarkdownInput } from './markdown-inpu
 import { inlineSourceEditing } from './markdown-inline-source';
 import type { InlineMathPreview } from './markdown-inline-presentation';
 import { getMarkdownStats, type MarkdownStats } from './markdown-stats';
+import './markdown-code-block.css';
 
 type InitPayload = {
   snapshot?: string | null;
@@ -149,6 +150,11 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     defaultValue: '',
     featureConfigs: {
       [Crepe.Feature.Cursor]: { virtual: false },
+      [Crepe.Feature.CodeMirror]: {
+        copyText: '复制代码',
+        searchPlaceholder: '搜索语言',
+        noResultText: '没有匹配的语言',
+      },
       [Crepe.Feature.ImageBlock]: {
         onUpload: uploadImage,
         inlineOnUpload: uploadImage,

@@ -180,6 +180,9 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await codeBlock.locator('.cm-content').pressSequentially('const answer = 42;');
   await expect(codeBlock).toContainText('const answer = 42;');
   const languageButton = codeBlock.locator('.language-button');
+  await expect(languageButton).toHaveCSS('opacity', '1');
+  await page.getByLabel('文档标题').click();
+  await page.mouse.move(0, 0);
   await expect(languageButton).toHaveCSS('opacity', '0');
   const codeBlockHeight = await codeBlock.evaluate((element) => Math.round(element.getBoundingClientRect().height));
   await codeBlock.hover();

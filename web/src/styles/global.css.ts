@@ -61,9 +61,6 @@ globalStyle('.madoc-inline-math-preview', {
   boxShadow: 'var(--mantine-shadow-sm)',
   fontSize: 'var(--mantine-font-size-md)',
 });
-globalStyle('.milkdown .ProseMirror .milkdown-code-block .tools', { minHeight: '28px' });
-globalStyle('.milkdown .ProseMirror .milkdown-code-block .language-button', { opacity: 0, transition: 'opacity 0.2s ease-in-out' });
-globalStyle('.milkdown .ProseMirror .milkdown-code-block:hover .language-button', { opacity: 1 });
 globalStyle('.milkdown .ProseMirror .madoc-remote-cursor', {
   display: 'inline-block',
   position: 'relative',
