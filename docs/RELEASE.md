@@ -61,7 +61,7 @@ python3 scripts/docker-smoke.py madoc-release:candidate
 阶段 0 候选的 Item / 子树删除仍是永久删除，没有回收站。当前阶段 1 开发版已接入
 软删除、恢复与名称确认彻底删除界面，详见 `CONTENT_LIFECYCLE.md`。删除前确认目标和子项，重要内容
 应先导出并完成实例备份；本地待提交草稿不是完整文档历史，也不保证包含所有已保存内容。
-建议在回收站完成后再大量迁入真实资料。
+当前阶段 1 的功能验收记录见下文；实例备份仍需独立保留。
 
 本地恢复只覆盖当前浏览器留下的正文和白板草稿，清除站点数据会丢失这些副本。
 整站离线启动、Markdown 带附件迁出和版本历史尚未实现。白板副本保留草稿内的
@@ -117,3 +117,38 @@ Docker 构建使用仓库 Dockerfile 的 Go / Node 基础镜像，与主机工�
 
 本记录验证阶段 0 的既定支持范围，可推进阶段 1。先前两轮失败仍保留在上文，
 不以此次通过删除调查记录。回收站、完整迁出与历史功能继续按 `ROADMAP.md` 推进。
+
+
+## 阶段 1 通过记录
+
+验收提交：`db903af54289f5d7f3e3cc6cc2c5db20ad4df981`，2026-09-23（UTC+8）。
+执行前后受版本控制的工作树无改动。独立临时数据目录验证，无测试重试。
+
+| 检查 | 结果 |
+| --- | --- |
+| Go test / race（均 `-count=1`）及 vet | 通过 |
+| 前端 typecheck / production build | 通过，保留既有 bundle 大小提示 |
+| 普通浏览器全套 | 235 项通过，约 4 分钟 |
+| 独立首次安装 / MVP 核心流程 | 1 项通过 |
+| 真实进程 SIGTERM / SIGKILL 与独立目录备份恢复 | 5 项通过 |
+| Docker 构建及独立数据卷冒烟 | 通过 |
+
+Docker 镜像：`sha256:9a7a4bd4391bdb93ee6dfb092c22cee4a84849f7d3828563cf2bc62468e6995d`。
+主机环境与阶段 0 记录一致。备份恢复同时严格校验收藏和原始访问时间，校验完成后
+才重新打开编辑器，避免实际访问更新记录干扰备份比较。
+
+| 阶段 1 条件 | 直接证据 |
+| --- | --- |
+| 删除父目录后完整恢复本次子树，不误恢复早期批次 | core trash 测试与 trash-api E2E，校验 Markdown、白板、receipt、层级 |
+| 原位置失效要求明确选择，失败原子回滚 | core trash rollback / destination、桌面与手机 trash-ui |
+| 图片不丢，彻底删除保护独立批次 | trash-api 上传后恢复逐字节比对；trash-purge API / core |
+| 搜索工作区与权限隔离 | core search permission、HTTP search / 未登录拒绝 |
+| 中文短词、改名、移动、删除及恢复检索 | core search literal / lifecycle，search-api / search-ui |
+| 旧页面撤权、降级、删除后停止写入并保留救援 | realtime access、permission-revocation、workspace-live、outbox / recovery |
+| 收藏与最近访问私有且随生命周期更新 | core personal、personal-items-api、桌面 / 手机 personal-navigation |
+| 迁移不破坏原数据 | schema 6 到 7、schema 7 到 8 保留测试及重复迁移 |
+
+本记录证明阶段 1 既定功能范围通过，可进入阶段 2。没有自动清理回收站或附件；
+Workspace 删除仍要求独立名称确认。大语料、长文、数百图形和五人并发的 p50/p95
+性能基准尚未建立，本次不是容量或性能支持上限的验收。完整带附件迁出与历史恢复
+继续按后续阶段推进。

@@ -13,9 +13,9 @@ Markdown 导出水位、已有连接撤权、真实服务重启和备份恢复�
 协议及支持边界见 `RELIABILITY.md`、`WHITEBOARD.md`，完整检查方法见 `RELEASE.md`。
 阶段 0 候选未包含回收站、完整离线工作区、带附件迁出包或产品级版本历史。
 
-## 阶段 1：找得到，误删可救（进行中）
+## 阶段 1：找得到，误删可救（已验收）
 
-已完成软删除 / 批次恢复服务与 API 基础，见 `CONTENT_LIFECYCLE.md`。owner 彻底删除保护与批次详情 API 已完成；回收站界面已接入，目录通知、前端共享连接与失效内容救援已接入。搜索 core / REST、快速打开与搜索界面已完成，短词、权限、缓存水位和键盘操作见 `SEARCH.md`。个人收藏与最近访问的 migration / core / REST 已完成，见 `PERSONAL_NAVIGATION.md`；桌面 / 移动端导航已接入，待阶段整体验收。
+已完成软删除 / 批次恢复服务与 API 基础，见 `CONTENT_LIFECYCLE.md`。owner 彻底删除保护与批次详情 API 已完成；回收站界面已接入，目录通知、前端共享连接与失效内容救援已接入。搜索 core / REST、快速打开与搜索界面已完成，短词、权限、缓存水位和键盘操作见 `SEARCH.md`。个人收藏与最近访问的 migration / core / REST 已完成，见 `PERSONAL_NAVIGATION.md`；桌面 / 移动端导航已接入。固定提交 `db903af` 完整功能门槛通过，见 `RELEASE.md`。
 
 按以下可验收部分推进：
 
