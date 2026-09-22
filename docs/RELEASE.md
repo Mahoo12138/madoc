@@ -66,7 +66,7 @@ python3 scripts/docker-smoke.py madoc-release:candidate
 整站离线启动、Markdown 带附件迁出和版本历史尚未实现。白板副本保留草稿内的
 嵌入文件。升级代际协议前需让协作者保存并关闭旧编辑页，详见 `BUILD.md`。
 
-## 本轮记录
+## 首轮记录
 
 基线：`3309a30eb32e65e299d9052d6d939758e19379cb`。
 
@@ -94,3 +94,25 @@ vet、前端 typecheck / production build、Docker 构建及持久卷冒烟通�
 selectionchange，后续按键可能使用编辑器旧选区。添加该标准事件通知后，原用例
 连续 10 次通过，删除与撤销断言保持不变。调查期间的撤销配置试验已全部撤回，
 本轮最终未改变产品代码。尚需在测试修正提交上完成完整门槛。
+
+## 阶段 0 通过记录
+
+验收提交：`9c908d7845c645180c5194a06d3aae18e2f840fb`，2026-09-23（UTC+8）。
+执行前后受版本控制的工作树均无改动，所有步骤在该固定提交上完成。
+
+| 检查 | 结果 |
+| --- | --- |
+| Go test（`-count=1`） | 通过 |
+| Go race（`-count=1`）及 vet | 通过 |
+| 前端 typecheck / production build | 通过 |
+| 普通浏览器全套 | 214 项通过，无重试，约 3.6 分钟 |
+| 独立首次安装 / MVP 核心流程 | 1 项通过 |
+| 真实进程 SIGTERM / SIGKILL 与独立目录备份恢复 | 5 项通过 |
+| Docker 构建及独立数据卷冒烟 | 通过 |
+
+主机环境：Darwin arm64、Go 1.27.0、Node 22.14.0、pnpm 10.6.3、Playwright 1.55.0 / Chromium。
+Docker 镜像 ID：`sha256:458d7ab570cc4ffde74cecebe60f2137cdb00b6f984439c794640364557532e7`。
+Docker 构建使用仓库 Dockerfile 的 Go / Node 基础镜像，与主机工具版本独立。
+
+本记录验证阶段 0 的既定支持范围，可推进阶段 1。先前两轮失败仍保留在上文，
+不以此次通过删除调查记录。回收站、完整迁出与历史功能继续按 `ROADMAP.md` 推进。
