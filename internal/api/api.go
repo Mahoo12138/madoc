@@ -59,6 +59,8 @@ func (a *API) Routes() http.Handler {
 		r.Post("/workspaces/{workspaceId}/invites", a.csrfRequired(a.createInvite))
 		r.Delete("/workspaces/{workspaceId}/invites/{inviteId}", a.csrfRequired(a.revokeInvite))
 		r.Get("/workspaces/{workspaceId}/items", a.listItems)
+		r.Get("/workspaces/{workspaceId}/trash", a.listTrash)
+		r.Post("/workspaces/{workspaceId}/trash/{batchId}/restore", a.csrfRequired(a.restoreTrash))
 		r.Post("/workspaces/{workspaceId}/items", a.csrfRequired(a.createItem))
 		r.Get("/items/{itemId}", a.getItem)
 		r.Patch("/items/{itemId}", a.csrfRequired(a.renameItem))
@@ -109,6 +111,8 @@ func domainError(w http.ResponseWriter, err error) {
 		writeError(w, 404, "NOT_FOUND", "resource not found")
 	case errors.Is(err, core.ErrForbidden):
 		writeError(w, 403, "FORBIDDEN", "operation is not allowed")
+	case errors.Is(err, core.ErrRestoreDestination):
+		writeError(w, 409, "RESTORE_DESTINATION_REQUIRED", "原目录不可用，请选择恢复位置")
 	case errors.Is(err, core.ErrConflict):
 		writeError(w, 409, "CONFLICT", "resource changed or invariant would be violated")
 	case errors.Is(err, core.ErrInvalid):

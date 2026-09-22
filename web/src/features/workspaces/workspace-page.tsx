@@ -130,7 +130,7 @@ export function WorkspacePage() {
     itemActions.close();
   };
   const deleteItem = async (item: Item) => {
-    if (!confirm(`删除“${item.title}”及其包含的内容？`)) return;
+    if (!confirm(`将“${item.title}”及其包含的内容移入回收站？`)) return;
     await mutations.deleteItem.mutateAsync(item.id);
     if (item.id === itemId)
       await navigate({

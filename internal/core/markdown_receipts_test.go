@@ -80,8 +80,8 @@ func TestMarkdownReceiptsKeepPermissionAndItemBoundaries(t *testing.T) {
 	if err := f.db.QueryRow(`SELECT count(*) FROM markdown_update_receipts WHERE item_id=?`, doc.ID).Scan(&count); err != nil {
 		t.Fatal(err)
 	}
-	if count != 0 {
-		t.Fatalf("deleted item retains %d receipts", count)
+	if count != 1 {
+		t.Fatalf("trashed item must retain its receipt, got %d", count)
 	}
 }
 

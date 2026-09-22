@@ -101,7 +101,16 @@ func (s *Service) Save(ctx context.Context, userID, workspaceID string, itemID *
 	}
 	now := time.Now().UTC()
 	asset := Asset{ID: id, WorkspaceID: workspaceID, ItemID: itemID, FileName: filepath.Base(header.Filename), MIME: mime, Size: written, StorageKey: storageKey, CreatedAt: now}
-	_, err = s.db.ExecContext(ctx, `INSERT INTO assets(id,workspace_id,item_id,file_name,mime,size,sha256,storage_key,created_by,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)`, asset.ID, workspaceID, itemID, asset.FileName, mime, written, hex.EncodeToString(hasher.Sum(nil)), storageKey, userID, now)
+	result, err := s.db.ExecContext(ctx, `INSERT INTO assets(id,workspace_id,item_id,file_name,mime,size,sha256,storage_key,created_by,created_at)
+ SELECT ?,?,?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM workspace_members WHERE workspace_id=? AND user_id=? AND role IN ('owner','editor'))
+ AND (? IS NULL OR EXISTS(SELECT 1 FROM items WHERE id=? AND workspace_id=? AND deletion_batch_id IS NULL))`, asset.ID, workspaceID, itemID, asset.FileName, mime, written, hex.EncodeToString(hasher.Sum(nil)), storageKey, userID, now, workspaceID, userID, itemID, itemID, workspaceID)
+	if err == nil {
+		var rows int64
+		rows, err = result.RowsAffected()
+		if err == nil && rows == 0 {
+			err = core.ErrConflict
+		}
+	}
 	if err != nil {
 		os.Remove(targetPath)
 		return Asset{}, err

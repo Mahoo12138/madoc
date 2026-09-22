@@ -258,3 +258,11 @@ chore: finalize MVP build and deployment
 ```
 
 每一步保持仓库可构建，除非某个 commit 明确是短生命周期的 mechanical removal，并紧接修复 commit。
+
+## 11. 阶段 1 的 Item 回收站增量迁移
+
+`0007_item_trash.sql` 在 canonical schema 上新增删除批次表和可空的 Item 批次引用。
+既有 Item 保持活动状态，正文、白板、更新 / receipt 和附件不重写、不删除。
+普通删除 API 改为软删除；恢复 API、权限和并发边界见 `CONTENT_LIFECYCLE.md`。
+升级前按 `BUILD.md` 停服备份。不要把旧二进制接回已启用回收站的数据库：旧版不会
+过滤删除标记，且旧删除逻辑仍执行物理级联；需要回退时使用升级前的完整备份。

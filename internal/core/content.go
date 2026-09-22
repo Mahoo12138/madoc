@@ -8,18 +8,18 @@ import (
 )
 
 func (s *Service) Markdown(ctx context.Context, userID, itemID string) (MarkdownState, error) {
-	item, err := s.ItemAccess(ctx, userID, itemID, false)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return MarkdownState{}, err
+	}
+	defer tx.Rollback()
+	item, err := itemAccess(ctx, tx, userID, itemID, false)
 	if err != nil {
 		return MarkdownState{}, err
 	}
 	if item.Type != "markdown" {
 		return MarkdownState{}, ErrInvalid
 	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return MarkdownState{}, err
-	}
-	defer tx.Rollback()
 	var state MarkdownState
 	err = tx.QueryRowContext(ctx, `SELECT snapshot,snapshot_seq,markdown_cache,cache_seq,generation FROM markdown_states WHERE item_id=?`, itemID).Scan(&state.Snapshot, &state.SnapshotSeq, &state.Markdown, &state.CacheSeq, &state.Generation)
 	if err != nil {
@@ -45,18 +45,18 @@ func (s *Service) Markdown(ctx context.Context, userID, itemID string) (Markdown
 }
 
 func (s *Service) ResetMarkdown(ctx context.Context, userID, itemID string, snapshot []byte, markdown string) error {
-	item, err := s.ItemAccess(ctx, userID, itemID, true)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	item, err := itemAccess(ctx, tx, userID, itemID, true)
 	if err != nil {
 		return err
 	}
 	if item.Type != "markdown" {
 		return ErrInvalid
 	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
 	if _, err := tx.ExecContext(ctx, `DELETE FROM markdown_updates WHERE item_id=?`, itemID); err != nil {
 		return err
 	}
@@ -71,18 +71,18 @@ func (s *Service) ResetMarkdown(ctx context.Context, userID, itemID string, snap
 }
 
 func (s *Service) AppendMarkdownUpdate(ctx context.Context, userID, itemID, clientUpdateID string, update []byte, generation int64) (int64, error) {
-	item, err := s.ItemAccess(ctx, userID, itemID, true)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	item, err := itemAccess(ctx, tx, userID, itemID, true)
 	if err != nil {
 		return 0, err
 	}
 	if item.Type != "markdown" || clientUpdateID == "" || len(update) == 0 {
 		return 0, ErrInvalid
 	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return 0, err
-	}
-	defer tx.Rollback()
 	if err := checkMarkdownGeneration(ctx, tx, itemID, generation); err != nil {
 		return 0, err
 	}
@@ -109,18 +109,18 @@ func (s *Service) AppendMarkdownUpdate(ctx context.Context, userID, itemID, clie
 }
 
 func (s *Service) UpdateMarkdownCache(ctx context.Context, userID, itemID, markdown string, seenSeq int64, generation int64) error {
-	item, err := s.ItemAccess(ctx, userID, itemID, true)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	item, err := itemAccess(ctx, tx, userID, itemID, true)
 	if err != nil {
 		return err
 	}
 	if item.Type != "markdown" {
 		return ErrInvalid
 	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
 	if err := checkMarkdownGeneration(ctx, tx, itemID, generation); err != nil {
 		return err
 	}
@@ -136,18 +136,18 @@ func (s *Service) UpdateMarkdownCache(ctx context.Context, userID, itemID, markd
 }
 
 func (s *Service) CommitMarkdownSnapshot(ctx context.Context, userID, itemID string, baseSeq int64, snapshot []byte, markdown string, generation int64) error {
-	item, err := s.ItemAccess(ctx, userID, itemID, true)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	item, err := itemAccess(ctx, tx, userID, itemID, true)
 	if err != nil {
 		return err
 	}
 	if item.Type != "markdown" || baseSeq < 0 || len(snapshot) == 0 {
 		return ErrInvalid
 	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
 	if err := checkMarkdownGeneration(ctx, tx, itemID, generation); err != nil {
 		return err
 	}
@@ -180,7 +180,12 @@ func (s *Service) MarkdownUpdateStats(ctx context.Context, itemID string) (int, 
 }
 
 func (s *Service) Whiteboard(ctx context.Context, userID, itemID string) (WhiteboardState, error) {
-	item, err := s.ItemAccess(ctx, userID, itemID, false)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return WhiteboardState{}, err
+	}
+	defer tx.Rollback()
+	item, err := itemAccess(ctx, tx, userID, itemID, false)
 	if err != nil {
 		return WhiteboardState{}, err
 	}
@@ -188,27 +193,35 @@ func (s *Service) Whiteboard(ctx context.Context, userID, itemID string) (Whiteb
 		return WhiteboardState{}, ErrInvalid
 	}
 	var state WhiteboardState
-	err = s.db.QueryRowContext(ctx, `SELECT revision,scene_json FROM whiteboard_states WHERE item_id=?`, itemID).Scan(&state.Revision, &state.Scene)
+	err = tx.QueryRowContext(ctx, `SELECT revision,scene_json FROM whiteboard_states WHERE item_id=?`, itemID).Scan(&state.Revision, &state.Scene)
 	return state, err
 }
 
 func (s *Service) UpdateWhiteboard(ctx context.Context, userID, itemID string, baseRevision int64, scene string) (WhiteboardState, error) {
-	item, err := s.ItemAccess(ctx, userID, itemID, true)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return WhiteboardState{}, err
+	}
+	defer tx.Rollback()
+	item, err := itemAccess(ctx, tx, userID, itemID, true)
 	if err != nil {
 		return WhiteboardState{}, err
 	}
 	if item.Type != "whiteboard" {
 		return WhiteboardState{}, ErrInvalid
 	}
-	result, err := s.db.ExecContext(ctx, `UPDATE whiteboard_states SET revision=revision+1,scene_json=?,updated_by=?,updated_at=? WHERE item_id=? AND revision=?`, scene, userID, time.Now().UTC(), itemID, baseRevision)
+	result, err := tx.ExecContext(ctx, `UPDATE whiteboard_states SET revision=revision+1,scene_json=?,updated_by=?,updated_at=? WHERE item_id=? AND revision=?`, scene, userID, time.Now().UTC(), itemID, baseRevision)
 	if err != nil {
 		return WhiteboardState{}, err
 	}
-	rows, _ := result.RowsAffected()
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return WhiteboardState{}, err
+	}
 	if rows == 0 {
 		return WhiteboardState{}, ErrConflict
 	}
-	return s.Whiteboard(ctx, userID, itemID)
+	return WhiteboardState{Revision: baseRevision + 1, Scene: scene}, tx.Commit()
 }
 
 func checkMarkdownGeneration(ctx context.Context, tx *sql.Tx, itemID string, expected int64) error {

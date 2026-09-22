@@ -33,7 +33,41 @@ func (s *Service) requireOwner(ctx context.Context, userID, workspaceID string) 
 }
 
 func (s *Service) requireWrite(ctx context.Context, userID, workspaceID string) error {
-	role, err := s.Role(ctx, userID, workspaceID)
+	return requireWorkspaceWrite(ctx, s.db, userID, workspaceID)
+}
+
+type itemQuerier interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}
+
+func itemAccess(ctx context.Context, q itemQuerier, userID, itemID string, write bool) (Item, error) {
+	var item Item
+	var role string
+	err := q.QueryRowContext(ctx, `SELECT i.id,i.workspace_id,i.parent_id,i.type,i.title,i.sort_key,i.created_by,i.created_at,i.updated_at,COALESCE(m.role,'')
+ FROM items i LEFT JOIN workspace_members m ON m.workspace_id=i.workspace_id AND m.user_id=?
+ WHERE i.id=? AND i.deletion_batch_id IS NULL`, userID, itemID).Scan(&item.ID, &item.WorkspaceID, &item.ParentID, &item.Type, &item.Title, &item.SortKey, &item.CreatedBy, &item.CreatedAt, &item.UpdatedAt, &role)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Item{}, ErrNotFound
+	}
+	if err != nil {
+		return Item{}, err
+	}
+	if role == "" || (write && !canWrite(role)) {
+		return Item{}, ErrForbidden
+	}
+	return item, nil
+}
+
+func (s *Service) ItemAccess(ctx context.Context, userID, itemID string, write bool) (Item, error) {
+	return itemAccess(ctx, s.db, userID, itemID, write)
+}
+
+func requireWorkspaceWrite(ctx context.Context, q itemQuerier, userID, workspaceID string) error {
+	var role string
+	err := q.QueryRowContext(ctx, `SELECT role FROM workspace_members WHERE workspace_id=? AND user_id=?`, workspaceID, userID).Scan(&role)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrForbidden
+	}
 	if err != nil {
 		return err
 	}
@@ -41,19 +75,4 @@ func (s *Service) requireWrite(ctx context.Context, userID, workspaceID string) 
 		return ErrForbidden
 	}
 	return nil
-}
-
-func (s *Service) ItemAccess(ctx context.Context, userID, itemID string, write bool) (Item, error) {
-	item, err := s.GetItem(ctx, itemID)
-	if err != nil {
-		return Item{}, err
-	}
-	role, err := s.Role(ctx, userID, item.WorkspaceID)
-	if err != nil {
-		return Item{}, err
-	}
-	if write && !canWrite(role) {
-		return Item{}, ErrForbidden
-	}
-	return item, nil
 }

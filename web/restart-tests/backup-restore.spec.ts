@@ -39,6 +39,11 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     await page.goto(documentURL);
     await expect(page.locator('.ProseMirror')).toHaveText('Verified backup content');
     await expect.poll(async () => (await page.request.get(`/api/items/${itemId}/export.md`)).status()).toBe(200);
+    const trashed = await (await page.request.post(`/api/workspaces/${workspaceId}/items`, { headers, data: { type: 'markdown', title: 'Recoverable backup item' } })).json();
+    expect((await page.request.put(`/api/items/${trashed.id}/markdown`, { headers, data: { snapshot: '', markdown: 'Trash backup content' } })).ok()).toBeTruthy();
+    expect((await page.request.delete(`/api/items/${trashed.id}`, { headers })).ok()).toBeTruthy();
+    const trashBefore = await (await page.request.get(`/api/workspaces/${workspaceId}/trash`)).json();
+    expect(trashBefore).toHaveLength(1);
     const secret = await readFile(join(server.directory, 'data/server.secret'));
     await page.goto('about:blank');
     await server.stop();
@@ -52,6 +57,10 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     expect(await (await page.request.get(`/api/assets/${asset.id}`)).body()).toEqual(image);
     const after = await (await page.request.get(`/api/items/${board.id}/whiteboard`)).json();
     expect(after).toEqual(before);
+    expect(await (await page.request.get(`/api/workspaces/${workspaceId}/trash`)).json()).toEqual(trashBefore);
+    expect((await page.request.get(`/api/items/${trashed.id}/markdown`)).status()).toBe(404);
+    expect((await page.request.post(`/api/workspaces/${workspaceId}/trash/${trashBefore[0].id}/restore`, { headers, data: {} })).status()).toBe(204);
+    expect(await (await page.request.get(`/api/items/${trashed.id}/export.md`)).text()).toBe('Trash backup content');
     await page.goto(boardURL);
     await expect(page.locator('.excalidraw')).toBeVisible();
     await expect(page.getByText('Saved', { exact: true })).toBeVisible();

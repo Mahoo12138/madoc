@@ -14,7 +14,7 @@ func (s *Service) ListItems(ctx context.Context, userID, workspaceID string) ([]
 	if _, err := s.Role(ctx, userID, workspaceID); err != nil {
 		return nil, err
 	}
-	rows, err := s.db.QueryContext(ctx, `SELECT id,workspace_id,parent_id,type,title,sort_key,created_by,created_at,updated_at FROM items WHERE workspace_id=? ORDER BY COALESCE(parent_id,''),sort_key,created_at`, workspaceID)
+	rows, err := s.db.QueryContext(ctx, `SELECT id,workspace_id,parent_id,type,title,sort_key,created_by,created_at,updated_at FROM items WHERE workspace_id=? AND deletion_batch_id IS NULL ORDER BY COALESCE(parent_id,''),sort_key,created_at`, workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (s *Service) ListItems(ctx context.Context, userID, workspaceID string) ([]
 
 func (s *Service) GetItem(ctx context.Context, id string) (Item, error) {
 	var item Item
-	err := s.db.QueryRowContext(ctx, `SELECT id,workspace_id,parent_id,type,title,sort_key,created_by,created_at,updated_at FROM items WHERE id=?`, id).Scan(&item.ID, &item.WorkspaceID, &item.ParentID, &item.Type, &item.Title, &item.SortKey, &item.CreatedBy, &item.CreatedAt, &item.UpdatedAt)
+	err := s.db.QueryRowContext(ctx, `SELECT id,workspace_id,parent_id,type,title,sort_key,created_by,created_at,updated_at FROM items WHERE id=? AND deletion_batch_id IS NULL`, id).Scan(&item.ID, &item.WorkspaceID, &item.ParentID, &item.Type, &item.Title, &item.SortKey, &item.CreatedBy, &item.CreatedAt, &item.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Item{}, ErrNotFound
 	}
@@ -40,9 +40,6 @@ func (s *Service) GetItem(ctx context.Context, id string) (Item, error) {
 }
 
 func (s *Service) CreateItem(ctx context.Context, userID, workspaceID, itemType, title string, parentID *string) (Item, error) {
-	if err := s.requireWrite(ctx, userID, workspaceID); err != nil {
-		return Item{}, err
-	}
 	if itemType != "folder" && itemType != "markdown" && itemType != "whiteboard" {
 		return Item{}, ErrInvalid
 	}
@@ -50,16 +47,19 @@ func (s *Service) CreateItem(ctx context.Context, userID, workspaceID, itemType,
 	if title == "" {
 		return Item{}, ErrInvalid
 	}
-	if err := s.validateParent(ctx, workspaceID, parentID); err != nil {
-		return Item{}, err
-	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return Item{}, err
 	}
 	defer tx.Rollback()
+	if err := requireWorkspaceWrite(ctx, tx, userID, workspaceID); err != nil {
+		return Item{}, err
+	}
+	if err := validateParent(ctx, tx, workspaceID, parentID); err != nil {
+		return Item{}, err
+	}
 	var sortKey int
-	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(MAX(sort_key),-1)+1 FROM items WHERE workspace_id=? AND parent_id IS ?`, workspaceID, parentID).Scan(&sortKey); err != nil {
+	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(MAX(sort_key),-1)+1 FROM items WHERE workspace_id=? AND deletion_batch_id IS NULL AND parent_id IS ?`, workspaceID, parentID).Scan(&sortKey); err != nil {
 		return Item{}, err
 	}
 	now := time.Now().UTC()
@@ -84,24 +84,22 @@ func (s *Service) CreateItem(ctx context.Context, userID, workspaceID, itemType,
 }
 
 func (s *Service) RenameItem(ctx context.Context, userID, itemID, title string) error {
-	item, err := s.ItemAccess(ctx, userID, itemID, true)
-	if err != nil {
-		return err
-	}
 	title = strings.TrimSpace(title)
 	if title == "" {
 		return ErrInvalid
 	}
-	_, err = s.db.ExecContext(ctx, `UPDATE items SET title=?,updated_at=? WHERE id=? AND workspace_id=?`, title, time.Now().UTC(), itemID, item.WorkspaceID)
-	return err
-}
-
-func (s *Service) DeleteItem(ctx context.Context, userID, itemID string) error {
-	if _, err := s.ItemAccess(ctx, userID, itemID, true); err != nil {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
 		return err
 	}
-	_, err := s.db.ExecContext(ctx, `DELETE FROM items WHERE id=?`, itemID)
-	return err
+	defer tx.Rollback()
+	if _, err := itemAccess(ctx, tx, userID, itemID, true); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE items SET title=?,updated_at=? WHERE id=?`, title, time.Now().UTC(), itemID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (s *Service) MoveItem(ctx context.Context, userID, itemID string, parentID *string, index int) error {
@@ -112,7 +110,7 @@ func (s *Service) MoveItem(ctx context.Context, userID, itemID string, parentID 
 	defer tx.Rollback()
 	var workspaceID, role string
 	var oldParent sql.NullString
-	err = tx.QueryRowContext(ctx, `SELECT i.workspace_id,i.parent_id,m.role FROM items i JOIN workspace_members m ON m.workspace_id=i.workspace_id AND m.user_id=? WHERE i.id=?`, userID, itemID).Scan(&workspaceID, &oldParent, &role)
+	err = tx.QueryRowContext(ctx, `SELECT i.workspace_id,i.parent_id,m.role FROM items i JOIN workspace_members m ON m.workspace_id=i.workspace_id AND m.user_id=? WHERE i.id=? AND i.deletion_batch_id IS NULL`, userID, itemID).Scan(&workspaceID, &oldParent, &role)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrForbidden
 	}
@@ -127,7 +125,7 @@ func (s *Service) MoveItem(ctx context.Context, userID, itemID string, parentID 
 			return ErrInvalid
 		}
 		var parentWorkspace, parentType string
-		if err := tx.QueryRowContext(ctx, `SELECT workspace_id,type FROM items WHERE id=?`, *parentID).Scan(&parentWorkspace, &parentType); errors.Is(err, sql.ErrNoRows) {
+		if err := tx.QueryRowContext(ctx, `SELECT workspace_id,type FROM items WHERE id=? AND deletion_batch_id IS NULL`, *parentID).Scan(&parentWorkspace, &parentType); errors.Is(err, sql.ErrNoRows) {
 			return ErrInvalid
 		} else if err != nil {
 			return err
@@ -144,7 +142,7 @@ func (s *Service) MoveItem(ctx context.Context, userID, itemID string, parentID 
 			return ErrInvalid
 		}
 	}
-	rows, err := tx.QueryContext(ctx, `SELECT id FROM items WHERE workspace_id=? AND parent_id IS ? AND id<>? ORDER BY sort_key,created_at`, workspaceID, parentID, itemID)
+	rows, err := tx.QueryContext(ctx, `SELECT id FROM items WHERE workspace_id=? AND deletion_batch_id IS NULL AND parent_id IS ? AND id<>? ORDER BY sort_key,created_at`, workspaceID, parentID, itemID)
 	if err != nil {
 		return err
 	}
@@ -178,7 +176,7 @@ func (s *Service) MoveItem(ctx context.Context, userID, itemID string, parentID 
 		return err
 	}
 	if !sameParent(oldParent, parentID) {
-		oldRows, err := tx.QueryContext(ctx, `SELECT id FROM items WHERE workspace_id=? AND parent_id IS ? ORDER BY sort_key,created_at`, workspaceID, nullableParent(oldParent))
+		oldRows, err := tx.QueryContext(ctx, `SELECT id FROM items WHERE workspace_id=? AND deletion_batch_id IS NULL AND parent_id IS ? ORDER BY sort_key,created_at`, workspaceID, nullableParent(oldParent))
 		if err != nil {
 			return err
 		}
@@ -228,12 +226,12 @@ func sameParent(old sql.NullString, next *string) bool {
 	return next != nil && old.String == *next
 }
 
-func (s *Service) validateParent(ctx context.Context, workspaceID string, parentID *string) error {
+func validateParent(ctx context.Context, q itemQuerier, workspaceID string, parentID *string) error {
 	if parentID == nil {
 		return nil
 	}
 	var parentWorkspace, parentType string
-	err := s.db.QueryRowContext(ctx, `SELECT workspace_id,type FROM items WHERE id=?`, *parentID).Scan(&parentWorkspace, &parentType)
+	err := q.QueryRowContext(ctx, `SELECT workspace_id,type FROM items WHERE id=? AND deletion_batch_id IS NULL`, *parentID).Scan(&parentWorkspace, &parentType)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrInvalid
 	}
