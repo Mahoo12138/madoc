@@ -117,6 +117,15 @@ Excalidraw 内嵌图片不能依赖浏览器 local-only file。
 
 后续如果实际白板很大，再引入 snapshot + delta log。
 
+`onChange` 不等于正文已变化：持久化前提取 elements、上述 appState 白名单和 files，
+与上一次场景序列化结果比较。工具、选区、指针和相同场景的重渲染不会新增保存任务，
+避免 ACK → 重渲染 → 再写入的循环。远端场景事件不能确认本地待提交修改；Saved
+必须等待当前本地修改版本获得 ACK。此规则不改变现有白板场景协议。
+
+收到远端场景时调用已安装 Excalidraw 的 `reconcileElements`，与当前包含删除标记的
+本地元素按其版本规则合并，避免较旧整篇场景清除本地元素。每个 Item 使用独立编辑器
+实例，切换白板不会把上一张画布的本地元素带入新 Item。
+
 ## 8. Self-host Assets
 
 Excalidraw npm 默认字体可能从外部路径获取。madoc 自部署必须把 Excalidraw 所需字体静态文件复制进 web public/build，并设置正确的 `EXCALIDRAW_ASSET_PATH`。
