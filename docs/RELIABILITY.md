@@ -147,3 +147,14 @@ Markdown 测试分别向真实二进制发送 SIGTERM / SIGKILL，覆盖正文�
 备份恢复用例通过正式 maintenance CLI 停服备份，再初始化另一目录并恢复，检查
 Markdown、真实画布创建的白板元素、附件二进制及 server secret / 会话保留。
 这是进程与文件持久化验证，不等同于断电或磁盘硬件损坏模拟。运行步骤见 `BUILD.md`。
+
+## 阶段 0：初始化与广播顺序
+
+仅依赖数据库事务不能保证广播顺序：并发处理可能先读出较新 init，再送达更早提交的
+广播，或在读取初始状态和订阅房间之间漏掉更新。Hub 对 WebSocket 正文操作增加
+单实例互斥，将 join 的读取 / 订阅 / init 入队与持久化更新 / ACK / 广播入队排序。
+Markdown cache / snapshot 与白板 scene 同样参与，瞬时消息仍独立处理。
+这是面向当前小团队单实例的简单方案，不提供跨实例排序；网络发送仍由各连接独立完成。
+
+`internal/realtime/ordering_test.go` 并发启动 join 与 16 个写入，Markdown 重复 40 轮，
+白板重复 20 轮；检查 init 在前、版本递增、写入确认与最终正文完整性。

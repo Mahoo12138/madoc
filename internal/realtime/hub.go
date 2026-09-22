@@ -32,13 +32,17 @@ type client struct {
 }
 
 type Hub struct {
-	auth     *auth.Service
-	core     *core.Service
-	dev      bool
-	mu       sync.RWMutex
-	rooms    map[string]map[*client]struct{}
-	clients  map[*client]struct{}
-	profiles sync.Map
+	// The single-instance hub orders durable operations through their outgoing
+	// queue writes. SQLite commit order alone does not order broadcasts or close
+	// the gap between reading initial state and subscribing to the room.
+	contentMu sync.Mutex
+	auth      *auth.Service
+	core      *core.Service
+	dev       bool
+	mu        sync.RWMutex
+	rooms     map[string]map[*client]struct{}
+	clients   map[*client]struct{}
+	profiles  sync.Map
 }
 
 func New(authService *auth.Service, domain *core.Service, dev bool) *Hub {
@@ -139,6 +143,11 @@ func (h *Hub) writer(ctx context.Context, c *client) {
 }
 
 func (h *Hub) handle(ctx context.Context, c *client, m Envelope) {
+	switch m.Type {
+	case "markdown.join", "markdown.update", "markdown.cache.update", "markdown.snapshot.commit", "whiteboard.join", "whiteboard.scene.update":
+		h.contentMu.Lock()
+		defer h.contentMu.Unlock()
+	}
 	switch m.Type {
 	case "ping":
 		h.send(c, "pong", m.ItemID, map[string]any{"time": time.Now().UTC()})

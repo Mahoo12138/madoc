@@ -99,6 +99,13 @@ Server：
 3. 建立 local Y.Doc；
 4. 开始发送新 update。
 
+单实例 Hub 将 WebSocket 的正文 join、update、cache 和 snapshot 操作串行执行至
+响应 / 广播入队完成。读取初始状态、订阅房间与 init 入队之间不会穿插另一个正文
+更新；数据库提交顺序与广播顺序一致。白板 join / scene update 使用同一规则，
+避免已持久化 revision 的广播乱序及并发冲突重试互相竞争。
+锁只保护服务端操作和有界队列入队，不等待客户端 ACK 或网络写出；瞬时 presence
+和 pointer 不通过此锁。此规则适用于 WebSocket 路径，不取代 REST 自身的权限及事务检查。
+
 ## 5. Markdown Update
 
 Client：
