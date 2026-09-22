@@ -16,18 +16,25 @@ for (const inline of [false, true]) {
         if (!event.defaultPrevented) element.dataset.drags = String(Number(element.dataset.drags) + 1);
       });
     });
+    // Wait for the source to finish laying out and drag across its first line.
+    // The textarea center can lie on a wrap boundary (or a short last line).
+    await source.click({ trial: true });
     const box = (await source.boundingBox())!;
+    const firstLine = await source.evaluate(element => {
+      const style = getComputedStyle(element);
+      return parseFloat(style.paddingTop) + parseFloat(style.lineHeight) / 2;
+    });
     await source.evaluate((element: HTMLTextAreaElement) => element.setSelectionRange(0, 0));
-    await page.mouse.move(box.x + 3, box.y + box.height / 2);
+    await page.mouse.move(box.x + 3, box.y + firstLine);
     await page.mouse.down();
-    await page.mouse.move(box.x + 110, box.y + box.height / 2, { steps: 12 });
+    await page.mouse.move(box.x + 110, box.y + firstLine, { steps: 12 });
     await page.mouse.up();
     await expect(image).toHaveAttribute('data-drags', '0');
     expect(await source.evaluate((element: HTMLTextAreaElement) => element.selectionEnd - element.selectionStart)).toBeGreaterThan(5);
     // Starting over an existing text selection must not lift the image either.
-    await page.mouse.move(box.x + 20, box.y + box.height / 2);
+    await page.mouse.move(box.x + 20, box.y + firstLine);
     await page.mouse.down();
-    await page.mouse.move(box.x + 150, box.y + box.height / 2, { steps: 12 });
+    await page.mouse.move(box.x + 150, box.y + firstLine, { steps: 12 });
     await page.mouse.up();
     await expect(image).toHaveAttribute('data-drags', '0');
     await expect(source).toHaveValue(markdown);

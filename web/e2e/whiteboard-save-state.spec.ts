@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { openBoard, rectangle } from './helpers/whiteboard';
+import { normalizedBoardElements, openBoard, rectangle } from './helpers/whiteboard';
 
 test('idle board and transient tool selection do not continually persist scenes', async ({ page }) => {
   const id = await openBoard(page);
@@ -73,7 +73,7 @@ test('partial ACK and remote scenes cannot confirm pending local changes or crea
     await peer.getByRole('menuitem', { name: 'Excalidraw JSON' }).click();
     const { readFile } = await import('node:fs/promises');
     const exported = JSON.parse(await readFile((await (await downloadReady).path())!, 'utf8'));
-    expect(exported.elements).toEqual(saved.scene.elements);
+    expect(normalizedBoardElements(exported.elements)).toEqual(normalizedBoardElements(saved.scene.elements));
   } finally { await peer.close(); }
 });
 

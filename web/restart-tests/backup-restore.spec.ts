@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { normalizedBoardElements } from '../e2e/helpers/whiteboard';
 import { openDocument } from '../e2e/helpers/writing';
 import { RestartServer } from './server';
 
@@ -58,7 +59,7 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     await page.getByRole('button', { name: '导出', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Excalidraw JSON' }).click();
     const exported = JSON.parse(await readFile((await (await ready).path())!, 'utf8'));
-    expect(exported.elements).toEqual(before.scene.elements);
+    expect(normalizedBoardElements(exported.elements)).toEqual(normalizedBoardElements(before.scene.elements));
   } finally {
     await page.close();
     await server.dispose();

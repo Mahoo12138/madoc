@@ -23,3 +23,9 @@ export async function rectangle(page: Page, offset = 0) {
   await page.mouse.move(850 + offset, 450, { steps: 10 });
   await page.mouse.up();
 }
+
+// Excalidraw 0.18.1 restoreElementWithProperties converts null bindings to [].
+// Normalize only that equivalent representation; compare every other field.
+export function normalizedBoardElements(elements: Record<string, unknown>[]) {
+  return elements.map(element => ({ ...element, boundElements: element.boundElements ?? [] }));
+}
