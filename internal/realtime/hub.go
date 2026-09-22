@@ -24,11 +24,12 @@ type Envelope struct {
 }
 
 type client struct {
-	conn      *websocket.Conn
-	user      *auth.User
-	send      chan []byte
-	rooms     map[string]struct{}
-	sessionID string
+	conn        *websocket.Conn
+	user        *auth.User
+	send        chan []byte
+	rooms       map[string]struct{}
+	sessionID   string
+	workspaceID string
 }
 
 type Hub struct {
@@ -149,6 +150,12 @@ func (h *Hub) handle(ctx context.Context, c *client, m Envelope) {
 		defer h.contentMu.Unlock()
 	}
 	switch m.Type {
+	case "workspace.watch":
+		h.watchWorkspace(ctx, c, m)
+	case "workspace.unwatch":
+		h.mu.Lock()
+		c.workspaceID = ""
+		h.mu.Unlock()
 	case "ping":
 		h.send(c, "pong", m.ItemID, map[string]any{"time": time.Now().UTC()})
 	case "room.leave":

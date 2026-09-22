@@ -28,6 +28,7 @@ func (a *API) restoreTrash(w http.ResponseWriter, r *http.Request) {
 		domainError(w, err)
 		return
 	}
+	a.notifyWorkspace(chi.URLParam(r, "workspaceId"))
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -52,5 +53,6 @@ func (a *API) purgeTrash(w http.ResponseWriter, r *http.Request) {
 		domainError(w, err)
 		return
 	}
+	a.notifyWorkspace(chi.URLParam(r, "workspaceId"))
 	w.WriteHeader(http.StatusNoContent)
 }

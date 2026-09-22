@@ -253,6 +253,7 @@ func (a *API) renameWorkspace(w http.ResponseWriter, r *http.Request) {
 		domainError(w, e)
 		return
 	}
+	a.notifyWorkspace(chi.URLParam(r, "workspaceId"))
 	w.WriteHeader(204)
 }
 func (a *API) deleteWorkspace(w http.ResponseWriter, r *http.Request) {
@@ -261,6 +262,7 @@ func (a *API) deleteWorkspace(w http.ResponseWriter, r *http.Request) {
 		domainError(w, e)
 		return
 	}
+	a.notifyWorkspace(chi.URLParam(r, "workspaceId"))
 	w.WriteHeader(204)
 }
 func (a *API) listMembers(w http.ResponseWriter, r *http.Request) {
@@ -282,6 +284,7 @@ func (a *API) updateMember(w http.ResponseWriter, r *http.Request) {
 		domainError(w, e)
 		return
 	}
+	a.notifyWorkspace(chi.URLParam(r, "workspaceId"))
 	w.WriteHeader(204)
 }
 func (a *API) removeMember(w http.ResponseWriter, r *http.Request) {
@@ -290,6 +293,7 @@ func (a *API) removeMember(w http.ResponseWriter, r *http.Request) {
 		domainError(w, e)
 		return
 	}
+	a.notifyWorkspace(chi.URLParam(r, "workspaceId"))
 	w.WriteHeader(204)
 }
 func (a *API) listInvites(w http.ResponseWriter, r *http.Request) {
@@ -340,6 +344,7 @@ func (a *API) acceptInvite(w http.ResponseWriter, r *http.Request) {
 		domainError(w, e)
 		return
 	}
+	a.notifyWorkspace(workspace.ID)
 	session, e := a.auth.CreateSession(r.Context(), u.ID)
 	if e != nil {
 		domainError(w, e)
@@ -384,6 +389,7 @@ func (a *API) createItem(w http.ResponseWriter, r *http.Request) {
 		domainError(w, e)
 		return
 	}
+	a.notifyWorkspace(v.WorkspaceID)
 	writeJSON(w, 201, v)
 }
 func (a *API) renameItem(w http.ResponseWriter, r *http.Request) {
@@ -392,19 +398,33 @@ func (a *API) renameItem(w http.ResponseWriter, r *http.Request) {
 		domainError(w, core.ErrInvalid)
 		return
 	}
+	item, err := a.core.ItemAccess(r.Context(), userID(r), chi.URLParam(r, "itemId"), true)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
 	e := a.core.RenameItem(r.Context(), userID(r), chi.URLParam(r, "itemId"), b.Title)
 	if e != nil {
 		domainError(w, e)
 		return
 	}
+	a.notifyWorkspace(item.WorkspaceID)
 	w.WriteHeader(204)
 }
 func (a *API) deleteItem(w http.ResponseWriter, r *http.Request) {
+	item, err := a.core.ItemAccess(r.Context(), userID(r), chi.URLParam(r, "itemId"), true)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
 	e := a.core.DeleteItem(r.Context(), userID(r), chi.URLParam(r, "itemId"))
 	if e != nil {
 		domainError(w, e)
 		return
 	}
+	a.notifyWorkspace(item.WorkspaceID)
 	w.WriteHeader(204)
 }
 func (a *API) moveItem(w http.ResponseWriter, r *http.Request) {
@@ -416,11 +436,18 @@ func (a *API) moveItem(w http.ResponseWriter, r *http.Request) {
 		domainError(w, core.ErrInvalid)
 		return
 	}
+	item, err := a.core.ItemAccess(r.Context(), userID(r), chi.URLParam(r, "itemId"), true)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
 	e := a.core.MoveItem(r.Context(), userID(r), chi.URLParam(r, "itemId"), b.ParentID, b.Index)
 	if e != nil {
 		domainError(w, e)
 		return
 	}
+	a.notifyWorkspace(item.WorkspaceID)
 	w.WriteHeader(204)
 }
 

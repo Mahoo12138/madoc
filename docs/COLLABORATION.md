@@ -360,3 +360,22 @@ WebSocket：
 不匹配返回 `GENERATION_CHANGED`。客户端不得将不同代际的 Y.Doc 合并。
 
 升级前已打开的旧客户端需要先确认保存、关闭，再随服务升级重新打开。
+
+## 15. Workspace metadata invalidation
+
+新增 `workspace.watch`，payload 为 `{ "workspaceId": "..." }`；每条连接最多订阅一个
+Workspace，与 Markdown / Whiteboard 内容房间独立。`workspace.unwatch` 清除该订阅。
+服务端校验成员权限并注册后发送 `workspace.changed`，payload 只包含 `workspaceId`。
+客户端收到后重新读取 REST 目录、Workspace 权限及已打开的回收站等 metadata。
+每次重新连接都必须重新 watch，收到初次失效通知后再读取，弥补断线期间遗漏。
+这不是持久事件日志，不携带正文、标题、顺序号或历史回放。
+
+Item 新建 / 改名 / 移动 / 删除，批次恢复 / 彻底删除，Workspace 改名 / 删除，成员
+变更 / 接受邀请在成功提交后通知。失败操作不广播。每次投递重新检查会话和成员身份，
+原订阅失效发送 `workspace.unavailable` 并取消订阅，不继续披露后续操作。
+通知同时重新验证现存内容房间；已删除内容或被撤权用户退出房间，沿用既有 error
+及本地救援处理。权限降为 viewer 的客户端需要重新读取角色并切换只读；服务端每次
+正文写入仍独立校验权限。
+
+当前已实现服务端与真实 HTTP / WebSocket 回归，前端共享连接和 metadata 刷新接入
+在后续部分完成。未接入前，不能据此宣称目录已跨客户端自动刷新。
