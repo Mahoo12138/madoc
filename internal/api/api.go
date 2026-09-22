@@ -73,6 +73,7 @@ func (a *API) Routes() http.Handler {
 		r.Patch("/items/{itemId}", a.csrfRequired(a.renameItem))
 		r.Delete("/items/{itemId}", a.csrfRequired(a.deleteItem))
 		r.Post("/items/{itemId}/move", a.csrfRequired(a.moveItem))
+		r.Post("/items/{itemId}/duplicate", a.csrfRequired(a.duplicateItem))
 		r.Get("/items/{itemId}/markdown", a.getMarkdown)
 		r.Put("/items/{itemId}/markdown", a.csrfRequired(a.resetMarkdown))
 		r.Get("/items/{itemId}/export.md", a.exportMarkdown)
