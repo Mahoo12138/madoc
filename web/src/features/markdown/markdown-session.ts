@@ -1,3 +1,4 @@
+import { MarkdownSaveState, type SaveStatus } from './markdown-save-state';
 import { setPendingChanges } from '@/features/account/pending-changes';
 import { configureFootnotes, footnotes, preserveFootnoteReferences } from './markdown-footnote';
 import { footnoteDefinitionView } from './markdown-footnote-view';
@@ -34,7 +35,7 @@ type InitPayload = {
 };
 
 type Collaborator = { color?: string; name?: string };
-export type SaveStatus = 'Saving' | 'Saved' | 'Offline' | 'Reconnecting';
+export type { SaveStatus } from './markdown-save-state';
 
 type MarkdownSessionOptions = {
   onOutlineChange: (outline: MarkdownOutline | null) => void;
@@ -144,7 +145,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   root.replaceChildren();
   const doc = new Y.Doc();
   const awareness = new Awareness(doc);
-  let pendingUpdates = 0;
+  const saveState = new MarkdownSaveState();
   const pendingKey = `markdown:${item.id}`;
   const updateIdentity = (event: Event) => {
     const next = (event as CustomEvent<User>).detail;
@@ -153,6 +154,10 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   window.addEventListener('madoc-profile-changed', updateIdentity);
   const realtime = new RealtimeClient();
   onRealtimeChange(realtime);
+  const publishSaveStatus = () => {
+    setPendingChanges(pendingKey, saveState.hasPendingUpdates);
+    onStatusChange(saveState.status);
+  };
   awareness.setLocalStateField('user', { id: user.id, name: user.name, color: '#1f6feb' });
 
   let headSeq = initialCacheSeq;
@@ -305,15 +310,16 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     latestMarkdown = markdown;
     onStatsChange(getMarkdownStats(markdown));
     if (markdown === previous || role === 'viewer') return;
-    onStatusChange(realtime.state === 'online' ? 'Saving' : 'Offline');
+    publishSaveStatus();
     window.clearTimeout(cacheTimer);
     cacheTimer = window.setTimeout(flushMarkdownCache, 1200);
   }));
 
   const unsubscribe = realtime.subscribe((message) => {
     if (message.type === 'connection.changed') {
-      const state = (message.payload as { state: string }).state;
-      onStatusChange(state === 'online' || state === 'connecting' ? 'Reconnecting' : 'Offline');
+      const state = (message.payload as { state: 'online' | 'connecting' | 'offline' }).state;
+      saveState.connectionChanged(state);
+      publishSaveStatus();
       if (state === 'online') realtime.send('markdown.join', item.id);
     }
     if (message.itemId !== item.id) return;
@@ -328,7 +334,8 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
         initialResolved = true;
         resolveInitial(payload);
       }
-      onStatusChange('Saved');
+      saveState.initialized();
+      publishSaveStatus();
     }
     if (message.type === 'markdown.update.remote') {
       const payload = message.payload as { seq: number; update: string };
@@ -336,13 +343,13 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       Y.applyUpdate(doc, fromBase64(payload.update), 'remote');
     }
     if (message.type === 'markdown.update.ack') {
-      pendingUpdates = Math.max(0, pendingUpdates - 1);
-      setPendingChanges(pendingKey, pendingUpdates > 0);
-      const payload = message.payload as { seq: number };
-      headSeq = Math.max(headSeq, payload.seq);
-      onStatusChange('Saved');
+      const payload = message.payload as { clientUpdateId: string; seq: number };
+      if (saveState.acknowledge(payload.clientUpdateId)) {
+        headSeq = Math.max(headSeq, payload.seq);
+      }
+      publishSaveStatus();
     }
-    if (message.type === 'markdown.cache.ack') onStatusChange('Saved');
+    // Cache acknowledgements never confirm canonical Yjs updates.
     if (message.type === 'markdown.snapshot.request' && role !== 'viewer') {
       const payload = message.payload as { baseSeq: number };
       realtime.send('markdown.snapshot.commit', item.id, {
@@ -366,9 +373,10 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
 
   const onDocUpdate = (update: Uint8Array, origin: unknown) => {
     if (origin !== 'remote' && role !== 'viewer') {
-      pendingUpdates += 1;
-      setPendingChanges(pendingKey, true);
-      realtime.send('markdown.update', item.id, { clientUpdateId: crypto.randomUUID(), update: toBase64(update) });
+      const clientUpdateId = crypto.randomUUID();
+      saveState.add(clientUpdateId);
+      publishSaveStatus();
+      realtime.send('markdown.update', item.id, { clientUpdateId, update: toBase64(update) });
     }
   };
   const onAwareness = (
