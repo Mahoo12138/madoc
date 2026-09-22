@@ -3,7 +3,7 @@
 ## 范围与状态
 
 阶段 1 第一部分实现 Item / 活动子树软删除和批次恢复 API。普通 Item 删除不再执行
-物理 DELETE。回收站界面、owner 手动彻底删除和目录事件广播尚待后续部分接入。
+物理 DELETE。owner 手动彻底删除和批次条目查看 API 已接入；回收站界面及目录事件广播尚待后续部分接入。
 没有定时清理，也没有默认 30 天保留期限。Workspace 删除仍是独立的 owner 操作，
 保留原有名称确认和永久删除语义。
 
@@ -18,9 +18,15 @@ Markdown update / receipt / generation、白板 revision、附件 metadata 或�
 sort_key 和内容关联。删除只遍历当时仍活动的子树，并在一个事务中标记同一批次；
 早先单独删除的子项保留自己的批次，不会随父目录恢复而复活。
 
-原父目录 ID 是恢复线索，不是永久保留该目录的外键约束。未来彻底删除父目录时，
-必须先处理其他删除批次的根 parent_id，避免现有 ON DELETE CASCADE 误删其他批次；
-不能直接执行原来的递归物理删除。此版本尚无 Item 彻底删除入口。
+原父目录 ID 是恢复线索，不是永久保留该目录的外键约束。彻底删除先验证调用者为
+owner、批次属于目标 Workspace 且确认文字完整匹配批次根标题。随后在同一事务内
+把嵌套的其他删除批次根 parent_id 置空，再物理删除本批次 Item 和批次记录，避免
+ON DELETE CASCADE 波及其他批次。其他批次的原父目录线索仍保留；恢复时原目录
+已消失会要求显式选择新位置。若发现意外活动子项或不合法的跨批次关系，返回 CONFLICT，
+不做猜测性修复。任何失败均回滚，包括已经执行的临时解挂。
+
+彻底删除会清理本批次 Item 的正文、更新和 receipt 等外键关联，但附件 metadata 与
+文件保留，item_id 由现有外键设为 NULL。不能仅凭该字段为空就删除可能共享的图片。
 
 ## 访问与并发
 
@@ -43,7 +49,13 @@ cache / snapshot / reset，以及白板读取 / CAS 更新，在同一数据库�
 | --- | --- |
 | DELETE /api/items/{itemId} | owner/editor 将活动子树移入回收站，成功 204 |
 | GET /api/workspaces/{workspaceId}/trash | owner/editor 查看本 Workspace 的批次根与条目数量 |
+| GET /api/workspaces/{workspaceId}/trash/{batchId}/items | owner/editor 查看本批次内部条目元数据，不返回正文 |
+| DELETE /api/workspaces/{workspaceId}/trash/{batchId} | owner 永久删除本批次；要求 CSRF 和完整名称确认 |
 | POST /api/workspaces/{workspaceId}/trash/{batchId}/restore | owner/editor 恢复该 Workspace 指定批次，成功 204；要求 CSRF |
+
+彻底删除请求 `{"confirmation":"批次根标题"}` 必须大小写和空白完全匹配，不接受空确认。
+不存在、已恢复或已清除的批次返回 NOT_FOUND；不支持清空所有批次或定时清理。操作不可撤销，
+需要保留的内容应先恢复 / 导出，或按 `BUILD.md` 完成实例备份。
 
 恢复请求 `{}` 使用原位置。原父目录不可用时返回 409
 `RESTORE_DESTINATION_REQUIRED`，不隐式搬到根目录，也不局部恢复。
@@ -59,7 +71,7 @@ viewer / 非成员不能查看或操作回收站。恢复清除指定批次全�
 ## 后续交付
 
 - 回收站 UI：批次根、内部条目查看、恢复位置选择与失败反馈。
-- owner 手动彻底删除：独立确认、跨批次子树保护，附件清理仍需引用依据。
+- owner 手动彻底删除 UI：完整名称确认和不可撤销提示；服务端保护已完成，附件清理仍需引用依据。
 - 目录变化 / 删除通知：让其他客户端立即退出失效内容，保留未提交本地副本。
 - 搜索、收藏与最近访问：只展示活动 Item，恢复后重新进入有效导航。
 
@@ -70,3 +82,8 @@ viewer / 非成员不能查看或操作回收站。恢复清除指定批次全�
 `trash_migration_test.go` 从旧 schema 升级两次，校验现有内容和资源关联不变。
 `trash-api.spec.ts` 用真实 HTTP 和编辑器验证删除后拒绝读取、按批次恢复正文 / 白板 /
 附件及明确的恢复位置冲突。既有撤权与本地恢复测试继续覆盖删除后的救援路径。
+
+`trash_purge_test.go` 验证 owner / 确认 / Workspace 边界、跨批次嵌套保护、原父级丢失的
+显式恢复、失败回滚、意外活动子项拒绝、正文 / receipt 清理及附件 metadata 保留。
+`trash-purge-api.spec.ts` 验证真实 CSRF、名称确认、editor/viewer 拒绝、批次详情和
+永久删除后的图片文件仍可读取。

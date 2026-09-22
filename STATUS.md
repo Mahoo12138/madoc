@@ -60,9 +60,12 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 ## 演进计划：阶段 1（进行中）
 
 - 第一部分：增量 migration 0007、活动子树删除批次、同工作区恢复 API；保留早先独立删除的子项、正文 / 白板 / receipt 与附件关联。内容权限和活动状态纳入同一事务；原父目录失效要求显式目标，失败全部回滚。普通 Item 删除已改为软删除。
-- 待完成：回收站界面、owner 手动彻底删除、目录 / 删除通知；随后快速打开、搜索及个人收藏 / 最近访问。不启用自动清理。设计与 API 见 `docs/CONTENT_LIFECYCLE.md`。
+- 第二部分：owner 彻底删除与批次条目查看 API；完整名称确认、CSRF、跨批次子树保护、异常活动子项拒绝和失败回滚。清除选中批次的正文 / receipt，保留附件 metadata 与文件。
+- 待完成：回收站界面与彻底删除确认交互、目录 / 删除通知；随后快速打开、搜索及个人收藏 / 最近访问。不启用自动清理。设计与 API 见 `docs/CONTENT_LIFECYCLE.md`。
 
 ## 当前验证
+
+- 阶段 1 第二部分（基于 `0b23002`）：新增 3 项 core 回归，覆盖 owner / 确认 / Workspace 边界、独立嵌套批次保护、原父目录丢失时显式恢复、清除失败回滚、异常活动子项拒绝、正文 / receipt 清理和附件关联保留。4 项回收站 HTTP E2E 通过，验证缺少 CSRF / 错误名称 / editor / viewer 拒绝及图片文件仍可读取；独立 MVP 核心流程、Go test / race / vet、前端 typecheck / production build 通过。本部分为服务端能力，界面和目录通知仍待接入。
 
 - 阶段 1 第一部分（基于 `737b234`）：新增 4 项 core 生命周期测试与 1 项旧 schema 迁移测试，覆盖活动子树、早期批次隔离、正文 / 白板 / receipt / 资产关联保留、恢复位置、权限 / 工作区隔离、事务失败回滚及 Workspace 删除。Go test / race / vet、前端 typecheck / production build 通过；最后共享权限检查整理后 Go test / vet 与 core / realtime / asset race 复核通过。10 项 HTTP / 本地恢复 / 撤权 E2E、独立 MVP 核心流程通过；真实 CLI 备份恢复增加删除批次保留及恢复原文验证并通过。此记录仅证明服务与 API 基础，阶段 1 尚未完成。
 
