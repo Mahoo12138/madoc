@@ -59,6 +59,7 @@ func (a *API) Routes() http.Handler {
 		r.Post("/workspaces/{workspaceId}/invites", a.csrfRequired(a.createInvite))
 		r.Delete("/workspaces/{workspaceId}/invites/{inviteId}", a.csrfRequired(a.revokeInvite))
 		r.Get("/workspaces/{workspaceId}/items", a.listItems)
+		r.Get("/workspaces/{workspaceId}/search", a.search)
 		r.Get("/workspaces/{workspaceId}/trash", a.listTrash)
 		r.Get("/workspaces/{workspaceId}/trash/{batchId}/items", a.trashItems)
 		r.Delete("/workspaces/{workspaceId}/trash/{batchId}", a.csrfRequired(a.purgeTrash))
