@@ -39,9 +39,12 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 按 `madoc_功能设计与开发阶段计划_2026-09-23.md` 从可靠保存开始；原 `PLAN.md` 保留架构迁移历史。可选公开分享和评论不自动进入实施范围。
 
 - 第一部分：Markdown 保存状态改用 `clientUpdateId` 集合；部分、重复、未知 ACK、缓存 ACK 和重连初始化均不会提前清除待确认修改。说明见 `docs/RELIABILITY.md`。
+- 第二部分：新增独立 Markdown update receipt，确保压缩和服务重启后相同更新 ID 不重复追加；增量迁移回填现存日志，保留正文。浏览器 outbox 尚未接入。
 - 后续：持久化 outbox 与稳定 ID 重试、导出水位、固定提交发布回归。阶段 0 尚未完成，不进入阶段 1。
 
 ## 当前验证
+
+- 阶段 0 第二部分（基于 `e1ceb80`）：压缩 / 重启后的稳定 ACK、权限和 Item 隔离、失败回滚、正文重置事务及旧日志迁移回填测试通过。Go test / race / vet、前端 typecheck / production build、独立目录 MVP 核心 E2E 通过；补充重置回滚用例后 core 测试复核通过。维护测试的 migration 数量断言已随新迁移更新。
 
 - 阶段 0 第一部分（基于 `10aafc1`）：3 项保存状态单元 / 浏览器回归通过，覆盖部分与重复 ACK、缓存 ACK、重连和刷新；MVP 核心 E2E 在独立临时数据目录通过。Go test / race / vet、前端 typecheck / production build、diff 空白检查通过。首次合并执行时核心用例因共享测试库已初始化而失败，单独重跑通过；首次安装用例需单独运行。
 

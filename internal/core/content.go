@@ -2,6 +2,8 @@ package core
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -53,6 +55,9 @@ func (s *Service) ResetMarkdown(ctx context.Context, userID, itemID string, snap
 	if _, err := tx.ExecContext(ctx, `DELETE FROM markdown_updates WHERE item_id=?`, itemID); err != nil {
 		return err
 	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM markdown_update_receipts WHERE item_id=?`, itemID); err != nil {
+		return err
+	}
 	_, err = tx.ExecContext(ctx, `UPDATE markdown_states SET snapshot=?,snapshot_seq=0,markdown_cache=?,cache_seq=0,updated_at=? WHERE item_id=?`, snapshot, markdown, time.Now().UTC(), itemID)
 	if err != nil {
 		return err
@@ -68,16 +73,31 @@ func (s *Service) AppendMarkdownUpdate(ctx context.Context, userID, itemID, clie
 	if item.Type != "markdown" || clientUpdateID == "" || len(update) == 0 {
 		return 0, ErrInvalid
 	}
-	result, err := s.db.ExecContext(ctx, `INSERT INTO markdown_updates(item_id,client_update_id,update_blob,created_by,created_at) VALUES(?,?,?,?,?) ON CONFLICT(item_id,client_update_id) DO NOTHING`, itemID, clientUpdateID, update, userID, time.Now().UTC())
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, err
 	}
-	rows, _ := result.RowsAffected()
-	if rows == 0 {
-		err = s.db.QueryRowContext(ctx, `SELECT id FROM markdown_updates WHERE item_id=? AND client_update_id=?`, itemID, clientUpdateID).Scan(&rows)
-		return rows, err
+	defer tx.Rollback()
+	var seq int64
+	err = tx.QueryRowContext(ctx, `SELECT seq FROM markdown_update_receipts WHERE item_id=? AND client_update_id=?`, itemID, clientUpdateID).Scan(&seq)
+	if err == nil {
+		return seq, nil
 	}
-	return result.LastInsertId()
+	if !errors.Is(err, sql.ErrNoRows) {
+		return 0, err
+	}
+	result, err := tx.ExecContext(ctx, `INSERT INTO markdown_updates(item_id,client_update_id,update_blob,created_by,created_at) VALUES(?,?,?,?,?)`, itemID, clientUpdateID, update, userID, time.Now().UTC())
+	if err != nil {
+		return 0, err
+	}
+	seq, err = result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO markdown_update_receipts(item_id,client_update_id,seq) VALUES(?,?,?)`, itemID, clientUpdateID, seq); err != nil {
+		return 0, err
+	}
+	return seq, tx.Commit()
 }
 
 func (s *Service) UpdateMarkdownCache(ctx context.Context, userID, itemID, markdown string, seenSeq int64) error {

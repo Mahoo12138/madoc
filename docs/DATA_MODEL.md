@@ -243,3 +243,13 @@ migration 必须事务化（SQLite 不允许事务处理的 pragma 除外）。
 增量迁移 `0003_account_profile.sql` 新增 `user_avatars`：以 `user_id` 为主键，保存唯一 `storage_key` 和更新时间。头像位于 `assets/_avatars/`，不属于任何 Workspace；现有 assets 备份与恢复完整包含该目录。`User.avatarUrl` 和成员资料由关联查询生成，不暴露文件路径。
 
 `0004_account_preferences.sql` 新增 `user_preferences`：以 `user_id` 为主键，保存完整偏好 JSON、递增 revision 和更新时间。不存在记录时返回默认设置与 `initialized: false`；PATCH 在事务内读取、校验并合并字段。两张表均随账号删除级联清理数据库记录，不改动既有内容或协同数据。
+
+## Markdown update receipts
+
+`0005_markdown_receipts.sql` 增加 `markdown_update_receipts`：
+
+- 主键为 `(item_id, client_update_id)`，保存原始 `seq`。
+- 与正文 update 同事务写入；从升级时尚存的 update 日志回填。
+- 不随快照压缩清除，保证 ACK 丢失后的重试仍返回同一 seq。
+- Item 删除时级联删除；显式正文重置时在同一事务清除。
+- 当前无基于时间的自动清理；内容代际与持久化 outbox 的后续约束见 `RELIABILITY.md`。
