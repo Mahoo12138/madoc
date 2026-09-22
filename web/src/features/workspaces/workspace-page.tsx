@@ -24,6 +24,7 @@ import {
   FileText as IconFileText,
   Home as IconHome,
   Settings as IconSettings,
+  Trash2 as IconTrash,
   Users as IconUsers,
   PenTool as IconWhiteboard,
 } from 'lucide-react';
@@ -38,6 +39,7 @@ import { WorkspaceNavigation } from './workspace-navigation';
 import type { MarkdownOutline } from '@/features/markdown/markdown-outline-model';
 import { MemberDrawer } from './member-drawer';
 import { AccountMenu } from '@/features/account/account-menu';
+import { WorkspaceTrash } from './workspace-trash';
 import { WorkspaceSettings } from './workspace-settings';
 import * as styles from './workspace-shell.css';
 
@@ -64,6 +66,7 @@ export function WorkspacePage() {
   const items = useItems(workspaceId);
   const mutations = useWorkspaceMutations(workspaceId);
   const [membersOpened, membersDrawer] = useDisclosure(false);
+  const [trashOpened, trashModal] = useDisclosure(false);
   const [settingsOpened, settingsModal] = useDisclosure(false);
   const [itemModal, itemActions] = useDisclosure(false);
   const [mobileOpened, mobileDrawer] = useDisclosure(false);
@@ -215,6 +218,14 @@ export function WorkspacePage() {
             >
               成员管理
             </Menu.Item>
+            {workspace.data && workspace.data.role !== 'viewer' && (
+              <Menu.Item
+                leftSection={<IconTrash size={15} />}
+                onClick={trashModal.open}
+              >
+                回收站
+              </Menu.Item>
+            )}
             {workspace.data?.role === 'owner' && (
               <Menu.Item
                 leftSection={<IconSettings size={15} />}
@@ -258,6 +269,13 @@ export function WorkspacePage() {
             )}
           </Group>
           <Group>
+            {workspace.data && workspace.data.role !== 'viewer' && (
+              <span className={styles.mobileMenu}>
+                <ActionIcon aria-label="回收站" onClick={trashModal.open}>
+                  <IconTrash size={17} />
+                </ActionIcon>
+              </span>
+            )}
             {workspace.data?.role === 'owner' && (
               <span className={styles.mobileMenu}>
                 <ActionIcon
@@ -369,6 +387,13 @@ export function WorkspacePage() {
           }}
         />
       </Drawer>
+      {trashOpened && workspace.data && workspace.data.role !== 'viewer' && (
+        <WorkspaceTrash
+          key={workspaceId}
+          workspace={workspace.data}
+          onClose={trashModal.close}
+        />
+      )}
       <MemberDrawer
         opened={membersOpened}
         onClose={membersDrawer.close}

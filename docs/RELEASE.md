@@ -59,7 +59,7 @@ python3 scripts/docker-smoke.py madoc-release:candidate
 ## 当前产品限制
 
 阶段 0 候选的 Item / 子树删除仍是永久删除，没有回收站。当前阶段 1 开发版已接入
-软删除和恢复 API，界面尚待完成，详见 `CONTENT_LIFECYCLE.md`。删除前确认目标和子项，重要内容
+软删除、恢复与名称确认彻底删除界面，详见 `CONTENT_LIFECYCLE.md`。删除前确认目标和子项，重要内容
 应先导出并完成实例备份；本地待提交草稿不是完整文档历史，也不保证包含所有已保存内容。
 建议在回收站完成后再大量迁入真实资料。
 
