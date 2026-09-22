@@ -163,6 +163,8 @@ test('heading removal and undo refresh the outline without changing the file tre
     const selection = document.getSelection()!;
     selection.removeAllRanges();
     selection.addRange(range);
+    // Programmatic selection must notify the editor before the next key event.
+    document.dispatchEvent(new Event('selectionchange'));
   });
   await page.keyboard.press('Backspace');
   await expect(

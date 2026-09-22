@@ -85,3 +85,12 @@ python3 scripts/docker-smoke.py madoc-release:candidate
 
 本次增加测试和发布操作文档，尚不构成阶段 0 通过结论。后续需以包含测试调整的
 固定提交重新执行完整门槛。
+
+## 第二轮基线检查
+
+基线：`9b1cccc97726930dfc2c7329d00347b697f65945`。Go test / race（均 `-count=1`）/
+vet、前端 typecheck / production build、Docker 构建及持久卷冒烟通过。
+普通回归 213 通过、1 失败：Outline 测试通过 DOM API 设置选区，未同步触发
+selectionchange，后续按键可能使用编辑器旧选区。添加该标准事件通知后，原用例
+连续 10 次通过，删除与撤销断言保持不变。调查期间的撤销配置试验已全部撤回，
+本轮最终未改变产品代码。尚需在测试修正提交上完成完整门槛。
