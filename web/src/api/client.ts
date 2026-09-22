@@ -4,7 +4,7 @@ import { APIError } from './types';
 let csrfToken = '';
 export const setCSRFToken = (token?: string) => { if (token) csrfToken = token; };
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (init.body && !(init.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   if (init.method && init.method !== 'GET') headers.set('x-madoc-csrf-token', csrfToken);

@@ -87,7 +87,7 @@ func TestCleanLegacyRequiresConfirmationAndPreservesDatabase(t *testing.T) {
 	}
 	defer canonical.Close()
 	var migrations int
-	if err := canonical.QueryRow(`SELECT count(*) FROM schema_migrations`).Scan(&migrations); err != nil || migrations != 2 {
+	if err := canonical.QueryRow(`SELECT count(*) FROM schema_migrations`).Scan(&migrations); err != nil || migrations != 4 {
 		t.Fatalf("canonical migrations = %d, %v", migrations, err)
 	}
 }

@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"madoc/internal/account"
 	"madoc/internal/api"
 	"madoc/internal/asset"
 	"madoc/internal/auth"
@@ -86,7 +87,7 @@ func main() {
 	domain := core.New(conn)
 	assetService := asset.New(conn, domain, cfg.AssetDir, cfg.MaxUploadMB)
 	hub := realtime.New(authService, domain, cfg.Dev)
-	apiHandler := api.New(authService, auth.NewCSRF(cfg.Secret), domain, assetService, hub, !cfg.Dev)
+	apiHandler := api.New(authService, auth.NewCSRF(cfg.Secret), domain, assetService, account.New(conn, cfg.AssetDir), hub, !cfg.Dev)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.RealIP, middleware.Logger, middleware.Recoverer, securityHeaders)

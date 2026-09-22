@@ -24,19 +24,21 @@ type Envelope struct {
 }
 
 type client struct {
-	conn  *websocket.Conn
-	user  *auth.User
-	send  chan []byte
-	rooms map[string]struct{}
+	conn      *websocket.Conn
+	user      *auth.User
+	send      chan []byte
+	rooms     map[string]struct{}
+	sessionID string
 }
 
 type Hub struct {
-	auth    *auth.Service
-	core    *core.Service
-	dev     bool
-	mu      sync.RWMutex
-	rooms   map[string]map[*client]struct{}
-	clients map[*client]struct{}
+	auth     *auth.Service
+	core     *core.Service
+	dev      bool
+	mu       sync.RWMutex
+	rooms    map[string]map[*client]struct{}
+	clients  map[*client]struct{}
+	profiles sync.Map
 }
 
 func New(authService *auth.Service, domain *core.Service, dev bool) *Hub {
@@ -69,10 +71,15 @@ func (h *Hub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	conn.SetReadLimit(5 << 20)
-	c := &client{conn: conn, user: user, send: make(chan []byte, 64), rooms: map[string]struct{}{}}
+	c := &client{conn: conn, user: user, sessionID: cookie.Value, send: make(chan []byte, 64), rooms: map[string]struct{}{}}
 	h.mu.Lock()
 	h.clients[c] = struct{}{}
 	h.mu.Unlock()
+	if _, err := h.auth.Resolve(r.Context(), c.sessionID); err != nil {
+		h.remove(c)
+		_ = conn.Close(websocket.StatusPolicyViolation, "session expired")
+		return
+	}
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 	defer h.remove(c)
@@ -88,6 +95,10 @@ func (h *Hub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if json.Unmarshal(data, &message) != nil {
 			h.sendError(c, message.RequestID, "INVALID_MESSAGE", "invalid message")
 			continue
+		}
+		if _, err := h.auth.Resolve(ctx, c.sessionID); err != nil {
+			_ = conn.Close(websocket.StatusPolicyViolation, "session expired")
+			return
 		}
 		h.handle(ctx, c, message)
 	}
@@ -373,7 +384,7 @@ func (h *Hub) presence(room string) {
 	h.mu.RLock()
 	members := []map[string]any{}
 	for c := range h.rooms[room] {
-		members = append(members, map[string]any{"id": c.user.ID, "name": c.user.Name})
+		members = append(members, map[string]any{"id": c.user.ID, "name": h.profile(c).Name, "avatarUrl": h.profile(c).AvatarURL})
 	}
 	targets := make([]*client, 0, len(h.rooms[room]))
 	for c := range h.rooms[room] {
@@ -406,7 +417,7 @@ func (h *Hub) relayWithUser(sender *client, room string, m Envelope) {
 	payload := map[string]any{}
 	_ = json.Unmarshal(m.Payload, &payload)
 	payload["userId"] = sender.user.ID
-	payload["userName"] = sender.user.Name
+	payload["userName"] = h.profile(sender).Name
 	h.broadcast(sender, room, m.Type, m.ItemID, payload)
 }
 func (h *Hub) broadcast(sender *client, room, messageType, itemID string, payload any) {

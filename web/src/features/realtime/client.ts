@@ -18,7 +18,7 @@ export class RealtimeClient {
     this.socket = new WebSocket(`${scheme}://${location.host}/ws`);
     this.socket.onopen = () => { this.state = 'online'; for (const message of this.queue.splice(0)) this.socket?.send(message); this.emit({ type: 'connection.changed', payload: { state: this.state } }); };
     this.socket.onmessage = (event) => { try { this.emit(JSON.parse(event.data) as Envelope); } catch { /* ignore malformed server frames */ } };
-    this.socket.onclose = () => { this.state = 'offline'; this.emit({ type: 'connection.changed', payload: { state: this.state } }); if (!this.stopped) this.reconnectTimer = window.setTimeout(() => this.connect(), 1200); };
+    this.socket.onclose = (event) => { if (event.code === 1008) { this.stopped = true; location.assign('/sign-in'); return; } this.state = 'offline'; this.emit({ type: 'connection.changed', payload: { state: this.state } }); if (!this.stopped) this.reconnectTimer = window.setTimeout(() => this.connect(), 1200); };
   }
 
   private emit(message: Envelope) { for (const listener of this.listeners) listener(message); }

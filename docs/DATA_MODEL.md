@@ -237,3 +237,9 @@ internal/db/migrations/
 ```
 
 migration 必须事务化（SQLite 不允许事务处理的 pragma 除外）。
+
+## 账号资料与偏好
+
+增量迁移 `0003_account_profile.sql` 新增 `user_avatars`：以 `user_id` 为主键，保存唯一 `storage_key` 和更新时间。头像位于 `assets/_avatars/`，不属于任何 Workspace；现有 assets 备份与恢复完整包含该目录。`User.avatarUrl` 和成员资料由关联查询生成，不暴露文件路径。
+
+`0004_account_preferences.sql` 新增 `user_preferences`：以 `user_id` 为主键，保存完整偏好 JSON、递增 revision 和更新时间。不存在记录时返回默认设置与 `initialized: false`；PATCH 在事务内读取、校验并合并字段。两张表均随账号删除级联清理数据库记录，不改动既有内容或协同数据。

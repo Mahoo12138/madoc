@@ -84,7 +84,7 @@ func (s *Service) ListMembers(ctx context.Context, userID, workspaceID string) (
 	if _, err := s.Role(ctx, userID, workspaceID); err != nil {
 		return nil, err
 	}
-	rows, err := s.db.QueryContext(ctx, `SELECT u.id,u.name,u.email,m.role,m.created_at FROM workspace_members m JOIN users u ON u.id=m.user_id WHERE m.workspace_id=? ORDER BY m.created_at`, workspaceID)
+	rows, err := s.db.QueryContext(ctx, `SELECT u.id,u.name,u.email,m.role,m.created_at,(SELECT '/api/users/'||u.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=u.id) FROM workspace_members m JOIN users u ON u.id=m.user_id WHERE m.workspace_id=? ORDER BY m.created_at`, workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (s *Service) ListMembers(ctx context.Context, userID, workspaceID string) (
 	result := []Member{}
 	for rows.Next() {
 		var member Member
-		if err := rows.Scan(&member.UserID, &member.Name, &member.Email, &member.Role, &member.CreatedAt); err != nil {
+		if err := rows.Scan(&member.UserID, &member.Name, &member.Email, &member.Role, &member.CreatedAt, &member.AvatarURL); err != nil {
 			return nil, err
 		}
 		result = append(result, member)

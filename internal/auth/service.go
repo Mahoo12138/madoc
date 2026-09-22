@@ -19,11 +19,12 @@ var (
 )
 
 type User struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	IsAdmin  bool   `json:"isAdmin"`
-	Disabled bool   `json:"disabled"`
+	ID        string  `json:"id"`
+	AvatarURL *string `json:"avatarUrl"`
+	Name      string  `json:"name"`
+	Email     string  `json:"email"`
+	IsAdmin   bool    `json:"isAdmin"`
+	Disabled  bool    `json:"disabled"`
 }
 
 type Service struct{ db *sql.DB }
@@ -77,7 +78,7 @@ func (s *Service) SignIn(ctx context.Context, email, password string) (User, str
 	var user User
 	var hash string
 	var admin, disabled int
-	err := s.db.QueryRowContext(ctx, `SELECT id,name,email,password_hash,is_admin,disabled FROM users WHERE email=?`, strings.ToLower(strings.TrimSpace(email))).Scan(&user.ID, &user.Name, &user.Email, &hash, &admin, &disabled)
+	err := s.db.QueryRowContext(ctx, `SELECT id,name,email,password_hash,is_admin,disabled,(SELECT '/api/users/'||users.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=users.id) FROM users WHERE email=?`, strings.ToLower(strings.TrimSpace(email))).Scan(&user.ID, &user.Name, &user.Email, &hash, &admin, &disabled, &user.AvatarURL)
 	if err != nil || !CheckPassword(hash, password) {
 		return User{}, "", ErrUnauthorized
 	}
@@ -85,8 +86,23 @@ func (s *Service) SignIn(ctx context.Context, email, password string) (User, str
 		return User{}, "", ErrDisabled
 	}
 	user.IsAdmin, user.Disabled = admin != 0, disabled != 0
-	session, err := createSession(ctx, s.db, user.ID)
-	return user, session, err
+	// Password verification is expensive and runs outside a transaction. Recheck
+	// the hash before issuing a session so an in-flight old-password sign-in
+	// cannot create a new session after a password change revoked the others.
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return User{}, "", err
+	}
+	defer tx.Rollback()
+	var valid int
+	if err = tx.QueryRowContext(ctx, `SELECT 1 FROM users WHERE id=? AND password_hash=? AND disabled=0`, user.ID, hash).Scan(&valid); err != nil {
+		return User{}, "", ErrUnauthorized
+	}
+	session, err := createSession(ctx, tx, user.ID)
+	if err != nil {
+		return User{}, "", err
+	}
+	return user, session, tx.Commit()
 }
 
 type execer interface {
@@ -110,7 +126,7 @@ func (s *Service) Resolve(ctx context.Context, sessionID string) (*User, error) 
 	}
 	var user User
 	var admin, disabled int
-	err := s.db.QueryRowContext(ctx, `SELECT u.id,u.name,u.email,u.is_admin,u.disabled FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=? AND s.expires_at>?`, sessionID, time.Now().UTC()).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled)
+	err := s.db.QueryRowContext(ctx, `SELECT u.id,u.name,u.email,u.is_admin,u.disabled,(SELECT '/api/users/'||u.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=u.id) FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=? AND s.expires_at>?`, sessionID, time.Now().UTC()).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled, &user.AvatarURL)
 	if err != nil {
 		return nil, ErrUnauthorized
 	}
@@ -133,7 +149,7 @@ func (s *Service) CreateSession(ctx context.Context, userID string) (string, err
 func (s *Service) GetByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
 	var admin, disabled int
-	err := s.db.QueryRowContext(ctx, `SELECT id,name,email,is_admin,disabled FROM users WHERE email=?`, strings.ToLower(strings.TrimSpace(email))).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled)
+	err := s.db.QueryRowContext(ctx, `SELECT id,name,email,is_admin,disabled,(SELECT '/api/users/'||users.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=users.id) FROM users WHERE email=?`, strings.ToLower(strings.TrimSpace(email))).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled, &user.AvatarURL)
 	if err != nil {
 		return nil, err
 	}

@@ -93,3 +93,15 @@ func (c *CSRF) sign(value string) string {
 	mac.Write([]byte(value))
 	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }
+
+// Token reuses a signed CSRF cookie so reading a session in another tab does not
+// invalidate forms already open in the same browser.
+func (c *CSRF) Token(w http.ResponseWriter, r *http.Request, secure bool) (string, error) {
+	if cookie, err := r.Cookie(CSRFCookie); err == nil {
+		parts := strings.Split(cookie.Value, ".")
+		if len(parts) == 2 && hmac.Equal([]byte(parts[1]), []byte(c.sign(parts[0]))) {
+			return parts[0], nil
+		}
+	}
+	return c.Issue(w, secure)
+}

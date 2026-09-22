@@ -1,4 +1,14 @@
-import { ActionIcon, Badge, Divider, Group, Kbd, Popover, Stack, Text, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Badge,
+  Divider,
+  Group,
+  Kbd,
+  Popover,
+  Stack,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import {
   AlignCenterVertical as IconTypewriter,
   Download as IconDownload,
@@ -23,7 +33,11 @@ function Shortcut({ keys, label }: { keys: string[]; label: string }) {
   return (
     <Group justify="space-between" gap="xl" wrap="nowrap">
       <Text size="sm">{label}</Text>
-      <Group gap={4} wrap="nowrap">{keys.map((key) => <Kbd key={key}>{key}</Kbd>)}</Group>
+      <Group gap={4} wrap="nowrap">
+        {keys.map((key) => (
+          <Kbd key={key}>{key}</Kbd>
+        ))}
+      </Group>
     </Group>
   );
 }
@@ -60,14 +74,25 @@ export function MarkdownEditorControls({
       <Group gap="xs">
         <Badge
           variant="light"
-          color={status === 'Saved' ? 'green' : status === 'Offline' ? 'red' : 'blue'}
-          leftSection={status === 'Offline' ? <IconWifiOff size={12} /> : <IconWifi size={12} />}
+          color={
+            status === 'Saved' ? 'green' : status === 'Offline' ? 'red' : 'blue'
+          }
+          leftSection={
+            status === 'Offline' ? (
+              <IconWifiOff size={12} />
+            ) : (
+              <IconWifi size={12} />
+            )
+          }
         >
           {statusLabels[status]}
         </Badge>
-        <Text size="xs" c="dimmed">{presence} 人在线</Text>
+        <Text size="xs" c="dimmed">
+          {presence} 人在线
+        </Text>
         <Text size="xs" c="dimmed" aria-label="文档统计">
-          {stats.characters} 字{stats.readingMinutes > 0 ? ` · 约 ${stats.readingMinutes} 分钟` : ''}
+          {stats.characters} 字
+          {stats.readingMinutes > 0 ? ` · 约 ${stats.readingMinutes} 分钟` : ''}
         </Text>
       </Group>
 
@@ -96,31 +121,53 @@ export function MarkdownEditorControls({
         </Tooltip>
         <Popover width={280} position="bottom-end" shadow="md">
           <Popover.Target>
-            <ActionIcon aria-label="查看编辑快捷键"><IconKeyboard size={17} /></ActionIcon>
+            <ActionIcon aria-label="查看编辑快捷键">
+              <IconKeyboard size={17} />
+            </ActionIcon>
           </Popover.Target>
           <Popover.Dropdown>
-            <Text fw={650} size="sm">编辑快捷键</Text>
-            <Text size="xs" c="dimmed" mt={2}>选择文本后会出现格式工具栏；空行输入 / 可快速插入内容。</Text>
-            <Divider my="sm" />
-            <Stack gap="xs">
-              <Shortcut label="加粗" keys={[modifier, 'B']} />
-              <Shortcut label="斜体" keys={[modifier, 'I']} />
-              <Shortcut label="链接" keys={[modifier, 'K']} />
-              <Shortcut label="专注模式" keys={[modifier, 'Shift', 'F']} />
-            </Stack>
+            <MarkdownShortcuts />
           </Popover.Dropdown>
         </Popover>
         {readonly ? null : (
           <Tooltip label="导入 Markdown">
-            <ActionIcon aria-label="导入 Markdown" onClick={onImport}><IconFileImport size={17} /></ActionIcon>
+            <ActionIcon aria-label="导入 Markdown" onClick={onImport}>
+              <IconFileImport size={17} />
+            </ActionIcon>
           </Tooltip>
         )}
         <Tooltip label="导出 Markdown">
-          <ActionIcon aria-label="导出 Markdown" component="a" href={exportHref} download={exportName}>
+          <ActionIcon
+            aria-label="导出 Markdown"
+            component="a"
+            href={exportHref}
+            download={exportName}
+          >
             <IconDownload size={17} />
           </ActionIcon>
         </Tooltip>
       </Group>
     </Group>
+  );
+}
+
+export function MarkdownShortcuts() {
+  const modifier = navigator.platform.includes('Mac') ? '⌘' : 'Ctrl';
+  return (
+    <>
+      <Text fw={650} size="sm">
+        编辑快捷键
+      </Text>
+      <Text size="xs" c="dimmed" mt={2}>
+        选择文本后会出现格式工具栏；空行输入 / 可快速插入内容。
+      </Text>
+      <Divider my="sm" />
+      <Stack gap="xs">
+        <Shortcut label="加粗" keys={[modifier, 'B']} />
+        <Shortcut label="斜体" keys={[modifier, 'I']} />
+        <Shortcut label="链接" keys={[modifier, 'K']} />
+        <Shortcut label="专注模式" keys={[modifier, 'Shift', 'F']} />
+      </Stack>
+    </>
   );
 }

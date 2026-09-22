@@ -43,6 +43,7 @@ export const comfortableMarkdownInput = $prose((ctx) => {
             return true;
           }
 
+          if (view.dom.closest('[data-auto-pair]')?.getAttribute('data-auto-pair') === 'false') return false;
           const closing = textPairs.get(text);
           if (!closing) return false;
           const transaction = state.tr.insertText(closing, to).insertText(text, from);
@@ -63,6 +64,7 @@ export const comfortableMarkdownInput = $prose((ctx) => {
           return true;
         }
 
+        if (view.dom.closest('[data-auto-pair]')?.getAttribute('data-auto-pair') === 'false') return false;
         const next = characterAt(state.doc, from);
         if (closingCharacters.has(text) && next === text) {
           view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, from + 1)));
@@ -83,6 +85,7 @@ export const comfortableMarkdownInput = $prose((ctx) => {
       },
 
       handleKeyDown(view, event) {
+        if (view.dom.closest('[data-auto-pair]')?.getAttribute('data-auto-pair') === 'false') return false;
         if (event.key !== 'Backspace' || !view.state.selection.empty) return false;
         const { from } = view.state.selection;
         if (from <= 0) return false;

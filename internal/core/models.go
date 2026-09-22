@@ -21,6 +21,7 @@ type Workspace struct {
 }
 
 type Member struct {
+	AvatarURL *string   `json:"avatarUrl"`
 	UserID    string    `json:"userId"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`

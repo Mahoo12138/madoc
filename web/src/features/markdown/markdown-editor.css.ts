@@ -1,12 +1,12 @@
 import { globalStyle, style } from '@vanilla-extract/css';
 
 export const page = style({
-  width: 'min(760px, calc(100% - 48px))',
+  width: 'min(var(--madoc-content-width, 760px), calc(100% - 48px))',
   margin: '0 auto',
   padding: '40px 0 120px',
   '@media': {
     '(max-width: 760px)': {
-      width: 'min(100% - 32px, 760px)',
+      width: 'min(100% - 32px, var(--madoc-content-width, 760px))',
       paddingTop: 28,
     },
   },
@@ -222,3 +222,6 @@ globalStyle(`${editor} .milkdown .madoc-image-source-view .image-wrapper img`, {
 globalStyle(`${editor} .madoc-image-source-view.is-failed > .milkdown-image-block, ${editor} .madoc-image-source-view.is-failed > .milkdown-image-inline`, {
   display: 'none',
 });
+
+// CodeMirror declares gutter display with !important. Match it for this user preference.
+globalStyle(`${editor}[data-code-line-numbers="false"] .cm-lineNumbers`, { display: 'none !important' });

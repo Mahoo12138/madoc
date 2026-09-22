@@ -37,6 +37,8 @@ import type { Item, ItemType } from '@/api/types';
 import { WorkspaceNavigation } from './workspace-navigation';
 import type { MarkdownOutline } from '@/features/markdown/markdown-outline-model';
 import { MemberDrawer } from './member-drawer';
+import { AccountMenu } from '@/features/account/account-menu';
+import { WorkspaceSettings } from './workspace-settings';
 import * as styles from './workspace-shell.css';
 
 const MarkdownEditor = lazy(() =>
@@ -62,6 +64,7 @@ export function WorkspacePage() {
   const items = useItems(workspaceId);
   const mutations = useWorkspaceMutations(workspaceId);
   const [membersOpened, membersDrawer] = useDisclosure(false);
+  const [settingsOpened, settingsModal] = useDisclosure(false);
   const [itemModal, itemActions] = useDisclosure(false);
   const [mobileOpened, mobileDrawer] = useDisclosure(false);
   const [navigationPanel, setNavigationPanel] = useState('files');
@@ -184,7 +187,10 @@ export function WorkspacePage() {
       <aside className={styles.sidebar}>
         <Menu width={250}>
           <Menu.Target>
-            <button className={styles.workspaceButton}>
+            <button
+              className={styles.workspaceButton}
+              aria-label="Workspace 菜单"
+            >
               <Group gap="sm" wrap="nowrap">
                 <Avatar size={26} radius="md" color="blue">
                   {workspace.data?.name.slice(0, 1)}
@@ -209,28 +215,21 @@ export function WorkspacePage() {
             >
               成员管理
             </Menu.Item>
-            <Menu.Item leftSection={<IconSettings size={15} />} disabled>
-              设置
-            </Menu.Item>
+            {workspace.data?.role === 'owner' && (
+              <Menu.Item
+                leftSection={<IconSettings size={15} />}
+                onClick={settingsModal.open}
+              >
+                设置
+              </Menu.Item>
+            )}
           </Menu.Dropdown>
         </Menu>
         <WorkspaceNavigation
           {...navigationProps}
           onNavigateHeading={(position) => outline?.navigate(position)}
         />
-        <Group p={8} gap="sm">
-          <Avatar size={28} radius="xl">
-            {session.data.user.name.slice(0, 1)}
-          </Avatar>
-          <div style={{ minWidth: 0 }}>
-            <Text size="sm" fw={600} truncate>
-              {session.data.user.name}
-            </Text>
-            <Text size="xs" c="dimmed" truncate>
-              {session.data.user.email}
-            </Text>
-          </div>
-        </Group>
+        <AccountMenu user={session.data.user} />
       </aside>
       <main className={styles.main}>
         <header className={styles.topbar}>
@@ -259,6 +258,16 @@ export function WorkspacePage() {
             )}
           </Group>
           <Group>
+            {workspace.data?.role === 'owner' && (
+              <span className={styles.mobileMenu}>
+                <ActionIcon
+                  aria-label="Workspace 设置"
+                  onClick={settingsModal.open}
+                >
+                  <IconSettings size={17} />
+                </ActionIcon>
+              </span>
+            )}
             <Tooltip label="成员">
               <ActionIcon aria-label="成员管理" onClick={membersDrawer.open}>
                 <IconUsers size={17} />
@@ -350,6 +359,14 @@ export function WorkspacePage() {
             mobileDrawer.close();
           }}
         />
+        <AccountMenu
+          user={session.data.user}
+          onAction={(action) => {
+            setReturnNavigationFocus(false);
+            pendingHeading.current = action;
+            mobileDrawer.close();
+          }}
+        />
       </Drawer>
       <MemberDrawer
         opened={membersOpened}
@@ -357,6 +374,14 @@ export function WorkspacePage() {
         workspaceId={workspaceId}
         currentRole={workspace.data?.role ?? 'viewer'}
       />
+      {workspace.data && (
+        <WorkspaceSettings
+          key={workspaceId}
+          opened={settingsOpened}
+          workspace={workspace.data}
+          onClose={settingsModal.close}
+        />
+      )}
       <Modal
         opened={itemModal}
         onClose={itemActions.close}

@@ -1,3 +1,4 @@
+import { setPendingChanges } from '@/features/account/pending-changes';
 import { configureFootnotes, footnotes, preserveFootnoteReferences } from './markdown-footnote';
 import { footnoteDefinitionView } from './markdown-footnote-view';
 import { blockMathNavigation } from './markdown-block-math';
@@ -143,6 +144,13 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   root.replaceChildren();
   const doc = new Y.Doc();
   const awareness = new Awareness(doc);
+  let pendingUpdates = 0;
+  const pendingKey = `markdown:${item.id}`;
+  const updateIdentity = (event: Event) => {
+    const next = (event as CustomEvent<User>).detail;
+    if (next.id === user.id) awareness.setLocalStateField('user', { id: next.id, name: next.name, color: '#1f6feb' });
+  };
+  window.addEventListener('madoc-profile-changed', updateIdentity);
   const realtime = new RealtimeClient();
   onRealtimeChange(realtime);
   awareness.setLocalStateField('user', { id: user.id, name: user.name, color: '#1f6feb' });
@@ -328,6 +336,8 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       Y.applyUpdate(doc, fromBase64(payload.update), 'remote');
     }
     if (message.type === 'markdown.update.ack') {
+      pendingUpdates = Math.max(0, pendingUpdates - 1);
+      setPendingChanges(pendingKey, pendingUpdates > 0);
       const payload = message.payload as { seq: number };
       headSeq = Math.max(headSeq, payload.seq);
       onStatusChange('Saved');
@@ -346,13 +356,18 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       if (payload.update) applyAwarenessUpdate(awareness, fromBase64(payload.update), 'remote');
     }
     if (message.type === 'presence.changed') {
-      const payload = message.payload as { members?: unknown[] };
+      const payload = message.payload as { members?: { id: string; name: string }[] };
+      const identity = payload.members?.find(member => member.id === user.id);
+      const local = awareness.getLocalState()?.user;
+      if (identity && identity.name !== local?.name) awareness.setLocalStateField('user', { ...local, name: identity.name });
       onPresenceChange(payload.members?.length ?? 1);
     }
   });
 
   const onDocUpdate = (update: Uint8Array, origin: unknown) => {
     if (origin !== 'remote' && role !== 'viewer') {
+      pendingUpdates += 1;
+      setPendingChanges(pendingKey, true);
       realtime.send('markdown.update', item.id, { clientUpdateId: crypto.randomUUID(), update: toBase64(update) });
     }
   };
@@ -389,6 +404,8 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
 
   return () => {
     destroyed = true;
+    setPendingChanges(pendingKey, false);
+    window.removeEventListener('madoc-profile-changed', updateIdentity);
     window.clearTimeout(cacheTimer);
     window.cancelAnimationFrame(activeMarkFrame);
     markObserver.disconnect();

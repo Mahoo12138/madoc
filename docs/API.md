@@ -53,8 +53,21 @@ x-madoc-csrf-token
 MVP：
 
 ```text
-GET /api/me
+GET    /api/me
+PATCH  /api/me
+PUT    /api/me/avatar
+DELETE /api/me/avatar
+GET    /api/users/:userId/avatar
+GET    /api/me/preferences
+PATCH  /api/me/preferences
+POST   /api/me/password
 ```
+
+所有接口要求登录，写请求要求 CSRF。姓名 PATCH 接收 `{ "name": "显示名称" }`，返回更新后的 User（含可空 `avatarUrl`）。头像上传使用 multipart `file`，接受不超过 2MB 的 PNG/JPEG；服务端验证尺寸并居中裁切、重编码。头像仅本人或共享 Workspace 成员可读取，移除与上传均返回 User。
+
+偏好 GET/PATCH 返回 `{ preferences, initialized, revision }`，PATCH 只合并传入字段。首次迁移可带 `If-None-Match: *`，已初始化时返回 409；字段与默认值见 [个人设置](ACCOUNT.md)。
+
+密码 POST 接收 `{ currentPassword, newPassword }`，新密码 8–72 字节；当前密码错误返回 400 `INCORRECT_PASSWORD`，成功返回 204。事务内修改密码并撤销其他会话，关闭对应 WebSocket，保留当前会话。
 
 站点管理后续：
 

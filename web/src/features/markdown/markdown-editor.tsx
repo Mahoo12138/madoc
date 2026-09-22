@@ -1,3 +1,5 @@
+import { usePreferences } from '@/features/account/preferences-provider';
+import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Loader } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
@@ -12,27 +14,6 @@ import { MarkdownMathPreview } from './markdown-math-preview';
 import type { InlineMathPreview } from './markdown-inline-presentation';
 import type { MarkdownOutline } from './markdown-outline-model';
 import * as styles from './markdown-editor.css';
-
-const preferenceKeys = {
-  focusMode: 'madoc.editor.focus-mode',
-  typewriterMode: 'madoc.editor.typewriter-mode',
-} as const;
-
-function readPreference(key: string) {
-  try {
-    return localStorage.getItem(key) === 'true';
-  } catch {
-    return false;
-  }
-}
-
-function writePreference(key: string, value: boolean) {
-  try {
-    localStorage.setItem(key, String(value));
-  } catch {
-    // Editor preferences are optional when storage is unavailable.
-  }
-}
 
 type Props = {
   item: Item;
@@ -53,27 +34,15 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const [inlinePreview, setInlinePreview] = useState<InlineMathPreview | null>(null);
   const [title, setTitle] = useState(item.title);
   const [stats, setStats] = useState(() => getMarkdownStats(''));
-  const [focusMode, setFocusMode] = useState(() => readPreference(preferenceKeys.focusMode));
-  const [typewriterMode, setTypewriterMode] = useState(() => readPreference(preferenceKeys.typewriterMode));
+  const { values: preferences, set: setPreferences } = usePreferences();
+  const { focusMode, typewriterMode } = preferences;
+  const preferencesRef = useRef(preferences);
+  preferencesRef.current = preferences;
 
   typewriterModeRef.current = typewriterMode;
 
-  const toggleFocusMode = () => {
-    setFocusMode((current) => {
-      const next = !current;
-      writePreference(preferenceKeys.focusMode, next);
-      return next;
-    });
-  };
-
-  const toggleTypewriterMode = () => {
-    setTypewriterMode((current) => {
-      const next = !current;
-      typewriterModeRef.current = next;
-      writePreference(preferenceKeys.typewriterMode, next);
-      return next;
-    });
-  };
+  const toggleFocusMode = () => setPreferences({focusMode: !preferencesRef.current.focusMode});
+  const toggleTypewriterMode = () => setPreferences({typewriterMode: !preferencesRef.current.typewriterMode});
 
   useEffect(() => {
     setTitle(item.title);
@@ -105,7 +74,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
       active = false;
       stop();
     };
-  }, [item.id, item.workspaceId, initial.data?.cacheSeq, initial.data?.markdown, role, user.id, user.name, onOutlineChange]);
+  }, [item.id, item.workspaceId, initial.data?.cacheSeq, initial.data?.markdown, role, user.id, onOutlineChange]);
 
   const rename = async () => {
     const nextTitle = title.trim();
@@ -141,7 +110,11 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
     .join(' ');
 
   return (
-    <article className={styles.page}>
+    <article className={styles.page} style={{
+      '--madoc-font-size': `${preferences.fontSize}px`,
+      '--madoc-line-height': preferences.lineHeight,
+      '--madoc-content-width': `${preferences.contentWidth}px`,
+    } as CSSProperties}>
       <input
         className={styles.title}
         value={title}
@@ -182,6 +155,8 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
       <div
         ref={rootRef}
         className={editorClassName}
+        data-auto-pair={preferences.autoPair}
+        data-code-line-numbers={preferences.codeLineNumbers}
         data-focus-mode={focusMode || undefined}
         data-typewriter-mode={typewriterMode || undefined}
       />

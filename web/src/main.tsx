@@ -11,6 +11,7 @@ import '@milkdown/crepe/theme/frame.css';
 import '@/styles/global.css';
 import { queryClient } from '@/api/query-client';
 import { router } from '@/app/router';
+import { AccountProvider } from '@/features/account/account-provider';
 import { theme } from '@/app/theme';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -18,7 +19,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <MantineProvider theme={theme} defaultColorScheme="light">
       <Notifications position="bottom-right" />
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <AccountProvider>
+          <RouterProvider router={router} />
+        </AccountProvider>
       </QueryClientProvider>
     </MantineProvider>
   </React.StrictMode>,

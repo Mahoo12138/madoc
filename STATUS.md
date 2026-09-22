@@ -22,6 +22,8 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 建立 folder/markdown/whiteboard Item tree 与安全移动
 - [x] 使用 `github.com/coder/websocket` 建立 multiplex realtime hub
 - [x] 建立 Mantine + Vanilla Extract Workspace Shell
+- [x] 统一个人中心：姓名、账号头像、密码修改与会话撤销
+- [x] 账号级 Markdown 七项偏好、离线缓存、跨标签同步与旧偏好迁移
 - [x] 补齐 Workspace 设置：owner 重命名、名称确认删除、失败重试及桌面 / 移动端入口
 - [x] 接入 Milkdown/Crepe、Yjs、Markdown cache、ACK、重连与 compaction
 - [x] 接入 `.md` 导入/导出和私有图片上传
@@ -33,6 +35,12 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - [x] 更新 Vite proxy、Docker、`go:embed` 与数据目录说明
 
 ## 当前验证
+
+- 个人设置反馈修复：账号菜单收拢为“设置 / 退出登录”，桌面侧栏与手机栏目统一包含个人资料、Markdown 偏好、账号安全、快捷键。实际开发页面的偏好请求曾返回 404，定位为仍运行旧 Go 后端；检查期间后端重启后，8080 代理下的已登录偏好读取恢复 200。新增服务缺少接口和登录失效的明确错误提示，并验证 404 期间待同步字段在服务恢复后可重试、刷新保留。13 项账号 / 偏好 E2E、Go test / vet、前端 typecheck / build、桌面 / 390px 检查通过。
+
+- 个人中心第二阶段：七项 Markdown 偏好通过统一账号层、CSS variables 与编辑器快捷按钮接入；提供预览、自动保存、重试及确认恢复默认。增量 migration 0004 保存完整偏好与 revision，按字段合并；浏览器按用户 / 字段缓存待同步修改，支持跨标签即时同步、其他设备聚焦刷新、断网恢复和一次性旧偏好迁移。11 项账号 / 偏好 E2E、58 项 MVP 核心与编辑器回归通过；包含已连接 WebSocket 撤销、头像访问隔离 / 备份恢复、导出与撤销历史保持。Go test / race / vet、前端 typecheck / build 通过；1440px / 390px 视觉审阅后修正个人设置说明文字对比度，5 项相关 E2E 复核通过。文档见 `docs/ACCOUNT.md`。
+
+- 个人中心第一阶段：统一账号菜单、桌面 / 手机个人设置、姓名与头像维护、未保存提示、密码修改及其他会话 / WebSocket 撤销已完成；资料更新保留编辑器实例与撤销历史。Go test / vet、前端 typecheck / build、4 项账号 E2E、1280px / 390px 视觉检查及头像备份恢复测试通过。第一阶段门槛通过后继续第二阶段。
 
 - 脚注：补齐按首次引用编号、重复引用、带 `[^标识]:` 的多段落定义区、原位引用源码编辑、定义重命名联动、跳转与返回；未完成引用在保存刷新后保留并可补定义，转义 / 实体 / 代码示例不误识别，viewer 仅阅读与跳转。新增 12 项回归，137 项编辑器完整回归通过；最后收紧输入识别并简化行内解析后，12 项专项复核通过。Go test / vet、前端 typecheck / build 和桌面 / 390px 截图检查通过
 

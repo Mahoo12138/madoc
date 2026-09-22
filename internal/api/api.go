@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"madoc/internal/account"
 	"madoc/internal/asset"
 	"madoc/internal/auth"
 	"madoc/internal/core"
@@ -24,12 +25,13 @@ type API struct {
 	csrf          *auth.CSRF
 	core          *core.Service
 	assets        *asset.Service
+	accounts      *account.Service
 	rooms         RoomInspector
 	secureCookies bool
 }
 
-func New(authService *auth.Service, csrf *auth.CSRF, domain *core.Service, assets *asset.Service, rooms RoomInspector, secureCookies bool) *API {
-	return &API{auth: authService, csrf: csrf, core: domain, assets: assets, rooms: rooms, secureCookies: secureCookies}
+func New(authService *auth.Service, csrf *auth.CSRF, domain *core.Service, assets *asset.Service, accounts *account.Service, rooms RoomInspector, secureCookies bool) *API {
+	return &API{auth: authService, csrf: csrf, core: domain, assets: assets, accounts: accounts, rooms: rooms, secureCookies: secureCookies}
 }
 
 func (a *API) Routes() http.Handler {
@@ -44,6 +46,7 @@ func (a *API) Routes() http.Handler {
 	r.With(a.auth.Optional).Post("/invites/{token}/accept", a.acceptInvite)
 	r.Group(func(r chi.Router) {
 		r.Use(a.auth.Require)
+		a.accountRoutes(r)
 		r.Get("/workspaces", a.listWorkspaces)
 		r.Post("/workspaces", a.csrfRequired(a.createWorkspace))
 		r.Get("/workspaces/{workspaceId}", a.getWorkspace)
@@ -174,7 +177,13 @@ func (a *API) signIn(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) signOut(w http.ResponseWriter, r *http.Request) {
 	if c, err := r.Cookie(auth.SessionCookie); err == nil {
-		_ = a.auth.SignOut(r.Context(), c.Value)
+		if err := a.auth.SignOut(r.Context(), c.Value); err != nil {
+			domainError(w, err)
+			return
+		}
+		if rooms, ok := a.rooms.(AccountRooms); ok {
+			rooms.RevokeSession(c.Value)
+		}
 	}
 	http.SetCookie(w, &http.Cookie{Name: auth.SessionCookie, Path: "/", MaxAge: -1, HttpOnly: true, Secure: a.secureCookies, SameSite: http.SameSiteLaxMode})
 	http.SetCookie(w, &http.Cookie{Name: auth.CSRFCookie, Path: "/", MaxAge: -1, HttpOnly: true, Secure: a.secureCookies, SameSite: http.SameSiteLaxMode})
@@ -186,7 +195,7 @@ func (a *API) session(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, map[string]any{"user": nil})
 		return
 	}
-	token, err := a.csrf.Issue(w, a.secureCookies)
+	token, err := a.csrf.Token(w, r, a.secureCookies)
 	if err != nil {
 		domainError(w, err)
 		return
