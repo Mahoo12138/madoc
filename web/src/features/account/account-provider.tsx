@@ -29,6 +29,7 @@ import { PreferencesProvider, usePreferences } from './preferences-provider';
 import { PreferencesPanel } from './preferences-panel';
 import { hasPendingChanges } from './pending-changes';
 import * as styles from './account.css';
+const WhiteboardRecoveryPanel = lazy(() => import('@/features/whiteboard/whiteboard-recovery-panel'));
 const MarkdownRecoveryPanel = lazy(() => import('@/features/markdown/markdown-recovery-panel'));
 export type AccountSection =
   'profile' | 'preferences' | 'security' | 'shortcuts' | 'recovery';
@@ -168,7 +169,10 @@ function AccountUI({ children }: { children: ReactNode }) {
               ) : section === 'security' ? (
                 <SecurityPanel onBusy={setBusy} />
               ) : section === 'recovery' ? (
-                <Suspense fallback={<Loader size="sm" />}><MarkdownRecoveryPanel key={session.data.user.id} userId={session.data.user.id} /></Suspense>
+                <Stack gap="xl" key={session.data.user.id}>
+                  <Suspense fallback={<Loader size="sm" />}><MarkdownRecoveryPanel userId={session.data.user.id} /></Suspense>
+                  <Suspense fallback={<Loader size="sm" />}><WhiteboardRecoveryPanel userId={session.data.user.id} /></Suspense>
+                </Stack>
               ) : section === 'shortcuts' ? (
                 <MarkdownShortcuts />
               ) : (
