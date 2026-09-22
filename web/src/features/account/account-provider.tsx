@@ -1,5 +1,7 @@
 import {
   createContext,
+  lazy,
+  Suspense,
   useContext,
   useRef,
   useState,
@@ -7,6 +9,7 @@ import {
 } from 'react';
 import {
   Alert,
+  Loader,
   Button,
   Group,
   Modal,
@@ -26,13 +29,15 @@ import { PreferencesProvider, usePreferences } from './preferences-provider';
 import { PreferencesPanel } from './preferences-panel';
 import { hasPendingChanges } from './pending-changes';
 import * as styles from './account.css';
+const MarkdownRecoveryPanel = lazy(() => import('@/features/markdown/markdown-recovery-panel'));
 export type AccountSection =
-  'profile' | 'preferences' | 'security' | 'shortcuts';
+  'profile' | 'preferences' | 'security' | 'shortcuts' | 'recovery';
 const labels = {
   profile: '个人资料',
   preferences: 'Markdown 偏好',
   security: '账号安全',
   shortcuts: '快捷键',
+  recovery: '本地恢复',
 };
 const AccountContext = createContext({
   open: (_section: AccountSection) => {},
@@ -118,7 +123,7 @@ function AccountUI({ children }: { children: ReactNode }) {
       >
         <div className={styles.layout}>
           <nav className={styles.navigation} aria-label="个人设置分类">
-            {(['profile', 'preferences', 'security', 'shortcuts'] as const).map(
+            {(['profile', 'preferences', 'security', 'shortcuts', 'recovery'] as const).map(
               (value) => (
                 <Button
                   key={value}
@@ -162,6 +167,8 @@ function AccountUI({ children }: { children: ReactNode }) {
                 />
               ) : section === 'security' ? (
                 <SecurityPanel onBusy={setBusy} />
+              ) : section === 'recovery' ? (
+                <Suspense fallback={<Loader size="sm" />}><MarkdownRecoveryPanel key={session.data.user.id} userId={session.data.user.id} /></Suspense>
               ) : section === 'shortcuts' ? (
                 <MarkdownShortcuts />
               ) : (

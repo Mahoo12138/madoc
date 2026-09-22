@@ -239,6 +239,7 @@ test('account entries are grouped under settings with a shortcuts navigation ite
     'Markdown 偏好',
     '账号安全',
     '快捷键',
+    '本地恢复',
   ]);
   await nav.getByRole('button', { name: '快捷键', exact: true }).click();
   await expect(

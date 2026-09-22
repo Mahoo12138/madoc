@@ -424,7 +424,7 @@ func (a *API) getMarkdown(w http.ResponseWriter, r *http.Request) {
 		domainError(w, e)
 		return
 	}
-	writeJSON(w, 200, map[string]any{"markdown": v.Markdown, "cacheSeq": v.CacheSeq})
+	writeJSON(w, 200, map[string]any{"markdown": v.Markdown, "cacheSeq": v.CacheSeq, "generation": v.Generation})
 }
 func (a *API) resetMarkdown(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "itemId")

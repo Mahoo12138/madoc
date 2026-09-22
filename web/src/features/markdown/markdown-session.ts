@@ -98,7 +98,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   const doc = new Y.Doc();
   const awareness = new Awareness(doc);
   const saveState = new MarkdownSaveState();
-  const outbox = new MarkdownOutbox(location.origin, user.id, item.workspaceId, item.id);
+  const outbox = new MarkdownOutbox(location.origin, user.id, item.workspaceId, item.id, item.title);
   const pending = new Map<string, { update: Uint8Array; persisted: boolean; sentAt: number }>();
   let storageChain = Promise.resolve();
   let messageChain = Promise.resolve();
@@ -295,7 +295,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
         if (!initialResolved) {
           const records = await outbox.load();
           if (destroyed) return;
-          const stale = records.find(record => record.pending && record.generation !== generation);
+          const stale = records.find(record => record.pending && !record.archived && record.generation !== generation);
           if (stale) {
             for (const record of records.filter(record => record.generation === stale.generation)) {
               Y.applyUpdate(doc, record.update, 'remote');
@@ -305,9 +305,9 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
             halt('此设备还有旧版本的未提交修改。文档已被替换，旧修改不会自动合并；请先下载本地副本。');
             return;
           }
-          for (const record of records.filter(record => record.generation === generation && (role !== 'viewer' || records.some(entry => entry.generation === generation && entry.pending)))) {
+          for (const record of records.filter(record => record.generation === generation && (role !== 'viewer' || records.some(entry => entry.generation === generation && entry.pending && !entry.archived)))) {
             Y.applyUpdate(doc, record.update, 'remote');
-            if (record.pending) {
+            if (record.pending && !record.archived) {
               pending.set(record.id, { update: record.update, persisted: true, sentAt: 0 });
               saveState.add(record.id, true);
             }
