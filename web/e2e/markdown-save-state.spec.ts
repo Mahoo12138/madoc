@@ -43,7 +43,7 @@ test('editor stays saving after partial, duplicate and cache acknowledgements', 
   const held: string[] = [];
   let deliver: (message: string) => void = () => {};
   let hold = false;
-  let cacheAcks = 0;
+
   await page.routeWebSocket('**/ws', (socket) => {
     const server = socket.connectToServer();
     deliver = (message) => socket.send(message);
@@ -53,11 +53,11 @@ test('editor stays saving after partial, duplicate and cache acknowledgements', 
         held.push(String(message));
         return;
       }
-      if (hold && envelope.type === 'markdown.cache.ack') cacheAcks += 1;
+
       socket.send(message);
     });
   });
-  await openDocument(page, 'Initial content');
+  const id = await openDocument(page, 'Initial content');
   await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   hold = true;
   const editor = page.locator('.ProseMirror');
@@ -70,11 +70,37 @@ test('editor stays saving after partial, duplicate and cache acknowledgements', 
   deliver(held[0]);
   deliver(held[0]);
   await expect(page.getByText('已保存', { exact: true })).toHaveCount(0);
-  await expect.poll(() => cacheAcks).toBeGreaterThan(0);
+  deliver(JSON.stringify({ type: 'markdown.cache.ack', itemId: id, payload: { seenSeq: 0, generation: 1 } }));
   await expect(page.getByText('已保存', { exact: true })).toHaveCount(0);
   hold = false;
   for (const message of held.slice(1)) deliver(message);
   await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.locator('.ProseMirror')).toContainText('first second');
+});
+
+test('local saved status requires every pending edit to finish its storage transaction', () => {
+  const state = new MarkdownSaveState();
+  state.connectionChanged('online');
+  state.initialized();
+  state.connectionChanged('offline');
+  state.add('first');
+  state.add('second');
+  state.persisted('first');
+  expect(state.status).toBe('Offline');
+  expect(state.hasUnpersistedUpdates).toBe(true);
+  state.persisted('second');
+  expect(state.status).toBe('Local');
+  expect(state.hasUnpersistedUpdates).toBe(false);
+  state.fail();
+  expect(state.status).toBe('Error');
+  state.resume();
+  expect(state.status).toBe('Local');
+  state.connectionChanged('online');
+  state.initialized();
+  expect(state.status).toBe('Saving');
+  state.acknowledge('first');
+  expect(state.status).toBe('Saving');
+  state.acknowledge('second');
+  expect(state.status).toBe('Saved');
 });

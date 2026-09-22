@@ -41,6 +41,10 @@ test(`reset during disconnect preserves local rescue at ${width}px`, async ({ pa
   expect(await readFile((await download.path())!, 'utf8')).toContain('local rescue');
   expect(await (await page.request.get(`/api/items/${id}/export.md`)).text()).toBe('Replacement content');
   await page.screenshot({ path: testInfo.outputPath('generation-conflict.png') });
+  await page.reload();
+  await expect(page.getByRole('alert')).toContainText('旧版本的未提交修改');
+  await expect(page.locator('.ProseMirror')).toContainText('local rescue');
+  await expect(page.locator('.ProseMirror')).not.toContainText('Replacement content');
 });
 
 }

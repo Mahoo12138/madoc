@@ -23,6 +23,7 @@ import type { MarkdownStats } from './markdown-stats';
 import type { SaveStatus } from './markdown-save-state';
 
 const statusLabels: Record<SaveStatus, string> = {
+  Local: '已保存到此设备，待同步',
   Error: '保存已停止',
   Saving: '保存中',
   Saved: '已保存',

@@ -1,3 +1,4 @@
+import { useBlocker } from '@tanstack/react-router';
 import { usePreferences } from '@/features/account/preferences-provider';
 import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
@@ -30,7 +31,15 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const realtimeRef = useRef<RealtimeClient>();
   const typewriterModeRef = useRef(false);
   const [status, setStatus] = useState<SaveStatus>('Reconnecting');
-  const [failure, setFailure] = useState<{ message: string; download: () => void } | null>(null);
+  const [failure, setFailure] = useState<{ message: string; download: () => void; retry?: () => void } | null>(null);
+  const leaveGuard = useRef<{ unsafe: () => boolean; settle: () => Promise<void> }>({ unsafe: () => false, settle: async () => {} });
+  useBlocker({
+    shouldBlockFn: async () => {
+      await leaveGuard.current.settle();
+      return leaveGuard.current.unsafe() && !window.confirm('修改尚未保存到此设备。离开会丢失这些修改，仍要离开吗？');
+    },
+    enableBeforeUnload: () => leaveGuard.current.unsafe(),
+  });
   const [presence, setPresence] = useState(1);
   const [inlinePreview, setInlinePreview] = useState<InlineMathPreview | null>(null);
   const [title, setTitle] = useState(item.title);
@@ -56,7 +65,9 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
     setFailure(null);
     const stop = startMarkdownSession({
       root: rootRef.current,
-      onFailure: (message, download) => { if (active) setFailure({ message, download }); },
+      onFailure: (message, download, retry) => { if (active) setFailure({ message, download, retry }); },
+      onRecovered: () => { if (active) setFailure(null); },
+      onLeaveGuardChange: (guard) => { leaveGuard.current = guard; },
       onOutlineChange: (outline) => {
         if (active) onOutlineChange(outline);
       },
@@ -159,6 +170,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
         <Alert color="red" title="保存已停止" role="alert">
           {failure.message}
           <Button variant="light" onClick={failure.download}>下载本地副本</Button>
+          {failure.retry && <Button variant="light" onClick={failure.retry}>重试本地保存</Button>}
         </Alert>
       )}
       <div

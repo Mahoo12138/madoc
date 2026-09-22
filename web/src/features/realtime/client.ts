@@ -28,6 +28,11 @@ export class RealtimeClient {
     if (this.socket?.readyState === WebSocket.OPEN) this.socket.send(message); else this.queue.push(message);
     return requestId;
   }
+  sendOnline(type: string, itemId: string, payload: unknown = {}, requestId = crypto.randomUUID()) {
+    if (this.stopped || this.socket?.readyState !== WebSocket.OPEN) return false;
+    this.socket.send(JSON.stringify({ type, itemId, payload, requestId }));
+    return true;
+  }
   close() { this.stopped = true; window.clearTimeout(this.reconnectTimer); this.socket?.close(); }
 }
 

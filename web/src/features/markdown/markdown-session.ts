@@ -1,31 +1,16 @@
+import { MarkdownOutbox } from './markdown-outbox';
 import { MarkdownSaveState, type SaveStatus } from './markdown-save-state';
+import { createMarkdownCrepe } from './markdown-session-editor';
 import { setPendingChanges } from '@/features/account/pending-changes';
-import { configureFootnotes, footnotes, preserveFootnoteReferences } from './markdown-footnote';
-import { footnoteDefinitionView } from './markdown-footnote-view';
-import { blockMathNavigation } from './markdown-block-math';
-import { codeHighlights, codeHighlightSchema } from './markdown-code-highlights';
-import { configureEscapes, escapedText, preserveEscapes } from './markdown-escape';
-import { Crepe } from '@milkdown/crepe';
-import { inlineCodeSchema, remarkInlineLinkPlugin, remarkLineBreak } from '@milkdown/kit/preset/commonmark';
-import { Plugin, TextSelection } from '@milkdown/kit/prose/state';
-import { $prose } from '@milkdown/kit/utils';
-import { collab, collabServiceCtx } from '@milkdown/plugin-collab';
+import { collabServiceCtx } from '@milkdown/plugin-collab';
 import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate } from 'y-protocols/awareness';
 import * as Y from 'yjs';
 import { api } from '@/api/client';
 import type { Item, Role, User } from '@/api/types';
 import { fromBase64, RealtimeClient, toBase64 } from '@/features/realtime/client';
-import { activeBlockDecoration, comfortableMarkdownInput } from './markdown-input';
-import { inlineSourceEditing } from './markdown-inline-source';
-import type { InlineMathPreview } from './markdown-inline-presentation';
 import { getMarkdownStats, type MarkdownStats } from './markdown-stats';
-import './markdown-code-block.css';
-import { markdownOutline } from './markdown-outline-plugin';
+import type { InlineMathPreview } from './markdown-inline-presentation';
 import type { MarkdownOutline } from './markdown-outline-model';
-import { hardbreakIndicators } from './markdown-break';
-import { asymmetricEmphasisInput } from './markdown-emphasis';
-import { configureReferences, preserveReferences, referenceDefinition, resolveReferences } from './markdown-reference';
-import { blockImageSource, inlineImageSource, configureImageSource } from './markdown-image-source';
 
 type InitPayload = {
   generation: number;
@@ -39,7 +24,9 @@ type Collaborator = { color?: string; name?: string };
 export type { SaveStatus } from './markdown-save-state';
 
 type MarkdownSessionOptions = {
-  onFailure: (message: string, download: () => void) => void;
+  onFailure: (message: string, download: () => void, retry?: () => void) => void;
+  onRecovered: () => void;
+  onLeaveGuardChange: (guard: { unsafe: () => boolean; settle: () => Promise<void> }) => void;
   onOutlineChange: (outline: MarkdownOutline | null) => void;
   root: HTMLElement;
   item: Item;
@@ -55,46 +42,6 @@ type MarkdownSessionOptions = {
   onStatusChange: (status: SaveStatus) => void;
   onInlinePreviewChange: (preview: InlineMathPreview | null) => void;
 };
-
-// Keep the single-backtick input rule from consuming a literal backtick inside a double-delimited span.
-const doubleBacktickInput = $prose((ctx) => {
-  const inlineCodeMark = inlineCodeSchema.type(ctx);
-  return new Plugin({
-    props: {
-      handleTextInput(view, from, to, text) {
-        if (text !== '`' || from !== to) return false;
-        const $from = view.state.doc.resolve(from);
-        if ($from.parent.type.spec.code) return false;
-        const textBefore = $from.parent.textBetween(0, $from.parentOffset, '\n', '\n');
-        const openingIndex = textBefore.indexOf('``');
-        if (openingIndex < 0) return false;
-        if (view.state.doc.rangeHasMark($from.start() + openingIndex, from, escapedText.type(ctx))) return false;
-
-        const transaction = view.state.tr.insertText(text, from, to);
-        const cursor = transaction.selection.from;
-        const $cursor = transaction.doc.resolve(cursor);
-        const blockText = $cursor.parent.textBetween(0, $cursor.parentOffset, '\n', '\n');
-        if (!blockText.endsWith('``')) {
-          view.dispatch(transaction);
-          return true;
-        }
-
-        const content = blockText.slice(openingIndex + 2, -2);
-        if (!content.trim()) {
-          view.dispatch(transaction);
-          return true;
-        }
-
-        const blockStart = $cursor.start($cursor.depth);
-        const spanFrom = blockStart + openingIndex;
-        transaction.replaceWith(spanFrom, cursor, transaction.doc.type.schema.text(content, [inlineCodeMark.create()]));
-        transaction.setSelection(TextSelection.create(transaction.doc, spanFrom + content.length));
-        view.dispatch(transaction);
-        return true;
-      },
-    },
-  });
-});
 
 function findActiveBlock(root: HTMLElement) {
   const selection = document.getSelection();
@@ -143,12 +90,21 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     onInlinePreviewChange,
     onOutlineChange,
     onFailure,
+    onRecovered,
+    onLeaveGuardChange,
   } = options;
 
   root.replaceChildren();
   const doc = new Y.Doc();
   const awareness = new Awareness(doc);
   const saveState = new MarkdownSaveState();
+  const outbox = new MarkdownOutbox(location.origin, user.id, item.workspaceId, item.id);
+  const pending = new Map<string, { update: Uint8Array; persisted: boolean; sentAt: number }>();
+  let storageChain = Promise.resolve();
+  let messageChain = Promise.resolve();
+  let persistUpdates = false;
+  let joined = false;
+  let storedCount = 0;
   const pendingKey = `markdown:${item.id}`;
   const updateIdentity = (event: Event) => {
     const next = (event as CustomEvent<User>).detail;
@@ -158,8 +114,8 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   const realtime = new RealtimeClient();
   onRealtimeChange(realtime);
   const publishSaveStatus = () => {
-    setPendingChanges(pendingKey, saveState.hasPendingUpdates);
-    onStatusChange(saveState.status);
+    if (!destroyed) setPendingChanges(pendingKey, saveState.hasPendingUpdates);
+    if (!destroyed) onStatusChange(saveState.status);
   };
   awareness.setLocalStateField('user', { id: user.id, name: user.name, color: '#1f6feb' });
 
@@ -177,95 +133,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   const initialReady = new Promise<InitPayload>((resolve) => { resolveInitial = resolve; });
 
   const uploadImage = (file: File) => api.uploadAsset(item.workspaceId, file, item.id).then((result) => result.url);
-  const crepe = new Crepe({
-    root,
-    defaultValue: '',
-    featureConfigs: {
-      [Crepe.Feature.Cursor]: { virtual: false },
-      [Crepe.Feature.CodeMirror]: {
-        copyText: '复制代码',
-        searchPlaceholder: '搜索语言',
-        noResultText: '没有匹配的语言',
-      },
-      [Crepe.Feature.ImageBlock]: {
-        onUpload: uploadImage,
-        inlineOnUpload: uploadImage,
-        blockOnUpload: uploadImage,
-      },
-      [Crepe.Feature.Placeholder]: { text: '输入 / 插入内容…', mode: 'block' },
-      [Crepe.Feature.Toolbar]: {
-        boldLabel: '加粗',
-        italicLabel: '斜体',
-        strikethroughLabel: '删除线',
-        codeLabel: '行内代码',
-        latexLabel: '行内公式',
-        linkLabel: '链接',
-      },
-      [Crepe.Feature.BlockEdit]: {
-        textGroup: {
-          label: '文本',
-          text: { label: '正文' },
-          h1: { label: '一级标题' },
-          h2: { label: '二级标题' },
-          h3: { label: '三级标题' },
-          h4: { label: '四级标题' },
-          h5: { label: '五级标题' },
-          h6: { label: '六级标题' },
-          quote: { label: '引用' },
-          divider: { label: '分隔线' },
-        },
-        listGroup: {
-          label: '列表',
-          bulletList: { label: '无序列表' },
-          orderedList: { label: '有序列表' },
-          taskList: { label: '任务列表' },
-        },
-        advancedGroup: {
-          label: '插入',
-          image: { label: '图片' },
-          codeBlock: { label: '代码块' },
-          table: { label: '表格' },
-          math: { label: '公式' },
-        },
-      },
-    },
-  });
-  void crepe.editor.remove(remarkInlineLinkPlugin);
-  // Preserve escapes before line-break normalization discards text positions.
-  void crepe.editor.remove(remarkLineBreak);
-  crepe.editor
-    .use(codeHighlightSchema)
-    .use(codeHighlights)
-    .use(blockMathNavigation)
-    .config(configureEscapes)
-    .use(escapedText)
-    .use(preserveFootnoteReferences)
-    .use(preserveEscapes)
-    .use(remarkLineBreak)
-    .config(configureFootnotes)
-    .use(footnotes)
-    .use(footnoteDefinitionView)
-    .config(configureReferences)
-    .config(configureImageSource)
-    .use(referenceDefinition)
-    .use(preserveReferences)
-    .use(resolveReferences)
-    .use(hardbreakIndicators)
-    .use(blockImageSource)
-    .use(inlineImageSource)
-    // Keep Crepe's math schema and renderer, replacing only its floating editor.
-    .config((ctx) => {
-      ctx.set('INLINE_LATEX_TOOLTIP_SPEC', {});
-      // Existing links edit in place; keep the toolbar's add-link dialog.
-      ctx.set('LINK_PREVIEW_TOOLTIP_SPEC', {});
-    })
-    .use(comfortableMarkdownInput)
-    .use(asymmetricEmphasisInput)
-    .use(inlineSourceEditing(onInlinePreviewChange))
-    .use(markdownOutline(item.id, onOutlineChange))
-    .use(activeBlockDecoration)
-    .use(doubleBacktickInput)
-    .use(collab);
+  const crepe = createMarkdownCrepe({ root, itemId: item.id, uploadImage, onInlinePreviewChange, onOutlineChange });
 
   const updateEditorAffordances = () => {
     const activeBlock = root.querySelector<HTMLElement>('.madoc-current-block') ?? findActiveBlock(root);
@@ -300,9 +168,9 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   root.addEventListener('keydown', onEditorKeyDown);
 
   const flushMarkdownCache = () => {
-    if (role === 'viewer' || !editorReady || halted || generation === undefined) return;
+    if (role === 'viewer' || !editorReady || halted || generation === undefined || !joined || saveState.hasPendingUpdates) return;
     window.clearTimeout(cacheTimer);
-    realtime.send('markdown.cache.update', item.id, { markdown: latestMarkdown, seenSeq: headSeq, generation });
+    realtime.sendOnline('markdown.cache.update', item.id, { markdown: crepe.getMarkdown(), seenSeq: headSeq, generation });
   };
   const onPageHide = () => flushMarkdownCache();
   const onVisibilityChange = () => {
@@ -320,7 +188,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     cacheTimer = window.setTimeout(flushMarkdownCache, 1200);
   }));
 
-  const halt = (message: string) => {
+  const halt = (message: string, retry?: () => void) => {
     halted = true;
     saveState.fail();
     crepe.setReadonly(true);
@@ -333,98 +201,214 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       link.download = `${item.title}-本地副本.md`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    });
+    }, retry);
   };
 
-  const unsubscribe = realtime.subscribe((message) => {
-    if (message.type === 'error') {
-      const error = message.payload as { code: string };
-      if (error.code === 'GENERATION_CHANGED' || error.code === 'GENERATION_REQUIRED') {
-        halt('文档内容已被替换或服务已升级，保存已停止。请先下载本地副本，再刷新页面。');
+  const sendPending = () => {
+    if (destroyed || halted || !joined || generation === undefined || role === 'viewer') return;
+    for (const [clientUpdateId, entry] of pending) {
+      if (!entry.persisted || Date.now() - entry.sentAt < 2500) continue;
+      if (realtime.sendOnline('markdown.update', item.id, { clientUpdateId, update: toBase64(entry.update), generation })) {
+        entry.sentAt = Date.now();
       }
     }
-    if (message.type === 'connection.changed') {
-      const state = (message.payload as { state: 'online' | 'connecting' | 'offline' }).state;
-      saveState.connectionChanged(state);
-      publishSaveStatus();
-      if (state === 'online') realtime.send('markdown.join', item.id);
-    }
-    if (message.itemId !== item.id) return;
-    if (message.type === 'markdown.init') {
-      const payload = message.payload as InitPayload;
-      if (!Number.isSafeInteger(payload.generation) || (generation !== undefined && generation !== payload.generation)) {
-        halt('文档内容已被替换，保存已停止。请先下载本地副本，再刷新页面。');
-        return;
-      }
-      if (halted) return;
-      generation = payload.generation;
-      if (payload.snapshot) Y.applyUpdate(doc, fromBase64(payload.snapshot), 'remote');
-      for (const update of payload.updates ?? []) Y.applyUpdate(doc, fromBase64(update.update), 'remote');
-      headSeq = payload.headSeq ?? 0;
-      latestMarkdown = payload.markdown ?? latestMarkdown;
-      onStatsChange(getMarkdownStats(latestMarkdown));
+  };
+  const retryPersistence = async () => {
+    if (destroyed || generation === undefined) return;
+    try {
       if (!initialResolved) {
-        initialResolved = true;
-        resolveInitial(payload);
-      }
-      saveState.initialized();
-      publishSaveStatus();
-    }
-    if (message.type === 'markdown.update.remote' && !halted) {
-      const payload = message.payload as { seq: number; update: string; generation: number };
-      if (payload.generation !== generation) {
-        halt('文档内容已被替换，保存已停止。请先下载本地副本，再刷新页面。');
+        halted = false;
+        saveState.resume();
+        onRecovered();
+        realtime.sendOnline('markdown.join', item.id);
         return;
       }
-      headSeq = Math.max(headSeq, payload.seq);
-      Y.applyUpdate(doc, fromBase64(payload.update), 'remote');
-    }
-    if (message.type === 'markdown.update.ack') {
-      const payload = message.payload as { clientUpdateId: string; seq: number; generation: number };
-      if (payload.generation !== generation || halted) return;
-      if (saveState.acknowledge(payload.clientUpdateId)) {
-        headSeq = Math.max(headSeq, payload.seq);
+      await storageChain;
+      await outbox.saveRecovery(generation, Y.encodeStateAsUpdate(doc), [...pending].map(([id, entry]) => ({ id, update: entry.update })));
+      for (const [id, entry] of pending) {
+        entry.persisted = true;
+        saveState.persisted(id);
       }
+      halted = false;
+      saveState.resume();
+      crepe.setReadonly(role === 'viewer');
+      onRecovered();
+      joined = false;
       publishSaveStatus();
+      realtime.sendOnline('markdown.join', item.id);
+    } catch {
+      storageFailed();
     }
-    // Cache acknowledgements never confirm canonical Yjs updates.
-    if (message.type === 'markdown.snapshot.request' && role !== 'viewer' && !halted) {
-      const payload = message.payload as { baseSeq: number; generation: number };
-      if (payload.generation !== generation) return;
-      realtime.send('markdown.snapshot.commit', item.id, {
-        generation,
-        baseSeq: payload.baseSeq,
-        snapshot: toBase64(Y.encodeStateAsUpdate(doc)),
-        markdown: crepe.getMarkdown(),
-      });
-    }
-    if (message.type === 'markdown.awareness') {
-      const payload = message.payload as { update?: string };
-      if (payload.update) applyAwarenessUpdate(awareness, fromBase64(payload.update), 'remote');
-    }
-    if (message.type === 'presence.changed') {
-      const payload = message.payload as { members?: { id: string; name: string }[] };
-      const identity = payload.members?.find(member => member.id === user.id);
-      const local = awareness.getLocalState()?.user;
-      if (identity && identity.name !== local?.name) awareness.setLocalStateField('user', { ...local, name: identity.name });
-      onPresenceChange(payload.members?.length ?? 1);
-    }
+  };
+  const storageFailed = () => {
+    if (!destroyed) halt('无法将修改保存到此设备。请重试本地保存，或下载本地副本；关闭页面可能丢失尚未保存的修改。', () => { void retryPersistence(); });
+  };
+  const persist = (update: Uint8Array, id: string, local: boolean) => {
+    const targetGeneration = generation!;
+    storageChain = storageChain.then(async () => {
+      await outbox.append(targetGeneration, id, update, local);
+      if (local) {
+        const entry = pending.get(id);
+        if (entry) entry.persisted = true;
+        saveState.persisted(id);
+        publishSaveStatus();
+        sendPending();
+      }
+      if (++storedCount % 200 === 0) await outbox.compact(targetGeneration);
+    }).catch(storageFailed);
+  };
+  onLeaveGuardChange({
+    unsafe: () => saveState.hasUnpersistedUpdates,
+    settle: () => storageChain,
+  });
+  const retryTimer = window.setInterval(sendPending, 1000);
+
+  const unsubscribe = realtime.subscribe((message) => {
+    messageChain = messageChain.then(async () => {
+      if (destroyed) return;
+
+      if (message.type === 'error') {
+        const error = message.payload as { code: string };
+        if (['FORBIDDEN', 'NOT_FOUND', 'INVALID_UPDATE', 'INVALID_REQUEST'].includes(error.code)) {
+          halt('服务器拒绝了保存，可能是权限已变更、文档已删除或修改超过大小限制。请下载本地副本后重新打开文档。');
+        }
+        if (error.code === 'GENERATION_CHANGED' || error.code === 'GENERATION_REQUIRED') {
+          halt('文档内容已被替换或服务已升级，保存已停止。请先下载本地副本，再刷新页面。');
+        }
+      }
+      if (message.type === 'connection.changed') {
+        const state = (message.payload as { state: 'online' | 'connecting' | 'offline' }).state;
+        joined = false;
+        saveState.connectionChanged(state);
+        publishSaveStatus();
+        if (state === 'online') realtime.send('markdown.join', item.id);
+      }
+      if (message.itemId !== item.id) return;
+      if (message.type === 'markdown.init') {
+        const payload = message.payload as InitPayload;
+        if (!Number.isSafeInteger(payload.generation) || (generation !== undefined && generation !== payload.generation)) {
+          halt('文档内容已被替换，保存已停止。请先下载本地副本，再刷新页面。');
+          return;
+        }
+        if (halted) return;
+        generation = payload.generation;
+        if (!initialResolved) {
+          const records = await outbox.load();
+          if (destroyed) return;
+          const stale = records.find(record => record.pending && record.generation !== generation);
+          if (stale) {
+            for (const record of records.filter(record => record.generation === stale.generation)) {
+              Y.applyUpdate(doc, record.update, 'remote');
+            }
+            initialResolved = true;
+            resolveInitial({ ...payload, markdown: '' });
+            halt('此设备还有旧版本的未提交修改。文档已被替换，旧修改不会自动合并；请先下载本地副本。');
+            return;
+          }
+          for (const record of records.filter(record => record.generation === generation && (role !== 'viewer' || records.some(entry => entry.generation === generation && entry.pending)))) {
+            Y.applyUpdate(doc, record.update, 'remote');
+            if (record.pending) {
+              pending.set(record.id, { update: record.update, persisted: true, sentAt: 0 });
+              saveState.add(record.id, true);
+            }
+          }
+          if (role === 'viewer' && pending.size > 0) {
+            initialResolved = true;
+            resolveInitial({ ...payload, markdown: '' });
+            halt('此设备有未提交修改，但当前账号没有编辑权限。请下载本地副本。');
+            return;
+          }
+        }
+        if (!editorReady) persistUpdates = false;
+        const serverUpdates = [
+          ...(payload.snapshot ? [fromBase64(payload.snapshot)] : []),
+          ...(payload.updates ?? []).map(update => fromBase64(update.update)),
+        ];
+        const serverSnapshot = Y.mergeUpdates(serverUpdates);
+        Y.applyUpdate(doc, serverSnapshot, 'remote');
+        headSeq = payload.headSeq ?? 0;
+        if (!editorReady) latestMarkdown = payload.markdown ?? latestMarkdown;
+        else latestMarkdown = crepe.getMarkdown();
+        await storageChain;
+        if (role !== 'viewer') await outbox.append(generation, crypto.randomUUID(), serverSnapshot, false);
+        if (destroyed) return;
+        persistUpdates = true;
+        joined = true;
+        for (const entry of pending.values()) entry.sentAt = 0;
+        onStatsChange(getMarkdownStats(latestMarkdown));
+        if (!initialResolved) {
+          initialResolved = true;
+          resolveInitial(payload);
+        }
+        saveState.initialized();
+        publishSaveStatus();
+        sendPending();
+      }
+      if (message.type === 'markdown.update.remote' && !halted) {
+        const payload = message.payload as { seq: number; update: string; generation: number };
+        if (payload.generation !== generation) {
+          halt('文档内容已被替换，保存已停止。请先下载本地副本，再刷新页面。');
+          return;
+        }
+        headSeq = Math.max(headSeq, payload.seq);
+        Y.applyUpdate(doc, fromBase64(payload.update), 'remote');
+      }
+      if (message.type === 'markdown.update.ack') {
+        const payload = message.payload as { clientUpdateId: string; seq: number; generation: number };
+        if (payload.generation !== generation || halted) return;
+        if (pending.has(payload.clientUpdateId)) {
+          await storageChain;
+          await outbox.acknowledge(generation!, payload.clientUpdateId);
+          pending.delete(payload.clientUpdateId);
+        }
+        if (saveState.acknowledge(payload.clientUpdateId)) {
+          headSeq = Math.max(headSeq, payload.seq);
+        }
+        publishSaveStatus();
+      }
+      if (message.type === 'markdown.update.ack' && !saveState.hasPendingUpdates) flushMarkdownCache();
+      // Cache acknowledgements never confirm canonical Yjs updates.
+      if (message.type === 'markdown.snapshot.request' && role !== 'viewer' && !halted && editorReady && !saveState.hasPendingUpdates) {
+        const payload = message.payload as { baseSeq: number; generation: number };
+        if (payload.generation !== generation || payload.baseSeq !== headSeq) return;
+        realtime.sendOnline('markdown.snapshot.commit', item.id, {
+          generation,
+          baseSeq: payload.baseSeq,
+          snapshot: toBase64(Y.encodeStateAsUpdate(doc)),
+          markdown: crepe.getMarkdown(),
+        });
+      }
+      if (message.type === 'markdown.awareness') {
+        const payload = message.payload as { update?: string };
+        if (payload.update) applyAwarenessUpdate(awareness, fromBase64(payload.update), 'remote');
+      }
+      if (message.type === 'presence.changed') {
+        const payload = message.payload as { members?: { id: string; name: string }[] };
+        const identity = payload.members?.find(member => member.id === user.id);
+        const local = awareness.getLocalState()?.user;
+        if (identity && identity.name !== local?.name) awareness.setLocalStateField('user', { ...local, name: identity.name });
+        onPresenceChange(payload.members?.length ?? 1);
+      }
+    }).catch(storageFailed);
   });
 
   const onDocUpdate = (update: Uint8Array, origin: unknown) => {
-    if (origin !== 'remote' && role !== 'viewer' && !halted) {
-      const clientUpdateId = crypto.randomUUID();
-      saveState.add(clientUpdateId);
+    if (!persistUpdates || halted || generation === undefined || role === 'viewer') return;
+    const id = crypto.randomUUID();
+    const local = origin !== 'remote';
+    if (local) {
+      pending.set(id, { update, persisted: false, sentAt: 0 });
+      saveState.add(id);
       publishSaveStatus();
-      realtime.send('markdown.update', item.id, { clientUpdateId, update: toBase64(update), generation });
     }
+    persist(update, id, local);
   };
   const onAwareness = (
     { added, updated, removed }: { added: number[]; updated: number[]; removed: number[] },
     origin: unknown,
   ) => {
     if (origin !== 'remote') {
-      realtime.send('markdown.awareness', item.id, {
+      realtime.sendOnline('markdown.awareness', item.id, {
         update: toBase64(encodeAwarenessUpdate(awareness, [...added, ...updated, ...removed])),
       });
     }
@@ -452,6 +436,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
 
   return () => {
     destroyed = true;
+    window.clearInterval(retryTimer);
     setPendingChanges(pendingKey, false);
     window.removeEventListener('madoc-profile-changed', updateIdentity);
     window.clearTimeout(cacheTimer);
