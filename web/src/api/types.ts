@@ -24,6 +24,10 @@ export interface ContentVersionDetail {
   whiteboard?: { revision: number; scene: string };
   assetIds: string[];
 }
+export interface ContentVersionUsage {
+  workspaceId: string; usedBytes: number; limitBytes: number;
+  manualVersions: number; automaticVersions: number; automaticPaused: boolean;
+}
 
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }

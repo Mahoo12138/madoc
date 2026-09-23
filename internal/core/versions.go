@@ -197,6 +197,38 @@ func (s *Service) ListContentVersions(ctx context.Context, userID, itemID, befor
 	return versions, nil
 }
 
+func (s *Service) ContentVersionUsage(ctx context.Context, userID, workspaceID string) (ContentVersionUsage, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return ContentVersionUsage{}, err
+	}
+	defer tx.Rollback()
+	var role string
+	err = tx.QueryRowContext(ctx, `SELECT role FROM workspace_members WHERE workspace_id=? AND user_id=?`, workspaceID, userID).Scan(&role)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ContentVersionUsage{}, ErrForbidden
+	}
+	if err != nil {
+		return ContentVersionUsage{}, err
+	}
+	usage := ContentVersionUsage{WorkspaceID: workspaceID, LimitBytes: MaxWorkspaceVersionBytes}
+	var payloadBytes, assetBytes int64
+	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(SUM(payload_bytes),0),COUNT(*) FILTER(WHERE kind='manual'),COUNT(*) FILTER(WHERE kind='automatic')
+ FROM item_versions WHERE workspace_id=?`, workspaceID).Scan(&payloadBytes, &usage.ManualVersions, &usage.AutomaticVersions); err != nil {
+		return ContentVersionUsage{}, err
+	}
+	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(SUM(a.size),0) FROM assets a WHERE a.workspace_id=? AND EXISTS (
+ SELECT 1 FROM item_version_assets iva JOIN item_versions v ON v.id=iva.version_id WHERE iva.asset_id=a.id AND v.workspace_id=?)`, workspaceID, workspaceID).Scan(&assetBytes); err != nil {
+		return ContentVersionUsage{}, err
+	}
+	usage.UsedBytes = payloadBytes + assetBytes
+	usage.AutomaticPaused = usage.UsedBytes >= usage.LimitBytes
+	if err := tx.Commit(); err != nil {
+		return ContentVersionUsage{}, err
+	}
+	return usage, nil
+}
+
 func (s *Service) GetContentVersion(ctx context.Context, userID, itemID, versionID string) (ContentVersionDetail, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {

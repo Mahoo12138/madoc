@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { Alert, Badge, Button, Code, Group, Loader, Modal, ScrollArea, Stack, Text, TextInput } from '@mantine/core';
+import { Alert, Badge, Button, Code, Group, Loader, Modal, Progress, ScrollArea, Stack, Text, TextInput } from '@mantine/core';
 import { api } from '@/api/client';
 import { keys } from '@/api/hooks';
 import { APIError, type ContentVersion, type ContentVersionDetail, type Item, type Role } from '@/api/types';
@@ -26,6 +26,7 @@ export function VersionHistoryDialog({ item, role, onClose, assetIds }: { item: 
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [boardPreview, setBoardPreview] = useState('');
+  const [usage, setUsage] = useState<Awaited<ReturnType<typeof api.contentVersionUsage>>>();
   const navigate = useNavigate();
   const queries = useQueryClient();
 
@@ -41,6 +42,12 @@ export function VersionHistoryDialog({ item, role, onClose, assetIds }: { item: 
     }).finally(() => { if (active) setLoadingList(false); });
     return () => { active = false; };
   }, [item.id]);
+
+  useEffect(() => {
+    let active = true;
+    void api.contentVersionUsage(item.workspaceId).then((result) => { if (active) setUsage(result); }).catch(() => {});
+    return () => { active = false; };
+  }, [item.workspaceId]);
 
   useEffect(() => {
     if (!selected) { setDetail(undefined); setPrevious(undefined); return; }
@@ -131,6 +138,16 @@ export function VersionHistoryDialog({ item, role, onClose, assetIds }: { item: 
       <Stack gap="md">
         {error && <Alert color="red" title="操作未完成">{error}</Alert>}
         {notice && <Alert color="green">{notice}</Alert>}
+        {usage && (
+          <Stack gap={4}>
+            <Group justify="space-between">
+              <Text size="xs" c="dimmed">Workspace 历史占用：{formatBytes(usage.usedBytes)} / {formatBytes(usage.limitBytes)}</Text>
+              <Text size="xs" c="dimmed">手动 {usage.manualVersions} · 自动 {usage.automaticVersions}</Text>
+            </Group>
+            <Progress value={Math.min(100, usage.usedBytes / usage.limitBytes * 100)} color={usage.automaticPaused ? 'orange' : 'blue'} size="sm" />
+            {usage.automaticPaused && <Alert color="orange" py="xs">历史占用已达上限，自动版本暂停；手动版本和内容编辑仍可继续。</Alert>}
+          </Stack>
+        )}
         {role !== 'viewer' && (
           <Group align="end">
             <TextInput label="版本名称" placeholder="例如：发布前" value={label} onChange={(event) => setLabel(event.currentTarget.value)} maxLength={120} style={{ flex: 1 }} disabled={busy} />
@@ -192,4 +209,9 @@ export function VersionHistoryDialog({ item, role, onClose, assetIds }: { item: 
       </Stack>
     </Modal>
   );
+}
+
+function formatBytes(value: number) {
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(0)} KiB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MiB`;
 }

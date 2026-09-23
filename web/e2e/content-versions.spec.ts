@@ -6,6 +6,7 @@ test('Markdown history creates named checkpoints, previews old text, and restore
   const sourceId = await openDocument(page, 'Before edit');
   await page.getByRole('button', { name: '版本历史' }).click();
   let dialog = page.getByRole('dialog', { name: '版本历史' });
+  await expect(dialog.getByText(/Workspace 历史占用/)).toBeVisible();
   await dialog.getByLabel('版本名称').fill('Before release');
   await dialog.getByRole('button', { name: '保存手动版本' }).click();
   await expect(dialog.getByText('手动版本已保存。')).toBeVisible();

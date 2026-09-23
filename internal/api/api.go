@@ -76,6 +76,7 @@ func (a *API) Routes() http.Handler {
 		r.Post("/items/{itemId}/move", a.csrfRequired(a.moveItem))
 		r.Post("/items/{itemId}/duplicate", a.csrfRequired(a.duplicateItem))
 		r.Get("/items/{itemId}/capture", a.captureItem)
+		r.Get("/workspaces/{workspaceId}/version-storage", a.workspaceVersionStorage)
 		r.Get("/items/{itemId}/versions", a.listItemVersions)
 		r.Post("/items/{itemId}/versions", a.csrfRequired(a.createItemVersion))
 		r.Get("/items/{itemId}/versions/{versionId}", a.getItemVersion)
@@ -577,6 +578,15 @@ func (a *API) restoreItemVersionCopy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, map[string]any{"item": item})
+}
+
+func (a *API) workspaceVersionStorage(w http.ResponseWriter, r *http.Request) {
+	usage, err := a.core.ContentVersionUsage(r.Context(), userID(r), chi.URLParam(r, "workspaceId"))
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, usage)
 }
 func (a *API) resetMarkdown(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "itemId")

@@ -96,3 +96,12 @@ type ContentVersionDetail struct {
 	Whiteboard *WhiteboardState `json:"whiteboard,omitempty"`
 	AssetIDs   []string         `json:"assetIds"`
 }
+
+type ContentVersionUsage struct {
+	WorkspaceID       string `json:"workspaceId"`
+	UsedBytes         int64  `json:"usedBytes"`
+	LimitBytes        int64  `json:"limitBytes"`
+	ManualVersions    int64  `json:"manualVersions"`
+	AutomaticVersions int64  `json:"automaticVersions"`
+	AutomaticPaused   bool   `json:"automaticPaused"`
+}

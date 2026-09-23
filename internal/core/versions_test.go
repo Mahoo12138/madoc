@@ -345,3 +345,47 @@ func TestRestoreWhiteboardVersionAndAtomicFailure(t *testing.T) {
 		t.Fatalf("failed restore left a partial Item: count=%d err=%v", count, err)
 	}
 }
+
+func TestContentVersionUsageCountsUniqueAssetsAndEnforcesWorkspaceAccess(t *testing.T) {
+	f := newFixture(t)
+	board, err := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "whiteboard", "Board", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Exec(`INSERT INTO assets(id,workspace_id,item_id,file_name,mime,size,storage_key,created_at) VALUES('usage-image',?,?,'image.png','image/png',100,'usage-image',CURRENT_TIMESTAMP)`, f.space.ID, board.ID); err != nil {
+		t.Fatal(err)
+	}
+	manual, err := f.core.CreateManualVersion(f.ctx, f.owner.ID, board.ID, "Initial", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.core.UpdateWhiteboard(f.ctx, f.owner.ID, board.ID, 0, `{"elements":[{"id":"next"}],"appState":{},"files":{}}`); err != nil {
+		t.Fatal(err)
+	}
+	usage, err := f.core.ContentVersionUsage(f.ctx, f.owner.ID, f.space.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var payloadBytes int64
+	if err := f.db.QueryRow(`SELECT SUM(payload_bytes) FROM item_versions WHERE workspace_id=?`, f.space.ID).Scan(&payloadBytes); err != nil {
+		t.Fatal(err)
+	}
+	if usage.UsedBytes != payloadBytes+100 || usage.ManualVersions != 1 || usage.AutomaticVersions != 1 || usage.AutomaticPaused {
+		t.Fatalf("unexpected usage: %#v payload=%d", usage, payloadBytes)
+	}
+	viewer := f.addUser("usage-viewer@example.com", "viewer")
+	if _, err := f.core.ContentVersionUsage(f.ctx, viewer.ID, f.space.ID); err != nil {
+		t.Fatalf("viewer usage read: %v", err)
+	}
+	outsider := f.addUser("usage-outsider@example.com", "")
+	if _, err := f.core.ContentVersionUsage(f.ctx, outsider.ID, f.space.ID); !errors.Is(err, ErrForbidden) {
+		t.Fatalf("outsider usage read = %v", err)
+	}
+	if _, err := f.db.Exec(`UPDATE item_versions SET payload_bytes=? WHERE id=?`, MaxWorkspaceVersionBytes, manual.ID); err != nil {
+		t.Fatal(err)
+	}
+	usage, err = f.core.ContentVersionUsage(f.ctx, f.owner.ID, f.space.ID)
+	if err != nil || !usage.AutomaticPaused || usage.UsedBytes < MaxWorkspaceVersionBytes {
+		t.Fatalf("usage did not report automatic pause: %#v %v", usage, err)
+	}
+}

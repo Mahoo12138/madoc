@@ -251,6 +251,10 @@ Admin user list / future history list 再做 cursor / limit。
 - `GET /api/items/{itemId}/versions/{versionId}` 返回不可变捕获内容和附件 ID。
 - `POST /api/items/{itemId}/versions/{versionId}/restore-copy` 请求 `{title}`，在原目录原子
   创建独立副本；owner / editor 可写，原 Item 不会被覆盖。
+- `GET /api/workspaces/{workspaceId}/version-storage` 返回历史字节用量、限制、手动 / 自动
+  数量及 `automaticPaused`，Workspace 成员可读。
+
+历史用量按检查点 payload 字节与被检查点引用附件的唯一文件字节累计；共享附件只计一次。
 
 自动检查点在内容投影成功持久化时创建，同 Item 15 分钟内合并；自动版每项保留 30 个、最多
 90 天，历史占用达到 Workspace 1 GiB 后暂停自动创建。手动检查点永久保留。

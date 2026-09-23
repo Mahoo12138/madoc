@@ -21,6 +21,11 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     expect(upload.ok()).toBeTruthy();
     const { asset } = await upload.json();
     expect(await (await page.request.get(`/api/assets/${asset.id}`)).body()).toEqual(image);
+    const manualResponse = await page.request.post(`/api/items/${itemId}/versions`, { headers, data: { label: 'Backup checkpoint' } });
+    expect(manualResponse.status()).toBe(201);
+    const { version: manualVersion } = await manualResponse.json();
+    const manualDetail = await (await page.request.get(`/api/items/${itemId}/versions/${manualVersion.id}`)).json();
+    expect(manualDetail.assetIds).toContain(asset.id);
     const boardResponse = await page.request.post(`/api/workspaces/${workspaceId}/items`, { headers, data: { type: 'whiteboard', title: 'Restored board' } });
     expect(boardResponse.ok()).toBeTruthy();
     const board = await boardResponse.json();
@@ -36,6 +41,11 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     await expect.poll(async () => (await (await page.request.get(`/api/items/${board.id}/whiteboard`)).json()).scene.elements.length).toBe(1);
     const before = await (await page.request.get(`/api/items/${board.id}/whiteboard`)).json();
     expect(before.scene.elements[0].type).toBe('rectangle');
+    const boardVersions = await (await page.request.get(`/api/items/${board.id}/versions`)).json();
+    expect(boardVersions.versions.some((version: { kind: string }) => version.kind === 'automatic')).toBeTruthy();
+    const usageBefore = await (await page.request.get(`/api/workspaces/${workspaceId}/version-storage`)).json();
+    expect(usageBefore.manualVersions).toBeGreaterThan(0);
+    expect(usageBefore.automaticVersions).toBeGreaterThan(0);
     await page.goto(documentURL);
     await expect(page.locator('.ProseMirror')).toHaveText('Verified backup content');
     await expect.poll(async () => (await page.request.get(`/api/items/${itemId}/export.md`)).status()).toBe(200);
@@ -63,6 +73,13 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     expect(after).toEqual(before);
     expect(await (await page.request.get(`/api/workspaces/${workspaceId}/trash`)).json()).toEqual(trashBefore);
     expect((await page.request.get(`/api/items/${trashed.id}/markdown`)).status()).toBe(404);
+    const versionsAfter = await (await page.request.get(`/api/items/${itemId}/versions`)).json();
+    expect(versionsAfter.versions.some((version: { id: string }) => version.id === manualVersion.id)).toBeTruthy();
+    const manualAfter = await (await page.request.get(`/api/items/${itemId}/versions/${manualVersion.id}`)).json();
+    expect(manualAfter.assetIds).toContain(asset.id);
+    expect(await (await page.request.get(`/api/assets/${asset.id}`)).body()).toEqual(image);
+    expect((await page.request.delete(`/api/assets/${asset.id}`, { headers })).status()).toBe(409);
+    expect(await (await page.request.get(`/api/workspaces/${workspaceId}/version-storage`)).json()).toEqual(usageBefore);
     expect((await page.request.post(`/api/workspaces/${workspaceId}/trash/${trashBefore[0].id}/restore`, { headers, data: {} })).status()).toBe(204);
     expect(await (await page.request.get(`/api/items/${trashed.id}/export.md`)).text()).toBe('Trash backup content');
     await page.goto(boardURL);
