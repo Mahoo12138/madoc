@@ -1,4 +1,4 @@
-import type { BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, Item, ItemCapture, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, User, WhiteboardState, Workspace } from './types';
+import type { BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -48,6 +48,9 @@ export const api = {
   publishItemShare: (itemId: string, shareId: string, versionId: string) => request<void>(`/items/${itemId}/shares/${shareId}/publish`, { method: 'POST', body: JSON.stringify({ versionId }) }),
   revokeItemShare: (itemId: string, shareId: string) => request<void>(`/items/${itemId}/shares/${shareId}`, { method: 'DELETE' }),
   publicShare: (token: string) => request<SharedItem>(`/public/shares/${encodeURIComponent(token)}`, { cache: 'no-store' }),
+  itemComments: (itemId: string, before = '', limit = 50) => request<{ comments: ItemComment[]; nextBefore: string }>(`/items/${itemId}/comments?${new URLSearchParams({ before, limit: String(limit) })}`, { cache: 'no-store' }),
+  createItemComment: (itemId: string, body: string) => request<{ comment: ItemComment }>(`/items/${itemId}/comments`, { method: 'POST', body: JSON.stringify({ body }) }),
+  deleteItemComment: (itemId: string, commentId: string) => request<void>(`/items/${itemId}/comments/${commentId}`, { method: 'DELETE' }),
   createItem: (workspaceId: string, type: ItemType, title: string, parentId: string | null) => request<Item>(`/workspaces/${workspaceId}/items`, { method: 'POST', body: JSON.stringify({ type, title, parentId }) }),
   renameItem: (id: string, title: string) => request<void>(`/items/${id}`, { method: 'PATCH', body: JSON.stringify({ title }) }),
   deleteItem: (id: string) => request<void>(`/items/${id}`, { method: 'DELETE' }),

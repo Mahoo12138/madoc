@@ -133,3 +133,12 @@ type SharedAsset struct {
 	FileName string `json:"fileName"`
 	MIME     string `json:"mime"`
 }
+
+type ItemComment struct {
+	ID         string    `json:"id"`
+	ItemID     string    `json:"itemId"`
+	AuthorName string    `json:"authorName"`
+	Body       string    `json:"body"`
+	CreatedAt  time.Time `json:"createdAt"`
+	CanDelete  bool      `json:"canDelete"`
+}

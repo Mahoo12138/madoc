@@ -268,6 +268,21 @@ Admin user list / future history list 再做 cursor / limit。
 `GET /api/public/shares/{token}`，其附件子路径只允许该发布版本引用的资源。到期、撤销或
 Item 处于回收站时正文和附件请求统一返回 404。完整边界见 [SHARING.md](SHARING.md)。
 
+### 文档评论
+
+评论以 Item 为范围，不绑定段落。Workspace 成员可读取 Markdown / Whiteboard 评论；owner / editor
+可创建纯文本评论（去除首尾空白后 1–4000 个 Unicode 字符）。评论作者可删除自己的评论，owner 可调停删除；
+viewer 只能读取。Folder 和回收站中的 Item 不支持评论。
+
+```text
+GET    /api/items/{itemId}/comments?before={commentId}&limit=50
+POST   /api/items/{itemId}/comments                 {"body":"..."}
+DELETE /api/items/{itemId}/comments/{commentId}
+```
+
+列表按创建时间倒序分页，默认 50 条、最多 100 条，响应包含 `comments` 与 `nextBefore`；写请求要求 CSRF。
+评论记录作者显示名称快照，用户被删除后评论正文与显示名称仍保留。
+
 ## 13. Versioning
 
 MVP 不需要 URL `/v1`。

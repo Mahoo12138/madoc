@@ -26,6 +26,7 @@ import {
   Home as IconHome,
   Settings as IconSettings,
   Trash2 as IconTrash,
+  MessageSquare as IconComments,
   Search as IconSearch,
   Users as IconUsers,
   PenTool as IconWhiteboard,
@@ -47,6 +48,7 @@ import { useWorkspaceEvents } from './use-workspace-events';
 import { WorkspaceSearch, useSearchShortcut } from './workspace-search';
 import { WorkspaceTrash } from './workspace-trash';
 import { WorkspaceSettings } from './workspace-settings';
+import { ItemCommentsDrawer } from '@/features/comments/item-comments-drawer';
 import * as styles from './workspace-shell.css';
 
 const MarkdownEditor = lazy(() =>
@@ -103,6 +105,7 @@ export function WorkspacePage() {
 
   const mutations = useWorkspaceMutations(workspaceId);
   const [membersOpened, membersDrawer] = useDisclosure(false);
+  const [commentsOpened, commentsDrawer] = useDisclosure(false);
   const [searchOpened, searchModal] = useDisclosure(false);
   useSearchShortcut(searchModal.open, !unavailable);
   useEffect(() => {
@@ -381,6 +384,7 @@ export function WorkspacePage() {
                 <IconUsers size={17} />
               </ActionIcon>
             </Tooltip>
+            {active && !missing && <Tooltip label="评论"><ActionIcon aria-label="文档评论" onClick={commentsDrawer.open}><IconComments size={17} /></ActionIcon></Tooltip>}
             {active && !unavailable && workspace.data?.role !== 'viewer' && (
               <Button
                 variant="subtle"
@@ -536,6 +540,7 @@ export function WorkspacePage() {
         workspaceId={workspaceId}
         currentRole={workspace.data?.role ?? 'viewer'}
       />
+      {commentsOpened && active && !missing && <ItemCommentsDrawer item={active} role={workspace.data?.role ?? 'viewer'} opened onClose={commentsDrawer.close} />}
       {workspace.data && (
         <WorkspaceSettings
           key={`settings:${workspaceId}`}

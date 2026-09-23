@@ -37,6 +37,9 @@ export interface SharedItem {
   markdown?: string; whiteboard?: { revision: number; scene: string };
   assets: { id: string; fileName: string; mime: string }[];
 }
+export interface ItemComment {
+  id: string; itemId: string; authorName: string; body: string; createdAt: string; canDelete: boolean;
+}
 
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }

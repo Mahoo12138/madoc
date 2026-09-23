@@ -101,7 +101,9 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 已选工作范围：单项只读分享与固定发布、文档级评论、成员管理与内容活动记录。
 - 第一部分：migration 0012 与 owner-only 分享 API；256 位随机 token 只存 SHA-256 摘要；创建 / 显式发布更新只引用同一 Item 的手动版本并固定标题；撤销 / 到期 / 回收站均阻断后续正文和附件请求；附件访问限定当前发布版本；只读 Markdown / 白板页面及安全头。实现与边界见 `docs/SHARING.md`。
 - 第一部分验证：`go test ./...`、`go vet ./...`、API / core / asset `go test -race`、前端 typecheck / production build、3 项 Playwright 分享往返与安全测试通过。production build 保留既有大 chunk 提示。
-- 评论、成员管理增强与活动记录尚未实现；阶段 4 整体尚未验收。
+- 第二部分：migration 0013 与 Item 级纯文本评论；所有 Workspace 成员可读，owner / editor 可写，评论作者可删自己的评论、owner 可调停删除。支持 Markdown / Whiteboard，不支持 Folder / 回收站 Item；作者显示名快照、Unicode 长度校验和倒序游标分页。详见 `docs/API.md`。
+- 第二部分验证：Go 评论权限 / 分页 / 边界 / 删除回归，viewer API 写入拒绝，以及 owner 创建删除、viewer 只读的真实浏览器流程通过。完整阶段门槛待提交前执行。
+- 成员管理增强与活动记录尚未实现；阶段 4 整体尚未验收。
 
 ## 当前验证
 
