@@ -117,6 +117,16 @@ POST /api/invites/:token/accept
 DELETE /api/workspaces/:workspaceId/invites/:inviteId
 ```
 
+## 5.1 Workspace activity
+
+```text
+GET /api/workspaces/{workspaceId}/activity?before={eventId}&limit=30
+```
+
+Every current Workspace member may read the newest-first activity feed. `limit` defaults to 30 and is capped at 100;
+`before` is the previous page's last event ID. The response is `{ "events": [...], "nextBefore": "..." }`.
+Activity summaries are server-authored and do not include document or comment contents. See [ACTIVITY.md](ACTIVITY.md).
+
 ## 6. Items
 
 ```text

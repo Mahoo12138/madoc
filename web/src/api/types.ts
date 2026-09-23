@@ -40,6 +40,10 @@ export interface SharedItem {
 export interface ItemComment {
   id: string; itemId: string; authorName: string; body: string; createdAt: string; canDelete: boolean;
 }
+export interface ActivityEvent {
+  id: string; itemId?: string | null; itemTitle?: string; actorName: string;
+  type: string; summary: string; createdAt: string;
+}
 
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }

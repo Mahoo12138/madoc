@@ -65,6 +65,9 @@ func (s *Service) CreateItemShare(ctx context.Context, userID, itemID, versionID
  VALUES(?,?,?,?,?,?,?,?,?)`, share.ID, itemID, versionID, item.Title, tokenHash, userID, now, now, expiresAt); err != nil {
 		return ItemShare{}, err
 	}
+	if err := recordActivityTx(ctx, tx, item.WorkspaceID, &item.ID, item.Title, userID, "share_created", "创建了只读分享", now); err != nil {
+		return ItemShare{}, err
+	}
 	if err := tx.Commit(); err != nil {
 		return ItemShare{}, err
 	}
@@ -150,6 +153,9 @@ func (s *Service) PublishItemShare(ctx context.Context, userID, itemID, shareID,
 		}
 		return ErrConflict
 	}
+	if err := recordActivityTx(ctx, tx, item.WorkspaceID, &item.ID, item.Title, userID, "share_published", "更新了只读分享内容", now); err != nil {
+		return err
+	}
 	return tx.Commit()
 }
 
@@ -177,6 +183,9 @@ func (s *Service) RevokeItemShare(ctx context.Context, userID, itemID, shareID s
 	}
 	if count == 0 {
 		return ErrNotFound
+	}
+	if err := recordActivityTx(ctx, tx, item.WorkspaceID, &item.ID, item.Title, userID, "share_revoked", "撤销了只读分享", now); err != nil {
+		return err
 	}
 	return tx.Commit()
 }

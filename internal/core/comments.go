@@ -104,6 +104,9 @@ func (s *Service) CreateItemComment(ctx context.Context, userID, itemID, body st
 	if _, err := tx.ExecContext(ctx, `INSERT INTO item_comments(id,workspace_id,item_id,user_id,author_name,body,created_at) VALUES(?,?,?,?,?,?,?)`, comment.ID, item.WorkspaceID, itemID, userID, authorName, body, now); err != nil {
 		return ItemComment{}, err
 	}
+	if err := recordActivityTx(ctx, tx, item.WorkspaceID, &item.ID, item.Title, userID, "comment_added", "添加了一条评论", now); err != nil {
+		return ItemComment{}, err
+	}
 	if err := tx.Commit(); err != nil {
 		return ItemComment{}, err
 	}
@@ -139,6 +142,9 @@ func (s *Service) DeleteItemComment(ctx context.Context, userID, itemID, comment
 		return ErrForbidden
 	}
 	if _, err := tx.ExecContext(ctx, `DELETE FROM item_comments WHERE id=? AND item_id=?`, commentID, itemID); err != nil {
+		return err
+	}
+	if err := recordActivityTx(ctx, tx, item.WorkspaceID, &item.ID, item.Title, userID, "comment_deleted", "删除了一条评论", time.Now().UTC()); err != nil {
 		return err
 	}
 	return tx.Commit()

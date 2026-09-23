@@ -142,3 +142,13 @@ type ItemComment struct {
 	CreatedAt  time.Time `json:"createdAt"`
 	CanDelete  bool      `json:"canDelete"`
 }
+
+type ActivityEvent struct {
+	ID        string    `json:"id"`
+	ItemID    *string   `json:"itemId,omitempty"`
+	ItemTitle string    `json:"itemTitle,omitempty"`
+	ActorName string    `json:"actorName"`
+	Type      string    `json:"type"`
+	Summary   string    `json:"summary"`
+	CreatedAt time.Time `json:"createdAt"`
+}

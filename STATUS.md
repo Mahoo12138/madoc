@@ -96,15 +96,18 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第四部分（提交 `c5e74dd`）：历史容量诊断 API / UI；独立目录备份恢复演练覆盖 Markdown 手动版、白板自动版、引用附件、附件删除保护和恢复前后用量一致。
 - 阶段 3 固定提交 `c5e74dd` 完成 `go test ./...`、`go test -race ./...`、`go vet ./...`、前端 typecheck / production build、2 项内容历史真实浏览器往返和 1 项 CLI 独立目录备份恢复演练。验收详情见 `docs/RELEASE.md`。
 
-## 演进计划：阶段 4（进行中）
+## 演进计划：阶段 4（已验收）
 
 - 已选工作范围：单项只读分享与固定发布、文档级评论、成员管理与内容活动记录。
 - 第一部分：migration 0012 与 owner-only 分享 API；256 位随机 token 只存 SHA-256 摘要；创建 / 显式发布更新只引用同一 Item 的手动版本并固定标题；撤销 / 到期 / 回收站均阻断后续正文和附件请求；附件访问限定当前发布版本；只读 Markdown / 白板页面及安全头。实现与边界见 `docs/SHARING.md`。
 - 第一部分验证：`go test ./...`、`go vet ./...`、API / core / asset `go test -race`、前端 typecheck / production build、3 项 Playwright 分享往返与安全测试通过。production build 保留既有大 chunk 提示。
 - 第二部分：migration 0013 与 Item 级纯文本评论；所有 Workspace 成员可读，owner / editor 可写，评论作者可删自己的评论、owner 可调停删除。支持 Markdown / Whiteboard，不支持 Folder / 回收站 Item；作者显示名快照、Unicode 长度校验和倒序游标分页。详见 `docs/API.md`。
-- 第二部分验证：Go 评论权限 / 分页 / 边界 / 删除回归，viewer API 写入拒绝，以及 owner 创建删除、viewer 只读的真实浏览器流程通过。完整阶段门槛待提交前执行。
+- 第二部分验证：Go 评论权限 / 分页 / 边界 / 删除回归，viewer API 写入拒绝，以及 owner 创建删除、viewer 只读的真实浏览器流程通过。
 - 第三部分：成员管理 drawer 为待接受邀请提供 owner-only 撤销；角色变更、成员移除、邀请撤销均先显示影响说明并二次确认；阻止 owner 自行降权 / 移除及移除最后一名 owner，并对失败显示通知。
-- 第三部分验证：真实浏览器覆盖撤销后旧链接失效、角色调整确认后生效、移除确认后成员消失；现有中文角色标签测试复核通过。活动记录尚未实现；阶段 4 整体尚未验收。
+- 第三部分验证：真实浏览器覆盖撤销后旧链接失效、角色调整确认后生效、移除确认后成员消失；现有中文角色标签测试复核通过。
+- 第四部分：migration 0014 与工作区活动时间线，涵盖内容创建 / 改名 / 移动 / 回收站恢复、评论、手动 / 自动历史检查点及只读分享操作。活动对当前 Workspace 全部成员只读可见，按 15 分钟合并同成员的自动检查点记录；记录动作摘要、标题与成员显示名快照，不存正文或评论内容，不自动清理。写入与触发动作同事务提交。说明见 `docs/ACTIVITY.md`。
+- 第四部分验证：成员隔离、游标分页、评论正文不泄漏、活动写入失败时内容创建回滚的 Go 回归；viewer 浏览器可读取活动抽屉，API 返回摘要而不返回评论正文。
+- 阶段 4 固定提交完成 `go test ./...`、`go vet ./...`、`go test -race ./...`、前端 typecheck / production build，以及只读分享、评论、成员管理、活动记录浏览器回归。
 
 ## 当前验证
 

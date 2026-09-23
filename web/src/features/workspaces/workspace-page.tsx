@@ -31,6 +31,7 @@ import {
   Users as IconUsers,
   PenTool as IconWhiteboard,
   Download as IconDownload,
+  History as IconHistory,
 } from 'lucide-react';
 import {
   useItems,
@@ -49,6 +50,7 @@ import { WorkspaceSearch, useSearchShortcut } from './workspace-search';
 import { WorkspaceTrash } from './workspace-trash';
 import { WorkspaceSettings } from './workspace-settings';
 import { ItemCommentsDrawer } from '@/features/comments/item-comments-drawer';
+import { WorkspaceActivityDrawer } from './workspace-activity-drawer';
 import * as styles from './workspace-shell.css';
 
 const MarkdownEditor = lazy(() =>
@@ -105,6 +107,7 @@ export function WorkspacePage() {
 
   const mutations = useWorkspaceMutations(workspaceId);
   const [membersOpened, membersDrawer] = useDisclosure(false);
+  const [activityOpened, activityDrawer] = useDisclosure(false);
   const [commentsOpened, commentsDrawer] = useDisclosure(false);
   const [searchOpened, searchModal] = useDisclosure(false);
   useSearchShortcut(searchModal.open, !unavailable);
@@ -289,6 +292,9 @@ export function WorkspacePage() {
             >
               成员管理
             </Menu.Item>
+            <Menu.Item leftSection={<IconHistory size={15} />} onClick={activityDrawer.open}>
+              活动记录
+            </Menu.Item>
             {!unavailable &&
               workspace.data &&
               workspace.data.role !== 'viewer' && (
@@ -382,6 +388,11 @@ export function WorkspacePage() {
             <Tooltip label="成员">
               <ActionIcon aria-label="成员管理" onClick={membersDrawer.open}>
                 <IconUsers size={17} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="活动记录">
+              <ActionIcon aria-label="活动记录" onClick={activityDrawer.open} disabled={unavailable}>
+                <IconHistory size={17} />
               </ActionIcon>
             </Tooltip>
             {active && !missing && <Tooltip label="评论"><ActionIcon aria-label="文档评论" onClick={commentsDrawer.open}><IconComments size={17} /></ActionIcon></Tooltip>}
@@ -540,6 +551,7 @@ export function WorkspacePage() {
         workspaceId={workspaceId}
         currentRole={workspace.data?.role ?? 'viewer'}
       />
+      {workspace.data && <WorkspaceActivityDrawer opened={activityOpened} onClose={activityDrawer.close} workspaceId={workspaceId} workspaceName={workspace.data.name} />}
       {commentsOpened && active && !missing && <ItemCommentsDrawer item={active} role={workspace.data?.role ?? 'viewer'} opened onClose={commentsDrawer.close} />}
       {workspace.data && (
         <WorkspaceSettings

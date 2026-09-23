@@ -141,6 +141,9 @@ func (s *Service) CreateManualVersion(ctx context.Context, userID, itemID, label
 			return ContentVersion{}, err
 		}
 	}
+	if err := recordActivityTx(ctx, tx, item.WorkspaceID, &item.ID, item.Title, userID, "version_created", "创建了手动历史版本", version.CreatedAt); err != nil {
+		return ContentVersion{}, err
+	}
 	if err := tx.Commit(); err != nil {
 		return ContentVersion{}, err
 	}
@@ -621,10 +624,14 @@ func captureAutomaticVersionTx(ctx context.Context, tx *sql.Tx, userID, itemID, 
 	if _, err := tx.ExecContext(ctx, `DELETE FROM item_versions WHERE kind='automatic' AND item_id=? AND id IN (
  SELECT id FROM (SELECT id,row_number() OVER(ORDER BY created_at DESC,id DESC) AS position
  FROM item_versions WHERE item_id=? AND kind='automatic') WHERE position>?
- )`, itemID, itemID, MaxAutomaticVersionsPerItem); err != nil {
+	)`, itemID, itemID, MaxAutomaticVersionsPerItem); err != nil {
 		return err
 	}
-	return nil
+	var itemTitle string
+	if err := tx.QueryRowContext(ctx, `SELECT title FROM items WHERE id=?`, itemID).Scan(&itemTitle); err != nil {
+		return err
+	}
+	return recordCoalescedActivityTx(ctx, tx, workspaceID, &itemID, itemTitle, userID, "content_checkpoint", "保存了内容检查点", now, AutomaticVersionMergeWindow)
 }
 
 func pruneAutomaticVersionsTx(ctx context.Context, tx *sql.Tx, workspaceID string, now time.Time) error {

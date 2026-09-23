@@ -55,6 +55,7 @@ func (a *API) Routes() http.Handler {
 		r.Patch("/workspaces/{workspaceId}", a.csrfRequired(a.renameWorkspace))
 		r.Delete("/workspaces/{workspaceId}", a.csrfRequired(a.deleteWorkspace))
 		r.Get("/workspaces/{workspaceId}/members", a.listMembers)
+		r.Get("/workspaces/{workspaceId}/activity", a.listWorkspaceActivity)
 		r.Patch("/workspaces/{workspaceId}/members/{userId}", a.csrfRequired(a.updateMember))
 		r.Delete("/workspaces/{workspaceId}/members/{userId}", a.csrfRequired(a.removeMember))
 		r.Get("/workspaces/{workspaceId}/invites", a.listInvites)

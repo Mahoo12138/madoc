@@ -105,6 +105,9 @@ func (s *Service) createItemWithInitialState(ctx context.Context, userID, worksp
 			return Item{}, err
 		}
 	}
+	if err := recordActivityTx(ctx, tx, workspaceID, &item.ID, item.Title, userID, "item_created", "创建了此内容", now); err != nil {
+		return Item{}, err
+	}
 	if err := tx.Commit(); err != nil {
 		return Item{}, err
 	}
@@ -133,11 +136,21 @@ func (s *Service) RenameItem(ctx context.Context, userID, itemID, title string) 
 		return err
 	}
 	defer tx.Rollback()
-	if _, err := itemAccess(ctx, tx, userID, itemID, true); err != nil {
+	item, err := itemAccess(ctx, tx, userID, itemID, true)
+	if err != nil {
+		return err
+	}
+	var oldTitle string
+	if err := tx.QueryRowContext(ctx, `SELECT title FROM items WHERE id=?`, itemID).Scan(&oldTitle); err != nil {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, `UPDATE items SET title=?,updated_at=? WHERE id=?`, title, time.Now().UTC(), itemID); err != nil {
 		return err
+	}
+	if oldTitle != title {
+		if err := recordActivityTx(ctx, tx, item.WorkspaceID, &item.ID, title, userID, "item_renamed", "重命名了此内容", time.Now().UTC()); err != nil {
+			return err
+		}
 	}
 	return tx.Commit()
 }
@@ -148,9 +161,9 @@ func (s *Service) MoveItem(ctx context.Context, userID, itemID string, parentID 
 		return err
 	}
 	defer tx.Rollback()
-	var workspaceID, role string
+	var workspaceID, role, title string
 	var oldParent sql.NullString
-	err = tx.QueryRowContext(ctx, `SELECT i.workspace_id,i.parent_id,m.role FROM items i JOIN workspace_members m ON m.workspace_id=i.workspace_id AND m.user_id=? WHERE i.id=? AND i.deletion_batch_id IS NULL`, userID, itemID).Scan(&workspaceID, &oldParent, &role)
+	err = tx.QueryRowContext(ctx, `SELECT i.workspace_id,i.parent_id,m.role,i.title FROM items i JOIN workspace_members m ON m.workspace_id=i.workspace_id AND m.user_id=? WHERE i.id=? AND i.deletion_batch_id IS NULL`, userID, itemID).Scan(&workspaceID, &oldParent, &role, &title)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrForbidden
 	}
@@ -237,6 +250,9 @@ func (s *Service) MoveItem(ctx context.Context, userID, itemID string, parentID 
 			return err
 		}
 		if err := reindexItems(ctx, tx, oldIDs); err != nil {
+			return err
+		}
+		if err := recordActivityTx(ctx, tx, workspaceID, &itemID, title, userID, "item_moved", "移动了此内容", time.Now().UTC()); err != nil {
 			return err
 		}
 	}

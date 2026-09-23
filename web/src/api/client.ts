@@ -1,4 +1,4 @@
-import type { BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, User, WhiteboardState, Workspace } from './types';
+import type { ActivityEvent, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -29,6 +29,7 @@ export const api = {
   renameWorkspace: (id: string, name: string) => request<void>(`/workspaces/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
   deleteWorkspace: (id: string) => request<void>(`/workspaces/${id}`, { method: 'DELETE' }),
   members: (workspaceId: string) => request<Member[]>(`/workspaces/${workspaceId}/members`),
+  workspaceActivity: (workspaceId: string, before = '', limit = 30) => request<{ events: ActivityEvent[]; nextBefore: string }>(`/workspaces/${workspaceId}/activity?${new URLSearchParams({ before, limit: String(limit) })}`, { cache: 'no-store' }),
   updateMember: (workspaceId: string, userId: string, role: Role) => request<void>(`/workspaces/${workspaceId}/members/${userId}`, { method: 'PATCH', body: JSON.stringify({ role }) }),
   removeMember: (workspaceId: string, userId: string) => request<void>(`/workspaces/${workspaceId}/members/${userId}`, { method: 'DELETE' }),
   invites: (workspaceId: string) => request<Invite[]>(`/workspaces/${workspaceId}/invites`),

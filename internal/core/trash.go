@@ -37,6 +37,9 @@ func (s *Service) DeleteItem(ctx context.Context, userID, itemID string) error {
 	}
 	batchID := uuid.NewString()
 	now := time.Now().UTC()
+	if err := recordActivityTx(ctx, tx, item.WorkspaceID, &item.ID, item.Title, userID, "item_trashed", "移入了回收站", now); err != nil {
+		return err
+	}
 	if _, err := tx.ExecContext(ctx, `INSERT INTO item_deletion_batches(id,workspace_id,root_item_id,original_parent_id,deleted_by,deleted_at) VALUES(?,?,?,?,?,?)`, batchID, item.WorkspaceID, item.ID, item.ParentID, userID, now); err != nil {
 		return err
 	}
@@ -91,10 +94,10 @@ func (s *Service) RestoreTrash(ctx context.Context, userID, workspaceID, batchID
 	if err := requireWorkspaceWrite(ctx, tx, userID, workspaceID); err != nil {
 		return err
 	}
-	var rootID string
+	var rootID, rootTitle string
 	var originalParent *string
-	err = tx.QueryRowContext(ctx, `SELECT b.root_item_id,b.original_parent_id FROM item_deletion_batches b
- JOIN items i ON i.id=b.root_item_id AND i.deletion_batch_id=b.id WHERE b.id=? AND b.workspace_id=?`, batchID, workspaceID).Scan(&rootID, &originalParent)
+	err = tx.QueryRowContext(ctx, `SELECT b.root_item_id,b.original_parent_id,i.title FROM item_deletion_batches b
+ JOIN items i ON i.id=b.root_item_id AND i.deletion_batch_id=b.id WHERE b.id=? AND b.workspace_id=?`, batchID, workspaceID).Scan(&rootID, &originalParent, &rootTitle)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrNotFound
 	}
@@ -124,6 +127,9 @@ func (s *Service) RestoreTrash(ctx context.Context, userID, workspaceID, batchID
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, `DELETE FROM item_deletion_batches WHERE id=?`, batchID); err != nil {
+		return err
+	}
+	if err := recordActivityTx(ctx, tx, workspaceID, &rootID, rootTitle, userID, "item_restored", "从回收站恢复了内容", time.Now().UTC()); err != nil {
 		return err
 	}
 	return tx.Commit()
