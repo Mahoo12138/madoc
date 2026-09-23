@@ -70,7 +70,7 @@ test('partial ACK and remote scenes cannot confirm pending local changes or crea
     await expect(peer.getByText('Saved', { exact: true })).toBeVisible();
     const downloadReady = peer.waitForEvent('download');
     await peer.getByRole('button', { name: '导出', exact: true }).click();
-    await peer.getByRole('menuitem', { name: 'Excalidraw JSON' }).click();
+    await peer.getByRole('menuitem', { name: 'Excalidraw JSON', exact: true }).click();
     const { readFile } = await import('node:fs/promises');
     const exported = JSON.parse(await readFile((await (await downloadReady).path())!, 'utf8'));
     expect(normalizedBoardElements(exported.elements)).toEqual(normalizedBoardElements(saved.scene.elements));
@@ -98,7 +98,7 @@ test('switching boards keeps editor contents isolated', async ({ page }) => {
   await expect(page.getByText('Saved', { exact: true })).toBeVisible();
   const ready = page.waitForEvent('download');
   await page.getByRole('button', { name: '导出', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Excalidraw JSON' }).click();
+  await page.getByRole('menuitem', { name: 'Excalidraw JSON', exact: true }).click();
   const { readFile } = await import('node:fs/promises');
   expect(JSON.parse(await readFile((await (await ready).path())!, 'utf8')).elements).toEqual([]);
   await page.getByText('Save state board', { exact: true }).click();
