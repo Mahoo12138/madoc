@@ -17,6 +17,10 @@ test('Markdown history creates named checkpoints, previews old text, and restore
   await page.keyboard.insertText('After edit');
   await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   const sourceBeforeRestore = await (await page.request.get(`/api/items/${sourceId}/markdown`)).json();
+  const workspaceId = new URL(page.url()).pathname.split('/')[2]!;
+  const peer = await page.context().newPage();
+  await peer.goto(`/workspace/${workspaceId}/${sourceId}`);
+  await expect(peer.locator('aside').getByRole('button', { name: 'Inline writing', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: '版本历史' }).click();
   dialog = page.getByRole('dialog', { name: '版本历史' });
@@ -28,6 +32,8 @@ test('Markdown history creates named checkpoints, previews old text, and restore
 
   await expect(page.getByRole('dialog', { name: '版本历史' })).toHaveCount(0);
   await expect(page.locator('.ProseMirror')).toHaveText('Before edit');
+  await expect(peer.locator('aside').getByRole('button', { name: 'Recovered draft', exact: true })).toBeVisible();
+  await peer.close();
   const copyId = new URL(page.url()).pathname.split('/').pop();
   expect(copyId).not.toBe(sourceId);
   const current = await (await page.request.get(`/api/items/${sourceId}/markdown`)).json();

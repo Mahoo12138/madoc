@@ -587,6 +587,7 @@ func (a *API) restoreItemVersionCopy(w http.ResponseWriter, r *http.Request) {
 		domainError(w, err)
 		return
 	}
+	a.notifyWorkspace(item.WorkspaceID)
 	writeJSON(w, http.StatusCreated, map[string]any{"item": item})
 }
 
