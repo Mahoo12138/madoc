@@ -249,3 +249,19 @@ MVP 不需要 URL `/v1`。
 如果未来公开第三方 API，再引入 `/api/v1`。
 
 当前 API 是 madoc frontend 的内部产品 API。
+
+## 内容包原子导入
+
+`POST /api/workspaces/{workspaceId}/imports` 需要 session、CSRF 与 owner / editor 权限。
+请求为 multipart/form-data，首项必须是无文件名的 `plan` JSON 字段，其余文件字段名为目标
+附件 UUID；完整字段及事务边界见 `CONTENT_IMPORT.md` 和 `core.ContentImport`。
+
+`plan` 包含请求 `id`、目标 `parentId`、单根 `items` 和 `assets`。Item 的 `parentId` 仅引用
+本组条目；Markdown 使用 `markdown: {snapshot: base64, markdown: string}`，白板使用
+`whiteboard: string`（scene JSON）。附件声明为 `id/itemId/fileName/mime/size/sha256`，
+服务端读取真实字节验证，不接受客户端存储路径。所有目标 ID 必须是新 UUID，不覆盖旧记录。
+
+首次成功返回 201，原样重放返回 200；响应为
+`{rootId, itemCount, attachmentCount, replayed}`，设置 `Cache-Control: no-store`。
+无效数据或缺失附件返回 400，权限 / CSRF 拒绝返回 403，ID / 根名称 / 回执内容冲突返回 409，
+超出整体传输大小上限返回 413。文件与数据库联合提交完成后才广播目录更新。

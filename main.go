@@ -86,6 +86,9 @@ func main() {
 	authService := auth.New(conn)
 	domain := core.New(conn)
 	assetService := asset.New(conn, domain, cfg.AssetDir, cfg.MaxUploadMB)
+	if err := assetService.RecoverImports(context.Background()); err != nil {
+		log.Fatalf("recover incomplete content imports: %v", err)
+	}
 	hub := realtime.New(authService, domain, cfg.Dev)
 	apiHandler := api.New(authService, auth.NewCSRF(cfg.Secret), domain, assetService, account.New(conn, cfg.AssetDir), hub, !cfg.Dev)
 

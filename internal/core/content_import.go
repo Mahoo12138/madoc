@@ -20,6 +20,15 @@ func (s *Service) ImportContent(ctx context.Context, userID, workspaceID string,
 	if err != nil {
 		return ImportResult{}, err
 	}
+	for _, asset := range plan.Assets {
+		if asset.StorageKey == "" {
+			continue
+		}
+		parts := strings.Split(filepath.ToSlash(asset.StorageKey), "/")
+		if len(parts) != 4 || parts[0] != workspaceID || parts[1] != ".imports" || !validImportID(parts[2]) || parts[3] != asset.ID || filepath.Clean(asset.StorageKey) != asset.StorageKey {
+			return ImportResult{}, ErrInvalid
+		}
+	}
 	hasher := sha256.New()
 	if err := json.NewEncoder(hasher).Encode(plan); err != nil {
 		return ImportResult{}, err
@@ -111,7 +120,11 @@ func (s *Service) ImportContent(ctx context.Context, userID, workspaceID string,
 		}
 	}
 	for _, asset := range plan.Assets {
-		if _, err := tx.ExecContext(ctx, `INSERT INTO assets(id,workspace_id,item_id,file_name,mime,size,sha256,storage_key,created_by,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)`, asset.ID, workspaceID, asset.ItemID, asset.FileName, asset.MIME, asset.Size, asset.SHA256, filepath.Join(workspaceID, asset.ID), userID, now); err != nil {
+		storageKey := asset.StorageKey
+		if storageKey == "" {
+			storageKey = filepath.Join(workspaceID, asset.ID)
+		}
+		if _, err := tx.ExecContext(ctx, `INSERT INTO assets(id,workspace_id,item_id,file_name,mime,size,sha256,storage_key,created_by,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)`, asset.ID, workspaceID, asset.ItemID, asset.FileName, asset.MIME, asset.Size, asset.SHA256, storageKey, userID, now); err != nil {
 			return ImportResult{}, err
 		}
 	}

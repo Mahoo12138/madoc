@@ -26,12 +26,19 @@ type ImportItem struct {
 // assertion that a file exists. The file-storage coordinator must ensure all
 // payloads are durable before calling ImportContent, and handle rollback cleanup.
 type ImportAsset struct {
-	ID       string `json:"id"`
-	ItemID   string `json:"itemId"`
-	FileName string `json:"fileName"`
-	MIME     string `json:"mime"`
-	Size     int64  `json:"size"`
-	SHA256   string `json:"sha256"`
+	StorageKey string `json:"-"`
+	ID         string `json:"id"`
+	ItemID     string `json:"itemId"`
+	FileName   string `json:"fileName"`
+	MIME       string `json:"mime"`
+	Size       int64  `json:"size"`
+	SHA256     string `json:"sha256"`
+}
+
+// ValidateContentImport checks a plan before the file coordinator stages payloads.
+func ValidateContentImport(plan ContentImport) error {
+	_, err := validateImport(plan)
+	return err
 }
 
 type ContentImport struct {

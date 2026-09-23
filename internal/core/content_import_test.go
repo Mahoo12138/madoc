@@ -358,3 +358,24 @@ func TestImportContentPlanCapacityBoundaries(t *testing.T) {
 		t.Fatalf("overflow count accepted: %v", err)
 	}
 }
+
+func TestImportContentStorageKeyIsInternalAndWorkspaceBound(t *testing.T) {
+	f := newFixture(t)
+	for _, key := range []string{"../secret", f.space.ID + "/wrong/path", uuid.NewString() + "/.imports/" + uuid.NewString() + "/asset"} {
+		plan := importFixture()
+		plan.Assets[0].StorageKey = key
+		if _, err := f.core.ImportContent(f.ctx, f.owner.ID, f.space.ID, plan); !errors.Is(err, ErrInvalid) {
+			t.Fatalf("unsafe storage key accepted: %v", err)
+		}
+		assertImportCounts(t, f, []int{0, 0, 0, 0, 0})
+	}
+	plan := importFixture()
+	plan.Assets[0].StorageKey = f.space.ID + "/.imports/" + uuid.NewString() + "/" + plan.Assets[0].ID
+	if _, err := f.core.ImportContent(f.ctx, f.owner.ID, f.space.ID, plan); err != nil {
+		t.Fatal(err)
+	}
+	plan.Assets[0].StorageKey = f.space.ID + "/.imports/" + uuid.NewString() + "/" + plan.Assets[0].ID
+	if result, err := f.core.ImportContent(f.ctx, f.owner.ID, f.space.ID, plan); err != nil || !result.Replayed {
+		t.Fatalf("physical retry path changed logical digest: %+v %v", result, err)
+	}
+}

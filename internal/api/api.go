@@ -66,6 +66,7 @@ func (a *API) Routes() http.Handler {
 		r.Delete("/workspaces/{workspaceId}/trash/{batchId}", a.csrfRequired(a.purgeTrash))
 		r.Post("/workspaces/{workspaceId}/trash/{batchId}/restore", a.csrfRequired(a.restoreTrash))
 		r.Post("/workspaces/{workspaceId}/items", a.csrfRequired(a.createItem))
+		r.Post("/workspaces/{workspaceId}/imports", a.csrfRequired(a.importContent))
 		r.Get("/items/{itemId}", a.getItem)
 		r.Put("/items/{itemId}/favorite", a.csrfRequired(a.setFavorite))
 		r.Delete("/items/{itemId}/favorite", a.csrfRequired(a.setFavorite))
