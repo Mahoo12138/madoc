@@ -128,7 +128,7 @@ test('typing creates a footnote reference and definition without losing body tex
   await page.keyboard.press('Enter');
   await page.keyboard.insertText('脚注第二段');
   await expect(page.locator(`${defSelector} dd > p`)).toHaveCount(2);
-  await expect.poll(async () => (await (await page.request.get(`/api/items/${id}/export.md`)).text())).toContain('[^new]:');
+  await expect.poll(async () => (await (await page.request.get(`/api/items/${id}/export.md`)).text())).toContain('脚注第二段');
   await page.reload();
   await expect(page.locator(refSelector)).toHaveCount(1);
   await expect(page.locator(`${defSelector} dd > p`)).toHaveCount(2);
