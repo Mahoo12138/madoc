@@ -150,7 +150,30 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	if err != nil || (role != "owner" && role != "editor") {
 		return core.ErrForbidden
 	}
-	if _, err := s.db.ExecContext(ctx, `DELETE FROM assets WHERE id=?`, id); err != nil {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var protected int
+	if err := tx.QueryRowContext(ctx, `SELECT count(*) FROM item_version_assets WHERE asset_id=?`, id).Scan(&protected); err != nil {
+		return err
+	}
+	if protected > 0 {
+		return core.ErrAssetVersionProtected
+	}
+	result, err := tx.ExecContext(ctx, `DELETE FROM assets WHERE id=? AND NOT EXISTS(SELECT 1 FROM item_version_assets WHERE asset_id=?)`, id, id)
+	if err != nil {
+		return err
+	}
+	deleted, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if deleted == 0 {
+		return core.ErrNotFound
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return os.Remove(filepath.Join(s.root, filepath.Clean(asset.StorageKey)))

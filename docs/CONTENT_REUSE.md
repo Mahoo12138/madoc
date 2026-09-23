@@ -118,7 +118,26 @@ Markdown 或 Excalidraw 内部结构。后续目录导出可为每个 Item 分�
 记录各自水位与时间；不得宣称整个目录或 Workspace 是原子快照。
 
 文件夹带附件迁出逐项固定捕获、水位和资源映射；不能直接以可能滞后的 Markdown cache
-创建导出包。版本历史在阶段 3 将复用同一捕获数据，并另行确定持久化、容量和清理策略。
+创建导出包。阶段 3 的持久版本沿用相同捕获结构，并将不可变状态单独保存，因此后续
+compaction 不会改写历史。
+
+### 持久内容版本：第一部分
+
+Migration 0010 增加 `item_versions`、Markdown 尾部 `item_version_updates` 和附件引用表
+`item_version_assets`。Markdown 版本保存 generation、snapshotSeq、headSeq、Yjs snapshot、
+有序增量和同一事务观察到的完整 Markdown 投影；白板版本保存 revision 与完整 scene。
+创建要求 Markdown projection 的 cacheSeq 与 headSeq 相等，避免把滞后正文标成完整版本。
+捕获与写入处在同一 SQLite 事务中，后续 compaction / 更新不改变已保存的数据。
+
+`POST /api/items/{itemId}/versions` 创建带名称的手动版本，`GET` 同路径分页列出，
+`GET /api/items/{itemId}/versions/{versionId}` 读取固定内容。owner/editor 可创建，Workspace
+成员（包括 viewer）可读，版本写入仍经过 Item 写权限检查。每个版本自动引用该 Item 所有
+附件，并可附加提交的同工作区附件 ID；外部工作区附件会整体拒绝。版本引用期间，附件
+删除返回 `ASSET_VERSION_PROTECTED`，metadata 和文件都保留。Workspace / Item 的显式级联
+清理可在同一事务移除版本与资源，不会留下悬空 FK。
+
+本部分只建立手动版本与固定状态读取，不实现自动版本、保留清理、历史容量计量、差异 / 预览
+和恢复为副本；这些依赖的 API / UI 在后续部分单独实现。
 
 ## 单篇 Markdown 可移植导出
 

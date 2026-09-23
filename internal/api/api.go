@@ -76,6 +76,9 @@ func (a *API) Routes() http.Handler {
 		r.Post("/items/{itemId}/move", a.csrfRequired(a.moveItem))
 		r.Post("/items/{itemId}/duplicate", a.csrfRequired(a.duplicateItem))
 		r.Get("/items/{itemId}/capture", a.captureItem)
+		r.Get("/items/{itemId}/versions", a.listItemVersions)
+		r.Post("/items/{itemId}/versions", a.csrfRequired(a.createItemVersion))
+		r.Get("/items/{itemId}/versions/{versionId}", a.getItemVersion)
 		r.Get("/items/{itemId}/markdown", a.getMarkdown)
 		r.Put("/items/{itemId}/markdown", a.csrfRequired(a.resetMarkdown))
 		r.Get("/items/{itemId}/export.md", a.exportMarkdown)
@@ -123,6 +126,8 @@ func domainError(w http.ResponseWriter, err error) {
 		writeError(w, 403, "FORBIDDEN", "operation is not allowed")
 	case errors.Is(err, core.ErrRestoreDestination):
 		writeError(w, 409, "RESTORE_DESTINATION_REQUIRED", "原目录不可用，请选择恢复位置")
+	case errors.Is(err, core.ErrAssetVersionProtected):
+		writeError(w, 409, "ASSET_VERSION_PROTECTED", "该附件仍被历史版本引用，暂时不能删除")
 	case errors.Is(err, core.ErrConflict):
 		writeError(w, 409, "CONFLICT", "resource changed or invariant would be violated")
 	case errors.Is(err, core.ErrInvalid):
@@ -505,6 +510,54 @@ func (a *API) captureItem(w http.ResponseWriter, r *http.Request) {
 		Markdown   *core.MarkdownState `json:"markdown,omitempty"`
 		Whiteboard *whiteboardCapture  `json:"whiteboard,omitempty"`
 	}{Item: v.Item, CapturedAt: v.CapturedAt, Markdown: v.Markdown, Whiteboard: whiteboard})
+}
+
+func (a *API) listItemVersions(w http.ResponseWriter, r *http.Request) {
+	limit := core.DefaultVersionPageSize
+	if raw := r.URL.Query().Get("limit"); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil {
+			domainError(w, core.ErrInvalid)
+			return
+		}
+		limit = parsed
+	}
+	versions, err := a.core.ListContentVersions(r.Context(), userID(r), chi.URLParam(r, "itemId"), r.URL.Query().Get("before"), limit)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+	var nextBefore string
+	if len(versions) == limit && len(versions) > 0 {
+		nextBefore = versions[len(versions)-1].ID
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"versions": versions, "nextBefore": nextBefore})
+}
+
+func (a *API) createItemVersion(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Label    string   `json:"label"`
+		AssetIDs []string `json:"assetIds"`
+	}
+	if err := decode(r, &body); err != nil {
+		domainError(w, core.ErrInvalid)
+		return
+	}
+	version, err := a.core.CreateManualVersion(r.Context(), userID(r), chi.URLParam(r, "itemId"), body.Label, body.AssetIDs)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]any{"version": version})
+}
+
+func (a *API) getItemVersion(w http.ResponseWriter, r *http.Request) {
+	version, err := a.core.GetContentVersion(r.Context(), userID(r), chi.URLParam(r, "itemId"), chi.URLParam(r, "versionId"))
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, version)
 }
 func (a *API) resetMarkdown(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "itemId")

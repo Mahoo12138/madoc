@@ -6,11 +6,12 @@ import (
 )
 
 var (
-	ErrGeneration = errors.New("content generation changed")
-	ErrNotFound   = errors.New("not found")
-	ErrForbidden  = errors.New("forbidden")
-	ErrConflict   = errors.New("conflict")
-	ErrInvalid    = errors.New("invalid request")
+	ErrGeneration            = errors.New("content generation changed")
+	ErrNotFound              = errors.New("not found")
+	ErrForbidden             = errors.New("forbidden")
+	ErrConflict              = errors.New("conflict")
+	ErrAssetVersionProtected = errors.New("asset is retained by a content version")
+	ErrInvalid               = errors.New("invalid request")
 )
 
 type Workspace struct {
@@ -71,4 +72,27 @@ type MarkdownUpdate struct {
 type WhiteboardState struct {
 	Revision int64  `json:"revision"`
 	Scene    string `json:"scene"`
+}
+
+type ContentVersion struct {
+	ID                 string    `json:"id"`
+	ItemID             string    `json:"itemId"`
+	WorkspaceID        string    `json:"workspaceId"`
+	ContentType        string    `json:"contentType"`
+	Kind               string    `json:"kind"`
+	Label              *string   `json:"label,omitempty"`
+	CreatedBy          *string   `json:"createdBy,omitempty"`
+	Generation         *int64    `json:"generation,omitempty"`
+	SnapshotSeq        *int64    `json:"snapshotSeq,omitempty"`
+	HeadSeq            *int64    `json:"headSeq,omitempty"`
+	WhiteboardRevision *int64    `json:"whiteboardRevision,omitempty"`
+	PayloadBytes       int64     `json:"payloadBytes"`
+	CreatedAt          time.Time `json:"createdAt"`
+}
+
+type ContentVersionDetail struct {
+	Version    ContentVersion   `json:"version"`
+	Markdown   *MarkdownState   `json:"markdown,omitempty"`
+	Whiteboard *WhiteboardState `json:"whiteboard,omitempty"`
+	AssetIDs   []string         `json:"assetIds"`
 }

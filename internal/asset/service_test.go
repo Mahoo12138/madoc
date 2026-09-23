@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -34,6 +35,66 @@ func uploadHeader(t *testing.T, name, mime string, content []byte) *multipart.Fi
 		t.Fatal(err)
 	}
 	return request.MultipartForm.File["file"][0]
+}
+
+func TestVersionReferencePreventsAssetDeletion(t *testing.T) {
+	ctx := context.Background()
+	conn, err := db.Open(filepath.Join(t.TempDir(), "madoc.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	authService := auth.New(conn)
+	owner, _, err := authService.SetupAdmin(ctx, "Owner", "owner@example.com", "password123")
+	if err != nil {
+		t.Fatal(err)
+	}
+	domain := core.New(conn)
+	space, err := domain.CreateWorkspace(ctx, owner.ID, "Assets")
+	if err != nil {
+		t.Fatal(err)
+	}
+	doc, err := domain.CreateItem(ctx, owner.ID, space.ID, "markdown", "Doc", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	service := New(conn, domain, t.TempDir(), 20)
+	png := append([]byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}, bytes.Repeat([]byte{0}, 520)...)
+	itemAsset, err := service.Save(ctx, owner.ID, space.ID, &doc.ID, uploadHeader(t, "kept.png", "image/png", png))
+	if err != nil {
+		t.Fatal(err)
+	}
+	seq, err := domain.AppendMarkdownUpdate(ctx, owner.ID, doc.ID, "client-1", []byte{1}, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := domain.UpdateMarkdownCache(ctx, owner.ID, doc.ID, "body", seq, 0); err != nil {
+		t.Fatal(err)
+	}
+	version, err := domain.CreateManualVersion(ctx, owner.ID, doc.ID, "Has image", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := service.Delete(ctx, owner.ID, itemAsset.ID); !errors.Is(err, core.ErrAssetVersionProtected) {
+		t.Fatalf("referenced asset delete error = %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(service.root, itemAsset.StorageKey)); err != nil {
+		t.Fatalf("referenced asset file was removed: %v", err)
+	}
+	var refs int
+	if err := conn.QueryRow(`SELECT count(*) FROM item_version_assets WHERE version_id=? AND asset_id=?`, version.ID, itemAsset.ID).Scan(&refs); err != nil || refs != 1 {
+		t.Fatalf("version reference count = %d, %v", refs, err)
+	}
+	freeAsset, err := service.Save(ctx, owner.ID, space.ID, nil, uploadHeader(t, "free.png", "image/png", png))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := service.Delete(ctx, owner.ID, freeAsset.ID); err != nil {
+		t.Fatalf("unreferenced asset delete: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(service.root, freeAsset.StorageKey)); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("unreferenced asset file still exists: %v", err)
+	}
 }
 
 func TestAssetUploadInspectionAndPrivateDownload(t *testing.T) {
