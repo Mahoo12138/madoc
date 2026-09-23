@@ -46,7 +46,7 @@ export function CreateDocument({
         const initialMarkdown = selected.markdown
           ? await (
               await import('@/features/markdown/markdown-template')
-            ).compileTemplate(selected.markdown)
+            ).compileMarkdownSnapshot(selected.markdown)
           : undefined;
         posting = true;
         created.current = await request<Item>(

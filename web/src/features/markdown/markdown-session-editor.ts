@@ -59,16 +59,17 @@ const doubleBacktickInput = $prose((ctx) => {
   });
 });
 
-export function createMarkdownCrepe({ root, itemId, uploadImage, onInlinePreviewChange, onOutlineChange }: {
+export function createMarkdownCrepe({ root, itemId, uploadImage, onInlinePreviewChange, onOutlineChange, defaultValue = '' }: {
   root: HTMLElement;
   itemId: string;
   uploadImage: (file: File) => Promise<string>;
   onInlinePreviewChange: (preview: InlineMathPreview | null) => void;
   onOutlineChange: (outline: MarkdownOutline | null) => void;
+  defaultValue?: string;
 }) {
   const crepe = new Crepe({
     root,
-    defaultValue: '',
+    defaultValue,
     featureConfigs: {
       [Crepe.Feature.Cursor]: { virtual: false },
       [Crepe.Feature.CodeMirror]: {

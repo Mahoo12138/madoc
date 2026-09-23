@@ -1,5 +1,6 @@
 import { MarkdownSource } from './markdown-source';
 import { MarkdownFindReplace } from './markdown-find-replace';
+import { MarkdownImportDialog } from './markdown-import-dialog';
 import type { MarkdownFindController } from './markdown-find';
 import { registerContentSave } from '@/features/content/content-save';
 import { exportConfirmedMarkdown } from './markdown-export';
@@ -11,7 +12,6 @@ import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Button, Loader } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { api } from '@/api/client';
 import { useMarkdown, useWorkspaceMutations } from '@/api/hooks';
 import type { Item, Role, User } from '@/api/types';
 import type { RealtimeClient } from '@/features/realtime/client';
@@ -42,6 +42,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const typewriterModeRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [sourceOpened, setSourceOpened] = useState(false);
+  const [importFile, setImportFile] = useState<File>();
   const [findOpened, setFindOpened] = useState(false);
   const findControllerRef = useRef<MarkdownFindController>();
   const [readingMode, setReadingMode] = useState(role === 'viewer');
@@ -142,22 +143,6 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
     }
   };
 
-  const importMarkdown = async (file?: File) => {
-    if (!file) return;
-    try {
-      const markdown = await file.text();
-      realtimeRef.current?.close();
-      await new Promise((resolve) => window.setTimeout(resolve, 150));
-      await api.resetMarkdown(item.id, '', markdown);
-      location.reload();
-    } catch (error) {
-      notifications.show({
-        color: 'red',
-        message: error instanceof Error ? error.message : '导入失败。请关闭其他协作窗口后重试。',
-      });
-    }
-  };
-
   if (initial.isLoading) return <div className={styles.page}><Loader size="sm" /></div>;
 
   const editorClassName = [styles.editor, !readingMode && focusMode ? styles.focusMode : '', !readingMode && typewriterMode ? styles.typewriterMode : '']
@@ -218,11 +203,22 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
         <input
           ref={importRef}
           type="file"
-          accept=".md,text/markdown"
+          accept=".md,.markdown,text/markdown"
           hidden
-          onChange={(event) => void importMarkdown(event.target.files?.[0])}
+          onChange={(event) => {
+            setImportFile(event.currentTarget.files?.[0]);
+            event.currentTarget.value = '';
+          }}
         />
       </div>
+      {role !== 'viewer' && (
+        <MarkdownImportDialog
+          file={importFile}
+          workspaceId={item.workspaceId}
+          parentId={item.parentId ?? null}
+          onClose={() => setImportFile(undefined)}
+        />
+      )}
       {exporter.busy && <div role="status">{exporter.packageBusy ? '正在确认修改并打包附件…' : '正在确认修改并准备导出…'}</div>}
       {exporter.error && (
         <Alert color="orange" title="导出尚未完成" role="alert">

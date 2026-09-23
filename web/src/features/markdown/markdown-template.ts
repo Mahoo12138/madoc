@@ -1,14 +1,20 @@
-import { Crepe } from '@milkdown/crepe';
 import { editorStateCtx } from '@milkdown/kit/core';
 import { prosemirrorToYDoc } from 'y-prosemirror';
 import { encodeStateAsUpdate } from 'yjs';
 import { toBase64 } from '@/features/realtime/client';
+import { createMarkdownCrepe } from './markdown-session-editor';
 
-// Compile only the small built-in templates. Ordinary document reuse is handled
-// by server-side duplication, preserving its full existing collaboration state.
-export async function compileTemplate(markdown: string) {
+// Compile initial Markdown using the same schema as live documents, without joining a room.
+export async function compileMarkdownSnapshot(markdown: string) {
   const root = document.createElement('div');
-  const editor = new Crepe({ root, defaultValue: markdown });
+  const editor = createMarkdownCrepe({
+    root,
+    itemId: 'initial-markdown',
+    defaultValue: markdown,
+    uploadImage: async () => { throw new Error('初始 Markdown 不会上传附件'); },
+    onInlinePreviewChange: () => {},
+    onOutlineChange: () => {},
+  });
   try {
     await editor.create();
     return editor.editor.action((ctx) => {
