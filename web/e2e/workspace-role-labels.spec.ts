@@ -20,9 +20,12 @@ test('workspace role labels are localized while API role values remain unchanged
   const drawer = page.getByRole('dialog', { name: '成员与邀请' });
   await expect(drawer.getByRole('textbox').first()).toHaveValue('所有者');
   await drawer.getByRole('tab', { name: '邀请' }).click();
-  await expect(drawer).toContainText('查看者 · pending');
+  await expect(drawer).toContainText('查看者 · 待接受');
   const roleSelect = drawer.getByRole('textbox').nth(1);
   await roleSelect.click();
   await expect(page.getByRole('option', { name: '编辑者' })).toBeVisible();
   await expect(page.getByRole('option', { name: '查看者' })).toBeVisible();
+  await expect(drawer).toContainText('可创建、编辑和管理工作区内容。');
+  await page.getByRole('option', { name: '查看者' }).click();
+  await expect(drawer).toContainText('仅可查看工作区内容，不能修改。');
 });

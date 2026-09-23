@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useInvites, useMembers, useWorkspaceMutations } from '@/api/hooks';
 import type { Role } from '@/api/types';
-import { roleLabels } from './role-labels';
+import { inviteStatusLabel, roleDescriptions, roleLabels } from './role-labels';
 
 const memberRoleOptions = (['owner', 'editor', 'viewer'] as const).map((value) => ({
   value,
@@ -136,6 +136,9 @@ export function MemberDrawer({
                     }
                     data={inviteRoleOptions}
                   />
+                  <Text size="xs" c="dimmed" aria-live="polite">
+                    {roleDescriptions[role]}
+                  </Text>
                   <Button
                     onClick={invite}
                     loading={mutations.createInvite.isPending}
@@ -170,7 +173,7 @@ export function MemberDrawer({
                   <div>
                     <Text size="sm">{item.email}</Text>
                     <Text size="xs" c="dimmed">
-                      {roleLabels[item.role]} · {item.status}
+                      {roleLabels[item.role]} · {inviteStatusLabel(item.status)}
                     </Text>
                   </div>
                 </Group>
