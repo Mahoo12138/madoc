@@ -16,6 +16,7 @@ import {
   FileInput as IconFileImport,
   Focus as IconFocus,
   Keyboard as IconKeyboard,
+  Search as IconSearch,
   Wifi as IconWifi,
   WifiOff as IconWifiOff,
 } from 'lucide-react';
@@ -54,6 +55,7 @@ export function MarkdownEditorControls({
   typewriterMode,
   onExport,
   onSource,
+  onFind,
   exporting,
   onImport,
   onToggleFocus,
@@ -67,6 +69,7 @@ export function MarkdownEditorControls({
   typewriterMode: boolean;
   onExport: () => void;
   onSource: () => void;
+  onFind: () => void;
   exporting: boolean;
   onImport: () => void;
   onToggleFocus: () => void;
@@ -144,6 +147,11 @@ export function MarkdownEditorControls({
         <Tooltip label="查看 Markdown 源码">
           <ActionIcon aria-label="查看 Markdown 源码" onClick={onSource}>
             <IconSource size={17} />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label="文内查找与替换">
+          <ActionIcon aria-label="文内查找与替换" onClick={onFind}>
+            <IconSearch size={17} />
           </ActionIcon>
         </Tooltip>
         <Tooltip label="导出 Markdown">

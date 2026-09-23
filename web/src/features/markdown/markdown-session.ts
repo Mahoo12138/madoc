@@ -12,6 +12,8 @@ import { fromBase64, RealtimeClient, toBase64 } from '@/features/realtime/client
 import { getMarkdownStats, type MarkdownStats } from './markdown-stats';
 import type { InlineMathPreview } from './markdown-inline-presentation';
 import type { MarkdownOutline } from './markdown-outline-model';
+import { createMarkdownFindController, type MarkdownFindController } from './markdown-find';
+import { editorViewCtx } from '@milkdown/kit/core';
 
 type InitPayload = {
   generation: number;
@@ -27,6 +29,7 @@ export type { SaveStatus } from './markdown-save-state';
 type MarkdownSessionOptions = {
   onReady: () => void;
   onExportReady: (source?: MarkdownExportSource) => void;
+  onFindReady: (controller?: MarkdownFindController) => void;
   onFailure: (message: string, download: () => void, retry?: () => void) => void;
   onRecovered: () => void;
   onLeaveGuardChange: (guard: { unsafe: () => boolean; settle: () => Promise<void> }) => void;
@@ -94,6 +97,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     onOutlineChange,
     onFailure,
     onExportReady,
+    onFindReady,
     onRecovered,
     onLeaveGuardChange,
   } = options;
@@ -132,6 +136,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   let latestMarkdown = initialMarkdown;
   let destroyed = false;
   let editorReady = false;
+  let findController: MarkdownFindController | undefined;
   let resolveInitial!: (payload: InitPayload) => void;
   let initialResolved = false;
   const initialReady = new Promise<InitPayload>((resolve) => { resolveInitial = resolve; });
@@ -415,6 +420,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     }
     persist(update, id, local);
   };
+  const onFindDocumentUpdate = () => queueMicrotask(() => findController?.notifyChanged());
   const onAwareness = (
     { added, updated, removed }: { added: number[]; updated: number[]; removed: number[] },
     origin: unknown,
@@ -426,6 +432,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     }
   };
   doc.on('update', onDocUpdate);
+  doc.on('update', onFindDocumentUpdate);
   awareness.on('update', onAwareness);
 
   void crepe.create().then(async () => {
@@ -437,6 +444,8 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
         .bindDoc(doc)
         .setAwareness(awareness);
       service.connect();
+      findController = createMarkdownFindController(ctx.get(editorViewCtx));
+      onFindReady(findController);
       if (doc.getXmlFragment('prosemirror').length === 0 && payload.markdown) service.applyTemplate(payload.markdown);
     });
     crepe.setReadonly(role === 'viewer' || halted);
@@ -450,6 +459,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   return () => {
     destroyed = true;
     onExportReady(undefined);
+    onFindReady(undefined);
     window.clearInterval(retryTimer);
     setPendingChanges(pendingKey, false);
     window.removeEventListener('madoc-profile-changed', updateIdentity);
@@ -468,6 +478,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     realtime.close();
     onRealtimeChange(undefined);
     doc.off('update', onDocUpdate);
+    doc.off('update', onFindDocumentUpdate);
     awareness.off('update', onAwareness);
     // Remove Yjs plugin bindings while Milkdown's editor context still exists.
     // Deferred awareness transactions must not target a destroyed editor.

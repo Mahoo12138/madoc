@@ -1,4 +1,6 @@
 import { MarkdownSource } from './markdown-source';
+import { MarkdownFindReplace } from './markdown-find-replace';
+import type { MarkdownFindController } from './markdown-find';
 import { registerContentSave } from '@/features/content/content-save';
 import { exportConfirmedMarkdown } from './markdown-export';
 import { useRecordVisit } from '@/api/personal-items';
@@ -40,6 +42,8 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const typewriterModeRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [sourceOpened, setSourceOpened] = useState(false);
+  const [findOpened, setFindOpened] = useState(false);
+  const findControllerRef = useRef<MarkdownFindController>();
   const [status, setStatus] = useState<SaveStatus>('Reconnecting');
   const [failure, setFailure] = useState<{ message: string; download: () => void; retry?: () => void } | null>(null);
   useRecordVisit(item, ready && !failure, user.id);
@@ -86,6 +90,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
           await exportConfirmedMarkdown(item.id, source, signal);
         });
       },
+      onFindReady: (controller) => { findControllerRef.current = controller; },
       onFailure: (message, download, retry) => { if (active) setFailure({ message, download, retry }); },
       onRecovered: () => { if (active) setFailure(null); },
       onLeaveGuardChange: (guard) => { leaveGuard.current = guard; },
@@ -176,6 +181,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
           typewriterMode={typewriterMode}
           onExport={() => void exporter.run()}
           onSource={() => setSourceOpened(true)}
+          onFind={() => setFindOpened(true)}
           exporting={exporter.busy}
           onImport={() => importRef.current?.click()}
           onToggleFocus={toggleFocusMode}
@@ -214,6 +220,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
       />
       <MarkdownMathPreview preview={inlinePreview} />
       {sourceOpened && <MarkdownSource title={item.title} read={exporter.inspect} onClose={() => setSourceOpened(false)} />}
+      {findOpened && <MarkdownFindReplace controller={findControllerRef.current} readonly={role === 'viewer'} onClose={() => setFindOpened(false)} />}
     </article>
   );
 }
