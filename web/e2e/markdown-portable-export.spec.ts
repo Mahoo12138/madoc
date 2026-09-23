@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { strFromU8, unzipSync } from 'fflate';
+import { strFromU8, unzipSync, zipSync } from 'fflate';
 import { openDocument } from './helpers/writing';
 
 const assetID = '8e1d4c7b-a9be-4c90-8c86-a43be9df7c11';
@@ -39,6 +39,52 @@ test('portable export packages confirmed Markdown with relative Madoc assets and
   expect(manifest.attachments).toEqual([{ id: assetID, source: `/api/assets/${assetID}`, path: `assets/asset-${assetID}.png`, mime: 'image/png', size: image.length }]);
   expect(manifest.unpackagedImages).toEqual(['https://example.com/diagram.png']);
   await expect(page.getByText('导出完成，包含 1 个 Madoc 附件；1 个外部或相对图片仍使用原地址。')).toBeVisible();
+
+  const workspaceId = new URL(page.url()).pathname.split('/')[2];
+  const { csrfToken } = await (await page.request.get('/api/auth/session')).json();
+  const headers = { 'x-madoc-csrf-token': csrfToken, Origin: 'http://127.0.0.1:3100' };
+  const packagePath = await download.path();
+  expect(packagePath).toBeTruthy();
+  await page.locator('aside').getByRole('button', { name: '新建内容' }).click();
+  await page.getByRole('menuitem', { name: '导入内容包' }).click();
+  const importDialog = page.getByRole('dialog', { name: '导入内容包', exact: true });
+  await importDialog.locator('input[type=file]').setInputFiles({
+    name: download.suggestedFilename(),
+    mimeType: 'application/zip',
+    buffer: await readFile(packagePath!),
+  });
+  await expect(importDialog).toContainText('导入包校验通过');
+  await expect(importDialog).toContainText('包内根目录：Inline writing');
+  await expect(importDialog.getByRole('table')).toContainText('Inline writing.md');
+  await importDialog.getByRole('textbox', { name: '新目录名称' }).fill('Restored note');
+  await importDialog.getByRole('button', { name: '确认导入', exact: true }).click();
+  await expect(importDialog).toContainText('导入完成');
+  await importDialog.getByRole('button', { name: '完成', exact: true }).click();
+  const imported = await (await page.request.get(`/api/workspaces/${workspaceId}/items`)).json();
+  const importedRoot = imported.find((item: { title: string }) => item.title === 'Restored note');
+  const importedMarkdown = imported.find((item: { title: string; parentId: string }) => item.title === 'Inline writing' && item.parentId === importedRoot.id);
+  await page.goto(`/workspace/${workspaceId}/${importedMarkdown.id}`);
+  const importedImage = page.locator('.ProseMirror img').first();
+  await expect(importedImage).toHaveAttribute('alt', '图表');
+  const importedImageURL = await importedImage.getAttribute('src');
+  expect(importedImageURL).toMatch(/^\/api\/assets\/[0-9a-f-]+$/i);
+  expect(importedImageURL).not.toBe(`/api/assets/${assetID}`);
+  expect(await (await page.request.get(importedImageURL!)).body()).toEqual(image);
+  expect(await (await page.request.get(`/api/items/${importedMarkdown.id}/export.md`)).text()).toContain(
+    'https://example.com/diagram.png',
+  );
+
+  // The same validator must reject a declared attachment with no ZIP bytes.
+  const missingAssetEntries = { ...files };
+  delete missingAssetEntries[`assets/asset-${assetID}.png`];
+  await page.goto(`/workspace/${workspaceId}/${id}`);
+  await page.locator('aside').getByRole('button', { name: '新建内容' }).click();
+  await page.getByRole('menuitem', { name: '导入内容包' }).click();
+  const invalidDialog = page.getByRole('dialog', { name: '导入内容包', exact: true });
+  const brokenArchive = Buffer.from(zipSync(Object.fromEntries(Object.entries(missingAssetEntries).map(([name, bytes]) => [name, bytes!]))));
+  await invalidDialog.locator('input[type=file]').setInputFiles({ name: 'broken.zip', mimeType: 'application/zip', buffer: brokenArchive });
+  await expect(invalidDialog.getByRole('alert')).toContainText('附件缺失');
+  expect((await page.request.get(`/api/workspaces/${workspaceId}/items`)).status()).toBe(200);
 });
 
 test('portable export fails without downloading a package when a Madoc attachment is missing', async ({ page }) => {

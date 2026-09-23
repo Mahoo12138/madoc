@@ -1,4 +1,4 @@
-import { inspectPortablePackage } from './portable-package-inspector';
+import { inspectMarkdownPortablePackage, inspectPortablePackage } from './portable-package-inspector';
 import { inspectPortablePackageSet, type PortablePackagePart } from './portable-package-set-inspector';
 import { readPortableZip, type PortableZipLimits } from './portable-zip-reader';
 
@@ -115,7 +115,7 @@ export async function readPortablePackageSelection(
       fileCount: files.length,
     };
   }
-  const inspected = inspectPortablePackage(parts[0].entries);
+  const inspected = inspectMarkdownPortablePackage(parts[0].entries) ?? inspectPortablePackage(parts[0].entries);
   if (inspected.manifest.packageSet !== undefined)
     throw new Error('这是包集中的内容分包，请同时选择 .package-set.json 和全部附件分包。');
   const entriesByPath = new Map(parts[0].entries.map((entry) => [entry.path, entry.data]));

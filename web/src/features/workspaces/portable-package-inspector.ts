@@ -161,3 +161,68 @@ export function inspectPortablePackage(entries: PortableZipEntry[]): InspectedPo
   }
   return { manifest: { ...raw, root, items, attachments } as PortableManifest, items, attachments, itemData, directoryCount: items.filter((item) => item.type === 'folder').length, markdownCount, whiteboardCount };
 }
+
+/** Adapt the single-document ZIP format into the same validated import tree.
+ * The normalized root exists only in memory; archive limits still count the
+ * original entries and the normal workspace importer creates the new folder.
+ */
+export function inspectMarkdownPortablePackage(entries: PortableZipEntry[]): InspectedPortablePackage | undefined {
+  const manifestEntry = entries.find((entry) => entry.path === 'manifest.json');
+  if (!manifestEntry || manifestEntry.directory) throw new Error('ZIP 中缺少 manifest.json。');
+  let raw: unknown;
+  try { raw = JSON.parse(text(manifestEntry)); }
+  catch { throw new Error('ZIP manifest.json 不是有效的 UTF-8 JSON。'); }
+  if (!isRecord(raw) || raw.format !== 'madoc-markdown-package') return undefined;
+  if (raw.version !== 1 || !isRecord(raw.item) || !isRecord(raw.content) || !Array.isArray(raw.attachments) || !Array.isArray(raw.unpackagedImages))
+    throw new Error('单篇 Markdown ZIP manifest 结构无效。');
+  const itemID = requireString(raw.item.id, '文档 ID');
+  const title = requireString(raw.item.title, '文档名称');
+  const markdownPath = requireString(raw.markdown, 'Markdown 路径');
+  if (markdownPath.includes('/') || markdownPath.includes('\\') || !/\.md$/i.test(markdownPath))
+    throw new Error('单篇 Markdown ZIP 路径无效。');
+  if (!Number.isSafeInteger(raw.content.generation) || Number(raw.content.generation) < 1 ||
+    !Number.isSafeInteger(raw.content.seq) || Number(raw.content.seq) < 0 ||
+    typeof raw.content.exportedAt !== 'string' || !Number.isFinite(Date.parse(raw.content.exportedAt)))
+    throw new Error('单篇 Markdown ZIP 的内容水位无效。');
+  if (raw.unpackagedImages.some((source) => typeof source !== 'string'))
+    throw new Error('单篇 Markdown ZIP 的外部图片清单无效。');
+  const rootID = `single-markdown-root:${itemID}`;
+  if (rootID === itemID) throw new Error('单篇 Markdown ZIP 文档 ID 无效。');
+  const prefix = '__madoc_markdown_package__';
+  if (entries.some((entry) => entry.path === prefix || entry.path.startsWith(`${prefix}/`)))
+    throw new Error('ZIP 中包含与内部目录冲突的路径。');
+  const sourceMarkdown = entries.find((entry) => entry.path === markdownPath);
+  if (!sourceMarkdown || sourceMarkdown.directory) throw new Error(`ZIP 中缺少 Markdown 文件：${markdownPath}`);
+  const attachmentPaths = new Set<string>();
+  for (const candidate of raw.attachments) {
+    if (!isRecord(candidate)) throw new Error('单篇 Markdown ZIP 附件清单无效。');
+    const path = requireString(candidate.path, '附件路径');
+    if (!/^assets\/asset-[0-9a-f-]+\.(?:png|jpg|gif|webp)$/i.test(path))
+      throw new Error(`ZIP 附件路径不受支持：${path}`);
+    if (attachmentPaths.has(path)) throw new Error(`ZIP manifest 中存在重复附件路径：${path}`);
+    attachmentPaths.add(path);
+  }
+  const allowedPaths = new Set(['manifest.json', markdownPath, ...attachmentPaths]);
+  for (const entry of entries) {
+    if (entry.directory || !allowedPaths.has(entry.path))
+      throw new Error(`单篇 Markdown ZIP 中存在未登记的${entry.directory ? '目录' : '文件'}：${entry.path}`);
+  }
+  const normalized: PortableZipEntry[] = entries
+    .filter((entry) => entry.path !== 'manifest.json' && entry.path !== markdownPath)
+    .concat([
+      { path: prefix, directory: true, data: new Uint8Array() },
+      { path: `${prefix}/${markdownPath}`, directory: false, data: sourceMarkdown.data },
+      { path: 'manifest.json', directory: false, data: new TextEncoder().encode(JSON.stringify({
+        format: 'madoc-folder-package', version: 1,
+        root: { id: rootID, title, type: 'folder', path: prefix },
+        items: [{ id: itemID, parentId: rootID, type: 'markdown', title, path: `${prefix}/${markdownPath}` }],
+        attachments: raw.attachments,
+        unpackagedImages: raw.unpackagedImages.map((source: string) => ({ itemId: itemID, source })),
+        unpackagedItemLinks: [], sourceFormat: 'madoc-markdown-package',
+      })) },
+    ]);
+  const result = inspectPortablePackage(normalized);
+  result.items[0].path = markdownPath;
+  result.manifest.items[0].path = markdownPath;
+  return result;
+}
