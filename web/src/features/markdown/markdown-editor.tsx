@@ -1,3 +1,4 @@
+import { MarkdownSource } from './markdown-source';
 import { registerContentSave } from '@/features/content/content-save';
 import { exportConfirmedMarkdown } from './markdown-export';
 import { useRecordVisit } from '@/api/personal-items';
@@ -38,6 +39,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const realtimeRef = useRef<RealtimeClient>();
   const typewriterModeRef = useRef(false);
   const [ready, setReady] = useState(false);
+  const [sourceOpened, setSourceOpened] = useState(false);
   const [status, setStatus] = useState<SaveStatus>('Reconnecting');
   const [failure, setFailure] = useState<{ message: string; download: () => void; retry?: () => void } | null>(null);
   useRecordVisit(item, ready && !failure, user.id);
@@ -173,6 +175,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
           focusMode={focusMode}
           typewriterMode={typewriterMode}
           onExport={() => void exporter.run()}
+          onSource={() => setSourceOpened(true)}
           exporting={exporter.busy}
           onImport={() => importRef.current?.click()}
           onToggleFocus={toggleFocusMode}
@@ -210,6 +213,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
         data-typewriter-mode={typewriterMode || undefined}
       />
       <MarkdownMathPreview preview={inlinePreview} />
+      {sourceOpened && <MarkdownSource title={item.title} read={exporter.inspect} onClose={() => setSourceOpened(false)} />}
     </article>
   );
 }

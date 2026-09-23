@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import {
+  Code as IconSource,
   AlignCenterVertical as IconTypewriter,
   Download as IconDownload,
   FileInput as IconFileImport,
@@ -52,6 +53,7 @@ export function MarkdownEditorControls({
   focusMode,
   typewriterMode,
   onExport,
+  onSource,
   exporting,
   onImport,
   onToggleFocus,
@@ -64,6 +66,7 @@ export function MarkdownEditorControls({
   focusMode: boolean;
   typewriterMode: boolean;
   onExport: () => void;
+  onSource: () => void;
   exporting: boolean;
   onImport: () => void;
   onToggleFocus: () => void;
@@ -138,6 +141,11 @@ export function MarkdownEditorControls({
             </ActionIcon>
           </Tooltip>
         )}
+        <Tooltip label="查看 Markdown 源码">
+          <ActionIcon aria-label="查看 Markdown 源码" onClick={onSource}>
+            <IconSource size={17} />
+          </ActionIcon>
+        </Tooltip>
         <Tooltip label="导出 Markdown">
           <ActionIcon
             aria-label="导出 Markdown"

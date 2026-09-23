@@ -43,5 +43,10 @@ export function useMarkdownExport(itemId: string, title: string) {
       setError(error instanceof Error ? error.message : '本地副本导出失败');
     }
   };
-  return { register, run, local, busy, error };
+  const inspect = () => {
+    const current = source.current;
+    if (!current || !current.state().ready) throw new Error('编辑器尚未准备完成，请稍后刷新源码。');
+    return { markdown: current.markdown(), ...current.state() };
+  };
+  return { register, run, local, busy, error, inspect };
 }
