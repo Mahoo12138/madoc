@@ -30,7 +30,7 @@ function extensionFor(mime: string) {
   }
 }
 
-function packagePathMap(root: Item, items: Item[]) {
+function packagePathMap(root: { id: string; title: string }, rootParentId: string | null, items: Item[]) {
   const byParent = new Map<string | null, Item[]>();
   for (const item of items) {
     const children = byParent.get(item.parentId) ?? [];
@@ -42,9 +42,9 @@ function packagePathMap(root: Item, items: Item[]) {
   const paths = new Map<string, string>();
   const visited = new Set<string>([root.id]);
   const rootPath = safeSegment(root.title, 'folder');
-  const walk = (parent: Item, prefix: string) => {
+  const walk = (parentId: string | null, prefix: string) => {
     const used = new Set<string>();
-    for (const child of byParent.get(parent.id) ?? []) {
+    for (const child of byParent.get(parentId) ?? []) {
       if (visited.has(child.id)) continue;
       visited.add(child.id);
       const base = safeSegment(child.title, child.type === 'folder' ? 'folder' : 'item');
@@ -55,10 +55,10 @@ function packagePathMap(root: Item, items: Item[]) {
       const name = child.type === 'markdown' ? `${segment}.md` : child.type === 'whiteboard' ? `${segment}.excalidraw` : segment;
       const path = `${prefix}/${name}`;
       paths.set(child.id, path);
-      if (child.type === 'folder') walk(child, path);
+      if (child.type === 'folder') walk(child.id, path);
     }
   };
-  walk(root, rootPath);
+  walk(rootParentId, rootPath);
   return { paths, rootPath, descendants: items.filter((item) => item.id !== root.id && visited.has(item.id)) };
 }
 
@@ -137,9 +137,9 @@ async function inspectMarkdown(markdown: string) {
 async function fetchAsset(id: string, signal: AbortSignal) {
   const response = await fetch(`/api/assets/${encodeURIComponent(id)}`, { credentials: 'include', cache: 'no-store', signal });
   if (!response.ok) {
-    if (response.status === 404) throw new Error(`附件 ${id} 已不存在，未生成不完整的文件夹包。`);
-    if (response.status === 401 || response.status === 403) throw new Error(`附件 ${id} 已无法访问，未生成文件夹包。请检查登录和工作区权限。`);
-    throw new Error(`读取附件 ${id} 失败（HTTP ${response.status}），未生成文件夹包。`);
+    if (response.status === 404) throw new Error(`附件 ${id} 已不存在，未生成不完整的 ZIP 包。`);
+    if (response.status === 401 || response.status === 403) throw new Error(`附件 ${id} 已无法访问，未生成 ZIP 包。请检查登录和工作区权限。`);
+    throw new Error(`读取附件 ${id} 失败（HTTP ${response.status}），未生成 ZIP 包。`);
   }
   const mime = response.headers.get('Content-Type') ?? '';
   const extension = extensionFor(mime);
@@ -147,16 +147,16 @@ async function fetchAsset(id: string, signal: AbortSignal) {
   return { id, path: `assets/asset-${id}.${extension}`, mime: mime.split(';', 1)[0].trim().toLowerCase(), data: new Uint8Array(await response.arrayBuffer()) };
 }
 
-export async function exportFolderPackage(folder: Item, workspaceItems: Item[], signal: AbortSignal, onProgress: (done: number, total: number) => void) {
-  const tree = packagePathMap(folder, workspaceItems);
-  if (tree.descendants.length === 0) throw new Error('文件夹中没有可导出的内容。');
+async function exportPortableTreePackage(root: { id: string; title: string; type: 'folder' | 'workspace' }, rootParentId: string | null, workspaceItems: Item[], signal: AbortSignal, onProgress: (done: number, total: number) => void) {
+  const tree = packagePathMap(root, rootParentId, workspaceItems);
+  if (tree.descendants.length === 0) throw new Error(`${root.type === 'folder' ? '文件夹' : 'Workspace'} 中没有可导出的内容。`);
   const leaves = tree.descendants.filter((item) => item.type !== 'folder');
   const entries: CapturedEntry[] = [];
   for (const item of leaves) {
     if (signal.aborted) throw signal.reason;
     const capture = await api.captureItem(item.id, signal);
     if (capture.item.id !== item.id || capture.item.parentId !== item.parentId || capture.item.type !== item.type || capture.item.title !== item.title) {
-      throw new Error('导出期间目录或名称已变化。请刷新文件列表后重试。');
+      throw new Error('导出期间内容树或名称已变化。请刷新文件列表后重试。');
     }
     if (item.type === 'markdown' && (!capture.markdown || capture.markdown.cacheSeq !== capture.markdown.headSeq)) {
       throw new Error(`文档「${item.title}」的 Markdown 投影尚未追上已保存内容。请打开文档等待同步后重试。`);
@@ -182,7 +182,7 @@ export async function exportFolderPackage(folder: Item, workspaceItems: Item[], 
   }
   const assets = await Promise.all([...imageSources.keys()].map((id) => fetchAsset(id, signal)));
   const assetPath = new Map(assets.map((asset) => [asset.id, asset.path]));
-  const pathsByID = new Map([[folder.id, tree.rootPath], ...tree.paths]);
+  const pathsByID = new Map([[root.id, tree.rootPath], ...tree.paths]);
   const externalImages: { itemId: string; source: string }[] = [];
   const externalItemLinks: { itemId: string; href: string }[] = [];
   const files: AsyncZippable = {};
@@ -216,9 +216,9 @@ export async function exportFolderPackage(folder: Item, workspaceItems: Item[], 
   files[`${tree.rootPath}/`] = new Uint8Array();
   for (const item of tree.descendants.filter((entry) => entry.type === 'folder')) files[`${tree.paths.get(item.id)!}/`] = new Uint8Array();
   const manifest = {
-    format: 'madoc-folder-package', version: 1, capturedAt: new Date().toISOString(),
+    format: root.type === 'folder' ? 'madoc-folder-package' : 'madoc-workspace-package', version: 1, capturedAt: new Date().toISOString(),
     consistency: 'per-item-capture; not a workspace-wide atomic snapshot',
-    root: { id: folder.id, title: folder.title, path: tree.rootPath },
+    root: { id: root.id, title: root.title, type: root.type, path: tree.rootPath },
     items: [...folderManifest, ...itemManifest],
     attachments: assets.map(({ id, path, mime, data }) => ({ id, source: `/api/assets/${id}`, path, mime, size: data.byteLength })),
     unpackagedImages: externalImages,
@@ -238,7 +238,15 @@ export async function exportFolderPackage(folder: Item, workspaceItems: Item[], 
     if (signal.aborted) abort();
     else signal.addEventListener('abort', abort, { once: true });
   });
-  return { data, fileName: `${safeSegment(folder.title, 'folder')}.zip`, itemCount: entries.length, attachmentCount: assets.length, externalImageCount: externalImages.length };
+  return { data, fileName: `${safeSegment(root.title, root.type)}.zip`, itemCount: entries.length, attachmentCount: assets.length, externalImageCount: externalImages.length };
+}
+
+export function exportFolderPackage(folder: Item, workspaceItems: Item[], signal: AbortSignal, onProgress: (done: number, total: number) => void) {
+  return exportPortableTreePackage({ id: folder.id, title: folder.title, type: 'folder' }, folder.id, workspaceItems, signal, onProgress);
+}
+
+export function exportWorkspacePackage(workspace: { id: string; name: string }, workspaceItems: Item[], signal: AbortSignal, onProgress: (done: number, total: number) => void) {
+  return exportPortableTreePackage({ id: workspace.id, title: workspace.name, type: 'workspace' }, null, workspaceItems, signal, onProgress);
 }
 
 export { downloadPortablePackage };

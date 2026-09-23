@@ -134,10 +134,11 @@ ZIP 根目录含 manifest、以跨平台安全文件名保存的 Markdown 和附
 Markdown / Yjs 解析或常驻服务。单篇导出沿用经投影水位确认的 Markdown；文件夹导出使用
 下述逐项固定捕获流程。
 
-## 文件夹可移植导出
+## 文件夹与 Workspace 可移植导出
 
-文件夹操作菜单提供 ZIP 导出，owner / editor 可用。按工作区目录树保留嵌套结构，Markdown
-保存为 `.md`，白板 scene 包装为 Excalidraw version 2 `.excalidraw` JSON（内嵌文件仍在
+文件夹操作菜单和 Workspace 菜单提供 ZIP 导出，owner / editor 可用。文件夹包保留该目录下的
+嵌套结构；Workspace 包在以 Workspace 名称命名的根目录下保留完整目录树。Markdown 保存为
+`.md`，白板 scene 包装为 Excalidraw version 2 `.excalidraw` JSON（内嵌文件仍在
 scene `files` 内）。同级经跨平台清理后重名的条目添加序号；manifest 记录 Item ID、原标题 / 父级、
 包内路径、每项捕获时间，以及 Markdown generation / snapshotSeq / seq / projectionSeq 或
 白板 revision。
@@ -150,8 +151,8 @@ scene `files` 内）。同级经跨平台清理后重名的条目添加序号；
 任一 Madoc 附件读取失败时不生成 ZIP。导出在浏览器完成，没有服务端 Yjs / Markdown 解析或
 新 migration。
 
-当前范围是单个文件夹，不提供整 Workspace ZIP。当前打开编辑器以外的未同步标签页修改无法
-确认，不会假定已包含；大规模目录的容量上限与分块下载尚未建立，后续根据实际数据规模验证。
+当前打开编辑器以外的未同步标签页修改无法确认，不会假定已包含；大规模目录的容量上限与
+分块下载尚未建立，后续根据实际数据规模验证。
 
 ## 单篇 Markdown 导入预览
 

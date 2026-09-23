@@ -88,3 +88,36 @@ test('folder ZIP captures nested Markdown, whiteboard, image assets and stable l
   await expect(retryDialog.getByRole('alert')).toContainText('已不存在');
   expect(await noDownload).toBeUndefined();
 });
+
+test('workspace ZIP captures root items beneath the workspace package directory', async ({ page }) => {
+  const markdownId = await openDocument(page, '# Workspace package\n');
+  const workspaceId = new URL(page.url()).pathname.split('/')[2]!;
+  const { csrfToken } = await (await page.request.get('/api/auth/session')).json();
+  const created = await page.request.post(`/api/workspaces/${workspaceId}/items`, {
+    headers: { 'x-madoc-csrf-token': csrfToken, Origin: 'http://127.0.0.1:3100' },
+    data: { type: 'whiteboard', title: 'Workspace board', parentId: null },
+  });
+  expect(created.ok()).toBeTruthy();
+  const board = await created.json() as { id: string };
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Workspace 菜单' }).click();
+  await page.getByRole('menuitem', { name: '导出 Workspace ZIP' }).click();
+  const dialog = page.getByRole('dialog', { name: '导出 Workspace：Writing regression' });
+  await expect(dialog).toContainText('不是 Workspace 同一时刻的快照');
+  const downloadPromise = page.waitForEvent('download');
+  await dialog.getByRole('button', { name: '生成 ZIP' }).click();
+  const download = await downloadPromise;
+  const archive = unzipSync(new Uint8Array(await readFile(await download.path())));
+  const manifest = JSON.parse(strFromU8(archive['manifest.json']!));
+
+  expect(manifest.format).toBe('madoc-workspace-package');
+  expect(manifest.root).toMatchObject({ id: workspaceId, title: 'Writing regression', type: 'workspace', path: 'Writing regression' });
+  expect(manifest.consistency).toBe('per-item-capture; not a workspace-wide atomic snapshot');
+  const markdown = manifest.items.find((item: { id: string }) => item.id === markdownId);
+  const whiteboard = manifest.items.find((item: { id: string }) => item.id === board.id);
+  expect(markdown.path).toBe('Writing regression/Inline writing.md');
+  expect(strFromU8(archive[markdown.path]!)).toContain('# Workspace package');
+  expect(whiteboard.path).toBe('Writing regression/Workspace board.excalidraw');
+  expect(JSON.parse(strFromU8(archive[whiteboard.path]!))).toMatchObject({ type: 'excalidraw', version: 2, elements: [], appState: {}, files: {} });
+});

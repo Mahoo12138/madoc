@@ -29,6 +29,7 @@ import {
   Search as IconSearch,
   Users as IconUsers,
   PenTool as IconWhiteboard,
+  Download as IconDownload,
 } from 'lucide-react';
 import {
   useItems,
@@ -56,6 +57,11 @@ const MarkdownEditor = lazy(() =>
 const WhiteboardEditor = lazy(() =>
   import('@/features/whiteboard/whiteboard-editor').then((module) => ({
     default: module.WhiteboardEditor,
+  })),
+);
+const WorkspaceExportDialog = lazy(() =>
+  import('./workspace-export-dialog').then((module) => ({
+    default: module.WorkspaceExportDialog,
   })),
 );
 
@@ -98,6 +104,7 @@ export function WorkspacePage() {
   }, [workspaceId, itemId, searchModal.close]);
   const [trashOpened, trashModal] = useDisclosure(false);
   const [settingsOpened, settingsModal] = useDisclosure(false);
+  const [workspaceExportOpened, setWorkspaceExportOpened] = useState(false);
   const [itemModal, itemActions] = useDisclosure(false);
   const [documentParent, setDocumentParent] = useState<{
     parentId: string | null;
@@ -254,6 +261,14 @@ export function WorkspacePage() {
             >
               所有 Workspaces
             </Menu.Item>
+            {!unavailable && workspace.data && workspace.data.role !== 'viewer' && (
+              <Menu.Item
+                leftSection={<IconDownload size={15} />}
+                onClick={() => setWorkspaceExportOpened(true)}
+              >
+                导出 Workspace ZIP
+              </Menu.Item>
+            )}
             <Menu.Item
               leftSection={<IconUsers size={15} />}
               onClick={membersDrawer.open}
@@ -518,6 +533,15 @@ export function WorkspacePage() {
           onClose={settingsModal.close}
         />
       )}
+      <Suspense fallback={null}>
+        {workspaceExportOpened && !unavailable && workspace.data && items.data && workspace.data.role !== 'viewer' && (
+          <WorkspaceExportDialog
+            workspace={workspace.data}
+            items={items.data}
+            onClose={() => setWorkspaceExportOpened(false)}
+          />
+        )}
+      </Suspense>
       {documentParent && !unavailable && workspace.data?.role !== 'viewer' && (
         <CreateDocument
           workspaceId={workspaceId}
