@@ -13,7 +13,7 @@ import { getMarkdownStats, type MarkdownStats } from './markdown-stats';
 import type { InlineMathPreview } from './markdown-inline-presentation';
 import type { MarkdownOutline } from './markdown-outline-model';
 import { createMarkdownFindController, type MarkdownFindController } from './markdown-find';
-import { editorViewCtx } from '@milkdown/kit/core';
+import { editorViewCtx, parserCtx } from '@milkdown/kit/core';
 
 type InitPayload = {
   generation: number;
@@ -195,6 +195,19 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     markdown: () => {
       if (!editorReady || destroyed) throw new Error('本地正文尚未准备完成。');
       return crepe.getMarkdown();
+    },
+    assetReferences: (markdown) => {
+      if (!editorReady || destroyed) throw new Error('编辑器尚未准备完成，无法读取图片引用。');
+      return crepe.editor.action((ctx) => {
+        const parsed = ctx.get(parserCtx)(markdown);
+        const references = new Set<string>();
+        parsed.descendants((node) => {
+          if (node.type.name !== 'image' && node.type.name !== 'image-block') return;
+          const source = node.attrs.src;
+          if (typeof source === 'string' && source) references.add(source);
+        });
+        return [...references];
+      });
     },
   });
   const onPageHide = () => flushMarkdownCache();

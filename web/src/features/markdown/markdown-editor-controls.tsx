@@ -16,6 +16,7 @@ import {
   FileInput as IconFileImport,
   Focus as IconFocus,
   Keyboard as IconKeyboard,
+  Package as IconPackage,
   BookOpen as IconReading,
   PenLine as IconEdit,
   Printer as IconPrint,
@@ -58,11 +59,13 @@ export function MarkdownEditorControls({
   focusMode,
   typewriterMode,
   onExport,
+  onPackageExport,
   onSource,
   onFind,
   onToggleReading,
   onPrint,
   exporting,
+  exportingPackage,
   onImport,
   onToggleFocus,
   onToggleTypewriter,
@@ -75,11 +78,13 @@ export function MarkdownEditorControls({
   focusMode: boolean;
   typewriterMode: boolean;
   onExport: () => void;
+  onPackageExport: () => void;
   onSource: () => void;
   onFind: () => void;
   onToggleReading: () => void;
   onPrint: () => void;
   exporting: boolean;
+  exportingPackage: boolean;
   onImport: () => void;
   onToggleFocus: () => void;
   onToggleTypewriter: () => void;
@@ -181,8 +186,19 @@ export function MarkdownEditorControls({
             aria-label="导出 Markdown"
             onClick={onExport}
             loading={exporting}
+            disabled={exportingPackage}
           >
             <IconDownload size={17} />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label="导出 Markdown 和附件 ZIP">
+          <ActionIcon
+            aria-label="导出 Markdown 和附件 ZIP"
+            onClick={onPackageExport}
+            loading={exportingPackage}
+            disabled={exporting}
+          >
+            <IconPackage size={17} />
           </ActionIcon>
         </Tooltip>
         {readonly ? null : (

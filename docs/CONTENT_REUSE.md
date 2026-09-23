@@ -107,6 +107,20 @@ Markdown 阅读视图继续使用同一 Milkdown / Crepe 文档和样式，切�
 带附件迁出需要固定内容捕获、水位和资源映射；不能直接以可能滞后的
 Markdown cache 创建副本或导出包。版本历史在阶段 3 复用同一不可变捕获基础。
 
+## 单篇 Markdown 可移植导出
+
+工具栏另提供 Markdown 与附件 ZIP 导出。客户端先等待本地更新 ACK，再请求达到
+generation / 最低 seq 的服务器 Markdown 投影；manifest 记录响应对应的实际水位和导出时间。
+同一份 Markdown 由当前 Milkdown / Crepe schema 解析，只提取图片节点中的资源引用。
+同源 `/api/assets/{UUID}` 图片会按成员权限读取，写入 `assets/asset-{UUID}.{ext}`，并只改写
+Markdown 图片目标；围栏和行内代码中的示例保持原文。任何 Madoc 附件读取失败时不下载 ZIP。
+
+ZIP 根目录含 manifest、以跨平台安全文件名保存的 Markdown 和附件目录。外部、站点相对及
+其他非 Madoc 资产图片沿用原地址，并在 manifest `unpackagedImages` 中列出；它们不作为已
+迁出的二进制资源。首版限单篇 Markdown，不含文件夹、Workspace、白板、导入或导入预览。
+ZIP 在浏览器中生成，不增加服务端 Markdown / Yjs 解析或常驻服务。后续固定内容捕获仍需
+作为阶段 3 的可复用不可变版本基础单独实现。
+
 ## 验证
 
 `markdown-find-replace.spec.ts` 验证区分大小写、中文文本、跨格式边界、远端协作修改后
@@ -114,6 +128,10 @@ Markdown cache 创建副本或导出包。版本历史在阶段 3 复用同一�
 
 `markdown-reading-view.spec.ts` 验证只读呈现沿用原文档 / 大纲、返回编辑、viewer 默认阅读，
 以及打印时只显示内容区并应用分页规则。
+
+`markdown-portable-export.spec.ts` 验证 ZIP 内真实附件字节、相对路径改写、manifest 实际
+generation / seq 与导出时间、外部图片清单、代码示例 URL 不改写，以及附件缺失时拒绝生成
+不完整的 ZIP。
 
 `item-links.spec.ts` 验证桌面与 390px 手机剪贴板内容、改名 / 移动后的原地址、白板
 打开、删除与恢复、viewer 手动复制及撤权后的内容拒绝。已有 workspace-live 测试

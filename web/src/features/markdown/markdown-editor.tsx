@@ -199,6 +199,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
           focusMode={focusMode}
           typewriterMode={typewriterMode}
           onExport={() => void exporter.run()}
+          onPackageExport={() => void exporter.runPackage()}
           onSource={() => setSourceOpened(true)}
           onFind={() => setFindOpened(true)}
           onToggleReading={() => {
@@ -208,7 +209,8 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
             readingModeControllerRef.current?.(next);
           }}
           onPrint={() => window.print()}
-          exporting={exporter.busy}
+          exporting={exporter.busy && !exporter.packageBusy}
+          exportingPackage={exporter.packageBusy}
           onImport={() => importRef.current?.click()}
           onToggleFocus={toggleFocusMode}
           onToggleTypewriter={toggleTypewriterMode}
@@ -221,11 +223,11 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
           onChange={(event) => void importMarkdown(event.target.files?.[0])}
         />
       </div>
-      {exporter.busy && <div role="status">正在确认修改并准备导出…</div>}
+      {exporter.busy && <div role="status">{exporter.packageBusy ? '正在确认修改并打包附件…' : '正在确认修改并准备导出…'}</div>}
       {exporter.error && (
         <Alert color="orange" title="导出尚未完成" role="alert">
           {exporter.error}
-          <Button variant="light" onClick={() => void exporter.run()}>重试导出</Button>
+          <Button variant="light" onClick={() => void exporter.retry()}>重试导出</Button>
           <Button variant="light" onClick={exporter.local}>下载本地副本</Button>
         </Alert>
       )}

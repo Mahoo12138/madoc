@@ -2,6 +2,13 @@ export type MarkdownExportSource = {
   state: () => { ready: boolean; online: boolean; stopped: boolean; pending: boolean; generation?: number; seq: number };
   flush: () => void;
   markdown: () => string;
+  assetReferences: (markdown: string) => string[];
+};
+
+export type ConfirmedMarkdownExport = {
+  markdown: string;
+  generation: number;
+  seq: number;
 };
 
 function delay(signal: AbortSignal, milliseconds: number) {
@@ -13,7 +20,7 @@ function delay(signal: AbortSignal, milliseconds: number) {
   });
 }
 
-export async function exportConfirmedMarkdown(itemId: string, source: MarkdownExportSource, signal: AbortSignal) {
+export async function exportConfirmedMarkdownSnapshot(itemId: string, source: MarkdownExportSource, signal: AbortSignal): Promise<ConfirmedMarkdownExport> {
   let state = source.state();
   while (true) {
     if (signal.aborted) throw signal.reason;
@@ -41,7 +48,7 @@ export async function exportConfirmedMarkdown(itemId: string, source: MarkdownEx
       if (returnedGeneration === null || returnedSeq === null || Number(returnedGeneration) !== generation || !Number.isSafeInteger(Number(returnedSeq)) || Number(returnedSeq) < minSeq) {
         throw new Error('服务器没有返回可验证的导出版本，请升级服务后重试。');
       }
-      return response.text();
+      return { markdown: await response.text(), generation, seq: Number(returnedSeq) };
     }
     const body = await response.json().catch(() => null) as { error?: { code?: string; message?: string } } | null;
     if (response.status === 409 && body?.error?.code === 'EXPORT_NOT_READY') {
@@ -51,6 +58,10 @@ export async function exportConfirmedMarkdown(itemId: string, source: MarkdownEx
     if (response.status === 401 || response.status === 403) throw new Error('登录或访问权限已失效，无法导出服务器内容。可下载本地副本。');
     throw new Error(body?.error?.message ?? '导出失败，请稍后重试或下载本地副本。');
   }
+}
+
+export async function exportConfirmedMarkdown(itemId: string, source: MarkdownExportSource, signal: AbortSignal) {
+  return (await exportConfirmedMarkdownSnapshot(itemId, source, signal)).markdown;
 }
 
 export function downloadMarkdown(markdown: string, fileName: string) {
