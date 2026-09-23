@@ -13,6 +13,7 @@ export const page = style({
 });
 
 export const title = style({
+  margin: 0,
   width: '100%',
   padding: 0,
   border: 0,
@@ -216,6 +217,78 @@ globalStyle(`${editor} .milkdown .madoc-image-source-view .milkdown-image-block 
 globalStyle(`${editor} .milkdown .madoc-image-source-view .image-wrapper img`, {
   objectFit: 'contain',
   minHeight: 0,
+});
+
+globalStyle('body', {
+  '@media': {
+    print: { color: '#000', background: '#fff' },
+  },
+});
+
+globalStyle('body *', {
+  '@media': {
+    print: { visibility: 'hidden' },
+  },
+});
+
+globalStyle(`${page}`, {
+  '@media': {
+    print: {
+      position: 'absolute',
+      inset: '0 auto auto 0',
+      width: '100%',
+      maxWidth: 'none',
+      margin: 0,
+      padding: 0,
+      visibility: 'visible',
+    },
+  },
+});
+
+globalStyle(`${page} *`, {
+  '@media': {
+    print: { visibility: 'visible' },
+  },
+});
+
+globalStyle(`${page} ${meta}, ${page} .milkdown-toolbar, ${page} .milkdown-slash-menu, ${page} .milkdown-block-handle`, {
+  '@media': {
+    print: { display: 'none' },
+  },
+});
+
+globalStyle(`${page} ${editor}`, {
+  '@media': {
+    print: { marginTop: 0 },
+  },
+});
+
+globalStyle(`${page} .milkdown .ProseMirror`, {
+  '@media': {
+    print: { minHeight: 0, overflow: 'visible', color: '#000' },
+  },
+});
+
+globalStyle(`${page} .milkdown .ProseMirror :is(h1, h2, h3, h4, h5, h6)`, {
+  '@media': {
+    print: { breakAfter: 'avoid-page', color: '#000' },
+  },
+});
+
+globalStyle(`${page} .milkdown .ProseMirror :is(pre, table, blockquote, figure, img)`, {
+  '@media': {
+    print: { breakInside: 'avoid-page' },
+  },
+});
+
+globalStyle(`${page} .milkdown .ProseMirror pre`, {
+  '@media': {
+    print: { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' },
+  },
+});
+
+globalStyle('@page', {
+  margin: '18mm',
 });
 
 // Failed images keep their editable source, without a broken-image placeholder.

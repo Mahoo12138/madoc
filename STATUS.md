@@ -78,13 +78,15 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第四部分：新建文档提供空白 / 技术设计 / 会议纪要与预览；非空模板由浏览器生成完整 Yjs 快照，服务端原子创建 Item 和正文；双标签不重复初始化，失败保留选择，手机成功关闭抽屉。无 schema 迁移。
 - 第五部分：当前编辑器只读源码窗口、显式刷新、复制 / 手动复制及下载所示文本；本地未同步提示，viewer 无正文写入，手机全屏。不改变服务器水位确认导出。
 - 已接入文内查找 / 替换：字面且区分大小写，跨相邻格式文本匹配；viewer 可查找但不能写入；全部替换作为一个 Yjs 撤销单元并实时协作同步。细节见 `docs/CONTENT_REUSE.md`。
-- 待完成：阅读 / 打印、带附件迁出和导入预览、固定内容捕获。设计见 `docs/CONTENT_REUSE.md`。
+- 阅读 / 打印：沿用 Milkdown / Crepe 呈现，大纲保留；owner / editor 可切换编辑，viewer 默认只读；浏览器打印样式隔离 Workspace 界面并处理分页。细节见 `docs/CONTENT_REUSE.md`。
+- 待完成：带附件迁出和导入预览、固定内容捕获。设计见 `docs/CONTENT_REUSE.md`。
 
 ## 当前验证
 
 - Workspace 角色在成员列表、邀请列表和空间列表中显示为“所有者 / 编辑者 / 查看者”，请求仍使用稳定的 `owner / editor / viewer` 值；专项浏览器验证通过。
 - 阶段 2 第五部分（基于 `b078aca`）：9 项源码 / 导出 E2E 通过，覆盖桌面 / 手机只读、复制与下载一致、远端刷新、剪贴板拒绝回退、未同步提示及 viewer 零正文写入；检查桌面与 390px 截图。MVP 首次运行在 Workspace 导航时 Chromium 页面崩溃，无应用异常；立即独立重跑通过。Go test / vet、前端 typecheck / production build 通过，保留既有大 chunk 提示。
 - 阶段 2 第六部分：3 项文内查找 / 替换 E2E 覆盖精确大小写与中文文本、远端新增匹配后的结果刷新、跨加粗边界、替换单项 / 全部、双标签同步、单步撤销和 viewer 零正文写入；23 项源码 / 导出 / 编辑器回归及独立 MVP 流程通过。Go test / vet、前端 typecheck / production build 和 diff 空白检查通过。首轮使用旧静态 bundle，撤销后对远程光标标签的断言也过严；重建前端并调整选择器后通过，生产构建保留既有大 chunk 提示。
+- 阶段 2 第七部分：2 项阅读 / 打印 E2E 验证原 Milkdown 呈现、大纲导航、编辑回切、viewer 默认只读及 print media 内容隔离；同跑 14 项源码 / 导出 / Outline 回归和 1 项权限中文标签验证通过，另行隔离运行的 MVP 首次启动测试通过。打印截图确认只显示文档标题和正文。Go test / vet、前端 typecheck / production build 通过，保留既有大 chunk 提示。MVP 与整组测试共享已初始化数据时不满足其首次启动前提，故单独运行。
 
 - 阶段 2 第四部分（基于 `48cfa48`）：初始快照 core 单元测试及 Go test / vet / core race 通过；3 项模板 E2E 覆盖两种模板、双标签协作 / 刷新、手机创建失败保留与重试；5 项复制回归和独立 MVP 通过。前端 typecheck / production build 通过。
 

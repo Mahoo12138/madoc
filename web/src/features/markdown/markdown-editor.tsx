@@ -44,6 +44,9 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const [sourceOpened, setSourceOpened] = useState(false);
   const [findOpened, setFindOpened] = useState(false);
   const findControllerRef = useRef<MarkdownFindController>();
+  const [readingMode, setReadingMode] = useState(role === 'viewer');
+  const readingModeRef = useRef(readingMode);
+  const readingModeControllerRef = useRef<(reading: boolean) => void>();
   const [status, setStatus] = useState<SaveStatus>('Reconnecting');
   const [failure, setFailure] = useState<{ message: string; download: () => void; retry?: () => void } | null>(null);
   useRecordVisit(item, ready && !failure, user.id);
@@ -61,6 +64,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const [stats, setStats] = useState(() => getMarkdownStats(''));
   const { values: preferences, set: setPreferences } = usePreferences();
   const { focusMode, typewriterMode } = preferences;
+  readingModeRef.current = readingMode;
   const preferencesRef = useRef(preferences);
   preferencesRef.current = preferences;
 
@@ -72,6 +76,12 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   useEffect(() => {
     setTitle(item.title);
   }, [item.id, item.title]);
+
+  useEffect(() => {
+    setReadingMode(role === 'viewer');
+    readingModeRef.current = role === 'viewer';
+    readingModeControllerRef.current?.(role === 'viewer');
+  }, [item.id, role]);
 
   useEffect(() => {
     if (!rootRef.current || !initial.data) return;
@@ -91,6 +101,10 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
         });
       },
       onFindReady: (controller) => { findControllerRef.current = controller; },
+      onReadingModeReady: (controller) => {
+        readingModeControllerRef.current = controller;
+        controller?.(readingModeRef.current);
+      },
       onFailure: (message, download, retry) => { if (active) setFailure({ message, download, retry }); },
       onRecovered: () => { if (active) setFailure(null); },
       onLeaveGuardChange: (guard) => { leaveGuard.current = guard; },
@@ -146,7 +160,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
 
   if (initial.isLoading) return <div className={styles.page}><Loader size="sm" /></div>;
 
-  const editorClassName = [styles.editor, focusMode ? styles.focusMode : '', typewriterMode ? styles.typewriterMode : '']
+  const editorClassName = [styles.editor, !readingMode && focusMode ? styles.focusMode : '', !readingMode && typewriterMode ? styles.typewriterMode : '']
     .filter(Boolean)
     .join(' ');
 
@@ -156,32 +170,44 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
       '--madoc-line-height': preferences.lineHeight,
       '--madoc-content-width': `${preferences.contentWidth}px`,
     } as CSSProperties}>
-      <input
-        className={styles.title}
-        value={title}
-        readOnly={role === 'viewer'}
-        placeholder="无标题文档"
-        onChange={(event) => setTitle(event.currentTarget.value)}
-        onBlur={() => void rename()}
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter') return;
-          event.preventDefault();
-          event.currentTarget.blur();
-          rootRef.current?.querySelector<HTMLElement>('.ProseMirror')?.focus();
-        }}
-        aria-label="文档标题"
-      />
+      {readingMode ? (
+        <h1 className={styles.title} data-testid="markdown-title">{title || '无标题文档'}</h1>
+      ) : (
+        <input
+          className={styles.title}
+          value={title}
+          readOnly={role === 'viewer'}
+          placeholder="无标题文档"
+          onChange={(event) => setTitle(event.currentTarget.value)}
+          onBlur={() => void rename()}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            event.currentTarget.blur();
+            rootRef.current?.querySelector<HTMLElement>('.ProseMirror')?.focus();
+          }}
+          aria-label="文档标题"
+        />
+      )}
       <div className={styles.meta}>
         <MarkdownEditorControls
           status={status}
           presence={presence}
           stats={stats}
           readonly={role === 'viewer'}
+          readingMode={readingMode}
           focusMode={focusMode}
           typewriterMode={typewriterMode}
           onExport={() => void exporter.run()}
           onSource={() => setSourceOpened(true)}
           onFind={() => setFindOpened(true)}
+          onToggleReading={() => {
+            const next = !readingMode;
+            readingModeRef.current = next;
+            setReadingMode(next);
+            readingModeControllerRef.current?.(next);
+          }}
+          onPrint={() => window.print()}
           exporting={exporter.busy}
           onImport={() => importRef.current?.click()}
           onToggleFocus={toggleFocusMode}
@@ -213,6 +239,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
       <div
         ref={rootRef}
         className={editorClassName}
+        data-reading-mode={readingMode || undefined}
         data-auto-pair={preferences.autoPair}
         data-code-line-numbers={preferences.codeLineNumbers}
         data-focus-mode={focusMode || undefined}

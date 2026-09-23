@@ -30,6 +30,7 @@ type MarkdownSessionOptions = {
   onReady: () => void;
   onExportReady: (source?: MarkdownExportSource) => void;
   onFindReady: (controller?: MarkdownFindController) => void;
+  onReadingModeReady: (setReadingMode?: (reading: boolean) => void) => void;
   onFailure: (message: string, download: () => void, retry?: () => void) => void;
   onRecovered: () => void;
   onLeaveGuardChange: (guard: { unsafe: () => boolean; settle: () => Promise<void> }) => void;
@@ -98,6 +99,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     onFailure,
     onExportReady,
     onFindReady,
+    onReadingModeReady,
     onRecovered,
     onLeaveGuardChange,
   } = options;
@@ -136,6 +138,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   let latestMarkdown = initialMarkdown;
   let destroyed = false;
   let editorReady = false;
+  let readingMode = role === 'viewer';
   let findController: MarkdownFindController | undefined;
   let resolveInitial!: (payload: InitPayload) => void;
   let initialResolved = false;
@@ -143,6 +146,10 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
 
   const uploadImage = (file: File) => api.uploadAsset(item.workspaceId, file, item.id).then((result) => result.url);
   const crepe = createMarkdownCrepe({ root, itemId: item.id, uploadImage, onInlinePreviewChange, onOutlineChange });
+  const setReadingMode = (reading: boolean) => {
+    readingMode = reading;
+    crepe.setReadonly(role === 'viewer' || halted || readingMode);
+  };
 
   const updateEditorAffordances = () => {
     const activeBlock = root.querySelector<HTMLElement>('.madoc-current-block') ?? findActiveBlock(root);
@@ -162,6 +169,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
   const onSelectionChange = () => scheduleEditorAffordances();
   const onTyping = () => scheduleEditorAffordances(true);
   const onEditorKeyDown = (event: KeyboardEvent) => {
+    if (readingMode) return;
     if (!(event.metaKey || event.ctrlKey) || !event.shiftKey || event.key.toLowerCase() !== 'f') return;
     event.preventDefault();
     onFocusModeShortcut();
@@ -248,7 +256,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       }
       halted = false;
       saveState.resume();
-      crepe.setReadonly(role === 'viewer');
+      crepe.setReadonly(role === 'viewer' || readingMode);
       onRecovered();
       joined = false;
       publishSaveStatus();
@@ -449,6 +457,8 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
       if (doc.getXmlFragment('prosemirror').length === 0 && payload.markdown) service.applyTemplate(payload.markdown);
     });
     crepe.setReadonly(role === 'viewer' || halted);
+    setReadingMode(readingMode);
+    onReadingModeReady(setReadingMode);
     editorReady = true;
     options.onReady();
     latestMarkdown = crepe.getMarkdown();
@@ -460,6 +470,7 @@ export function startMarkdownSession(options: MarkdownSessionOptions) {
     destroyed = true;
     onExportReady(undefined);
     onFindReady(undefined);
+    onReadingModeReady(undefined);
     window.clearInterval(retryTimer);
     setPendingChanges(pendingKey, false);
     window.removeEventListener('madoc-profile-changed', updateIdentity);

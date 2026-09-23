@@ -16,6 +16,9 @@ import {
   FileInput as IconFileImport,
   Focus as IconFocus,
   Keyboard as IconKeyboard,
+  BookOpen as IconReading,
+  PenLine as IconEdit,
+  Printer as IconPrint,
   Search as IconSearch,
   Wifi as IconWifi,
   WifiOff as IconWifiOff,
@@ -51,11 +54,14 @@ export function MarkdownEditorControls({
   presence,
   stats,
   readonly,
+  readingMode,
   focusMode,
   typewriterMode,
   onExport,
   onSource,
   onFind,
+  onToggleReading,
+  onPrint,
   exporting,
   onImport,
   onToggleFocus,
@@ -65,11 +71,14 @@ export function MarkdownEditorControls({
   presence: number;
   stats: MarkdownStats;
   readonly: boolean;
+  readingMode: boolean;
   focusMode: boolean;
   typewriterMode: boolean;
   onExport: () => void;
   onSource: () => void;
   onFind: () => void;
+  onToggleReading: () => void;
+  onPrint: () => void;
   exporting: boolean;
   onImport: () => void;
   onToggleFocus: () => void;
@@ -105,45 +114,51 @@ export function MarkdownEditorControls({
       </Group>
 
       <Group gap={4}>
-        <Tooltip label={`专注模式（${modifier}+Shift+F）`}>
-          <ActionIcon
-            aria-label="切换专注模式"
-            aria-pressed={focusMode}
-            variant={focusMode ? 'light' : 'subtle'}
-            color={focusMode ? 'blue' : 'gray'}
-            onClick={onToggleFocus}
-          >
-            <IconFocus size={17} />
-          </ActionIcon>
-        </Tooltip>
-        <Tooltip label="打字机模式">
-          <ActionIcon
-            aria-label="切换打字机模式"
-            aria-pressed={typewriterMode}
-            variant={typewriterMode ? 'light' : 'subtle'}
-            color={typewriterMode ? 'blue' : 'gray'}
-            onClick={onToggleTypewriter}
-          >
-            <IconTypewriter size={17} />
-          </ActionIcon>
-        </Tooltip>
-        <Popover width={280} position="bottom-end" shadow="md">
-          <Popover.Target>
-            <ActionIcon aria-label="查看编辑快捷键">
-              <IconKeyboard size={17} />
+        {!readingMode && (
+          <Tooltip label={`专注模式（${modifier}+Shift+F）`}>
+            <ActionIcon
+              aria-label="切换专注模式"
+              aria-pressed={focusMode}
+              variant={focusMode ? 'light' : 'subtle'}
+              color={focusMode ? 'blue' : 'gray'}
+              onClick={onToggleFocus}
+            >
+              <IconFocus size={17} />
             </ActionIcon>
-          </Popover.Target>
-          <Popover.Dropdown>
-            <MarkdownShortcuts />
-          </Popover.Dropdown>
-        </Popover>
-        {readonly ? null : (
+          </Tooltip>
+        )}
+        {!readingMode && (
+          <Tooltip label="打字机模式">
+            <ActionIcon
+              aria-label="切换打字机模式"
+              aria-pressed={typewriterMode}
+              variant={typewriterMode ? 'light' : 'subtle'}
+              color={typewriterMode ? 'blue' : 'gray'}
+              onClick={onToggleTypewriter}
+            >
+              <IconTypewriter size={17} />
+            </ActionIcon>
+          </Tooltip>
+        )}
+        {!readingMode && (
+          <Popover width={280} position="bottom-end" shadow="md">
+            <Popover.Target>
+              <ActionIcon aria-label="查看编辑快捷键">
+                <IconKeyboard size={17} />
+              </ActionIcon>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <MarkdownShortcuts />
+            </Popover.Dropdown>
+          </Popover>
+        )}
+        {!readingMode && (readonly ? null : (
           <Tooltip label="导入 Markdown">
             <ActionIcon aria-label="导入 Markdown" onClick={onImport}>
               <IconFileImport size={17} />
             </ActionIcon>
           </Tooltip>
-        )}
+        ))}
         <Tooltip label="查看 Markdown 源码">
           <ActionIcon aria-label="查看 Markdown 源码" onClick={onSource}>
             <IconSource size={17} />
@@ -154,6 +169,13 @@ export function MarkdownEditorControls({
             <IconSearch size={17} />
           </ActionIcon>
         </Tooltip>
+        {readingMode && (
+          <Tooltip label="打印">
+            <ActionIcon aria-label="打印" onClick={onPrint}>
+              <IconPrint size={17} />
+            </ActionIcon>
+          </Tooltip>
+        )}
         <Tooltip label="导出 Markdown">
           <ActionIcon
             aria-label="导出 Markdown"
@@ -163,6 +185,17 @@ export function MarkdownEditorControls({
             <IconDownload size={17} />
           </ActionIcon>
         </Tooltip>
+        {readonly ? null : (
+          <Tooltip label={readingMode ? '返回编辑' : '阅读视图'}>
+            <ActionIcon
+              aria-label={readingMode ? '返回编辑' : '进入阅读视图'}
+              aria-pressed={readingMode}
+              onClick={onToggleReading}
+            >
+              {readingMode ? <IconEdit size={17} /> : <IconReading size={17} />}
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Group>
     </Group>
   );
