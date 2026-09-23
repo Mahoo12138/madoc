@@ -26,6 +26,13 @@ func TestBackupAndRestore(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if _, err := conn.Exec(`
+ INSERT INTO users(id,email,password_hash,created_at,updated_at) VALUES('u','u@test','hash',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+ INSERT INTO workspaces(id,name,created_by,created_at,updated_at) VALUES('w','Workspace','u',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+ INSERT INTO content_imports(id,workspace_id,created_by,request_sha256,root_item_id,created_at) VALUES('receipt','w','u','kept-digest','previously-imported-root',CURRENT_TIMESTAMP);
+ `); err != nil {
+		t.Fatal(err)
+	}
 	conn.Close()
 	backupDir, err := Backup(dataDir, dbPath)
 	if err != nil {
@@ -45,6 +52,15 @@ func TestBackupAndRestore(t *testing.T) {
 	}
 	if filepath.Dir(backupDir) != filepath.Join(dataDir, "backups") || filepath.Dir(recovery) != filepath.Join(dataDir, "backups") {
 		t.Fatalf("backup paths must remain inside MADOC_DATA: backup=%q recovery=%q", backupDir, recovery)
+	}
+	reopened, err := db.Open(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reopened.Close()
+	var digest, root string
+	if err := reopened.QueryRow(`SELECT request_sha256,root_item_id FROM content_imports WHERE id='receipt'`).Scan(&digest, &root); err != nil || digest != "kept-digest" || root != "previously-imported-root" {
+		t.Fatalf("restored receipt: %q %q %v", digest, root, err)
 	}
 }
 
@@ -87,7 +103,7 @@ func TestCleanLegacyRequiresConfirmationAndPreservesDatabase(t *testing.T) {
 	}
 	defer canonical.Close()
 	var migrations int
-	if err := canonical.QueryRow(`SELECT count(*) FROM schema_migrations`).Scan(&migrations); err != nil || migrations != 8 {
+	if err := canonical.QueryRow(`SELECT count(*) FROM schema_migrations`).Scan(&migrations); err != nil || migrations != 9 {
 		t.Fatalf("canonical migrations = %d, %v", migrations, err)
 	}
 }

@@ -68,10 +68,12 @@ test('CLI backup restores Markdown, board, asset and session into an independent
     await page.goto(boardURL);
     await expect(page.locator('.excalidraw')).toBeVisible();
     await expect(page.getByText('Saved', { exact: true })).toBeVisible();
-    const ready = page.waitForEvent('download');
     await page.getByRole('button', { name: '导出', exact: true }).click();
-    await page.getByRole('menuitem', { name: 'Excalidraw JSON' }).click();
-    const exported = JSON.parse(await readFile((await (await ready).path())!, 'utf8'));
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('menuitem', { name: 'Excalidraw JSON', exact: true }).click(),
+    ]);
+    const exported = JSON.parse(await readFile((await download.path())!, 'utf8'));
     expect(normalizedBoardElements(exported.elements)).toEqual(normalizedBoardElements(before.scene.elements));
   } finally {
     await page.close();

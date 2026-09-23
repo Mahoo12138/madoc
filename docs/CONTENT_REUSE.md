@@ -196,6 +196,9 @@ ZIP，或一份 `.package-set.json` 加完整 ZIP 分包；内容分包单独选
 **整组成功才出现，失败不留下半组内容**，不采用逐项可见的部分成功方式。单篇 Markdown
 导出包的 ZIP 格式仍需接入（现有 `.md` 单文件导入继续可用）。
 
+数据库原子提交与持久化重试回执已实现，见 `CONTENT_IMPORT.md`；附件文件暂存、HTTP
+接口与前端确认写入仍待接入，当前界面继续保持只读预览。
+
 ## Excalidraw 白板导入预览
 
 白板导出菜单提供 `.excalidraw` JSON 导入。客户端检查文件大小及 Excalidraw version 2

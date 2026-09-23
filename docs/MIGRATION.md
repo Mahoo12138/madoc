@@ -272,3 +272,10 @@ chore: finalize MVP build and deployment
 `0008_personal_items.sql` 仅新增按用户和 Item 隔离的收藏 / 最近访问表及索引。
 不重写 Item、正文、白板或删除批次；反复启动不清除个人状态。权限和生命周期见
 `PERSONAL_NAVIGATION.md`。升级前停服备份，回退使用升级前完整备份。
+
+## 13. 内容导入回执增量迁移
+
+`0009_content_imports.sql` 仅新增成功导入回执表与 Workspace 索引，不重写或清除现有内容、
+附件与个人导航。回执与导入数据同事务提交；保留删除后回执以防旧请求重放重新创建内容。
+完整备份包含这些回执，恢复后重试语义继续有效。升级前仍按 `BUILD.md` 停服备份，回退使用
+升级前完整备份。数据库提交与文件暂存的边界见 `CONTENT_IMPORT.md`。

@@ -259,3 +259,10 @@ migration 必须事务化（SQLite 不允许事务处理的 pragma 除外）。
 `0006_markdown_generation.sql` 为 `markdown_states` 增加非空整数 `generation`，
 默认 0。正文重置时与更新日志 / receipt 清除一起递增；普通编辑及 compaction
 不改变代际。正文、缓存及快照写入都在事务中校验代际，避免旧客户端写入新正文。
+
+## 内容导入回执
+
+`0009_content_imports.sql` 增加 `content_imports`：请求 UUID 为主键，保存 Workspace、
+创建用户、请求摘要、根 Item ID 与时间。与整组新内容和附件元数据同事务提交，重复请求
+返回既有结果而不重复创建。根 Item ID 刻意不设删除级联，防止彻底删除后旧请求重新创建；
+Workspace 删除时清理其回执。暂不自动过期，权限与生命周期详见 `CONTENT_IMPORT.md`。
