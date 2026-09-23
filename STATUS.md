@@ -55,7 +55,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第十五部分：完成首次固定基线全量回归与发布检查文档、Docker 持久卷冒烟脚本；根据失败轨迹修正白板导出等价字段比较和图片源码拖选坐标。
 - 第十六部分：第二轮固定基线回归定位 Outline 用例的程序化选区通知遗漏，补充 selectionchange 后连续十轮通过；保持产品撤销配置不变。
 - 第十七部分：固定提交 `9c908d7` 完整门槛通过，阶段 0 完成。
-- 阶段 1 已开始，进展见下节；阶段 0 验收记录继续绑定原固定提交。
+- 阶段 1 已完成固定提交验收，阶段 2 随后开始；阶段 0 验收记录继续绑定原固定提交。
 
 ## 演进计划：阶段 1（已验收）
 
@@ -85,7 +85,8 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 单项固定内容捕获：新增只读 capture API，在一个事务中返回 Item 元数据及 Markdown 的 Yjs snapshot / updates / generation / cacheSeq / headSeq，或白板 scene / revision；Markdown 导出复用同一捕获路径。按需返回，不落永久历史，不承诺目录 / Workspace 原子快照。
 - 文件夹可移植 ZIP：保留嵌套路径并导出 Markdown / Excalidraw 文件；以每个 Item 的捕获水位写入 manifest，映射包内稳定链接，按 UUID 去重打包 Madoc 图片，列出未打包的外部图片和包外 Item 链接；缺失附件或内容投影滞后时拒绝生成。
 - 权限中文化：界面以“所有者 / 编辑者 / 查看者”显示 Workspace 角色，并在邀请表单说明各角色能力；邀请状态使用中文标签，API 中的 role / status 枚举保持原值。
-- 文件夹 / Workspace 单 ZIP、完整包集和单篇 Markdown 附件 ZIP 导入均已接入：支持目标目录、根名称冲突提示、内容与附件映射、确认提交和原请求重试；整组成功后才显示。阶段 2 固定提交整体验收仍待完成；持久历史检查点在阶段 3 继续实施。设计见 `docs/CONTENT_REUSE.md`。
+- 文件夹 / Workspace 单 ZIP、完整包集和单篇 Markdown 附件 ZIP 导入均已接入：支持目标目录、根名称冲突提示、内容与附件映射、确认提交和原请求重试；整组成功后才显示。阶段 2 固定提交整体验收已通过；持久历史检查点在阶段 3 继续实施。设计见 `docs/CONTENT_REUSE.md`。
+- 阶段 2 固定提交 `7583b76f8045a5e632edad66e6fb86a654eaa745` 完成 Go / race / vet、前端构建、314 项普通浏览器、首次安装、6 项真实重启 / 备份恢复和 Docker 持久卷验收；详细记录见 `docs/RELEASE.md`。阶段 3 已开始，历史检查点和资产保留尚未实现。
 
 ## 当前验证
 
