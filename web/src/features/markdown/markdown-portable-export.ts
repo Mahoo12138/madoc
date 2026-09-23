@@ -1,5 +1,6 @@
 import { strToU8, zip, type AsyncZippable } from 'fflate';
 import type { ConfirmedMarkdownExport } from './markdown-export';
+import { localMadocAssetID } from './asset-reference';
 
 type PackedAsset = {
   id: string;
@@ -9,15 +10,6 @@ type PackedAsset = {
   size: number;
   data: Uint8Array;
 };
-
-function localAssetID(source: string) {
-  let url: URL;
-  try { url = new URL(source, window.location.origin); }
-  catch { return undefined; }
-  if (url.origin !== window.location.origin) return undefined;
-  const match = /^\/api\/assets\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.exec(url.pathname);
-  return match?.[1].toLowerCase();
-}
 
 function safeFileBase(title: string) {
   let base = title.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').replace(/[ .]+$/g, '').trim();
@@ -101,7 +93,7 @@ export async function createMarkdownPortablePackage(
   const sourcesByID = new Map<string, Set<string>>();
   const externalImages = new Set<string>();
   for (const source of references) {
-    const id = localAssetID(source);
+    const id = localMadocAssetID(source, window.location.origin);
     if (!id) { externalImages.add(source); continue; }
     if (!sourcesByID.has(id)) sourcesByID.set(id, new Set());
     sourcesByID.get(id)!.add(source);

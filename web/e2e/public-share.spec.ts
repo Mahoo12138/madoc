@@ -68,6 +68,63 @@ test('a public share stays fixed until explicit publish and stops after revoke',
   expect(itemId).toBeTruthy();
 });
 
+test('a shared Markdown version exposes only its referenced uploaded image', async ({ page, browser }) => {
+  const status = await (await page.request.get('/api/setup/status')).json() as { initialized: boolean };
+  const auth = await page.request.post(status.initialized ? '/api/auth/sign-in' : '/api/setup/admin', {
+    data: { ...(!status.initialized ? { name: 'Owner' } : {}), email: 'owner@example.test', password: 'password123' },
+  });
+  expect(auth.ok()).toBeTruthy();
+  const { csrfToken } = await auth.json() as { csrfToken: string };
+  const headers = { 'x-madoc-csrf-token': csrfToken, Origin: 'http://127.0.0.1:3100' };
+  const workspace = await (await page.request.post('/api/workspaces', { headers, data: { name: 'Image share regression' } })).json() as { id: string };
+  const itemResponse = await page.request.post(`/api/workspaces/${workspace.id}/items`, {
+    headers,
+    data: { type: 'markdown', title: 'Image release', parentId: null },
+  });
+  expect(itemResponse.ok(), await itemResponse.text()).toBeTruthy();
+  const itemId = (await itemResponse.json() as { id: string }).id;
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/7xoAAAAASUVORK5CYII=', 'base64');
+  const upload = async (name: string) => {
+    const response = await page.request.post(`/api/workspaces/${workspace.id}/assets`, {
+      headers,
+      multipart: { itemId, file: { name, mimeType: 'image/png', buffer: png } },
+    });
+    expect(response.ok(), await response.text()).toBeTruthy();
+    return (await response.json() as { asset: { id: string }; url: string }).asset.id;
+  };
+  const publishedAsset = await upload('published.png');
+  const retainedButUnusedAsset = await upload('unused.png');
+  const reset = await page.request.put(`/api/items/${itemId}/markdown`, {
+    headers,
+    data: { snapshot: '', markdown: `Published image\n\n![visible](/api/assets/${publishedAsset})` },
+  });
+  expect(reset.ok(), await reset.text()).toBeTruthy();
+  await page.goto(`/workspace/${workspace.id}/${itemId}`);
+  await expect(page.locator('.ProseMirror')).toBeVisible();
+  await expect(page.locator('.ProseMirror img')).toHaveAttribute('src', `/api/assets/${publishedAsset}`);
+
+  await page.getByRole('button', { name: '版本历史' }).click();
+  const dialog = page.getByRole('dialog', { name: '版本历史' });
+  await dialog.getByLabel('版本名称').fill('Image release');
+  await dialog.getByRole('button', { name: '保存手动版本' }).click();
+  await expect(dialog.getByText('手动版本已保存。')).toBeVisible();
+  await dialog.getByRole('button', { name: '创建只读分享' }).click();
+  const shareURL = await dialog.getByRole('alert').getByRole('textbox').inputValue();
+  const token = new URL(shareURL).pathname.split('/').pop()!;
+  const anonymous = await browser.newPage();
+  const metadataResponse = await anonymous.request.get(`/api/public/shares/${token}`);
+  expect(metadataResponse.ok()).toBeTruthy();
+  const metadata = await metadataResponse.json() as { assets: { id: string }[] };
+  expect(metadata.assets.map((asset) => asset.id)).toEqual([publishedAsset]);
+  const imageResponse = await anonymous.request.get(`/api/public/shares/${token}/assets/${publishedAsset}`);
+  expect(imageResponse.ok()).toBeTruthy();
+  expect(await imageResponse.body()).toEqual(png);
+  expect((await anonymous.request.get(`/api/public/shares/${token}/assets/${retainedButUnusedAsset}`)).status()).toBe(404);
+  await anonymous.goto(shareURL);
+  await expect(anonymous.locator('.ProseMirror img')).toHaveAttribute('src', `/api/public/shares/${token}/assets/${publishedAsset}`);
+  await anonymous.close();
+});
+
 test('public rendering does not fetch remote images or retain unsafe links', async ({ page, browser }) => {
   const itemId = await openDocument(page);
   const request = page.request;

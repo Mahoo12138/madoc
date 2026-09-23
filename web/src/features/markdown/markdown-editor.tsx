@@ -6,6 +6,7 @@ import { registerContentSave } from '@/features/content/content-save';
 import { exportConfirmedMarkdown } from './markdown-export';
 import { useRecordVisit } from '@/api/personal-items';
 import { useMarkdownExport } from './use-markdown-export';
+import { localMadocAssetID } from './asset-reference';
 import { useBlocker } from '@tanstack/react-router';
 import { usePreferences } from '@/features/account/preferences-provider';
 import type { CSSProperties } from 'react';
@@ -249,7 +250,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
       <MarkdownMathPreview preview={inlinePreview} />
       {sourceOpened && <MarkdownSource title={item.title} read={exporter.inspect} onClose={() => setSourceOpened(false)} />}
       {findOpened && <MarkdownFindReplace controller={findControllerRef.current} readonly={role === 'viewer'} onClose={() => setFindOpened(false)} />}
-      {versionsOpened && <VersionHistoryDialog item={item} role={role} onClose={() => setVersionsOpened(false)} assetIds={() => exporter.assetReferences(exporter.inspect().markdown)} />}
+      {versionsOpened && <VersionHistoryDialog item={item} role={role} onClose={() => setVersionsOpened(false)} assetIds={() => [...new Set(exporter.assetReferences(exporter.inspect().markdown).map((source) => localMadocAssetID(source, window.location.origin)).filter((id): id is string => id !== undefined))]} />}
     </article>
   );
 }
