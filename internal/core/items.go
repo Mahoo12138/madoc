@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -49,7 +50,18 @@ func (s *Service) CreateItem(ctx context.Context, userID, workspaceID, itemType,
 }
 
 func (s *Service) CreateItemWithMarkdown(ctx context.Context, userID, workspaceID, itemType, title string, parentID *string, initial *InitialMarkdown) (Item, error) {
-	if initial != nil && (itemType != "markdown" || len(initial.Snapshot) == 0) {
+	return s.createItemWithInitialState(ctx, userID, workspaceID, itemType, title, parentID, initial, nil)
+}
+
+func (s *Service) CreateWhiteboardWithScene(ctx context.Context, userID, workspaceID, title string, parentID *string, scene string) (Item, error) {
+	return s.createItemWithInitialState(ctx, userID, workspaceID, "whiteboard", title, parentID, nil, &scene)
+}
+
+func (s *Service) createItemWithInitialState(ctx context.Context, userID, workspaceID, itemType, title string, parentID *string, initialMarkdown *InitialMarkdown, initialWhiteboard *string) (Item, error) {
+	if initialMarkdown != nil && (itemType != "markdown" || len(initialMarkdown.Snapshot) == 0 || initialWhiteboard != nil) {
+		return Item{}, ErrInvalid
+	}
+	if initialWhiteboard != nil && (itemType != "whiteboard" || !validInitialWhiteboardScene(*initialWhiteboard)) {
 		return Item{}, ErrInvalid
 	}
 	if itemType != "folder" && itemType != "markdown" && itemType != "whiteboard" {
@@ -80,12 +92,16 @@ func (s *Service) CreateItemWithMarkdown(ctx context.Context, userID, workspaceI
 		return Item{}, err
 	}
 	if itemType == "markdown" {
-		if _, err := tx.ExecContext(ctx, `INSERT INTO markdown_states(item_id,snapshot,markdown_cache,updated_at) VALUES(?,?,?,?)`, item.ID, initialSnapshot(initial), initialText(initial), now); err != nil {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO markdown_states(item_id,snapshot,markdown_cache,updated_at) VALUES(?,?,?,?)`, item.ID, initialSnapshot(initialMarkdown), initialText(initialMarkdown), now); err != nil {
 			return Item{}, err
 		}
 	}
 	if itemType == "whiteboard" {
-		if _, err := tx.ExecContext(ctx, `INSERT INTO whiteboard_states(item_id,updated_at) VALUES(?,?)`, item.ID, now); err != nil {
+		scene := `{"elements":[],"appState":{},"files":{}}`
+		if initialWhiteboard != nil {
+			scene = *initialWhiteboard
+		}
+		if _, err := tx.ExecContext(ctx, `INSERT INTO whiteboard_states(item_id,scene_json,updated_by,updated_at) VALUES(?,?,?,?)`, item.ID, scene, userID, now); err != nil {
 			return Item{}, err
 		}
 	}
@@ -93,6 +109,18 @@ func (s *Service) CreateItemWithMarkdown(ctx context.Context, userID, workspaceI
 		return Item{}, err
 	}
 	return item, nil
+}
+
+func validInitialWhiteboardScene(sceneJSON string) bool {
+	var scene struct {
+		Elements []json.RawMessage          `json:"elements"`
+		AppState map[string]json.RawMessage `json:"appState"`
+		Files    map[string]json.RawMessage `json:"files"`
+	}
+	if err := json.Unmarshal([]byte(sceneJSON), &scene); err != nil {
+		return false
+	}
+	return scene.Elements != nil && scene.AppState != nil && scene.Files != nil
 }
 
 func (s *Service) RenameItem(ctx context.Context, userID, itemID, title string) error {

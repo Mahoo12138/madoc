@@ -132,6 +132,18 @@ Milkdown / Crepe schema 生成，不加入协作房间；服务端在同一事�
 附件 ZIP 导入、路径与资源映射、目录结构和冲突预览仍待实现。客户端以实际序列化请求体
 检查现有 2 MiB JSON 解码上限，超限时在创建前给出拆分提示。
 
+## Excalidraw 白板导入预览
+
+白板导出菜单提供 `.excalidraw` JSON 导入。客户端检查文件大小及 Excalidraw version 2
+结构，预览元素数、嵌入文件数和可编辑的新白板名称；确认后在当前文件夹创建独立白板，
+保留 elements、appState 与 files（包括嵌入图片），不修改当前白板。服务端在同一事务中
+创建 Item 和初始 scene，revision 从 0 开始；viewer 不显示导入入口，REST / core 仍执行
+写权限检查。单文件与实际请求体均受 2 MiB JSON 上限约束，超限或结构 / 版本无效时不会
+创建条目。创建响应不确定时提示先检查目录；已创建但导航失败时只重试打开，不重复创建。
+
+此入口不实现导入到现有白板、目录包或额外的资产上传；保真范围是 Excalidraw 文件内
+的场景数据与嵌入文件。
+
 ## 验证
 
 `markdown-find-replace.spec.ts` 验证区分大小写、中文文本、跨格式边界、远端协作修改后
@@ -159,3 +171,7 @@ generation / seq 与导出时间、外部图片清单、代码示例 URL 不改�
 
 `markdown-source.spec.ts` 验证桌面 / 手机只读、剪贴板与下载文本完全一致、转义和代码
 源码、远端更新后显式刷新、手动复制回退、未同步提示与 viewer 不发送正文更新。
+
+`excalidraw-import-preview.spec.ts` 验证 version 2 结构预览、嵌入文件保留、在当前目录
+创建不同于源条目的新白板、原白板不变，以及不支持版本时不创建内容；`initial_whiteboard_test.go`
+覆盖场景初始 revision、嵌入文件、viewer 拒绝、父目录验证及创建事务失败回滚。
