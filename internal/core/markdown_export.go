@@ -13,10 +13,14 @@ type MarkdownExportTarget struct {
 }
 
 func (s *Service) ExportMarkdown(ctx context.Context, userID, itemID string, target *MarkdownExportTarget) (MarkdownState, error) {
-	state, err := s.Markdown(ctx, userID, itemID)
+	capture, err := s.CaptureItem(ctx, userID, itemID)
 	if err != nil {
 		return MarkdownState{}, err
 	}
+	if capture.Markdown == nil {
+		return MarkdownState{}, ErrInvalid
+	}
+	state := *capture.Markdown
 	required := state.HeadSeq
 	if target != nil {
 		if target.Generation < 0 || target.MinSeq < 0 {

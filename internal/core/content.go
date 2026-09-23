@@ -20,12 +20,19 @@ func (s *Service) Markdown(ctx context.Context, userID, itemID string) (Markdown
 	if item.Type != "markdown" {
 		return MarkdownState{}, ErrInvalid
 	}
+	return readMarkdownState(ctx, tx, itemID)
+}
+
+func readMarkdownState(ctx context.Context, q interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
+}, itemID string) (MarkdownState, error) {
 	var state MarkdownState
-	err = tx.QueryRowContext(ctx, `SELECT snapshot,snapshot_seq,markdown_cache,cache_seq,generation FROM markdown_states WHERE item_id=?`, itemID).Scan(&state.Snapshot, &state.SnapshotSeq, &state.Markdown, &state.CacheSeq, &state.Generation)
+	err := q.QueryRowContext(ctx, `SELECT snapshot,snapshot_seq,markdown_cache,cache_seq,generation FROM markdown_states WHERE item_id=?`, itemID).Scan(&state.Snapshot, &state.SnapshotSeq, &state.Markdown, &state.CacheSeq, &state.Generation)
 	if err != nil {
 		return MarkdownState{}, err
 	}
-	rows, err := tx.QueryContext(ctx, `SELECT id,update_blob,COALESCE(created_by,'') FROM markdown_updates WHERE item_id=? AND id>? ORDER BY id`, itemID, state.SnapshotSeq)
+	rows, err := q.QueryContext(ctx, `SELECT id,update_blob,COALESCE(created_by,'') FROM markdown_updates WHERE item_id=? AND id>? ORDER BY id`, itemID, state.SnapshotSeq)
 	if err != nil {
 		return MarkdownState{}, err
 	}

@@ -104,8 +104,22 @@ Markdown 阅读视图继续使用同一 Milkdown / Crepe 文档和样式，切�
 打印入口从阅读视图提供，以当前页面内容调用浏览器打印；打印样式只保留文档标题和正文，
 并处理代码换行、图片宽度及标题、代码块、表格、引用和图片的分页断开。
 
-带附件迁出需要固定内容捕获、水位和资源映射；不能直接以可能滞后的
-Markdown cache 创建副本或导出包。版本历史在阶段 3 复用同一不可变捕获基础。
+## 单项固定内容捕获
+
+`GET /api/items/{itemId}/capture` 在一个 SQLite 只读事务中返回单个文档或白板的 Item 元数据
+与已保存内容。Markdown 捕获包含 Yjs snapshot、snapshot 之后的有序 updates、generation、
+headSeq，以及带 cacheSeq 的 Markdown 派生投影；投影落后时调用方可比较水位并等待或从
+Yjs 状态重建，不应把旧投影标成最新。白板捕获包含完整 scene 与 revision。viewer 可读，
+非成员、已删除内容和 folder 会被拒绝。响应不缓存。
+
+这是按需返回给授权客户端的值，不写入永久历史，也不代表多个 Item 的共同时间点；捕获完成
+后 compaction 不会改变已返回的序列化内容。附件引用仍由内容引擎识别，Go 不解析 Yjs、
+Markdown 或 Excalidraw 内部结构。后续目录导出可为每个 Item 分别固定捕获，并在 manifest
+记录各自水位与时间；不得宣称整个目录或 Workspace 是原子快照。
+
+目录级带附件迁出需要逐项固定捕获、水位和资源映射；不能直接以可能滞后的
+Markdown cache 创建导出包。版本历史在阶段 3 将复用同一捕获数据，并另行确定持久化、
+容量和清理策略。
 
 ## 单篇 Markdown 可移植导出
 
@@ -118,8 +132,8 @@ Markdown 图片目标；围栏和行内代码中的示例保持原文。任何 M
 ZIP 根目录含 manifest、以跨平台安全文件名保存的 Markdown 和附件目录。外部、站点相对及
 其他非 Madoc 资产图片沿用原地址，并在 manifest `unpackagedImages` 中列出；它们不作为已
 迁出的二进制资源。首版限单篇 Markdown，不含文件夹、Workspace、白板、导入或导入预览。
-ZIP 在浏览器中生成，不增加服务端 Markdown / Yjs 解析或常驻服务。后续固定内容捕获仍需
-作为阶段 3 的可复用不可变版本基础单独实现。
+ZIP 在浏览器中生成，不增加服务端 Markdown / Yjs 解析或常驻服务。当前单篇导出尚未切换
+到新的固定捕获 API；后续目录导出可逐项使用该接口，并需补齐资源映射。
 
 ## 单篇 Markdown 导入预览
 
@@ -175,3 +189,7 @@ generation / seq 与导出时间、外部图片清单、代码示例 URL 不改�
 `excalidraw-import-preview.spec.ts` 验证 version 2 结构预览、嵌入文件保留、在当前目录
 创建不同于源条目的新白板、原白板不变，以及不支持版本时不创建内容；`initial_whiteboard_test.go`
 覆盖场景初始 revision、嵌入文件、viewer 拒绝、父目录验证及创建事务失败回滚。
+
+`capture_test.go` 验证单项捕获的 Markdown generation / cacheSeq / headSeq、Yjs updates 在
+compaction 后仍作为返回值保持不变、白板 revision / scene 和 viewer 读取权限；
+`item-capture.spec.ts` 验证 REST 响应的 Markdown / 白板内容形状及 no-store 缓存头。

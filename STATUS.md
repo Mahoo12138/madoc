@@ -82,7 +82,8 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 单篇 Markdown 可移植 ZIP：沿用服务器确认的 Markdown 水位，manifest 记录代际 / 序号 / 时间；同源 Madoc 图片打包为附件并改写相对图片目标，外部和相对图片保留原地址并列入 manifest；缺失附件时不产出不完整包。细节见 `docs/CONTENT_REUSE.md`。
 - 单篇 `.md` / `.markdown` 导入预览：读取原文并允许修改新文档名称；基于活动 schema 生成初始协作快照，原子创建独立 Item，默认不覆盖当前内容。纯 Markdown 导入不携带附件。
 - `.excalidraw` 白板导入预览：校验 version 2 结构，展示元素 / 嵌入文件数量并允许修改新白板名称；同一事务新建 Item 与初始 scene，保留嵌入文件，不覆盖原白板；viewer 不显示入口，超出 2 MiB 或结构不支持时不创建。
-- 待完成：目录 / Workspace 带附件迁出、ZIP 目录导入与结构冲突预览，以及面向历史版本的可复用固定内容捕获。设计见 `docs/CONTENT_REUSE.md`。
+- 单项固定内容捕获：新增只读 capture API，在一个事务中返回 Item 元数据及 Markdown 的 Yjs snapshot / updates / generation / cacheSeq / headSeq，或白板 scene / revision；Markdown 导出复用同一捕获路径。按需返回，不落永久历史，不承诺目录 / Workspace 原子快照。
+- 待完成：目录 / Workspace 带附件迁出、ZIP 目录导入与结构冲突预览，以及将固定捕获持久化为有容量和清理边界的历史检查点。设计见 `docs/CONTENT_REUSE.md`。
 
 ## 当前验证
 
@@ -90,6 +91,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 阶段 2 第八部分：单篇 Markdown 可移植 ZIP；9 项导出 / 阅读视图 E2E 通过，新增用例验证 ZIP 内附件字节、相对图片路径、manifest 实际水位、外链清单、代码围栏与行内代码不改写，以及附件缺失时拒绝生成不完整包。Go test ./...、go vet ./...、前端 typecheck / production build 通过；build 保留既有大 chunk 警告。首轮 E2E 曾使用旧 dist 并超时；重建后发现并修正代码围栏 URL 改写，再以干净构建重跑通过。
 - 阶段 2 第九部分：单篇 Markdown 导入预览与安全新建；3 项导入 E2E 覆盖原文保持不变、脚注 / 加粗格式保真、文件名生成新标题、服务失败保留预览和名称后重试，以及超过 2 MiB 请求上限时不读取 / 创建。3 项现有模板 E2E 验证共享编译器未改变模板行为。Go test ./...、go vet ./...、前端 typecheck / production build 和 diff 空白检查通过，保留既有大 chunk 警告。初轮原文断言未容忍序列化末尾换行，调整为比较去尾换行后的正文后通过。
 - 阶段 2 第十部分：`.excalidraw` 导入预览按 version 2 校验场景并展示元素 / 嵌入文件数量；新白板 Item 与 scene 原子创建，保留内嵌图片且不修改源白板。2 项新 E2E 与 8 项白板恢复回归通过；core 单测覆盖权限、父目录及事务回滚。Go test ./...、go vet ./...、前端 typecheck / production build、diff 空白检查通过，保留既有大 chunk 警告。
+- 阶段 2 第十一部分：单项固定内容捕获在 SQLite 事务中返回元数据与版本水位，Markdown / 白板分别保留完整 editor state；Markdown 导出复用捕获。core 与 1 项 REST E2E 验证水位、compaction 后返回值稳定、白板 revision / scene、viewer 权限及 no-store。Go test ./...、go vet ./...、前端 typecheck / production build、diff 空白检查通过；build 保留既有大 chunk 警告。
 - 阶段 2 第五部分（基于 `b078aca`）：9 项源码 / 导出 E2E 通过，覆盖桌面 / 手机只读、复制与下载一致、远端刷新、剪贴板拒绝回退、未同步提示及 viewer 零正文写入；检查桌面与 390px 截图。MVP 首次运行在 Workspace 导航时 Chromium 页面崩溃，无应用异常；立即独立重跑通过。Go test / vet、前端 typecheck / production build 通过，保留既有大 chunk 提示。
 - 阶段 2 第六部分：3 项文内查找 / 替换 E2E 覆盖精确大小写与中文文本、远端新增匹配后的结果刷新、跨加粗边界、替换单项 / 全部、双标签同步、单步撤销和 viewer 零正文写入；23 项源码 / 导出 / 编辑器回归及独立 MVP 流程通过。Go test / vet、前端 typecheck / production build 和 diff 空白检查通过。首轮使用旧静态 bundle，撤销后对远程光标标签的断言也过严；重建前端并调整选择器后通过，生产构建保留既有大 chunk 提示。
 - 阶段 2 第七部分：2 项阅读 / 打印 E2E 验证原 Milkdown 呈现、大纲导航、编辑回切、viewer 默认只读及 print media 内容隔离；同跑 14 项源码 / 导出 / Outline 回归和 1 项权限中文标签验证通过，另行隔离运行的 MVP 首次启动测试通过。打印截图确认只显示文档标题和正文。Go test / vet、前端 typecheck / production build 通过，保留既有大 chunk 提示。MVP 与整组测试共享已初始化数据时不满足其首次启动前提，故单独运行。

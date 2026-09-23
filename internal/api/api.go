@@ -74,6 +74,7 @@ func (a *API) Routes() http.Handler {
 		r.Delete("/items/{itemId}", a.csrfRequired(a.deleteItem))
 		r.Post("/items/{itemId}/move", a.csrfRequired(a.moveItem))
 		r.Post("/items/{itemId}/duplicate", a.csrfRequired(a.duplicateItem))
+		r.Get("/items/{itemId}/capture", a.captureItem)
 		r.Get("/items/{itemId}/markdown", a.getMarkdown)
 		r.Put("/items/{itemId}/markdown", a.csrfRequired(a.resetMarkdown))
 		r.Get("/items/{itemId}/export.md", a.exportMarkdown)
@@ -476,6 +477,33 @@ func (a *API) getMarkdown(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, 200, map[string]any{"markdown": v.Markdown, "cacheSeq": v.CacheSeq, "generation": v.Generation})
+}
+func (a *API) captureItem(w http.ResponseWriter, r *http.Request) {
+	v, e := a.core.CaptureItem(r.Context(), userID(r), chi.URLParam(r, "itemId"))
+	if e != nil {
+		domainError(w, e)
+		return
+	}
+	type whiteboardCapture struct {
+		Revision int64 `json:"revision"`
+		Scene    any   `json:"scene"`
+	}
+	var whiteboard *whiteboardCapture
+	if v.Whiteboard != nil {
+		var scene any
+		if json.Unmarshal([]byte(v.Whiteboard.Scene), &scene) != nil {
+			domainError(w, core.ErrInvalid)
+			return
+		}
+		whiteboard = &whiteboardCapture{Revision: v.Whiteboard.Revision, Scene: scene}
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	writeJSON(w, 200, struct {
+		Item       core.Item           `json:"item"`
+		CapturedAt time.Time           `json:"capturedAt"`
+		Markdown   *core.MarkdownState `json:"markdown,omitempty"`
+		Whiteboard *whiteboardCapture  `json:"whiteboard,omitempty"`
+	}{Item: v.Item, CapturedAt: v.CapturedAt, Markdown: v.Markdown, Whiteboard: whiteboard})
 }
 func (a *API) resetMarkdown(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "itemId")
