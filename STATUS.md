@@ -93,8 +93,8 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第一部分（提交 `108a987`）：migration 0010 持久版本模型和手动创建 / 分页 / 读取 API；覆盖投影滞后拒绝、compaction 后 Markdown 历史不变、白板场景固定、viewer / outsider 读权限与 viewer 写拒绝、附件引用时拒删。
 - 第二部分（提交 `918b89b`）：自动版接入 Markdown / 白板持久化；同条目 15 分钟合并，最多 30 个、90 天过期；容量统计版本 payload 与唯一引用附件，达到 Workspace 1 GiB 暂停自动版但不阻断编辑；手动版永久保留。
 - 第三部分（提交 `d6bd359`）：版本时间线、手动命名、Markdown 差异 / 预览、白板 SVG 预览，以及事务性恢复为新副本；原 Item 不变。Migration 0011 保存副本活动附件引用。
-- 第四部分：历史容量诊断 API / UI；独立目录备份恢复演练覆盖 Markdown 手动版、白板自动版、引用附件、附件删除保护和恢复前后用量一致。
-- 阶段 3 最终固定提交待本次代码与验收记录提交后补入。
+- 第四部分（提交 `c5e74dd`）：历史容量诊断 API / UI；独立目录备份恢复演练覆盖 Markdown 手动版、白板自动版、引用附件、附件删除保护和恢复前后用量一致。
+- 阶段 3 固定提交 `c5e74dd` 完成 `go test ./...`、`go test -race ./...`、`go vet ./...`、前端 typecheck / production build、2 项内容历史真实浏览器往返和 1 项 CLI 独立目录备份恢复演练。验收详情见 `docs/RELEASE.md`。
 
 ## 当前验证
 
