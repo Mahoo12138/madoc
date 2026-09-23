@@ -82,6 +82,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 
 ## 当前验证
 
+- Workspace 角色在成员列表、邀请列表和空间列表中显示为“所有者 / 编辑者 / 查看者”，请求仍使用稳定的 `owner / editor / viewer` 值；专项浏览器验证通过。
 - 阶段 2 第五部分（基于 `b078aca`）：9 项源码 / 导出 E2E 通过，覆盖桌面 / 手机只读、复制与下载一致、远端刷新、剪贴板拒绝回退、未同步提示及 viewer 零正文写入；检查桌面与 390px 截图。MVP 首次运行在 Workspace 导航时 Chromium 页面崩溃，无应用异常；立即独立重跑通过。Go test / vet、前端 typecheck / production build 通过，保留既有大 chunk 提示。
 - 阶段 2 第六部分：3 项文内查找 / 替换 E2E 覆盖精确大小写与中文文本、远端新增匹配后的结果刷新、跨加粗边界、替换单项 / 全部、双标签同步、单步撤销和 viewer 零正文写入；23 项源码 / 导出 / 编辑器回归及独立 MVP 流程通过。Go test / vet、前端 typecheck / production build 和 diff 空白检查通过。首轮使用旧静态 bundle，撤销后对远程光标标签的断言也过严；重建前端并调整选择器后通过，生产构建保留既有大 chunk 提示。
 

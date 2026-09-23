@@ -25,6 +25,7 @@ import { useSession, useWorkspaces, useWorkspaceMutations } from '@/api/hooks';
 import { queryClient } from '@/api/query-client';
 import { AccountMenu } from '@/features/account/account-menu';
 import * as styles from './workspace-list-page.css';
+import { roleLabels } from './role-labels';
 
 export function WorkspaceListPage() {
   const session = useSession();
@@ -97,7 +98,7 @@ export function WorkspaceListPage() {
               <Stack gap={4}>
                 <Title order={3}>{workspace.name}</Title>
                 <Text size="sm" c="dimmed">
-                  {workspace.role}
+                  {roleLabels[workspace.role]}
                 </Text>
               </Stack>
               <IconChevronRight size={20} color="var(--mantine-color-gray-5)" />

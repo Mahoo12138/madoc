@@ -22,6 +22,16 @@ import {
 } from 'lucide-react';
 import { useInvites, useMembers, useWorkspaceMutations } from '@/api/hooks';
 import type { Role } from '@/api/types';
+import { roleLabels } from './role-labels';
+
+const memberRoleOptions = (['owner', 'editor', 'viewer'] as const).map((value) => ({
+  value,
+  label: roleLabels[value],
+}));
+const inviteRoleOptions = (['editor', 'viewer'] as const).map((value) => ({
+  value,
+  label: roleLabels[value],
+}));
 
 export function MemberDrawer({
   opened,
@@ -79,7 +89,7 @@ export function MemberDrawer({
                     size="xs"
                     w={110}
                     value={member.role}
-                    data={['owner', 'editor', 'viewer']}
+                    data={memberRoleOptions}
                     disabled={currentRole !== 'owner'}
                     onChange={(value) =>
                       value &&
@@ -124,7 +134,7 @@ export function MemberDrawer({
                     onChange={(value) =>
                       setRole((value ?? 'editor') as 'editor' | 'viewer')
                     }
-                    data={['editor', 'viewer']}
+                    data={inviteRoleOptions}
                   />
                   <Button
                     onClick={invite}
@@ -160,7 +170,7 @@ export function MemberDrawer({
                   <div>
                     <Text size="sm">{item.email}</Text>
                     <Text size="xs" c="dimmed">
-                      {item.role} · {item.status}
+                      {roleLabels[item.role]} · {item.status}
                     </Text>
                   </div>
                 </Group>
