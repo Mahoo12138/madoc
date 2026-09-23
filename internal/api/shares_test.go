@@ -50,10 +50,12 @@ func TestPublicShareHTTPUsesOpaqueTokenAndScopedAssets(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(assetRoot, workspace.ID), 0o750); err != nil {
 		t.Fatal(err)
 	}
-	assetID := "published-image"
-	otherAssetID := "unpublished-image"
+	assetID := "11111111-1111-4111-8111-111111111111"
+	unusedItemAssetID := "22222222-2222-4222-8222-222222222222"
+	otherAssetID := "33333333-3333-4333-8333-333333333333"
 	for _, entry := range []struct{ id, itemID, body string }{
 		{assetID, doc.ID, "public image"},
+		{unusedItemAssetID, doc.ID, "private image on published item"},
 		{otherAssetID, other.ID, "private image"},
 	} {
 		path := filepath.Join(assetRoot, workspace.ID, entry.id)
@@ -68,7 +70,7 @@ func TestPublicShareHTTPUsesOpaqueTokenAndScopedAssets(t *testing.T) {
 	if err := domain.ResetMarkdown(ctx, owner.ID, doc.ID, nil, markdown); err != nil {
 		t.Fatal(err)
 	}
-	version, err := domain.CreateManualVersion(ctx, owner.ID, doc.ID, "release", nil)
+	version, err := domain.CreateManualVersion(ctx, owner.ID, doc.ID, "release", []string{assetID})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,6 +135,12 @@ func TestPublicShareHTTPUsesOpaqueTokenAndScopedAssets(t *testing.T) {
 	handler.ServeHTTP(imageResponse, imageRequest)
 	if imageResponse.Code != http.StatusOK || imageResponse.Body.String() != "public image" {
 		t.Fatalf("scoped image status=%d body=%q", imageResponse.Code, imageResponse.Body.String())
+	}
+	unusedRequest := httptest.NewRequest(http.MethodGet, "/public/shares/"+created.Token+"/assets/"+unusedItemAssetID, nil)
+	unusedResponse := httptest.NewRecorder()
+	handler.ServeHTTP(unusedResponse, unusedRequest)
+	if unusedResponse.Code != http.StatusNotFound {
+		t.Fatalf("same-item asset absent from version content was exposed: status=%d body=%q", unusedResponse.Code, unusedResponse.Body.String())
 	}
 	otherRequest := httptest.NewRequest(http.MethodGet, "/public/shares/"+created.Token+"/assets/"+otherAssetID, nil)
 	otherResponse := httptest.NewRecorder()

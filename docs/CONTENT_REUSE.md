@@ -123,8 +123,10 @@ compaction 不会改写历史。
 
 ### 持久内容版本：第一部分
 
-Migration 0010 增加 `item_versions`、Markdown 尾部 `item_version_updates` 和附件引用表
-`item_version_assets`；恢复为副本的活动内容引用保存在 `item_asset_refs`。Markdown 版本保存 generation、snapshotSeq、headSeq、Yjs snapshot、
+Migration 0010 增加 `item_versions`、Markdown 尾部 `item_version_updates` 和历史附件保留表
+`item_version_assets`；恢复为副本的活动内容引用保存在 `item_asset_refs`。Migration 0015 增加独立的
+`item_version_content_assets` 精确记录版本正文引用的附件，供公开分享授权使用，不扩大历史保留范围。
+Markdown 版本保存 generation、snapshotSeq、headSeq、Yjs snapshot、
 有序增量和同一事务观察到的完整 Markdown 投影；白板版本保存 revision 与完整 scene。
 创建要求 Markdown projection 的 cacheSeq 与 headSeq 相等，避免把滞后正文标成完整版本。
 捕获与写入处在同一 SQLite 事务中，后续 compaction / 更新不改变已保存的数据。

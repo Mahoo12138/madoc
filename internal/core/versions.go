@@ -32,11 +32,15 @@ func (s *Service) CreateManualVersion(ctx context.Context, userID, itemID, label
 	if label == "" || utf8.RuneCountInString(label) > MaxVersionLabelRunes || len(assetIDs) > 5000 {
 		return ContentVersion{}, ErrInvalid
 	}
-	assets := make(map[string]struct{}, len(assetIDs))
+	contentAssets := make(map[string]struct{}, len(assetIDs))
 	for _, id := range assetIDs {
 		if !validImportID(id) {
 			return ContentVersion{}, ErrInvalid
 		}
+		contentAssets[id] = struct{}{}
+	}
+	assets := make(map[string]struct{}, len(assetIDs))
+	for id := range contentAssets {
 		assets[id] = struct{}{}
 	}
 	orderedAssets := make([]string, 0, len(assets))
@@ -107,6 +111,23 @@ func (s *Service) CreateManualVersion(ctx context.Context, userID, itemID, label
 	if err != nil {
 		return ContentVersion{}, err
 	}
+	rows, err = tx.QueryContext(ctx, `SELECT asset_id FROM item_asset_refs WHERE item_id=?`, itemID)
+	if err != nil {
+		return ContentVersion{}, err
+	}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return ContentVersion{}, err
+		}
+		assets[id] = struct{}{}
+	}
+	err = rows.Err()
+	rows.Close()
+	if err != nil {
+		return ContentVersion{}, err
+	}
 	orderedAssets = orderedAssets[:0]
 	for id := range assets {
 		orderedAssets = append(orderedAssets, id)
@@ -138,6 +159,16 @@ func (s *Service) CreateManualVersion(ctx context.Context, userID, itemID, label
 	}
 	for _, id := range orderedAssets {
 		if _, err := tx.ExecContext(ctx, `INSERT INTO item_version_assets(version_id,asset_id) VALUES(?,?)`, version.ID, id); err != nil {
+			return ContentVersion{}, err
+		}
+	}
+	contentAssetIDs := make([]string, 0, len(contentAssets))
+	for id := range contentAssets {
+		contentAssetIDs = append(contentAssetIDs, id)
+	}
+	sort.Strings(contentAssetIDs)
+	for _, id := range contentAssetIDs {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO item_version_content_assets(version_id,asset_id) VALUES(?,?)`, version.ID, id); err != nil {
 			return ContentVersion{}, err
 		}
 	}

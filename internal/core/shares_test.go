@@ -91,19 +91,22 @@ func TestShareAssetScopeAndExpiry(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := f.core.ResetMarkdown(f.ctx, f.owner.ID, doc.ID, nil, "![safe](/api/assets/asset-one) ![private](/api/assets/asset-two)"); err != nil {
+	const usedAsset = "11111111-1111-4111-8111-111111111111"
+	const unusedAsset = "22222222-2222-4222-8222-222222222222"
+	const otherAsset = "33333333-3333-4333-8333-333333333333"
+	if err := f.core.ResetMarkdown(f.ctx, f.owner.ID, doc.ID, nil, "![safe](/api/assets/"+usedAsset+") ![private](/api/assets/"+otherAsset+")"); err != nil {
 		t.Fatal(err)
 	}
 	other, err := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "markdown", "Other", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, asset := range []struct{ id, itemID string }{{"asset-one", doc.ID}, {"asset-two", other.ID}} {
+	for _, asset := range []struct{ id, itemID string }{{usedAsset, doc.ID}, {unusedAsset, doc.ID}, {otherAsset, other.ID}} {
 		if _, err := f.db.Exec(`INSERT INTO assets(id,workspace_id,item_id,file_name,mime,size,sha256,storage_key,created_by,created_at) VALUES(?,?,?,'image.png','image/png',3,'hash',?,?,?)`, asset.id, f.space.ID, asset.itemID, asset.id, f.owner.ID, time.Now().UTC()); err != nil {
 			t.Fatal(err)
 		}
 	}
-	version, err := f.core.CreateManualVersion(f.ctx, f.owner.ID, doc.ID, "Image release", nil)
+	version, err := f.core.CreateManualVersion(f.ctx, f.owner.ID, doc.ID, "Image release", []string{usedAsset})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,8 +117,12 @@ func TestShareAssetScopeAndExpiry(t *testing.T) {
 		t.Fatal(err)
 	}
 	shared, err := f.core.GetSharedItem(f.ctx, hash)
-	if err != nil || len(shared.Assets) != 1 || shared.Assets[0].ID != "asset-one" {
+	if err != nil || len(shared.Assets) != 1 || shared.Assets[0].ID != usedAsset {
 		t.Fatalf("published assets = %#v, %v", shared.Assets, err)
+	}
+	var retained int
+	if err := f.db.QueryRow(`SELECT count(*) FROM item_version_assets WHERE version_id=?`, version.ID).Scan(&retained); err != nil || retained != 2 {
+		t.Fatalf("history retention should include both item assets, got %d, %v", retained, err)
 	}
 	if _, err := f.db.Exec(`UPDATE item_shares SET expires_at=? WHERE id=?`, time.Now().UTC().Add(-time.Minute), share.ID); err != nil {
 		t.Fatal(err)

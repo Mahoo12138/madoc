@@ -200,7 +200,12 @@ func (s *Service) GetSharedItem(ctx context.Context, tokenHash string) (SharedIt
 	var markdown sql.NullString
 	var scene sql.NullString
 	var revision sql.NullInt64
-	err := s.db.QueryRowContext(ctx, `SELECT sh.published_title,v.content_type,v.label,sh.updated_at,v.markdown_text,v.whiteboard_scene,v.whiteboard_revision
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
+		return SharedItem{}, err
+	}
+	defer tx.Rollback()
+	err = tx.QueryRowContext(ctx, `SELECT sh.published_title,v.content_type,v.label,sh.updated_at,v.markdown_text,v.whiteboard_scene,v.whiteboard_revision
  FROM item_shares sh JOIN items i ON i.id=sh.item_id JOIN item_versions v ON v.id=sh.version_id
  WHERE sh.token_hash=? AND sh.revoked_at IS NULL AND (sh.expires_at IS NULL OR sh.expires_at>?) AND i.deletion_batch_id IS NULL`, tokenHash, now).
 		Scan(&result.Title, &result.ContentType, &label, &result.PublishedAt, &markdown, &scene, &revision)
@@ -219,8 +224,8 @@ func (s *Service) GetSharedItem(ctx context.Context, tokenHash string) (SharedIt
 	if scene.Valid && revision.Valid {
 		result.Whiteboard = &WhiteboardState{Revision: revision.Int64, Scene: scene.String}
 	}
-	rows, err := s.db.QueryContext(ctx, `SELECT a.id,a.file_name,a.mime FROM item_shares sh
- JOIN item_version_assets va ON va.version_id=sh.version_id JOIN assets a ON a.id=va.asset_id
+	rows, err := tx.QueryContext(ctx, `SELECT a.id,a.file_name,a.mime FROM item_shares sh
+	JOIN item_version_content_assets va ON va.version_id=sh.version_id JOIN assets a ON a.id=va.asset_id
  JOIN items i ON i.id=sh.item_id WHERE sh.token_hash=? AND sh.revoked_at IS NULL
  AND (sh.expires_at IS NULL OR sh.expires_at>?) AND i.deletion_batch_id IS NULL ORDER BY a.file_name,a.id`, tokenHash, now)
 	if err != nil {
@@ -235,5 +240,11 @@ func (s *Service) GetSharedItem(ctx context.Context, tokenHash string) (SharedIt
 		}
 		result.Assets = append(result.Assets, item)
 	}
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		return SharedItem{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return SharedItem{}, err
+	}
+	return result, nil
 }
