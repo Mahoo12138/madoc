@@ -494,11 +494,16 @@ func whiteboardScene(state *WhiteboardState) any {
 }
 
 // captureAutomaticVersionTx stores or coalesces the latest automatic checkpoint
-// in the same transaction as a durable content projection. The current rolling
-// checkpoint is replaced for 15 minutes, then becomes a stable timeline entry.
-// Hitting the Workspace history budget skips only this automatic checkpoint.
+// in the same transaction as a durable content projection. Edits within 15
+// minutes of the most recent saved edit replace the rolling checkpoint; after
+// more than 15 minutes idle, the next edit starts a new timeline entry. Hitting
+// the Workspace history budget skips only this automatic checkpoint.
 func captureAutomaticVersionTx(ctx context.Context, tx *sql.Tx, userID, itemID, workspaceID, contentType string, additionalAssetIDs ...[]string) error {
-	now := time.Now().UTC()
+	return captureAutomaticVersionAtTx(ctx, tx, userID, itemID, workspaceID, contentType, time.Now().UTC(), additionalAssetIDs...)
+}
+
+func captureAutomaticVersionAtTx(ctx context.Context, tx *sql.Tx, userID, itemID, workspaceID, contentType string, now time.Time, additionalAssetIDs ...[]string) error {
+	now = now.UTC()
 	if err := pruneAutomaticVersionsTx(ctx, tx, workspaceID, now); err != nil {
 		return err
 	}

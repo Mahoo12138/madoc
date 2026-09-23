@@ -165,6 +165,52 @@ func TestAutomaticVersionsMergeAndKeepThirtyRecentEntries(t *testing.T) {
 	}
 }
 
+func TestAutomaticVersionsCoalesceUntilFifteenMinuteIdleBoundary(t *testing.T) {
+	f := newFixture(t)
+	board, err := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "whiteboard", "Active board", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Date(2026, 9, 24, 0, 0, 0, 0, time.UTC)
+	captureAt := func(at time.Time, revision int64) {
+		t.Helper()
+		tx, err := f.db.BeginTx(f.ctx, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := tx.ExecContext(f.ctx, `UPDATE whiteboard_states SET revision=?,scene_json=? WHERE item_id=?`, revision, fmt.Sprintf(`{"revision":%d}`, revision), board.ID); err != nil {
+			tx.Rollback()
+			t.Fatal(err)
+		}
+		if err := captureAutomaticVersionAtTx(f.ctx, tx, f.owner.ID, board.ID, f.space.ID, "whiteboard", at); err != nil {
+			tx.Rollback()
+			t.Fatal(err)
+		}
+		if err := tx.Commit(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	captureAt(start, 1)
+	captureAt(start.Add(10*time.Minute), 2)
+	captureAt(start.Add(20*time.Minute), 3)
+	var count int
+	if err := f.db.QueryRow(`SELECT count(*) FROM item_versions WHERE item_id=? AND kind='automatic'`, board.ID).Scan(&count); err != nil || count != 1 {
+		t.Fatalf("active edits should keep coalescing to one checkpoint, count=%d err=%v", count, err)
+	}
+	versions, err := f.core.ListContentVersions(f.ctx, f.owner.ID, board.ID, "", 10)
+	if err != nil || len(versions) != 1 || versions[0].WhiteboardRevision == nil || *versions[0].WhiteboardRevision != 3 {
+		t.Fatalf("latest active checkpoint = %#v, %v", versions, err)
+	}
+	captureAt(start.Add(36*time.Minute), 4) // 16 minutes without edits.
+	versions, err = f.core.ListContentVersions(f.ctx, f.owner.ID, board.ID, "", 10)
+	if err != nil || len(versions) != 2 {
+		t.Fatalf("idle period should start a new timeline entry, versions=%#v err=%v", versions, err)
+	}
+	if *versions[0].WhiteboardRevision != 4 || *versions[1].WhiteboardRevision != 3 {
+		t.Fatalf("idle boundary did not preserve old and new checkpoints: %#v", versions)
+	}
+}
+
 func TestAutomaticVersionsExpireAndPauseAtWorkspaceBudget(t *testing.T) {
 	f := newFixture(t)
 	board, err := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "whiteboard", "Board", nil)
