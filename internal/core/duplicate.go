@@ -53,6 +53,11 @@ func (s *Service) DuplicateItem(ctx context.Context, userID, sourceID, title str
 	if err != nil {
 		return Item{}, err
 	}
+	if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO item_asset_refs(item_id,asset_id)
+ SELECT ?,id FROM assets WHERE workspace_id=? AND item_id=?
+ UNION SELECT ?,asset_id FROM item_asset_refs WHERE item_id=?`, copy.ID, source.WorkspaceID, source.ID, copy.ID, source.ID); err != nil {
+		return Item{}, err
+	}
 	if err := tx.Commit(); err != nil {
 		return Item{}, err
 	}

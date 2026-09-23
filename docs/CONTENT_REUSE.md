@@ -148,8 +148,10 @@ Markdown 版本保存 generation、snapshotSeq、headSeq、Yjs snapshot、
 自动保留策略已接入，历史时间线提供 Markdown 逐行差异 / 正文预览、白板 SVG 场景预览，
 并支持从任一检查点恢复为新副本。副本创建在单一数据库事务中重建 Yjs snapshot 与有序
 updates（为新 Item 重分配序号和幂等回执），或复制白板 scene；沿用原检查点引用的同工作区
-附件，并建立活动 `item_asset_refs`，所以后续来源版本清理不会使副本失去附件。失败会回滚
-新 Item 与全部正文、引用。原 Item 不执行重置或覆盖。
+附件，并建立活动 `item_asset_refs`，所以后续来源版本清理不会使副本失去附件。普通内容复制
+也会在同一事务中把来源 Item 的附件关联和已有活动引用复制为副本的活动 `item_asset_refs`；
+副本后续自动检查点和手动版本都会覆盖这些活动引用。清理来源 Item 或历史版本后，附件删除仍
+会被活动副本引用阻止。失败会回滚新 Item 与全部正文、引用。原 Item 不执行重置或覆盖。
 
 历史面板显示 Workspace 已用历史字节、1 GiB 上限、手动 / 自动数量和自动暂停状态；
 `GET /api/workspaces/{workspaceId}/version-storage` 为成员提供同一诊断数据。发布检查的

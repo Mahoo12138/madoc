@@ -575,6 +575,23 @@ func captureAutomaticVersionAtTx(ctx context.Context, tx *sql.Tx, userID, itemID
 		return err
 	}
 	rows.Close()
+	rows, err = tx.QueryContext(ctx, `SELECT asset_id FROM item_asset_refs WHERE item_id=?`, itemID)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		assetIDs = append(assetIDs, id)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	rows.Close()
 	if len(additionalAssetIDs) > 0 {
 		assetIDs = append(assetIDs, additionalAssetIDs[0]...)
 	}
