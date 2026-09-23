@@ -242,6 +242,19 @@ Items tree 通常整棵 Workspace 加载，不必强制 pagination。
 
 Admin user list / future history list 再做 cursor / limit。
 
+### 内容版本历史
+
+- `GET /api/items/{itemId}/versions?limit=50&before={versionId}` 返回按创建时间倒序的
+  检查点及 `nextBefore`；owner / editor / viewer 可读。
+- `POST /api/items/{itemId}/versions` 创建手动检查点，请求 `{label, assetIds?}`；owner / editor
+  可写。Markdown 投影未追上 update head 时返回 409 `EXPORT_NOT_READY`。
+- `GET /api/items/{itemId}/versions/{versionId}` 返回不可变捕获内容和附件 ID。
+- `POST /api/items/{itemId}/versions/{versionId}/restore-copy` 请求 `{title}`，在原目录原子
+  创建独立副本；owner / editor 可写，原 Item 不会被覆盖。
+
+自动检查点在内容投影成功持久化时创建，同 Item 15 分钟内合并；自动版每项保留 30 个、最多
+90 天，历史占用达到 Workspace 1 GiB 后暂停自动创建。手动检查点永久保留。
+
 ## 13. Versioning
 
 MVP 不需要 URL `/v1`。

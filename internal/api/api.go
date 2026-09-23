@@ -79,6 +79,7 @@ func (a *API) Routes() http.Handler {
 		r.Get("/items/{itemId}/versions", a.listItemVersions)
 		r.Post("/items/{itemId}/versions", a.csrfRequired(a.createItemVersion))
 		r.Get("/items/{itemId}/versions/{versionId}", a.getItemVersion)
+		r.Post("/items/{itemId}/versions/{versionId}/restore-copy", a.csrfRequired(a.restoreItemVersionCopy))
 		r.Get("/items/{itemId}/markdown", a.getMarkdown)
 		r.Put("/items/{itemId}/markdown", a.csrfRequired(a.resetMarkdown))
 		r.Get("/items/{itemId}/export.md", a.exportMarkdown)
@@ -127,7 +128,9 @@ func domainError(w http.ResponseWriter, err error) {
 	case errors.Is(err, core.ErrRestoreDestination):
 		writeError(w, 409, "RESTORE_DESTINATION_REQUIRED", "原目录不可用，请选择恢复位置")
 	case errors.Is(err, core.ErrAssetVersionProtected):
-		writeError(w, 409, "ASSET_VERSION_PROTECTED", "该附件仍被历史版本引用，暂时不能删除")
+		writeError(w, 409, "ASSET_VERSION_PROTECTED", "该附件仍被内容或历史版本引用，暂时不能删除")
+	case errors.Is(err, core.ErrMarkdownExportPending):
+		writeError(w, 409, "EXPORT_NOT_READY", "Markdown 尚未保存到历史版本水位，请稍后重试")
 	case errors.Is(err, core.ErrConflict):
 		writeError(w, 409, "CONFLICT", "resource changed or invariant would be violated")
 	case errors.Is(err, core.ErrInvalid):
@@ -558,6 +561,22 @@ func (a *API) getItemVersion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, version)
+}
+
+func (a *API) restoreItemVersionCopy(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Title string `json:"title"`
+	}
+	if err := decode(r, &body); err != nil {
+		domainError(w, core.ErrInvalid)
+		return
+	}
+	item, err := a.core.RestoreContentVersionAsCopy(r.Context(), userID(r), chi.URLParam(r, "itemId"), chi.URLParam(r, "versionId"), body.Title)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]any{"item": item})
 }
 func (a *API) resetMarkdown(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "itemId")

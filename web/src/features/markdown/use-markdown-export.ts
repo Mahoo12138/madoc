@@ -73,5 +73,6 @@ export function useMarkdownExport(itemId: string, title: string) {
     if (!current || !current.state().ready) throw new Error('编辑器尚未准备完成，请稍后刷新源码。');
     return { markdown: current.markdown(), ...current.state() };
   };
-  return { register, run, runPackage, retry, local, busy, packageBusy: busy && kind === 'package', error, inspect };
+  const assetReferences = (markdown: string) => source.current?.assetReferences(markdown) ?? [];
+  return { register, run, runPackage, retry, local, busy, packageBusy: busy && kind === 'package', error, inspect, assetReferences };
 }

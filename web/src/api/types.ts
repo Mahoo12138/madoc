@@ -12,6 +12,18 @@ export interface MarkdownCapture { generation: number; snapshot: string | null; 
 export interface BoardScene { elements: readonly unknown[]; appState: Record<string, unknown>; files: Record<string, unknown> }
 export interface WhiteboardState { revision: number; scene: BoardScene }
 export interface ItemCapture { item: Item; capturedAt: string; markdown?: MarkdownCapture; whiteboard?: WhiteboardState }
+export interface ContentVersion {
+  id: string; itemId: string; workspaceId: string; contentType: 'markdown' | 'whiteboard';
+  kind: 'manual' | 'automatic'; label?: string | null; createdBy?: string | null;
+  generation?: number | null; snapshotSeq?: number | null; headSeq?: number | null;
+  whiteboardRevision?: number | null; payloadBytes: number; createdAt: string;
+}
+export interface ContentVersionDetail {
+  version: ContentVersion;
+  markdown?: MarkdownCapture;
+  whiteboard?: { revision: number; scene: string };
+  assetIds: string[];
+}
 
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }

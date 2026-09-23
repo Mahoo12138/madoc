@@ -156,13 +156,13 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	}
 	defer tx.Rollback()
 	var protected int
-	if err := tx.QueryRowContext(ctx, `SELECT count(*) FROM item_version_assets WHERE asset_id=?`, id).Scan(&protected); err != nil {
+	if err := tx.QueryRowContext(ctx, `SELECT (EXISTS(SELECT 1 FROM item_version_assets WHERE asset_id=?)) + (EXISTS(SELECT 1 FROM item_asset_refs WHERE asset_id=?))`, id, id).Scan(&protected); err != nil {
 		return err
 	}
 	if protected > 0 {
 		return core.ErrAssetVersionProtected
 	}
-	result, err := tx.ExecContext(ctx, `DELETE FROM assets WHERE id=? AND NOT EXISTS(SELECT 1 FROM item_version_assets WHERE asset_id=?)`, id, id)
+	result, err := tx.ExecContext(ctx, `DELETE FROM assets WHERE id=? AND NOT EXISTS(SELECT 1 FROM item_version_assets WHERE asset_id=?) AND NOT EXISTS(SELECT 1 FROM item_asset_refs WHERE asset_id=?)`, id, id, id)
 	if err != nil {
 		return err
 	}

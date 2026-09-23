@@ -124,7 +124,7 @@ compaction 不会改写历史。
 ### 持久内容版本：第一部分
 
 Migration 0010 增加 `item_versions`、Markdown 尾部 `item_version_updates` 和附件引用表
-`item_version_assets`。Markdown 版本保存 generation、snapshotSeq、headSeq、Yjs snapshot、
+`item_version_assets`；恢复为副本的活动内容引用保存在 `item_asset_refs`。Markdown 版本保存 generation、snapshotSeq、headSeq、Yjs snapshot、
 有序增量和同一事务观察到的完整 Markdown 投影；白板版本保存 revision 与完整 scene。
 创建要求 Markdown projection 的 cacheSeq 与 headSeq 相等，避免把滞后正文标成完整版本。
 捕获与写入处在同一 SQLite 事务中，后续 compaction / 更新不改变已保存的数据。
@@ -142,7 +142,13 @@ Migration 0010 增加 `item_versions`、Markdown 尾部 `item_version_updates` �
 文件字节计算；达到 1 GiB 时跳过自动建版，不影响当前内容保存。手动版本不参与自动清理，
 可使 Workspace 历史总量超过此阈值。自动版本持有的附件与手动版一样受 FK 保护。
 
-本部分尚未实现差异 / 预览、容量诊断接口、恢复为副本和历史面板。
+自动保留策略已接入，历史时间线提供 Markdown 逐行差异 / 正文预览、白板 SVG 场景预览，
+并支持从任一检查点恢复为新副本。副本创建在单一数据库事务中重建 Yjs snapshot 与有序
+updates（为新 Item 重分配序号和幂等回执），或复制白板 scene；沿用原检查点引用的同工作区
+附件，并建立活动 `item_asset_refs`，所以后续来源版本清理不会使副本失去附件。失败会回滚
+新 Item 与全部正文、引用。原 Item 不执行重置或覆盖。
+
+容量诊断接口和备份恢复演练仍待实现。
 
 ## 单篇 Markdown 可移植导出
 

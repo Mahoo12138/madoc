@@ -182,10 +182,16 @@ func TestAutomaticVersionsExpireAndPauseAtWorkspaceBudget(t *testing.T) {
 	if _, err := f.db.Exec(`UPDATE item_versions SET created_at=? WHERE id=?`, time.Now().UTC().Add(-AutomaticVersionRetention-time.Hour), versionID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.core.UpdateWhiteboard(f.ctx, f.owner.ID, board.ID, first.Revision, `{"elements":[{"id":"two"}],"appState":{},"files":{}}`); err != nil {
+	if _, err := f.core.ListContentVersions(f.ctx, f.owner.ID, board.ID, "", 0); err != nil {
 		t.Fatal(err)
 	}
 	var count int
+	if err := f.db.QueryRow(`SELECT count(*) FROM item_versions WHERE id=?`, versionID).Scan(&count); err != nil || count != 0 {
+		t.Fatalf("expired version remained visible during history read: count=%d err=%v", count, err)
+	}
+	if _, err := f.core.UpdateWhiteboard(f.ctx, f.owner.ID, board.ID, first.Revision, `{"elements":[{"id":"two"}],"appState":{},"files":{}}`); err != nil {
+		t.Fatal(err)
+	}
 	if err := f.db.QueryRow(`SELECT count(*) FROM item_versions WHERE item_id=? AND kind='automatic'`, board.ID).Scan(&count); err != nil || count != 1 {
 		var dates string
 		_ = f.db.QueryRow(`SELECT group_concat(created_at) FROM item_versions WHERE item_id=? AND kind='automatic'`, board.ID).Scan(&dates)
@@ -242,5 +248,100 @@ func TestAutomaticVersionBudgetIncludesNewlyReferencedAssetBytes(t *testing.T) {
 	detail, err := f.core.GetContentVersion(f.ctx, f.owner.ID, board.ID, versionID)
 	if err != nil || len(detail.AssetIDs) != 1 || detail.AssetIDs[0] != "large-asset" {
 		t.Fatalf("automatic version asset references = %#v, %v", detail.AssetIDs, err)
+	}
+}
+
+func TestRestoreVersionCreatesIndependentCopyWithoutChangingSource(t *testing.T) {
+	f := newFixture(t)
+	doc, err := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "markdown", "Design", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Exec(`INSERT INTO assets(id,workspace_id,item_id,file_name,mime,size,storage_key,created_at) VALUES('shared-image',?,?,'image.png','image/png',12,'shared-image',CURRENT_TIMESTAMP)`, f.space.ID, doc.ID); err != nil {
+		t.Fatal(err)
+	}
+	seq1, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "before", []byte{1, 2, 3}, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := f.core.UpdateMarkdownCache(f.ctx, f.owner.ID, doc.ID, "before", seq1, 0); err != nil {
+		t.Fatal(err)
+	}
+	version, err := f.core.CreateManualVersion(f.ctx, f.owner.ID, doc.ID, "Stable", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	seq2, err := f.core.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "after", []byte{4, 5}, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := f.core.UpdateMarkdownCache(f.ctx, f.owner.ID, doc.ID, "after", seq2, 0); err != nil {
+		t.Fatal(err)
+	}
+	copy, err := f.core.RestoreContentVersionAsCopy(f.ctx, f.owner.ID, doc.ID, version.ID, "Restored")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if copy.ID == doc.ID || (copy.ParentID == nil) != (doc.ParentID == nil) || (copy.ParentID != nil && *copy.ParentID != *doc.ParentID) || copy.Title != "Restored" {
+		t.Fatalf("restored Item = %#v", copy)
+	}
+	copyState, err := f.core.Markdown(f.ctx, f.owner.ID, copy.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if copyState.Markdown != "before" || len(copyState.Updates) != 1 || string(copyState.Updates[0].Update) != string([]byte{1, 2, 3}) || copyState.Updates[0].Seq != copyState.HeadSeq {
+		t.Fatalf("restored Markdown differs from selected checkpoint: %#v", copyState)
+	}
+	var assetRefCount int
+	if err := f.db.QueryRow(`SELECT count(*) FROM item_asset_refs WHERE item_id=? AND asset_id='shared-image'`, copy.ID).Scan(&assetRefCount); err != nil || assetRefCount != 1 {
+		t.Fatalf("restored copy did not retain its live attachment reference: count=%d err=%v", assetRefCount, err)
+	}
+	source, err := f.core.Markdown(f.ctx, f.owner.ID, doc.ID)
+	if err != nil || source.Markdown != "after" || source.HeadSeq != seq2 {
+		t.Fatalf("source was changed by restore: %#v %v", source, err)
+	}
+	if _, err := f.core.CreateManualVersion(f.ctx, f.addUser("restore-viewer@example.com", "viewer").ID, doc.ID, "Denied", nil); !errors.Is(err, ErrForbidden) {
+		t.Fatalf("viewer restore precursor write = %v", err)
+	}
+	viewer := f.addUser("restore-copy-viewer@example.com", "viewer")
+	if _, err := f.core.RestoreContentVersionAsCopy(f.ctx, viewer.ID, doc.ID, version.ID, "Denied copy"); !errors.Is(err, ErrForbidden) {
+		t.Fatalf("viewer restore error = %v", err)
+	}
+}
+
+func TestRestoreWhiteboardVersionAndAtomicFailure(t *testing.T) {
+	f := newFixture(t)
+	board, err := f.core.CreateItem(f.ctx, f.owner.ID, f.space.ID, "whiteboard", "Board", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldScene := `{"elements":[{"id":"old"}],"appState":{},"files":{}}`
+	if _, err := f.core.UpdateWhiteboard(f.ctx, f.owner.ID, board.ID, 0, oldScene); err != nil {
+		t.Fatal(err)
+	}
+	version, err := f.core.CreateManualVersion(f.ctx, f.owner.ID, board.ID, "Old scene", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.core.UpdateWhiteboard(f.ctx, f.owner.ID, board.ID, 1, `{"elements":[{"id":"new"}],"appState":{},"files":{}}`); err != nil {
+		t.Fatal(err)
+	}
+	copy, err := f.core.RestoreContentVersionAsCopy(f.ctx, f.owner.ID, board.ID, version.ID, "Restored Board")
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, err := f.core.Whiteboard(f.ctx, f.owner.ID, copy.ID)
+	if err != nil || state.Revision != 0 || state.Scene != oldScene {
+		t.Fatalf("restored scene = %#v %v", state, err)
+	}
+	if _, err := f.db.Exec(`CREATE TRIGGER fail_restored_whiteboard BEFORE INSERT ON whiteboard_states WHEN NEW.item_id IN (SELECT id FROM items WHERE title='Rollback') BEGIN SELECT RAISE(ABORT,'injected'); END`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.core.RestoreContentVersionAsCopy(f.ctx, f.owner.ID, board.ID, version.ID, "Rollback"); err == nil {
+		t.Fatal("expected injected restore failure")
+	}
+	var count int
+	if err := f.db.QueryRow(`SELECT count(*) FROM items WHERE workspace_id=? AND title='Rollback' AND deletion_batch_id IS NULL`, f.space.ID).Scan(&count); err != nil || count != 0 {
+		t.Fatalf("failed restore left a partial Item: count=%d err=%v", count, err)
 	}
 }

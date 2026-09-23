@@ -19,6 +19,7 @@ import { MarkdownEditorControls } from './markdown-editor-controls';
 import { startMarkdownSession, type SaveStatus } from './markdown-session';
 import { getMarkdownStats } from './markdown-stats';
 import { MarkdownMathPreview } from './markdown-math-preview';
+import { VersionHistoryDialog } from '@/features/content-versions/version-history-dialog';
 import type { InlineMathPreview } from './markdown-inline-presentation';
 import type { MarkdownOutline } from './markdown-outline-model';
 import * as styles from './markdown-editor.css';
@@ -44,6 +45,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
   const [sourceOpened, setSourceOpened] = useState(false);
   const [importFile, setImportFile] = useState<File>();
   const [findOpened, setFindOpened] = useState(false);
+  const [versionsOpened, setVersionsOpened] = useState(false);
   const findControllerRef = useRef<MarkdownFindController>();
   const [readingMode, setReadingMode] = useState(role === 'viewer');
   const readingModeRef = useRef(readingMode);
@@ -199,6 +201,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
           onImport={() => importRef.current?.click()}
           onToggleFocus={toggleFocusMode}
           onToggleTypewriter={toggleTypewriterMode}
+          onVersions={() => setVersionsOpened(true)}
         />
         <input
           ref={importRef}
@@ -246,6 +249,7 @@ export function MarkdownEditor({ item, role, user, onOutlineChange }: Props) {
       <MarkdownMathPreview preview={inlinePreview} />
       {sourceOpened && <MarkdownSource title={item.title} read={exporter.inspect} onClose={() => setSourceOpened(false)} />}
       {findOpened && <MarkdownFindReplace controller={findControllerRef.current} readonly={role === 'viewer'} onClose={() => setFindOpened(false)} />}
+      {versionsOpened && <VersionHistoryDialog item={item} role={role} onClose={() => setVersionsOpened(false)} assetIds={() => exporter.assetReferences(exporter.inspect().markdown)} />}
     </article>
   );
 }

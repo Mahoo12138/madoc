@@ -1,4 +1,4 @@
-import type { BoardScene, Invite, Item, ItemCapture, ItemType, MarkdownState, Member, Role, Session, User, WhiteboardState, Workspace } from './types';
+import type { BoardScene, ContentVersion, ContentVersionDetail, Invite, Item, ItemCapture, ItemType, MarkdownState, Member, Role, Session, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -38,6 +38,10 @@ export const api = {
   items: (workspaceId: string) => request<Item[]>(`/workspaces/${workspaceId}/items`),
   item: (id: string) => request<Item>(`/items/${id}`),
   captureItem: (id: string, signal?: AbortSignal) => request<ItemCapture>(`/items/${id}/capture`, { signal, cache: 'no-store' }),
+  contentVersions: (id: string, before = '', limit = 50) => request<{ versions: ContentVersion[]; nextBefore: string }>(`/items/${id}/versions?${new URLSearchParams({ before, limit: String(limit) })}`, { cache: 'no-store' }),
+  contentVersion: (itemId: string, versionId: string) => request<ContentVersionDetail>(`/items/${itemId}/versions/${versionId}`, { cache: 'no-store' }),
+  createContentVersion: (itemId: string, label: string, assetIds: string[] = []) => request<{ version: ContentVersion }>(`/items/${itemId}/versions`, { method: 'POST', body: JSON.stringify({ label, assetIds }) }),
+  restoreContentVersionCopy: (itemId: string, versionId: string, title: string) => request<{ item: Item }>(`/items/${itemId}/versions/${versionId}/restore-copy`, { method: 'POST', body: JSON.stringify({ title }) }),
   createItem: (workspaceId: string, type: ItemType, title: string, parentId: string | null) => request<Item>(`/workspaces/${workspaceId}/items`, { method: 'POST', body: JSON.stringify({ type, title, parentId }) }),
   renameItem: (id: string, title: string) => request<void>(`/items/${id}`, { method: 'PATCH', body: JSON.stringify({ title }) }),
   deleteItem: (id: string) => request<void>(`/items/${id}`, { method: 'DELETE' }),

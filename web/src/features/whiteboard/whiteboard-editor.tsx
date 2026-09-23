@@ -7,6 +7,7 @@ import { ChevronDown as IconChevronDown, Download as IconDownload, Wifi as IconW
 import type { Item, Role, User } from '@/api/types';
 import { useWhiteboardSession } from './use-whiteboard-session';
 import { WhiteboardImportDialog } from './whiteboard-import-dialog';
+import { VersionHistoryDialog } from '@/features/content-versions/version-history-dialog';
 import * as styles from './whiteboard-editor.css';
 
 function download(blob: Blob, filename: string) { const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = filename; anchor.click(); URL.revokeObjectURL(url); }
@@ -15,6 +16,7 @@ export function WhiteboardEditor({ item, role, user }: { item: Item; role: Role;
   const { initial, apiRef, onAPIReady, recovery, editorReady, status, presence, failure, storageFailed, retryStorage, onChange, halted, joined, realtimeRef } = useWhiteboardSession(item, role, user);
   const importRef = useRef<HTMLInputElement>(null);
   const [importFile, setImportFile] = useState<File>();
+  const [versionsOpened, setVersionsOpened] = useState(false);
   useRecordVisit(item, editorReady && !failure, user.id);
   if (!initial.data || !recovery) return null;
   const exportScene = async (type: 'png' | 'svg' | 'json', local = false) => { const api = apiRef.current; if (!api) return; const elements = api.getSceneElements(); const appState = api.getAppState(); const files = api.getFiles(); if (type === 'png') return download(await exportToBlob({ elements, appState, files, mimeType: 'image/png' }), `${item.title}.png`); if (type === 'svg') return download(new Blob([(await exportToSvg({ elements, appState, files })).outerHTML], { type: 'image/svg+xml' }), `${item.title}.svg`); download(new Blob([serializeAsJSON(elements, appState, files, 'local')], { type: 'application/json' }), `${item.title}${local ? '-本地副本' : ''}.excalidraw`); };
@@ -23,6 +25,7 @@ export function WhiteboardEditor({ item, role, user }: { item: Item; role: Role;
       <div className={styles.status}>
         <Badge variant="light" color={status === 'Saved' ? 'green' : status === 'Offline' ? 'red' : 'blue'} leftSection={status === 'Offline' ? <IconWifiOff size={12} /> : <IconWifi size={12} />}>{status === 'Local' ? '已保存到此设备，待同步' : status}</Badge>
         <Badge variant="outline" color="gray">{presence} 在线</Badge>
+        <Button size="compact-sm" variant="white" color="gray" onClick={() => setVersionsOpened(true)}>版本历史</Button>
         <Menu>
           <Menu.Target>
             <Button size="compact-sm" variant="white" color="gray" leftSection={<IconDownload size={14} />} rightSection={<IconChevronDown size={13} />}>导出</Button>
@@ -57,6 +60,7 @@ export function WhiteboardEditor({ item, role, user }: { item: Item; role: Role;
           <Button mt="sm" size="xs" onClick={() => void exportScene('json', true)}>下载本地白板副本</Button>
         </Alert>
       )}
+      {versionsOpened && <VersionHistoryDialog item={item} role={role} onClose={() => setVersionsOpened(false)} />}
       <Excalidraw
         excalidrawAPI={onAPIReady}
         initialData={{ elements: recovery.scene.elements as never[], appState: recovery.scene.appState as never, files: recovery.scene.files as never }}

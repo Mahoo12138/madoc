@@ -21,6 +21,7 @@ import {
   PenLine as IconEdit,
   Printer as IconPrint,
   Search as IconSearch,
+  History as IconHistory,
   Wifi as IconWifi,
   WifiOff as IconWifiOff,
 } from 'lucide-react';
@@ -69,6 +70,7 @@ export function MarkdownEditorControls({
   onImport,
   onToggleFocus,
   onToggleTypewriter,
+  onVersions,
 }: {
   status: SaveStatus;
   presence: number;
@@ -88,6 +90,7 @@ export function MarkdownEditorControls({
   onImport: () => void;
   onToggleFocus: () => void;
   onToggleTypewriter: () => void;
+  onVersions: () => void;
 }) {
   const modifier = navigator.platform.includes('Mac') ? '⌘' : 'Ctrl';
 
@@ -172,6 +175,11 @@ export function MarkdownEditorControls({
         <Tooltip label="文内查找与替换">
           <ActionIcon aria-label="文内查找与替换" onClick={onFind}>
             <IconSearch size={17} />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label="版本历史">
+          <ActionIcon aria-label="版本历史" onClick={onVersions}>
+            <IconHistory size={17} />
           </ActionIcon>
         </Tooltip>
         {readingMode && (
