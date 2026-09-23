@@ -13,9 +13,13 @@ import (
 )
 
 const (
-	DefaultVersionPageSize = 50
-	MaxVersionPageSize     = 100
-	MaxVersionLabelRunes   = 120
+	DefaultVersionPageSize            = 50
+	MaxVersionPageSize                = 100
+	MaxVersionLabelRunes              = 120
+	AutomaticVersionMergeWindow       = 15 * time.Minute
+	AutomaticVersionRetention         = 90 * 24 * time.Hour
+	MaxAutomaticVersionsPerItem       = 30
+	MaxWorkspaceVersionBytes    int64 = 1 << 30
 )
 
 // CreateManualVersion stores the exact durable state visible in this SQLite
@@ -290,4 +294,157 @@ func whiteboardScene(state *WhiteboardState) any {
 		return nil
 	}
 	return state.Scene
+}
+
+// captureAutomaticVersionTx stores or coalesces the latest automatic checkpoint
+// in the same transaction as a durable content projection. The current rolling
+// checkpoint is replaced for 15 minutes, then becomes a stable timeline entry.
+// Hitting the Workspace history budget skips only this automatic checkpoint.
+func captureAutomaticVersionTx(ctx context.Context, tx *sql.Tx, userID, itemID, workspaceID, contentType string) error {
+	now := time.Now().UTC()
+	if _, err := tx.ExecContext(ctx, `DELETE FROM item_versions WHERE kind='automatic' AND (created_at<? OR id IN (
+ SELECT id FROM (SELECT id,row_number() OVER(PARTITION BY item_id ORDER BY created_at DESC,id DESC) AS position
+ FROM item_versions WHERE kind='automatic') WHERE position>?
+))`, now.Add(-AutomaticVersionRetention), MaxAutomaticVersionsPerItem); err != nil {
+		return err
+	}
+
+	version := ContentVersion{
+		ID: uuid.NewString(), ItemID: itemID, WorkspaceID: workspaceID,
+		ContentType: contentType, Kind: "automatic", CreatedAt: now,
+	}
+	var markdown *MarkdownState
+	var whiteboard *WhiteboardState
+	if contentType == "markdown" {
+		state, err := readMarkdownState(ctx, tx, itemID)
+		if err != nil {
+			return err
+		}
+		if state.CacheSeq != state.HeadSeq {
+			return nil
+		}
+		var previousSeq sql.NullInt64
+		var previousGeneration sql.NullInt64
+		err = tx.QueryRowContext(ctx, `SELECT head_seq,generation FROM item_versions WHERE item_id=? AND kind='automatic' ORDER BY created_at DESC,id DESC LIMIT 1`, itemID).Scan(&previousSeq, &previousGeneration)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+		if err == nil && previousSeq.Valid && previousGeneration.Valid && previousSeq.Int64 == state.HeadSeq && previousGeneration.Int64 == state.Generation {
+			return nil
+		}
+		markdown = &state
+		version.Generation = int64Ptr(state.Generation)
+		version.SnapshotSeq = int64Ptr(state.SnapshotSeq)
+		version.HeadSeq = int64Ptr(state.HeadSeq)
+		version.PayloadBytes = int64(len(state.Snapshot)) + int64(len(state.Markdown))
+		for _, update := range state.Updates {
+			version.PayloadBytes += int64(len(update.Update))
+		}
+	} else {
+		var state WhiteboardState
+		if err := tx.QueryRowContext(ctx, `SELECT revision,scene_json FROM whiteboard_states WHERE item_id=?`, itemID).Scan(&state.Revision, &state.Scene); err != nil {
+			return err
+		}
+		var previousRevision sql.NullInt64
+		err := tx.QueryRowContext(ctx, `SELECT whiteboard_revision FROM item_versions WHERE item_id=? AND kind='automatic' ORDER BY created_at DESC,id DESC LIMIT 1`, itemID).Scan(&previousRevision)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+		if err == nil && previousRevision.Valid && previousRevision.Int64 == state.Revision {
+			return nil
+		}
+		whiteboard = &state
+		version.WhiteboardRevision = int64Ptr(state.Revision)
+		version.PayloadBytes = int64(len(state.Scene))
+	}
+
+	rows, err := tx.QueryContext(ctx, `SELECT id FROM assets WHERE workspace_id=? AND item_id=?`, workspaceID, itemID)
+	if err != nil {
+		return err
+	}
+	var assetIDs []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		assetIDs = append(assetIDs, id)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	rows.Close()
+
+	// Preserve the previous automatic checkpoint if replacing it would exceed
+	// the Workspace history budget.
+	if _, err := tx.ExecContext(ctx, `SAVEPOINT automatic_version_budget`); err != nil {
+		return err
+	}
+	var previousID string
+	err = tx.QueryRowContext(ctx, `SELECT id FROM item_versions WHERE item_id=? AND kind='automatic' AND created_at>=? ORDER BY created_at DESC,id DESC LIMIT 1`, itemID, now.Add(-AutomaticVersionMergeWindow)).Scan(&previousID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+	if err == nil {
+		if _, err := tx.ExecContext(ctx, `DELETE FROM item_versions WHERE id=?`, previousID); err != nil {
+			return err
+		}
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM item_versions WHERE kind='automatic' AND item_id=? AND id IN (
+ SELECT id FROM (SELECT id,row_number() OVER(ORDER BY created_at DESC,id DESC) AS position
+ FROM item_versions WHERE item_id=? AND kind='automatic') WHERE position>?
+ )`, itemID, itemID, MaxAutomaticVersionsPerItem-1); err != nil {
+		return err
+	}
+	var payloadBytes, assetBytes int64
+	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(SUM(payload_bytes),0) FROM item_versions WHERE workspace_id=?`, workspaceID).Scan(&payloadBytes); err != nil {
+		return err
+	}
+	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(SUM(a.size),0) FROM assets a WHERE a.workspace_id=? AND EXISTS (
+ SELECT 1 FROM item_version_assets iva JOIN item_versions v ON v.id=iva.version_id WHERE iva.asset_id=a.id AND v.workspace_id=?)`, workspaceID, workspaceID).Scan(&assetBytes); err != nil {
+		return err
+	}
+	var pendingAssetBytes int64
+	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(SUM(a.size),0) FROM assets a WHERE a.workspace_id=? AND a.item_id=? AND NOT EXISTS (
+ SELECT 1 FROM item_version_assets iva JOIN item_versions v ON v.id=iva.version_id WHERE iva.asset_id=a.id AND v.workspace_id=?)`, workspaceID, itemID, workspaceID).Scan(&pendingAssetBytes); err != nil {
+		return err
+	}
+	if payloadBytes+assetBytes+pendingAssetBytes+version.PayloadBytes >= MaxWorkspaceVersionBytes {
+		if _, err := tx.ExecContext(ctx, `ROLLBACK TO automatic_version_budget`); err != nil {
+			return err
+		}
+		_, err := tx.ExecContext(ctx, `RELEASE automatic_version_budget`)
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `RELEASE automatic_version_budget`); err != nil {
+		return err
+	}
+
+	if _, err := tx.ExecContext(ctx, `INSERT INTO item_versions(id,item_id,workspace_id,content_type,kind,label,created_by,generation,snapshot_seq,head_seq,markdown_snapshot,markdown_text,whiteboard_revision,whiteboard_scene,payload_bytes,created_at)
+ VALUES(?,?,?,?,'automatic',NULL,?,?,?,?,?,?,?,?,?,?)`, version.ID, itemID, workspaceID, contentType, userID,
+		nullableInt(version.Generation), nullableInt(version.SnapshotSeq), nullableInt(version.HeadSeq), markdownSnapshot(markdown), markdownText(markdown),
+		nullableInt(version.WhiteboardRevision), whiteboardScene(whiteboard), version.PayloadBytes, version.CreatedAt); err != nil {
+		return err
+	}
+	if markdown != nil {
+		for _, update := range markdown.Updates {
+			if _, err := tx.ExecContext(ctx, `INSERT INTO item_version_updates(version_id,seq,update_blob) VALUES(?,?,?)`, version.ID, update.Seq, update.Update); err != nil {
+				return err
+			}
+		}
+	}
+	for _, assetID := range assetIDs {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO item_version_assets(version_id,asset_id) VALUES(?,?)`, version.ID, assetID); err != nil {
+			return err
+		}
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM item_versions WHERE kind='automatic' AND item_id=? AND id IN (
+ SELECT id FROM (SELECT id,row_number() OVER(ORDER BY created_at DESC,id DESC) AS position
+ FROM item_versions WHERE item_id=? AND kind='automatic') WHERE position>?
+ )`, itemID, itemID, MaxAutomaticVersionsPerItem); err != nil {
+		return err
+	}
+	return nil
 }

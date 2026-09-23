@@ -139,6 +139,9 @@ func (s *Service) UpdateMarkdownCache(ctx context.Context, userID, itemID, markd
 	if rows == 0 {
 		return ErrConflict
 	}
+	if err := captureAutomaticVersionTx(ctx, tx, userID, itemID, item.WorkspaceID, item.Type); err != nil {
+		return err
+	}
 	return tx.Commit()
 }
 
@@ -174,6 +177,9 @@ func (s *Service) CommitMarkdownSnapshot(ctx context.Context, userID, itemID str
 		return ErrConflict
 	}
 	if _, err := tx.ExecContext(ctx, `DELETE FROM markdown_updates WHERE item_id=? AND id<=?`, itemID, baseSeq); err != nil {
+		return err
+	}
+	if err := captureAutomaticVersionTx(ctx, tx, userID, itemID, item.WorkspaceID, item.Type); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -227,6 +233,9 @@ func (s *Service) UpdateWhiteboard(ctx context.Context, userID, itemID string, b
 	}
 	if rows == 0 {
 		return WhiteboardState{}, ErrConflict
+	}
+	if err := captureAutomaticVersionTx(ctx, tx, userID, itemID, item.WorkspaceID, item.Type); err != nil {
+		return WhiteboardState{}, err
 	}
 	return WhiteboardState{Revision: baseRevision + 1, Scene: scene}, tx.Commit()
 }
