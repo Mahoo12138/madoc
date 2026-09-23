@@ -85,9 +85,11 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 单项固定内容捕获：新增只读 capture API，在一个事务中返回 Item 元数据及 Markdown 的 Yjs snapshot / updates / generation / cacheSeq / headSeq，或白板 scene / revision；Markdown 导出复用同一捕获路径。按需返回，不落永久历史，不承诺目录 / Workspace 原子快照。
 - 文件夹可移植 ZIP：保留嵌套路径并导出 Markdown / Excalidraw 文件；以每个 Item 的捕获水位写入 manifest，映射包内稳定链接，按 UUID 去重打包 Madoc 图片，列出未打包的外部图片和包外 Item 链接；缺失附件或内容投影滞后时拒绝生成。
 - 权限中文化：界面以“所有者 / 编辑者 / 查看者”显示 Workspace 角色，并在邀请表单说明各角色能力；邀请状态使用中文标签，API 中的 role / status 枚举保持原值。
-- 待完成：ZIP 目录导入与结构冲突预览，以及将固定捕获持久化为有容量和清理边界的历史检查点。设计见 `docs/CONTENT_REUSE.md`。
+- 待完成：ZIP 目录原子导入与目标冲突预览，以及将固定捕获持久化为有容量和清理边界的历史检查点。设计见 `docs/CONTENT_REUSE.md`。
 
 ## 当前验证
+
+- 阶段 2 包集选择与只读预览：桌面 / 手机“新建内容 → 预览导入包”接入单 ZIP 与完整包集读取，显示根目录、数量、解压大小和分页路径列表；取消 / 关闭中止读取，重新选择不保留旧结果，viewer 无入口。已确认整组压缩 256 MiB、解压 512 MiB、5000 项（含清单），顺序读取累计扣减额度；已确认后续写入采用整组原子成功。32 项 Playwright 通过，包含累计限额边界 / 取消 / 孤立内容分包拒绝、52 MiB 真实导出包读取、桌面与 390px 手机零写入预览、单篇 Markdown / 白板导入回归；截图已检查，无页面 / 控制台错误。Go test ./...、go vet ./...、前端 typecheck / production build 和 diff 检查通过，保留既有大 chunk 警告。目标冲突预览、附件与链接映射、整组原子写入及单篇 Markdown ZIP 格式接入仍待完成。
 
 - Workspace 角色在成员列表、邀请列表和空间列表中显示为“所有者 / 编辑者 / 查看者”，请求仍使用稳定的 `owner / editor / viewer` 值；专项浏览器验证通过。
 - 阶段 2 第八部分：单篇 Markdown 可移植 ZIP；9 项导出 / 阅读视图 E2E 通过，新增用例验证 ZIP 内附件字节、相对图片路径、manifest 实际水位、外链清单、代码围栏与行内代码不改写，以及附件缺失时拒绝生成不完整包。Go test ./...、go vet ./...、前端 typecheck / production build 通过；build 保留既有大 chunk 警告。首轮 E2E 曾使用旧 dist 并超时；重建后发现并修正代码围栏 URL 改写，再以干净构建重跑通过。
@@ -99,7 +101,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 阶段 2 第十三部分：Workspace ZIP 沿用逐 Item 固定捕获和文件夹包的附件 / 稳定链接映射，根目录以 Workspace 名称命名，manifest 标注逐项捕获而非整体原子快照。2 项浏览器 E2E 覆盖文件夹导出回归、顶层 Markdown / 白板和 Workspace 根目录路径。Go test ./...、go vet ./...、前端 typecheck / production build、diff 空白检查通过；build 保留既有大 chunk 警告。
 - 阶段 2 分包导出：根据附件总原始大小自适应输出：不超过 50 MiB 保留单 ZIP，超过后输出内容 ZIP、按附件体量划分的附件 ZIP 和 `.package-set.json`；Markdown 相对附件路径和内容间 Item 链接在共同解压目录下有效。13 项 Playwright 覆盖小附件单 ZIP、52 MiB 导出触发包集、阈值记录、附件分包体量与字节哈希、跨内容链接、缺失附件零下载、manifest 检查器和流式 reader；拆分策略用例覆盖边界 / 确定顺序 / 单个超阈值附件。Go test ./...、go vet ./...、前端 typecheck / production build、diff 空白检查通过；build 保留既有大 chunk 警告。包集导入仍未接入；导入须选择完整包集。
 - 阶段 2 包集完整性校验：新增只读整组检查器，核对分包批次 / 编号 / 角色、根目录、Item 和附件清单、附件归属 / 路径 / 类型 / 大小及跨包路径冲突，输出内容和附件映射。19 项 Playwright 通过，覆盖异常包集及真实 52 MiB 导出包逆序选择、正文链接和附件字节哈希核对；Go test ./...、go vet ./...、前端 typecheck / production build 通过，保留既有大 chunk 警告。尚未接入包集选择、导入预览与写入，整组资源限额仍须由导入流程统一控制。
-- 阶段 2 第十四部分（进行中）：实现流式 ZIP 读取和 manifest / 文件树审阅，限制字段由调用方显式传入；覆盖压缩 / 解压大小、条目数、路径穿越、重复路径、文件目录冲突、不完整归档、取消、缺失内容、未登记文件及无效白板 / 附件元数据。文件夹和 Workspace 实际导出均通过新审阅器验证。尚不创建内容；待确定产品限额和多项导入失败语义后接入预览 / 写入。
+- 阶段 2 第十四部分（进行中）：实现流式 ZIP 读取和 manifest / 文件树审阅，限制字段由调用方显式传入；覆盖压缩 / 解压大小、条目数、路径穿越、重复路径、文件目录冲突、不完整归档、取消、缺失内容、未登记文件及无效白板 / 附件元数据。文件夹和 Workspace 实际导出均通过新审阅器验证。产品限额和整组原子失败语义已确认，只读预览已接入，写入仍待实现。
 - 阶段 2 第五部分（基于 `b078aca`）：9 项源码 / 导出 E2E 通过，覆盖桌面 / 手机只读、复制与下载一致、远端刷新、剪贴板拒绝回退、未同步提示及 viewer 零正文写入；检查桌面与 390px 截图。MVP 首次运行在 Workspace 导航时 Chromium 页面崩溃，无应用异常；立即独立重跑通过。Go test / vet、前端 typecheck / production build 通过，保留既有大 chunk 提示。
 - 阶段 2 第六部分：3 项文内查找 / 替换 E2E 覆盖精确大小写与中文文本、远端新增匹配后的结果刷新、跨加粗边界、替换单项 / 全部、双标签同步、单步撤销和 viewer 零正文写入；23 项源码 / 导出 / 编辑器回归及独立 MVP 流程通过。Go test / vet、前端 typecheck / production build 和 diff 空白检查通过。首轮使用旧静态 bundle，撤销后对远程光标标签的断言也过严；重建前端并调整选择器后通过，生产构建保留既有大 chunk 提示。
 - 阶段 2 第七部分：2 项阅读 / 打印 E2E 验证原 Milkdown 呈现、大纲导航、编辑回切、viewer 默认只读及 print media 内容隔离；同跑 14 项源码 / 导出 / Outline 回归和 1 项权限中文标签验证通过，另行隔离运行的 MVP 首次启动测试通过。打印截图确认只显示文档标题和正文。Go test / vet、前端 typecheck / production build 通过，保留既有大 chunk 提示。MVP 与整组测试共享已初始化数据时不满足其首次启动前提，故单独运行。

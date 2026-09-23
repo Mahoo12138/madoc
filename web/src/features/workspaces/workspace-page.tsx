@@ -65,6 +65,12 @@ const WorkspaceExportDialog = lazy(() =>
   })),
 );
 
+const PortableImportDialog = lazy(() =>
+  import('./portable-import-dialog').then((module) => ({
+    default: module.PortableImportDialog,
+  })),
+);
+
 export function WorkspacePage() {
   const params = useParams({ strict: false }) as {
     workspaceId: string;
@@ -105,6 +111,7 @@ export function WorkspacePage() {
   const [trashOpened, trashModal] = useDisclosure(false);
   const [settingsOpened, settingsModal] = useDisclosure(false);
   const [workspaceExportOpened, setWorkspaceExportOpened] = useState(false);
+  const [importPreviewOpened, setImportPreviewOpened] = useState(false);
   const [itemModal, itemActions] = useDisclosure(false);
   const [documentParent, setDocumentParent] = useState<{
     parentId: string | null;
@@ -224,6 +231,10 @@ export function WorkspacePage() {
     role: unavailable
       ? ('viewer' as const)
       : (workspace.data?.role ?? ('viewer' as const)),
+    onPreviewImport: () => {
+      mobileDrawer.close();
+      setImportPreviewOpened(true);
+    },
     onCreate: openCreate,
     onRename: openRename,
     onMove: openMove,
@@ -534,6 +545,9 @@ export function WorkspacePage() {
         />
       )}
       <Suspense fallback={null}>
+        {importPreviewOpened && !unavailable && workspace.data && workspace.data.role !== 'viewer' && (
+          <PortableImportDialog key={`import:${workspaceId}`} onClose={() => setImportPreviewOpened(false)} />
+        )}
         {workspaceExportOpened && !unavailable && workspace.data && items.data && workspace.data.role !== 'viewer' && (
           <WorkspaceExportDialog
             workspace={workspace.data}

@@ -6,6 +6,7 @@ import {
   Plus,
   PenTool,
   Star,
+  Upload,
 } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import type { Item } from '@/api/types';
@@ -21,6 +22,7 @@ type Props = ComponentProps<typeof ItemTree> & {
   onPanelChange: (panel: string) => void;
   outline: Outline | null;
   onNavigateHeading: (position: number) => void;
+  onPreviewImport: () => void;
 };
 
 export function WorkspaceNavigation({
@@ -29,6 +31,7 @@ export function WorkspaceNavigation({
   onPanelChange,
   outline,
   onNavigateHeading,
+  onPreviewImport,
   ...treeProps
 }: Props) {
   const isDocument = active?.type === 'markdown';
@@ -84,6 +87,13 @@ export function WorkspaceNavigation({
                   onClick={() => treeProps.onCreate('folder', null)}
                 >
                   文件夹
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item
+                  leftSection={<Upload size={15} />}
+                  onClick={onPreviewImport}
+                >
+                  预览导入包
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
