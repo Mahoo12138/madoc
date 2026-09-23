@@ -138,6 +138,32 @@ func (s *Service) Open(ctx context.Context, userID, id string) (Asset, *os.File,
 	return asset, file, err
 }
 
+// OpenShared serves a resource only when it is retained by the exact immutable
+// version currently published by this live, non-expired share capability.
+func (s *Service) OpenShared(ctx context.Context, tokenHash, id string) (Asset, *os.File, error) {
+	var asset Asset
+	err := s.db.QueryRowContext(ctx, `SELECT a.id,a.workspace_id,a.item_id,a.file_name,a.mime,a.size,a.storage_key,a.created_at
+ FROM item_shares sh JOIN items i ON i.id=sh.item_id
+ JOIN item_version_assets va ON va.version_id=sh.version_id
+ JOIN assets a ON a.id=va.asset_id
+ WHERE sh.token_hash=? AND a.id=? AND sh.revoked_at IS NULL
+		 AND (sh.expires_at IS NULL OR sh.expires_at>?)
+		 AND i.deletion_batch_id IS NULL`, tokenHash, id, time.Now().UTC()).
+		Scan(&asset.ID, &asset.WorkspaceID, &asset.ItemID, &asset.FileName, &asset.MIME, &asset.Size, &asset.StorageKey, &asset.CreatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Asset{}, nil, core.ErrNotFound
+	}
+	if err != nil {
+		return Asset{}, nil, err
+	}
+	clean := filepath.Clean(asset.StorageKey)
+	if strings.HasPrefix(clean, "..") || filepath.IsAbs(clean) {
+		return Asset{}, nil, fmt.Errorf("invalid storage key")
+	}
+	file, err := os.Open(filepath.Join(s.root, clean))
+	return asset, file, err
+}
+
 func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	asset, file, err := s.Open(ctx, userID, id)
 	if file != nil {

@@ -96,6 +96,13 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第四部分（提交 `c5e74dd`）：历史容量诊断 API / UI；独立目录备份恢复演练覆盖 Markdown 手动版、白板自动版、引用附件、附件删除保护和恢复前后用量一致。
 - 阶段 3 固定提交 `c5e74dd` 完成 `go test ./...`、`go test -race ./...`、`go vet ./...`、前端 typecheck / production build、2 项内容历史真实浏览器往返和 1 项 CLI 独立目录备份恢复演练。验收详情见 `docs/RELEASE.md`。
 
+## 演进计划：阶段 4（进行中）
+
+- 已选工作范围：单项只读分享与固定发布、文档级评论、成员管理与内容活动记录。
+- 第一部分：migration 0012 与 owner-only 分享 API；256 位随机 token 只存 SHA-256 摘要；创建 / 显式发布更新只引用同一 Item 的手动版本并固定标题；撤销 / 到期 / 回收站均阻断后续正文和附件请求；附件访问限定当前发布版本；只读 Markdown / 白板页面及安全头。实现与边界见 `docs/SHARING.md`。
+- 第一部分验证：`go test ./...`、`go vet ./...`、API / core / asset `go test -race`、前端 typecheck / production build、3 项 Playwright 分享往返与安全测试通过。production build 保留既有大 chunk 提示。
+- 评论、成员管理增强与活动记录尚未实现；阶段 4 整体尚未验收。
+
 ## 当前验证
 
 - 阶段 2 确认导入界面：桌面 / 手机提供目标目录、新根名称、同名 / 目标失效检查与显式确认。准备可取消，提交期间锁定输入；结果不确定时保留原 FormData 重试，后续拒绝不误判此前未提交。成功刷新目录，角色降级保留提示并禁用写入；离开保护明确重试信息仅保存在当前弹窗内存。

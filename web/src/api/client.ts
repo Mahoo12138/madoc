@@ -1,4 +1,4 @@
-import type { BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, Item, ItemCapture, ItemType, MarkdownState, Member, Role, Session, User, WhiteboardState, Workspace } from './types';
+import type { BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, Item, ItemCapture, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -43,6 +43,11 @@ export const api = {
   contentVersion: (itemId: string, versionId: string) => request<ContentVersionDetail>(`/items/${itemId}/versions/${versionId}`, { cache: 'no-store' }),
   createContentVersion: (itemId: string, label: string, assetIds: string[] = []) => request<{ version: ContentVersion }>(`/items/${itemId}/versions`, { method: 'POST', body: JSON.stringify({ label, assetIds }) }),
   restoreContentVersionCopy: (itemId: string, versionId: string, title: string) => request<{ item: Item }>(`/items/${itemId}/versions/${versionId}/restore-copy`, { method: 'POST', body: JSON.stringify({ title }) }),
+  itemShares: (itemId: string) => request<{ shares: ItemShare[] }>(`/items/${itemId}/shares`, { cache: 'no-store' }),
+  createItemShare: (itemId: string, versionId: string, expiresAt?: string) => request<{ share: ItemShare; token: string; url: string }>(`/items/${itemId}/shares`, { method: 'POST', body: JSON.stringify({ versionId, expiresAt }) }),
+  publishItemShare: (itemId: string, shareId: string, versionId: string) => request<void>(`/items/${itemId}/shares/${shareId}/publish`, { method: 'POST', body: JSON.stringify({ versionId }) }),
+  revokeItemShare: (itemId: string, shareId: string) => request<void>(`/items/${itemId}/shares/${shareId}`, { method: 'DELETE' }),
+  publicShare: (token: string) => request<SharedItem>(`/public/shares/${encodeURIComponent(token)}`, { cache: 'no-store' }),
   createItem: (workspaceId: string, type: ItemType, title: string, parentId: string | null) => request<Item>(`/workspaces/${workspaceId}/items`, { method: 'POST', body: JSON.stringify({ type, title, parentId }) }),
   renameItem: (id: string, title: string) => request<void>(`/items/${id}`, { method: 'PATCH', body: JSON.stringify({ title }) }),
   deleteItem: (id: string) => request<void>(`/items/${id}`, { method: 'DELETE' }),

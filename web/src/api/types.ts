@@ -28,6 +28,15 @@ export interface ContentVersionUsage {
   workspaceId: string; usedBytes: number; limitBytes: number;
   manualVersions: number; automaticVersions: number; automaticPaused: boolean;
 }
+export interface ItemShare {
+  id: string; itemId: string; versionId: string; contentType: 'markdown' | 'whiteboard';
+  versionName: string; createdAt: string; updatedAt: string; expiresAt?: string | null; revokedAt?: string | null;
+}
+export interface SharedItem {
+  title: string; contentType: 'markdown' | 'whiteboard'; versionName: string; publishedAt: string;
+  markdown?: string; whiteboard?: { revision: number; scene: string };
+  assets: { id: string; fileName: string; mime: string }[];
+}
 
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }

@@ -118,6 +118,7 @@ Workspace
 - [docs/DATA_MODEL.md](./docs/DATA_MODEL.md)：SQLite 数据模型
 - [docs/API.md](./docs/API.md)：REST / WebSocket API
 - [docs/MIGRATION.md](./docs/MIGRATION.md)：从旧 AFFiNE-compatible 代码迁移
+- [docs/SHARING.md](./docs/SHARING.md)：阶段 4 单项只读分享与固定发布边界
 - [docs/REFERENCES.md](./docs/REFERENCES.md)：上游项目与官方资料
 
 ## 不变的长期目标

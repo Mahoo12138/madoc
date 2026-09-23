@@ -259,6 +259,15 @@ Admin user list / future history list 再做 cursor / limit。
 自动检查点在内容投影成功持久化时创建，同 Item 15 分钟内合并；自动版每项保留 30 个、最多
 90 天，历史占用达到 Workspace 1 GiB 后暂停自动创建。手动检查点永久保留。
 
+### 只读分享
+
+分享管理和写入只允许 owner：`GET /api/items/{itemId}/shares`、`POST /api/items/{itemId}/shares`
+（请求 `{versionId, expiresAt?}`）、`POST /api/items/{itemId}/shares/{shareId}/publish`
+（请求 `{versionId}`）和 `DELETE /api/items/{itemId}/shares/{shareId}`。创建时要求同一 Item 的
+手动版本，返回一次性 capability token；数据库只保存 token 摘要。匿名只读接口为
+`GET /api/public/shares/{token}`，其附件子路径只允许该发布版本引用的资源。到期、撤销或
+Item 处于回收站时正文和附件请求统一返回 404。完整边界见 [SHARING.md](SHARING.md)。
+
 ## 13. Versioning
 
 MVP 不需要 URL `/v1`。

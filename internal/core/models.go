@@ -105,3 +105,31 @@ type ContentVersionUsage struct {
 	AutomaticVersions int64  `json:"automaticVersions"`
 	AutomaticPaused   bool   `json:"automaticPaused"`
 }
+
+type ItemShare struct {
+	ID          string     `json:"id"`
+	ItemID      string     `json:"itemId"`
+	VersionID   string     `json:"versionId"`
+	ContentType string     `json:"contentType"`
+	VersionName string     `json:"versionName"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	ExpiresAt   *time.Time `json:"expiresAt,omitempty"`
+	RevokedAt   *time.Time `json:"revokedAt,omitempty"`
+}
+
+type SharedItem struct {
+	Title       string           `json:"title"`
+	ContentType string           `json:"contentType"`
+	VersionName string           `json:"versionName"`
+	PublishedAt time.Time        `json:"publishedAt"`
+	Markdown    *string          `json:"markdown,omitempty"`
+	Whiteboard  *WhiteboardState `json:"whiteboard,omitempty"`
+	Assets      []SharedAsset    `json:"assets"`
+}
+
+type SharedAsset struct {
+	ID       string `json:"id"`
+	FileName string `json:"fileName"`
+	MIME     string `json:"mime"`
+}

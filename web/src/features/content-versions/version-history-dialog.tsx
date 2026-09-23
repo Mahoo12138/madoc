@@ -7,6 +7,7 @@ import { keys } from '@/api/hooks';
 import { APIError, type ContentVersion, type ContentVersionDetail, type Item, type Role } from '@/api/types';
 import { prepareContentSave } from '@/features/content/content-save';
 import { diffLines } from './version-diff';
+import { ItemShareManager } from './item-share-manager';
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -154,6 +155,7 @@ export function VersionHistoryDialog({ item, role, onClose, assetIds }: { item: 
             <Button onClick={() => void createVersion()} disabled={!label.trim() || busy} loading={busy}>保存手动版本</Button>
           </Group>
         )}
+        {role === 'owner' && <ItemShareManager item={item} versions={versions} selectedVersionId={selected} />}
         <Group align="stretch" wrap="nowrap" style={{ minHeight: 420 }}>
           <Stack w={290} gap="xs">
             <Text size="sm" fw={600}>检查点</Text>
