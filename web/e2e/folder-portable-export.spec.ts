@@ -2,8 +2,16 @@ import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
 import { openDocument } from './helpers/writing';
+import { inspectPortablePackage } from '../src/features/workspaces/portable-package-inspector';
+import { readPortableZip, type PortableZipLimits } from '../src/features/workspaces/portable-zip-reader';
 
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aH7sAAAAASUVORK5CYII=', 'base64');
+const inspectionLimits: PortableZipLimits = { maxArchiveBytes: 25 << 20, maxExpandedBytes: 100 << 20, maxEntryBytes: 25 << 20, maxEntries: 5000 };
+
+async function inspectExport(path: string) {
+  const bytes = Uint8Array.from(await readFile(path));
+  return inspectPortablePackage(await readPortableZip(new File([bytes], 'export.zip'), inspectionLimits));
+}
 
 test('folder ZIP captures nested Markdown, whiteboard, image assets and stable links', async ({ page }) => {
   await openDocument(page);
@@ -45,7 +53,9 @@ test('folder ZIP captures nested Markdown, whiteboard, image assets and stable l
   await dialog.getByRole('button', { name: '生成 ZIP' }).click();
   const download = await downloadPromise;
   const archive = unzipSync(new Uint8Array(await readFile(await download.path())));
+  const inspected = await inspectExport(await download.path());
   const manifest = JSON.parse(strFromU8(archive['manifest.json']!));
+  expect(inspected.manifest.format).toBe('madoc-folder-package');
   expect(manifest.consistency).toBe('per-item-capture; not a workspace-wide atomic snapshot');
   expect(manifest.items.map((item: { id: string }) => item.id)).toEqual(expect.arrayContaining([markdown.id, markdown2.id, board.id]));
 
@@ -109,8 +119,10 @@ test('workspace ZIP captures root items beneath the workspace package directory'
   await dialog.getByRole('button', { name: '生成 ZIP' }).click();
   const download = await downloadPromise;
   const archive = unzipSync(new Uint8Array(await readFile(await download.path())));
+  const inspected = await inspectExport(await download.path());
   const manifest = JSON.parse(strFromU8(archive['manifest.json']!));
 
+  expect(inspected.manifest.format).toBe('madoc-workspace-package');
   expect(manifest.format).toBe('madoc-workspace-package');
   expect(manifest.root).toMatchObject({ id: workspaceId, title: 'Writing regression', type: 'workspace', path: 'Writing regression' });
   expect(manifest.consistency).toBe('per-item-capture; not a workspace-wide atomic snapshot');
