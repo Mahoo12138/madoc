@@ -1,4 +1,4 @@
-import { strToU8, zipSync } from 'fflate';
+import { strToU8, unzipSync, zipSync } from 'fflate';
 
 export function portableFiles(split = true, itemCount = 1) {
   const root = { id: 'workspace', title: '导入资料', type: 'workspace', path: '导入资料' };
@@ -64,4 +64,32 @@ export function portableFiles(split = true, itemCount = 1) {
     content,
     assets,
   ];
+}
+
+// Actual image bytes for end-to-end imports; structural preview fixtures above
+// deliberately do not claim to be valid image files.
+export function portableImportFiles(split = true, itemCount = 2) {
+  const image = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aH7sAAAAASUVORK5CYII=',
+    'base64',
+  );
+  return portableFiles(split, itemCount).map((file) => {
+    if (file.name.endsWith('.json')) {
+      const set = JSON.parse(file.buffer.toString());
+      set.attachmentBytes = image.length;
+      set.attachments[0].size = image.length;
+      return { ...file, buffer: Buffer.from(JSON.stringify(set)) };
+    }
+    const entries = unzipSync(file.buffer);
+    const manifest = JSON.parse(new TextDecoder().decode(entries['manifest.json']));
+    for (const asset of manifest.attachments) asset.size = image.length;
+    entries['manifest.json'] = strToU8(JSON.stringify(manifest));
+    if (entries['assets/asset-abc.png']) entries['assets/asset-abc.png'] = image;
+    for (const item of manifest.items ?? []) {
+      entries[item.path] = strToU8(
+        '# ' + item.title + '\n\n![图片](../assets/asset-abc.png)\n\n[下一篇][next]\n\n[next]: ./笔记%202.md',
+      );
+    }
+    return { ...file, buffer: Buffer.from(zipSync(entries)) };
+  });
 }

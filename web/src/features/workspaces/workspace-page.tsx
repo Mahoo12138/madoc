@@ -545,8 +545,13 @@ export function WorkspacePage() {
         />
       )}
       <Suspense fallback={null}>
-        {importPreviewOpened && !unavailable && workspace.data && workspace.data.role !== 'viewer' && (
-          <PortableImportDialog key={`import:${workspaceId}`} onClose={() => setImportPreviewOpened(false)} />
+        {importPreviewOpened && (
+          <PortableImportDialog
+            key={`import:${workspaceId}`}
+            workspaceId={workspaceId}
+            canWrite={!unavailable && !!workspace.data && workspace.data.role !== 'viewer'}
+            onClose={() => setImportPreviewOpened(false)}
+          />
         )}
         {workspaceExportOpened && !unavailable && workspace.data && items.data && workspace.data.role !== 'viewer' && (
           <WorkspaceExportDialog

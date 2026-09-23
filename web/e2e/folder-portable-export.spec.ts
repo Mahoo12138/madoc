@@ -1,4 +1,6 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, copyFile, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { expect, test, type Download, type Page } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
@@ -41,6 +43,30 @@ async function downloadPortableExport(page: Page, start: () => Promise<void>, ex
   return { packageSet, paths };
 }
 
+async function reimportDownload(page: Page, paths: Map<string, string>, title: string) {
+  // Leave any export modal and import the exact downloaded bytes.
+  await page.reload();
+  await page.locator('aside').getByRole('button', { name: '新建内容' }).click();
+  await page.getByRole('menuitem', { name: '导入内容包' }).click();
+  const dialog = page.getByRole('dialog', { name: '导入内容包', exact: true });
+  const directory = await mkdtemp(join(tmpdir(), 'madoc-import-roundtrip-'));
+  try {
+    const files = [];
+    for (const [name, path] of [...paths].reverse()) {
+      const target = join(directory, name);
+      await copyFile(path, target);
+      files.push(target);
+    }
+    await dialog.locator('input[type=file]').setInputFiles(files);
+    await expect(dialog).toContainText('导入包校验通过');
+  } finally { await rm(directory, { recursive: true, force: true }); }
+  await expect(dialog).toContainText('导入包校验通过');
+  await dialog.getByRole('textbox', { name: '新目录名称' }).fill(title);
+  await dialog.getByRole('button', { name: '确认导入', exact: true }).click();
+  await expect(dialog).toContainText('导入完成');
+  await dialog.getByRole('button', { name: '完成', exact: true }).click();
+}
+
 test('folder ZIP captures nested Markdown, whiteboard, image assets and stable links', async ({ page }) => {
   await openDocument(page);
   const workspaceId = new URL(page.url()).pathname.split('/')[2]!;
@@ -73,7 +99,7 @@ test('folder ZIP captures nested Markdown, whiteboard, image assets and stable l
   }
 
   await page.reload();
-  await page.getByRole('button', { name: 'Design 的操作' }).click();
+  await page.getByRole('button', { name: 'Design 的操作', exact: true }).click();
   await page.getByRole('menuitem', { name: '导出文件夹 ZIP' }).click();
   const dialog = page.getByRole('dialog', { name: '导出文件夹：Design' });
   await expect(dialog).toContainText('不是文件夹同一时刻的快照');
@@ -117,9 +143,24 @@ test('folder ZIP captures nested Markdown, whiteboard, image assets and stable l
   expect(importedBoardId).not.toBe(board.id);
   expect((await (await page.request.get(`/api/items/${importedBoardId}/whiteboard`)).json()).scene).toEqual({ elements: [], appState: {}, files: {} });
 
+  await reimportDownload(page, downloaded.paths, 'Restored Design');
+  const importedItems = await (await page.request.get(`/api/workspaces/${workspaceId}/items`)).json();
+  const importedRoot = importedItems.find((item: { title: string }) => item.title === 'Restored Design');
+  const importedNested = importedItems.find((item: { title: string; parentId: string }) => item.title === 'Notes' && item.parentId === importedRoot.id);
+  const importedDocs = importedItems.filter((item: { parentId: string }) => item.parentId === importedNested.id);
+  expect(importedDocs).toHaveLength(2);
+  expect(importedDocs.map((item: { title: string }) => item.title)).toEqual(['System', 'System']);
+  const copiedBoard = importedItems.find((item: { parentId: string; type: string }) => item.parentId === importedRoot.id && item.type === 'whiteboard');
+  expect((await (await page.request.get(`/api/items/${copiedBoard.id}/whiteboard`)).json()).scene).toEqual({ elements: [], appState: {}, files: {} });
+  await page.goto(`/workspace/${workspaceId}/${importedDocs[0].id}`);
+  await expect(page.locator('.ProseMirror a').filter({ hasText: 'board' })).toHaveAttribute('href', `/workspace/${workspaceId}/${copiedBoard.id}`);
+  const mappedImage = await page.locator('.ProseMirror img').getAttribute('src');
+  expect(mappedImage).not.toBe(`/api/assets/${asset.id}`);
+  expect(await (await page.request.get(mappedImage!)).body()).toEqual(png);
+
   const deleteAsset = await page.request.delete(`/api/assets/${asset.id}`, { headers });
   expect(deleteAsset.ok()).toBeTruthy();
-  await page.getByRole('button', { name: 'Design 的操作' }).click();
+  await page.getByRole('button', { name: 'Design 的操作', exact: true }).click();
   await page.getByRole('menuitem', { name: '导出文件夹 ZIP' }).click();
   const retryDialog = page.getByRole('dialog', { name: '导出文件夹：Design' });
   const noDownload = page.waitForEvent('download', { timeout: 1500 }).catch(() => undefined);
@@ -141,7 +182,7 @@ test('workspace export splits only oversized attachment sets while keeping conte
   const markdownId = (await createdMarkdown.json() as { id: string }).id;
   const created = await page.request.post(`/api/workspaces/${workspaceId}/items`, {
     headers,
-    data: { type: 'whiteboard', title: 'Workspace board', parentId: null },
+    data: { type: 'whiteboard', title: 'Workspace board (v1) #%', parentId: null },
   });
   expect(created.ok()).toBeTruthy();
   const board = await created.json() as { id: string };
@@ -194,8 +235,8 @@ test('workspace export splits only oversized attachment sets while keeping conte
   expect(markdown.path).toBe('Writing regression/Workspace package.md');
   const markdownText = strFromU8(archive[markdown.path]!);
   expect(markdownText).toContain('# Workspace package');
-  expect(markdownText).toContain('[board](./Workspace board.excalidraw)');
-  expect(whiteboard.path).toBe('Writing regression/Workspace board.excalidraw');
+  expect(markdownText).toContain('[board](./Workspace%20board%20%28v1%29%20%23%25.excalidraw)');
+  expect(whiteboard.path).toBe('Writing regression/Workspace board (v1) #%.excalidraw');
   expect(JSON.parse(strFromU8(archive[whiteboard.path]!))).toMatchObject({ type: 'excalidraw', version: 2, elements: [], appState: {}, files: {} });
   const attachmentRecords: { id: string; path: string; size: number }[] = [];
   for (const attachmentPart of packageSet.parts.filter((candidate) => candidate.role === 'attachments')) {
@@ -224,4 +265,19 @@ test('workspace export splits only oversized attachment sets while keeping conte
   for (const bytes of restored.attachmentData.values()) {
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(largePNGHash);
   }
+  await reimportDownload(page, downloaded.paths, 'Restored large workspace');
+  const importedItems = await (await page.request.get(`/api/workspaces/${workspaceId}/items`)).json();
+  const importedRoot = importedItems.find((item: { title: string }) => item.title === 'Restored large workspace');
+  const importedDocument = importedItems.find((item: { title: string; parentId: string }) => item.title === 'Workspace package' && item.parentId === importedRoot.id);
+  const importedBoard = importedItems.find((item: { title: string; parentId: string }) => item.title === 'Workspace board (v1) #%' && item.parentId === importedRoot.id);
+  await page.goto(`/workspace/${workspaceId}/${importedDocument.id}`);
+  await expect(page.locator('.ProseMirror a').filter({ hasText: 'board' })).toHaveAttribute('href', `/workspace/${workspaceId}/${importedBoard.id}`);
+  const importedImages = await page.locator('.ProseMirror img').evaluateAll((images) => images.map((image) => image.getAttribute('src')!));
+  expect(importedImages).toHaveLength(4);
+  for (const url of importedImages) {
+    expect(attachmentIDs.some((id) => url.endsWith(id))).toBe(false);
+    const bytes = await (await page.request.get(url)).body();
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(largePNGHash);
+  }
+
 });

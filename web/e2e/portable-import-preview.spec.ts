@@ -6,8 +6,8 @@ async function openPreview(page: Page, mobile = false) {
   if (mobile) await page.getByRole('button', { name: '打开内容导航' }).click();
   const navigation = mobile ? page.getByRole('dialog') : page.locator('aside');
   await navigation.getByRole('button', { name: '新建内容' }).click();
-  await page.getByRole('menuitem', { name: '预览导入包' }).click();
-  const dialog = page.getByRole('dialog', { name: '导入包预览', exact: true });
+  await page.getByRole('menuitem', { name: '导入内容包' }).click();
+  const dialog = page.getByRole('dialog', { name: '导入内容包', exact: true });
   await expect(dialog).toBeVisible();
   return dialog;
 }
@@ -113,7 +113,7 @@ test('viewer has no portable import entry', async ({ page, browser }) => {
     await viewer.goto(url);
     await expect(viewer.locator('.ProseMirror')).toHaveAttribute('contenteditable', 'false');
     await expect(viewer.getByRole('button', { name: '新建内容' })).toHaveCount(0);
-    await expect(viewer.getByRole('menuitem', { name: '预览导入包' })).toHaveCount(0);
+    await expect(viewer.getByRole('menuitem', { name: '导入内容包' })).toHaveCount(0);
   } finally {
     await context.close();
   }

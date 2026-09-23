@@ -93,7 +93,7 @@ export function WorkspaceNavigation({
                   leftSection={<Upload size={15} />}
                   onClick={onPreviewImport}
                 >
-                  预览导入包
+                  导入内容包
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>

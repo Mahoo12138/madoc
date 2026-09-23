@@ -91,7 +91,12 @@ function relativePath(fromFile: string, toFile: string) {
   const to = toFile.split('/');
   let common = 0;
   while (common < from.length && common < to.length && from[common] === to[common]) common++;
-  const result = [...from.slice(common).map(() => '..'), ...to.slice(common)].join('/') || '.';
+  // Archive filenames remain human-readable. Markdown destinations need URL
+  // path encoding, including parentheses that could close the link syntax.
+  const encoded = to.slice(common).map((segment) =>
+    encodeURIComponent(segment).replace(/[!'()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`),
+  );
+  const result = [...from.slice(common).map(() => '..'), ...encoded].join('/') || '.';
   return result.startsWith('.') ? result : `./${result}`;
 }
 
