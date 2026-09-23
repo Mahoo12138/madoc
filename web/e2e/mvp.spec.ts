@@ -226,7 +226,7 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
 
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: '导出' }).click();
-  await page.getByRole('menuitem', { name: 'Excalidraw JSON' }).click();
+  await page.getByRole('menuitem', { name: 'Excalidraw JSON', exact: true }).click();
   await download;
   await memberContext.close();
 });
