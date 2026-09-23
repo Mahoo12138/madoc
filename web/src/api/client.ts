@@ -1,4 +1,4 @@
-import type { BoardScene, Invite, Item, ItemType, MarkdownState, Member, Role, Session, User, WhiteboardState, Workspace } from './types';
+import type { BoardScene, Invite, Item, ItemCapture, ItemType, MarkdownState, Member, Role, Session, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -37,6 +37,7 @@ export const api = {
   acceptInvite: async (token: string, body: { name: string; password: string }) => { const result = await request<{ user: User; workspace: Workspace; csrfToken: string }>(`/invites/${encodeURIComponent(token)}/accept`, { method: 'POST', body: JSON.stringify(body) }); setCSRFToken(result.csrfToken); return result; },
   items: (workspaceId: string) => request<Item[]>(`/workspaces/${workspaceId}/items`),
   item: (id: string) => request<Item>(`/items/${id}`),
+  captureItem: (id: string, signal?: AbortSignal) => request<ItemCapture>(`/items/${id}/capture`, { signal, cache: 'no-store' }),
   createItem: (workspaceId: string, type: ItemType, title: string, parentId: string | null) => request<Item>(`/workspaces/${workspaceId}/items`, { method: 'POST', body: JSON.stringify({ type, title, parentId }) }),
   renameItem: (id: string, title: string) => request<void>(`/items/${id}`, { method: 'PATCH', body: JSON.stringify({ title }) }),
   deleteItem: (id: string) => request<void>(`/items/${id}`, { method: 'DELETE' }),

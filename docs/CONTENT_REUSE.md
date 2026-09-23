@@ -117,9 +117,8 @@ Yjs 状态重建，不应把旧投影标成最新。白板捕获包含完整 sce
 Markdown 或 Excalidraw 内部结构。后续目录导出可为每个 Item 分别固定捕获，并在 manifest
 记录各自水位与时间；不得宣称整个目录或 Workspace 是原子快照。
 
-目录级带附件迁出需要逐项固定捕获、水位和资源映射；不能直接以可能滞后的
-Markdown cache 创建导出包。版本历史在阶段 3 将复用同一捕获数据，并另行确定持久化、
-容量和清理策略。
+文件夹带附件迁出逐项固定捕获、水位和资源映射；不能直接以可能滞后的 Markdown cache
+创建导出包。版本历史在阶段 3 将复用同一捕获数据，并另行确定持久化、容量和清理策略。
 
 ## 单篇 Markdown 可移植导出
 
@@ -131,9 +130,28 @@ Markdown 图片目标；围栏和行内代码中的示例保持原文。任何 M
 
 ZIP 根目录含 manifest、以跨平台安全文件名保存的 Markdown 和附件目录。外部、站点相对及
 其他非 Madoc 资产图片沿用原地址，并在 manifest `unpackagedImages` 中列出；它们不作为已
-迁出的二进制资源。首版限单篇 Markdown，不含文件夹、Workspace、白板、导入或导入预览。
-ZIP 在浏览器中生成，不增加服务端 Markdown / Yjs 解析或常驻服务。当前单篇导出尚未切换
-到新的固定捕获 API；后续目录导出可逐项使用该接口，并需补齐资源映射。
+迁出的二进制资源。单篇导出不含 Workspace、白板或导入；ZIP 在浏览器中生成，不增加服务端
+Markdown / Yjs 解析或常驻服务。单篇导出沿用经投影水位确认的 Markdown；文件夹导出使用
+下述逐项固定捕获流程。
+
+## 文件夹可移植导出
+
+文件夹操作菜单提供 ZIP 导出，owner / editor 可用。按工作区目录树保留嵌套结构，Markdown
+保存为 `.md`，白板 scene 包装为 Excalidraw version 2 `.excalidraw` JSON（内嵌文件仍在
+scene `files` 内）。同级经跨平台清理后重名的条目添加序号；manifest 记录 Item ID、原标题 / 父级、
+包内路径、每项捕获时间，以及 Markdown generation / snapshotSeq / seq / projectionSeq 或
+白板 revision。
+
+导出逐个调用固定捕获 API，不是文件夹或 Workspace 同一时刻的原子快照，也不含尚未确认到
+服务端的修改。若某 Markdown 派生投影未追上 headSeq，或捕获期间条目名称、类型、父级发生
+变化，整个包失败并要求重试。通过当前 Crepe schema 读取图片与链接节点；同工作区且包含在
+包中的稳定 Item 链接改为相对路径，同源 Madoc 图片附件按 UUID 去重打包并改写为相对路径。
+外部 / 相对图片保持原地址并列入 manifest；同工作区但不在包内的 Item 链接保持原地址并列明。
+任一 Madoc 附件读取失败时不生成 ZIP。导出在浏览器完成，没有服务端 Yjs / Markdown 解析或
+新 migration。
+
+当前范围是单个文件夹，不提供整 Workspace ZIP。当前打开编辑器以外的未同步标签页修改无法
+确认，不会假定已包含；大规模目录的容量上限与分块下载尚未建立，后续根据实际数据规模验证。
 
 ## 单篇 Markdown 导入预览
 
@@ -193,3 +211,7 @@ generation / seq 与导出时间、外部图片清单、代码示例 URL 不改�
 `capture_test.go` 验证单项捕获的 Markdown generation / cacheSeq / headSeq、Yjs updates 在
 compaction 后仍作为返回值保持不变、白板 revision / scene 和 viewer 读取权限；
 `item-capture.spec.ts` 验证 REST 响应的 Markdown / 白板内容形状及 no-store 缓存头。
+
+`folder-portable-export.spec.ts` 验证嵌套结构、同名路径消歧、逐项 manifest 水位、Excalidraw
+version 2 JSON 导出后通过既有导入预览往返、Markdown 附件字节与内部 Item 链接映射、代码围栏
+示例保留；缺失附件时拒绝生成 ZIP。

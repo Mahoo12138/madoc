@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { ActionIcon, Menu, Modal, Stack, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
   Copy,
   Ellipsis,
   FolderPlus,
+  Download,
   Link,
   Move,
   Pencil,
@@ -14,6 +15,8 @@ import {
 } from 'lucide-react';
 import { DuplicateItem } from './duplicate-item';
 import type { Item, ItemType, Role } from '@/api/types';
+
+const FolderExportDialog = lazy(() => import('./folder-export-dialog').then((module) => ({ default: module.FolderExportDialog })));
 
 // Titles and parent folders are deliberately absent from the destination.
 export function itemURL(item: Pick<Item, 'workspaceId' | 'id'>) {
@@ -25,6 +28,7 @@ export function itemURL(item: Pick<Item, 'workspaceId' | 'id'>) {
 
 export function ItemActions({
   item,
+  items,
   active,
   onOpen,
   role,
@@ -34,6 +38,7 @@ export function ItemActions({
   onDelete,
 }: {
   item: Item;
+  items: Item[];
   active: boolean;
   onOpen?: () => void;
   role: Role;
@@ -44,6 +49,7 @@ export function ItemActions({
 }) {
   const [manualLink, setManualLink] = useState('');
   const [copyOpened, setCopyOpened] = useState(false);
+  const [folderExportOpened, setFolderExportOpened] = useState(false);
   const folder = item.type === 'folder';
   if (role === 'viewer' && folder) return null;
   const copyLink = async () => {
@@ -90,6 +96,9 @@ export function ItemActions({
             <>
               {folder && (
                 <>
+                  <Menu.Item leftSection={<Download size={14} />} onClick={() => setFolderExportOpened(true)}>
+                    导出文件夹 ZIP
+                  </Menu.Item>
                   <Menu.Item
                     leftSection={<Plus size={14} />}
                     onClick={() => onCreate('markdown', item.id)}
@@ -141,6 +150,11 @@ export function ItemActions({
           onOpen={onOpen}
           onClose={() => setCopyOpened(false)}
         />
+      )}
+      {folderExportOpened && role !== 'viewer' && (
+        <Suspense fallback={null}>
+          <FolderExportDialog folder={item} items={items} onClose={() => setFolderExportOpened(false)} />
+        </Suspense>
       )}
       {manualLink && (
         <Modal opened onClose={() => setManualLink('')} title="复制链接">

@@ -113,6 +113,7 @@ export function ItemTree({
             </ActionIcon>
             <ItemActions
               item={item}
+              items={items}
               active={activeId === item.id}
               onOpen={onSelect}
               role={role}
