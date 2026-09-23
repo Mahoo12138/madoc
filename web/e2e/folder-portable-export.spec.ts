@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { expect, test, type Download, type Page } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
 import { openDocument } from './helpers/writing';
+import { inspectPortablePackageSet } from '../src/features/workspaces/portable-package-set-inspector';
 import { inspectPortablePackage } from '../src/features/workspaces/portable-package-inspector';
 import { readPortableZip, type PortableZipLimits } from '../src/features/workspaces/portable-zip-reader';
 
@@ -210,4 +211,17 @@ test('workspace export splits only oversized attachment sets while keeping conte
     }
   }
   expect(attachmentRecords.map(({ id }) => id).sort()).toEqual(attachmentIDs.sort());
+  const selectedParts = [];
+  for (const descriptor of [...packageSet.parts].reverse()) {
+    const bytes = Uint8Array.from(await readFile(downloaded.paths.get(descriptor.fileName)!));
+    const entries = await readPortableZip(new File([bytes], descriptor.fileName), { ...inspectionLimits, maxArchiveBytes: 60 << 20 });
+    selectedParts.push({ fileName: descriptor.fileName, entries });
+  }
+  const setPath = [...downloaded.paths].find(([name]) => name.endsWith('.package-set.json'))![1];
+  const restored = inspectPortablePackageSet(new Uint8Array(await readFile(setPath)), selectedParts);
+  expect(restored.attachments.map(({ id }) => id).sort()).toEqual(attachmentIDs.sort());
+  expect(new TextDecoder().decode(restored.itemData.get(markdownId))).toBe(markdownText);
+  for (const bytes of restored.attachmentData.values()) {
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(largePNGHash);
+  }
 });
