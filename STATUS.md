@@ -103,7 +103,8 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 - 第一部分验证：`go test ./...`、`go vet ./...`、API / core / asset `go test -race`、前端 typecheck / production build、3 项 Playwright 分享往返与安全测试通过。production build 保留既有大 chunk 提示。
 - 第二部分：migration 0013 与 Item 级纯文本评论；所有 Workspace 成员可读，owner / editor 可写，评论作者可删自己的评论、owner 可调停删除。支持 Markdown / Whiteboard，不支持 Folder / 回收站 Item；作者显示名快照、Unicode 长度校验和倒序游标分页。详见 `docs/API.md`。
 - 第二部分验证：Go 评论权限 / 分页 / 边界 / 删除回归，viewer API 写入拒绝，以及 owner 创建删除、viewer 只读的真实浏览器流程通过。完整阶段门槛待提交前执行。
-- 成员管理增强与活动记录尚未实现；阶段 4 整体尚未验收。
+- 第三部分：成员管理 drawer 为待接受邀请提供 owner-only 撤销；角色变更、成员移除、邀请撤销均先显示影响说明并二次确认；阻止 owner 自行降权 / 移除及移除最后一名 owner，并对失败显示通知。
+- 第三部分验证：真实浏览器覆盖撤销后旧链接失效、角色调整确认后生效、移除确认后成员消失；现有中文角色标签测试复核通过。活动记录尚未实现；阶段 4 整体尚未验收。
 
 ## 当前验证
 

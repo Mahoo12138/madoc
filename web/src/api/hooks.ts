@@ -27,5 +27,6 @@ export function useWorkspaceMutations(workspaceId?: string) {
     updateMember: useMutation({ mutationFn: (input: { userId: string; role: Role }) => api.updateMember(workspaceId!, input.userId, input.role), onSuccess: () => client.invalidateQueries({ queryKey: keys.members(workspaceId!) }) }),
     removeMember: useMutation({ mutationFn: (userId: string) => api.removeMember(workspaceId!, userId), onSuccess: () => client.invalidateQueries({ queryKey: keys.members(workspaceId!) }) }),
     createInvite: useMutation({ mutationFn: (input: { email: string; role: 'editor' | 'viewer' }) => api.createInvite(workspaceId!, input.email, input.role), onSuccess: () => client.invalidateQueries({ queryKey: keys.invites(workspaceId!) }) }),
+    revokeInvite: useMutation({ mutationFn: (inviteId: string) => api.revokeInvite(workspaceId!, inviteId), onSuccess: () => client.invalidateQueries({ queryKey: keys.invites(workspaceId!) }) }),
   };
 }

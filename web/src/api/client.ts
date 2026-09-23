@@ -33,6 +33,7 @@ export const api = {
   removeMember: (workspaceId: string, userId: string) => request<void>(`/workspaces/${workspaceId}/members/${userId}`, { method: 'DELETE' }),
   invites: (workspaceId: string) => request<Invite[]>(`/workspaces/${workspaceId}/invites`),
   createInvite: (workspaceId: string, email: string, role: 'editor' | 'viewer') => request<{ invite: Invite; token: string; url: string }>(`/workspaces/${workspaceId}/invites`, { method: 'POST', body: JSON.stringify({ email, role }) }),
+  revokeInvite: (workspaceId: string, inviteId: string) => request<void>(`/workspaces/${workspaceId}/invites/${inviteId}`, { method: 'DELETE' }),
   inspectInvite: (token: string) => request<{ invite: Invite; workspaceName: string }>(`/invites/${encodeURIComponent(token)}`),
   acceptInvite: async (token: string, body: { name: string; password: string }) => { const result = await request<{ user: User; workspace: Workspace; csrfToken: string }>(`/invites/${encodeURIComponent(token)}/accept`, { method: 'POST', body: JSON.stringify(body) }); setCSRFToken(result.csrfToken); return result; },
   items: (workspaceId: string) => request<Item[]>(`/workspaces/${workspaceId}/items`),
