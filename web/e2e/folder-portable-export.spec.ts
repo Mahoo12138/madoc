@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Download, type Page } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
 import { openDocument } from './helpers/writing';
 import { inspectPortablePackage } from '../src/features/workspaces/portable-package-inspector';
@@ -11,6 +11,25 @@ const inspectionLimits: PortableZipLimits = { maxArchiveBytes: 25 << 20, maxExpa
 async function inspectExport(path: string) {
   const bytes = Uint8Array.from(await readFile(path));
   return inspectPortablePackage(await readPortableZip(new File([bytes], 'export.zip'), inspectionLimits));
+}
+
+async function downloadPackageSet(page: Page, start: () => Promise<void>) {
+  const downloads: Download[] = [];
+  const onDownload = (download: Download) => downloads.push(download);
+  page.on('download', onDownload);
+  await start();
+  await expect.poll(() => downloads.some((download) => download.suggestedFilename().endsWith('.package-set.json'))).toBe(true);
+  const setDownload = downloads.find((download) => download.suggestedFilename().endsWith('.package-set.json'))!;
+  const packageSet = JSON.parse(await readFile(await setDownload.path(), 'utf8')) as { parts: { fileName: string }[] };
+  await expect.poll(() => downloads.length).toBe(packageSet.parts.length + 1);
+  page.off('download', onDownload);
+  const paths = new Map<string, string>();
+  for (const download of downloads) {
+    const path = await download.path();
+    if (!path) throw new Error(`下载未完成：${download.suggestedFilename()}`);
+    paths.set(download.suggestedFilename(), path);
+  }
+  return { packageSet, paths };
 }
 
 test('folder ZIP captures nested Markdown, whiteboard, image assets and stable links', async ({ page }) => {
@@ -49,19 +68,34 @@ test('folder ZIP captures nested Markdown, whiteboard, image assets and stable l
   await page.getByRole('menuitem', { name: '导出文件夹 ZIP' }).click();
   const dialog = page.getByRole('dialog', { name: '导出文件夹：Design' });
   await expect(dialog).toContainText('不是文件夹同一时刻的快照');
-  const downloadPromise = page.waitForEvent('download');
-  await dialog.getByRole('button', { name: '生成 ZIP' }).click();
-  const download = await downloadPromise;
-  const archive = unzipSync(new Uint8Array(await readFile(await download.path())));
-  const inspected = await inspectExport(await download.path());
-  const manifest = JSON.parse(strFromU8(archive['manifest.json']!));
-  expect(inspected.manifest.format).toBe('madoc-folder-package');
-  expect(manifest.consistency).toBe('per-item-capture; not a workspace-wide atomic snapshot');
-  expect(manifest.items.map((item: { id: string }) => item.id)).toEqual(expect.arrayContaining([markdown.id, markdown2.id, board.id]));
+  const downloaded = await downloadPackageSet(page, () => dialog.getByRole('button', { name: '生成 ZIP 分包' }).click());
+  expect(downloaded.packageSet.format).toBe('madoc-package-set');
+  expect(downloaded.packageSet.parts).toHaveLength(2);
+  const parts = await Promise.all(downloaded.packageSet.parts.map(async (part) => {
+    const path = downloaded.paths.get(part.fileName)!;
+    const archive = unzipSync(new Uint8Array(await readFile(path)));
+    const inspected = await inspectExport(path);
+    expect(inspected.manifest.format).toBe('madoc-folder-package');
+    return { archive, manifest: JSON.parse(strFromU8(archive['manifest.json']!)) };
+  }));
+  const archive = Object.assign({}, ...parts.map((part) => part.archive));
+  const allItems = parts.flatMap((part) => part.manifest.items);
+  const exportedIDs = allItems.map((item: { id: string }) => item.id).sort();
+  const listedIDs = downloaded.packageSet.parts.flatMap((part: { itemIDs: string[] }) => part.itemIDs).sort();
+  expect(parts.every((part) => part.manifest.packageSet.id === downloaded.packageSet.id && part.manifest.packageSet.partCount === 2)).toBe(true);
+  expect(allItems).toHaveLength(4);
+  expect(listedIDs).toEqual(exportedIDs);
+  for (const [index, part] of parts.entries()) {
+    expect(part.manifest.packageSet.part).toBe(index + 1);
+    expect(downloaded.packageSet.parts[index]!.itemIDs.sort()).toEqual(part.manifest.items.map((item: { id: string }) => item.id).sort());
+  }
+  expect(allItems.map((item: { id: string }) => item.id)).toEqual(expect.arrayContaining([markdown.id, markdown2.id, board.id]));
+  const markdownManifest = parts.find((part) => part.manifest.items.some((item: { id: string }) => item.id === markdown.id))!.manifest;
+  expect(markdownManifest.consistency).toBe('per-item-capture; not a workspace-wide atomic snapshot');
 
-  const first = manifest.items.find((item: { id: string }) => item.id === markdown.id);
-  const second = manifest.items.find((item: { id: string }) => item.id === markdown2.id);
-  const boardEntry = manifest.items.find((item: { id: string }) => item.id === board.id);
+  const first = allItems.find((item: { id: string }) => item.id === markdown.id);
+  const second = allItems.find((item: { id: string }) => item.id === markdown2.id);
+  const boardEntry = allItems.find((item: { id: string }) => item.id === board.id);
   expect(first.path).toBe('Design/Notes/System.md');
   expect(second.path).toBe('Design/Notes/System (2).md');
   expect(boardEntry.path).toBe('Design/Architecture.excalidraw');
@@ -69,7 +103,8 @@ test('folder ZIP captures nested Markdown, whiteboard, image assets and stable l
   expect(exportedMarkdown).toContain('![pixel](../../assets/asset-' + asset.id + '.png)');
   expect(exportedMarkdown).toContain('[board](../Architecture.excalidraw)');
   expect(exportedMarkdown).toContain('![example](/api/assets/' + asset.id + ')');
-  const packedAsset = manifest.attachments[0];
+  const markdownPartManifest = parts.find((part) => part.manifest.items.some((item: { id: string }) => item.id === markdown.id))!.manifest;
+  const packedAsset = markdownPartManifest.attachments[0];
   expect(Buffer.from(archive[packedAsset.path]!)).toEqual(png);
   expect(JSON.parse(strFromU8(archive[boardEntry.path]!))).toEqual({ type: 'excalidraw', version: 2, source: 'https://excalidraw.com', elements: [], appState: {}, files: {} });
 
@@ -115,21 +150,25 @@ test('workspace ZIP captures root items beneath the workspace package directory'
   await page.getByRole('menuitem', { name: '导出 Workspace ZIP' }).click();
   const dialog = page.getByRole('dialog', { name: '导出 Workspace：Writing regression' });
   await expect(dialog).toContainText('不是 Workspace 同一时刻的快照');
-  const downloadPromise = page.waitForEvent('download');
-  await dialog.getByRole('button', { name: '生成 ZIP' }).click();
-  const download = await downloadPromise;
-  const archive = unzipSync(new Uint8Array(await readFile(await download.path())));
-  const inspected = await inspectExport(await download.path());
+  const downloaded = await downloadPackageSet(page, () => dialog.getByRole('button', { name: '生成 ZIP 分包' }).click());
+  const part = downloaded.packageSet.parts.find((candidate) => candidate.itemIDs.includes(markdownId))!;
+  const path = downloaded.paths.get(part.fileName)!;
+  const archive = unzipSync(new Uint8Array(await readFile(path)));
+  const inspected = await inspectExport(path);
   const manifest = JSON.parse(strFromU8(archive['manifest.json']!));
 
   expect(inspected.manifest.format).toBe('madoc-workspace-package');
-  expect(manifest.format).toBe('madoc-workspace-package');
-  expect(manifest.root).toMatchObject({ id: workspaceId, title: 'Writing regression', type: 'workspace', path: 'Writing regression' });
+  expect(downloaded.packageSet.root).toMatchObject({ id: workspaceId, title: 'Writing regression', type: 'workspace', path: 'Writing regression' });
+  expect(manifest.packageSet.partCount).toBe(downloaded.packageSet.parts.length);
   expect(manifest.consistency).toBe('per-item-capture; not a workspace-wide atomic snapshot');
   const markdown = manifest.items.find((item: { id: string }) => item.id === markdownId);
-  const whiteboard = manifest.items.find((item: { id: string }) => item.id === board.id);
+  const boardPart = downloaded.packageSet.parts.find((candidate) => candidate.itemIDs.includes(board.id))!;
+  const boardPath = downloaded.paths.get(boardPart.fileName)!;
+  const boardArchive = unzipSync(new Uint8Array(await readFile(boardPath)));
+  const boardManifest = JSON.parse(strFromU8(boardArchive['manifest.json']!));
+  const whiteboard = boardManifest.items.find((item: { id: string }) => item.id === board.id);
   expect(markdown.path).toBe('Writing regression/Inline writing.md');
   expect(strFromU8(archive[markdown.path]!)).toContain('# Workspace package');
   expect(whiteboard.path).toBe('Writing regression/Workspace board.excalidraw');
-  expect(JSON.parse(strFromU8(archive[whiteboard.path]!))).toMatchObject({ type: 'excalidraw', version: 2, elements: [], appState: {}, files: {} });
+  expect(JSON.parse(strFromU8(boardArchive[whiteboard.path]!))).toMatchObject({ type: 'excalidraw', version: 2, elements: [], appState: {}, files: {} });
 });

@@ -183,62 +183,112 @@ async function exportPortableTreePackage(root: { id: string; title: string; type
   const assets = await Promise.all([...imageSources.keys()].map((id) => fetchAsset(id, signal)));
   const assetPath = new Map(assets.map((asset) => [asset.id, asset.path]));
   const pathsByID = new Map([[root.id, tree.rootPath], ...tree.paths]);
+  const childrenByParent = new Map<string | null, Item[]>();
+  for (const item of tree.descendants) childrenByParent.set(item.parentId, [...(childrenByParent.get(item.parentId) ?? []), item]);
+  const branchByItemID = new Map<string, string>();
+  const branchRoots = tree.descendants.filter((item) => item.parentId === rootParentId).sort((a, b) => tree.paths.get(a.id)!.localeCompare(tree.paths.get(b.id)!));
+  for (const branch of branchRoots) {
+    const visit = (item: Item) => {
+      branchByItemID.set(item.id, branch.id);
+      for (const child of childrenByParent.get(item.id) ?? []) visit(child);
+    };
+    visit(branch);
+  }
+  const groups = branchRoots.map((item) => ({ id: item.id, items: tree.descendants.filter((descendant) => branchByItemID.get(descendant.id) === item.id) }));
+  const { zip } = await import('fflate');
+  const setId = crypto.randomUUID();
+  const fileBase = safeSegment(root.title, root.type);
+  const packages: { data: Uint8Array; fileName: string; itemIDs: string[]; rootItemId: string }[] = [];
   const externalImages: { itemId: string; source: string }[] = [];
   const externalItemLinks: { itemId: string; href: string }[] = [];
-  const files: AsyncZippable = {};
-  const itemManifest: Record<string, unknown>[] = [];
 
-  for (const entry of entries) {
-    const { capture, path } = entry;
-    const item = capture.item;
-    if (capture.markdown) {
-      let markdown = capture.markdown.markdown;
-      for (const source of inspection.get(item.id)?.images ?? []) {
-        const id = localAssetID(source);
-        if (id) markdown = rewriteDestination(markdown, source, relativePath(path, assetPath.get(id)!));
-        else externalImages.push({ itemId: item.id, source });
+  for (const [index, group] of groups.entries()) {
+    if (signal.aborted) throw signal.reason;
+    const groupIDs = new Set(group.items.map((item) => item.id));
+    const groupEntries = entries.filter((entry) => groupIDs.has(entry.capture.item.id));
+    const groupAssetIDs = new Set<string>();
+    const groupExternalImages: { itemId: string; source: string }[] = [];
+    const groupExternalItemLinks: { itemId: string; href: string }[] = [];
+    const files: AsyncZippable = {};
+    const itemManifest: Record<string, unknown>[] = [];
+
+    for (const { capture, path } of groupEntries) {
+      const item = capture.item;
+      if (capture.markdown) {
+        let markdown = capture.markdown.markdown;
+        for (const source of inspection.get(item.id)?.images ?? []) {
+          const id = localAssetID(source);
+          if (id) {
+            groupAssetIDs.add(id);
+            markdown = rewriteDestination(markdown, source, relativePath(path, assetPath.get(id)!));
+          } else groupExternalImages.push({ itemId: item.id, source });
+        }
+        for (const href of inspection.get(item.id)?.links ?? []) {
+          const targetID = stableItemID(href, item.workspaceId);
+          const targetPath = targetID ? pathsByID.get(targetID) : undefined;
+          if (targetPath) markdown = rewriteDestination(markdown, href, relativePath(path, targetPath));
+          else if (targetID && workspaceItems.some((candidate) => candidate.id === targetID)) groupExternalItemLinks.push({ itemId: item.id, href });
+        }
+        files[path] = strToU8(markdown);
+        itemManifest.push({ id: item.id, parentId: item.parentId, type: item.type, title: item.title, path, capturedAt: capture.capturedAt, content: { generation: capture.markdown.generation, snapshotSeq: capture.markdown.snapshotSeq, seq: capture.markdown.headSeq, projectionSeq: capture.markdown.cacheSeq } });
+      } else if (capture.whiteboard) {
+        files[path] = strToU8(`${JSON.stringify({ type: 'excalidraw', version: 2, source: 'https://excalidraw.com', ...capture.whiteboard.scene }, null, 2)}\n`);
+        itemManifest.push({ id: item.id, parentId: item.parentId, type: item.type, title: item.title, path, capturedAt: capture.capturedAt, content: { revision: capture.whiteboard.revision } });
       }
-      for (const href of inspection.get(item.id)?.links ?? []) {
-        const targetID = stableItemID(href, item.workspaceId);
-        const targetPath = targetID ? pathsByID.get(targetID) : undefined;
-        if (targetPath) markdown = rewriteDestination(markdown, href, relativePath(path, targetPath));
-        else if (targetID && workspaceItems.some((candidate) => candidate.id === targetID)) externalItemLinks.push({ itemId: item.id, href });
-      }
-      files[path] = strToU8(markdown);
-      itemManifest.push({ id: item.id, parentId: item.parentId, type: item.type, title: item.title, path, capturedAt: capture.capturedAt, content: { generation: capture.markdown.generation, snapshotSeq: capture.markdown.snapshotSeq, seq: capture.markdown.headSeq, projectionSeq: capture.markdown.cacheSeq } });
-    } else if (capture.whiteboard) {
-      files[path] = strToU8(`${JSON.stringify({ type: 'excalidraw', version: 2, source: 'https://excalidraw.com', ...capture.whiteboard.scene }, null, 2)}\n`);
-      itemManifest.push({ id: item.id, parentId: item.parentId, type: item.type, title: item.title, path, capturedAt: capture.capturedAt, content: { revision: capture.whiteboard.revision } });
     }
+    externalImages.push(...groupExternalImages);
+    externalItemLinks.push(...groupExternalItemLinks);
+    files[`${tree.rootPath}/`] = new Uint8Array();
+    for (const item of group.items.filter((entry) => entry.type === 'folder')) files[`${tree.paths.get(item.id)!}/`] = new Uint8Array();
+    for (const asset of assets.filter((candidate) => groupAssetIDs.has(candidate.id))) files[asset.path] = [asset.data, { level: 0 }];
+    const groupFolders = group.items.filter((item) => item.type === 'folder').map((item) => ({ id: item.id, parentId: item.parentId, type: item.type, title: item.title, path: tree.paths.get(item.id) }));
+    const manifest = {
+      format: root.type === 'folder' ? 'madoc-folder-package' : 'madoc-workspace-package', version: 1, capturedAt: new Date().toISOString(),
+      consistency: 'per-item-capture; not a workspace-wide atomic snapshot',
+      root: { id: root.id, title: root.title, type: root.type, path: tree.rootPath },
+      packageSet: { id: setId, part: index + 1, partCount: groups.length },
+      items: [...groupFolders, ...itemManifest],
+      attachments: assets.filter(({ id }) => groupAssetIDs.has(id)).map(({ id, path, mime, data }) => ({ id, source: `/api/assets/${id}`, path, mime, size: data.byteLength })),
+      unpackagedImages: groupExternalImages,
+      unpackagedItemLinks: groupExternalItemLinks,
+    };
+    files['manifest.json'] = strToU8(`${JSON.stringify(manifest, null, 2)}\n`);
+    const data = await new Promise<Uint8Array>((resolve, reject) => {
+      let stop = () => {};
+      const abort = () => { stop(); reject(signal.reason ?? new DOMException('导出已取消', 'AbortError')); };
+      stop = zip(files, { level: 0 }, (error, result) => {
+        signal.removeEventListener('abort', abort);
+        if (error) reject(error);
+        else resolve(result);
+      });
+      if (signal.aborted) abort();
+      else signal.addEventListener('abort', abort, { once: true });
+    });
+    packages.push({
+      data,
+      fileName: `${fileBase}.part-${String(index + 1).padStart(3, '0')}-of-${String(groups.length).padStart(3, '0')}.zip`,
+      itemIDs: group.items.map((item) => item.id),
+      rootItemId: group.id,
+    });
   }
 
-  const folderManifest = tree.descendants.filter((item) => item.type === 'folder').map((item) => ({ id: item.id, parentId: item.parentId, type: item.type, title: item.title, path: tree.paths.get(item.id) }));
-  files[`${tree.rootPath}/`] = new Uint8Array();
-  for (const item of tree.descendants.filter((entry) => entry.type === 'folder')) files[`${tree.paths.get(item.id)!}/`] = new Uint8Array();
-  const manifest = {
-    format: root.type === 'folder' ? 'madoc-folder-package' : 'madoc-workspace-package', version: 1, capturedAt: new Date().toISOString(),
-    consistency: 'per-item-capture; not a workspace-wide atomic snapshot',
+  const packageSet = {
+    format: 'madoc-package-set',
+    version: 1,
+    id: setId,
+    createdAt: new Date().toISOString(),
+    extraction: 'extract-all-parts-into-the-same-directory',
     root: { id: root.id, title: root.title, type: root.type, path: tree.rootPath },
-    items: [...folderManifest, ...itemManifest],
-    attachments: assets.map(({ id, path, mime, data }) => ({ id, source: `/api/assets/${id}`, path, mime, size: data.byteLength })),
-    unpackagedImages: externalImages,
-    unpackagedItemLinks: externalItemLinks,
+    parts: packages.map(({ fileName, itemIDs, rootItemId }, index) => ({ fileName, part: index + 1, rootItemId, itemIDs })),
   };
-  files['manifest.json'] = strToU8(`${JSON.stringify(manifest, null, 2)}\n`);
-  for (const asset of assets) files[asset.path] = [asset.data, { level: 0 }];
-  const { zip } = await import('fflate');
-  const data = await new Promise<Uint8Array>((resolve, reject) => {
-    let stop = () => {};
-    const abort = () => { stop(); reject(signal.reason ?? new DOMException('导出已取消', 'AbortError')); };
-    stop = zip(files, { level: 0 }, (error, result) => {
-      signal.removeEventListener('abort', abort);
-      if (error) reject(error);
-      else resolve(result);
-    });
-    if (signal.aborted) abort();
-    else signal.addEventListener('abort', abort, { once: true });
-  });
-  return { data, fileName: `${safeSegment(root.title, root.type)}.zip`, itemCount: entries.length, attachmentCount: assets.length, externalImageCount: externalImages.length };
+  return {
+    packages,
+    packageSet: strToU8(`${JSON.stringify(packageSet, null, 2)}\n`),
+    packageSetFileName: `${fileBase}.package-set.json`,
+    itemCount: entries.length,
+    attachmentCount: assets.length,
+    externalImageCount: externalImages.length,
+  };
 }
 
 export function exportFolderPackage(folder: Item, workspaceItems: Item[], signal: AbortSignal, onProgress: (done: number, total: number) => void) {
@@ -249,4 +299,9 @@ export function exportWorkspacePackage(workspace: { id: string; name: string }, 
   return exportPortableTreePackage({ id: workspace.id, title: workspace.name, type: 'workspace' }, null, workspaceItems, signal, onProgress);
 }
 
-export { downloadPortablePackage };
+export function downloadPortablePackageSet(result: Awaited<ReturnType<typeof exportPortableTreePackage>>) {
+  downloadPortablePackage(result.packageSet, result.packageSetFileName);
+  for (const [index, part] of result.packages.entries()) {
+    window.setTimeout(() => downloadPortablePackage(part.data, part.fileName), 300 * (index + 1));
+  }
+}

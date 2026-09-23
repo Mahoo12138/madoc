@@ -136,8 +136,12 @@ Markdown / Yjs 解析或常驻服务。单篇导出沿用经投影水位确认�
 
 ## 文件夹与 Workspace 可移植导出
 
-文件夹操作菜单和 Workspace 菜单提供 ZIP 导出，owner / editor 可用。文件夹包保留该目录下的
-嵌套结构；Workspace 包在以 Workspace 名称命名的根目录下保留完整目录树。Markdown 保存为
+文件夹操作菜单和 Workspace 菜单提供 ZIP 导出，owner / editor 可用。每个导出根目录的一级条目
+各自生成一份独立 ZIP，并同时下载 `.package-set.json` 包集清单；清单记录分包文件名、根条目和
+Item ID。包内保留完整根路径，所有分包解压到同一目录后可合并为原目录树，跨包 Markdown 链接
+仍指向该共同目录下的相对路径。导入时必须选择清单对应的完整分包集合，不能把单个分包误认为
+完整文件夹或 Workspace。文件夹包保留该目录下的嵌套结构；Workspace 包在以 Workspace 名称
+命名的根目录下保留完整目录树。Markdown 保存为
 `.md`，白板 scene 包装为 Excalidraw version 2 `.excalidraw` JSON（内嵌文件仍在
 scene `files` 内）。同级经跨平台清理后重名的条目添加序号；manifest 记录 Item ID、原标题 / 父级、
 包内路径、每项捕获时间，以及 Markdown generation / snapshotSeq / seq / projectionSeq 或
@@ -149,10 +153,10 @@ scene `files` 内）。同级经跨平台清理后重名的条目添加序号；
 包中的稳定 Item 链接改为相对路径，同源 Madoc 图片附件按 UUID 去重打包并改写为相对路径。
 外部 / 相对图片保持原地址并列入 manifest；同工作区但不在包内的 Item 链接保持原地址并列明。
 任一 Madoc 附件读取失败时不生成 ZIP。导出在浏览器完成，没有服务端 Yjs / Markdown 解析或
-新 migration。
+新 migration。分包按一级条目组织，不承诺每份 ZIP 的固定体积上限；包集导入尚未接入。
 
-当前打开编辑器以外的未同步标签页修改无法确认，不会假定已包含；大规模目录的容量上限与
-分块下载尚未建立，后续根据实际数据规模验证。
+当前打开编辑器以外的未同步标签页修改无法确认，不会假定已包含；大规模目录的总容量上限尚未
+建立，后续根据实际数据规模验证。
 
 ## 单篇 Markdown 导入预览
 
