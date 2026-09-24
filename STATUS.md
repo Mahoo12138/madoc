@@ -11,6 +11,7 @@ madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Work
 ## 已完成
 
 - [x] 为基线提交 `4657ab6` 创建 `pre-mvp-affine-port` tag
+- [x] Workspace Shell 按工作区设计稿重排：侧栏整合最近访问、收藏、内容树、搜索、回收站和账号菜单；Markdown 右侧显示可关闭的大纲，窄屏沿用导航抽屉；版本与分享入口复用现有手动版本和只读发布流程。分组折叠箭头紧随标题并仅在悬停/键盘聚焦时显示，最近/收藏条目无分割线且不显示新建按钮。Go test / vet、前端 typecheck / build 与 11 项导航 / 大纲浏览器回归通过。
 - [x] 删除 GraphQL、Socket.IO、`space:*` / `realtime:*` compatibility
 - [x] 删除 BlockSuite、`@madoc/doc`、`@madoc/editor`
 - [x] 建立事务化 `schema_migrations` 与 canonical MVP schema

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ActionIcon,
   Alert,
@@ -17,9 +17,9 @@ import {
   TextInput,
   Title,
   Tooltip,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { useNavigate, useParams } from '@tanstack/react-router';
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   ChevronDown as IconChevronDown,
   FileText as IconFileText,
@@ -32,45 +32,48 @@ import {
   PenTool as IconWhiteboard,
   Download as IconDownload,
   History as IconHistory,
-} from 'lucide-react';
+  ListTree as IconOutline,
+  Share2 as IconShare,
+} from "lucide-react";
 import {
   useItems,
   useSession,
   useWorkspace,
   useWorkspaceMutations,
-} from '@/api/hooks';
-import { APIError, type Item, type ItemType } from '@/api/types';
-import { CreateDocument } from './create-document';
-import { WorkspaceNavigation } from './workspace-navigation';
-import type { MarkdownOutline } from '@/features/markdown/markdown-outline-model';
-import { MemberDrawer } from './member-drawer';
-import { AccountMenu } from '@/features/account/account-menu';
-import { useWorkspaceEvents } from './use-workspace-events';
-import { WorkspaceSearch, useSearchShortcut } from './workspace-search';
-import { WorkspaceTrash } from './workspace-trash';
-import { WorkspaceSettings } from './workspace-settings';
-import { ItemCommentsDrawer } from '@/features/comments/item-comments-drawer';
-import { WorkspaceActivityDrawer } from './workspace-activity-drawer';
-import * as styles from './workspace-shell.css';
+} from "@/api/hooks";
+import { APIError, type Item, type ItemType } from "@/api/types";
+import { CreateDocument } from "./create-document";
+import { WorkspaceNavigation } from "./workspace-navigation";
+import type { MarkdownOutline } from "@/features/markdown/markdown-outline-model";
+import { MarkdownOutline as MarkdownOutlineView } from "@/features/markdown/markdown-outline";
+import { MemberDrawer } from "./member-drawer";
+import { AccountMenu } from "@/features/account/account-menu";
+import { useWorkspaceEvents } from "./use-workspace-events";
+import { WorkspaceSearch, useSearchShortcut } from "./workspace-search";
+import { WorkspaceTrash } from "./workspace-trash";
+import { WorkspaceSettings } from "./workspace-settings";
+import { ItemCommentsDrawer } from "@/features/comments/item-comments-drawer";
+import { WorkspaceActivityDrawer } from "./workspace-activity-drawer";
+import * as styles from "./workspace-shell.css";
 
 const MarkdownEditor = lazy(() =>
-  import('@/features/markdown/markdown-editor').then((module) => ({
+  import("@/features/markdown/markdown-editor").then((module) => ({
     default: module.MarkdownEditor,
   })),
 );
 const WhiteboardEditor = lazy(() =>
-  import('@/features/whiteboard/whiteboard-editor').then((module) => ({
+  import("@/features/whiteboard/whiteboard-editor").then((module) => ({
     default: module.WhiteboardEditor,
   })),
 );
 const WorkspaceExportDialog = lazy(() =>
-  import('./workspace-export-dialog').then((module) => ({
+  import("./workspace-export-dialog").then((module) => ({
     default: module.WorkspaceExportDialog,
   })),
 );
 
 const PortableImportDialog = lazy(() =>
-  import('./portable-import-dialog').then((module) => ({
+  import("./portable-import-dialog").then((module) => ({
     default: module.PortableImportDialog,
   })),
 );
@@ -123,7 +126,12 @@ export function WorkspacePage() {
     parentId: string | null;
   }>();
   const [mobileOpened, mobileDrawer] = useDisclosure(false);
-  const [navigationPanel, setNavigationPanel] = useState('files');
+  const [navigationPanel, setNavigationPanel] = useState("files");
+  const [outlineVisible, setOutlineVisible] = useState(true);
+  const [versionsRequest, setVersionsRequest] = useState<{
+    itemId: string;
+    sequence: number;
+  }>();
   const [returnNavigationFocus, setReturnNavigationFocus] = useState(true);
   const [collapsedFolders, setCollapsedFolders] = useState<
     Record<string, boolean>
@@ -132,14 +140,14 @@ export function WorkspacePage() {
   const pendingHeading = useRef<(() => void) | null>(null);
   const [moveOpened, moveModal] = useDisclosure(false);
   const [movingItem, setMovingItem] = useState<Item>();
-  const [moveParent, setMoveParent] = useState('root');
+  const [moveParent, setMoveParent] = useState("root");
   const [draft, setDraft] = useState<{
-    mode: 'create' | 'rename';
+    mode: "create" | "rename";
     type: ItemType;
     parentId: string | null;
     item?: Item;
     title: string;
-  }>({ mode: 'create', type: 'markdown', parentId: null, title: '' });
+  }>({ mode: "create", type: "markdown", parentId: null, title: "" });
   if (
     session.isLoading ||
     (!unavailable && (workspace.isLoading || items.isLoading))
@@ -150,21 +158,21 @@ export function WorkspacePage() {
       </Center>
     );
   if (!session.data?.user) {
-    void navigate({ to: '/sign-in', replace: true });
+    void navigate({ to: "/sign-in", replace: true });
     return null;
   }
   const active = currentItem ?? retained.current;
   const openCreate = (type: ItemType, parentId: string | null = null) => {
-    if (type === 'markdown') {
+    if (type === "markdown") {
       setDocumentParent({ parentId });
       return;
     }
-    setDraft({ mode: 'create', type, parentId, title: '' });
+    setDraft({ mode: "create", type, parentId, title: "" });
     itemActions.open();
   };
   const openRename = (item: Item) => {
     setDraft({
-      mode: 'rename',
+      mode: "rename",
       type: item.type,
       parentId: item.parentId,
       item,
@@ -173,7 +181,7 @@ export function WorkspacePage() {
     itemActions.open();
   };
   const saveItem = async () => {
-    if (draft.mode === 'rename' && draft.item)
+    if (draft.mode === "rename" && draft.item)
       await mutations.renameItem.mutateAsync({
         id: draft.item.id,
         title: draft.title,
@@ -184,9 +192,9 @@ export function WorkspacePage() {
         title: draft.title,
         parentId: draft.parentId,
       });
-      if (created.type !== 'folder')
+      if (created.type !== "folder")
         await navigate({
-          to: '/workspace/$workspaceId/$itemId',
+          to: "/workspace/$workspaceId/$itemId",
           params: { workspaceId, itemId: created.id },
         });
     }
@@ -197,18 +205,18 @@ export function WorkspacePage() {
     await mutations.deleteItem.mutateAsync(item.id);
     if (item.id === itemId)
       await navigate({
-        to: '/workspace/$workspaceId',
+        to: "/workspace/$workspaceId",
         params: { workspaceId },
       });
   };
   const openMove = (item: Item) => {
     setMovingItem(item);
-    setMoveParent(item.parentId ?? 'root');
+    setMoveParent(item.parentId ?? "root");
     moveModal.open();
   };
   const moveItem = async () => {
     if (!movingItem) return;
-    const parentId = moveParent === 'root' ? null : moveParent;
+    const parentId = moveParent === "root" ? null : moveParent;
     const index = (items.data ?? []).filter(
       (item) => item.parentId === parentId && item.id !== movingItem.id,
     ).length;
@@ -220,7 +228,7 @@ export function WorkspacePage() {
     moveModal.close();
   };
   const isMoveTarget = (candidate: Item) => {
-    if (candidate.type !== 'folder' || candidate.id === movingItem?.id)
+    if (candidate.type !== "folder" || candidate.id === movingItem?.id)
       return false;
     let current: Item | undefined = candidate;
     while (current?.parentId) {
@@ -235,8 +243,8 @@ export function WorkspacePage() {
     activeId: itemId,
     active,
     role: unavailable
-      ? ('viewer' as const)
-      : (workspace.data?.role ?? ('viewer' as const)),
+      ? ("viewer" as const)
+      : (workspace.data?.role ?? ("viewer" as const)),
     onPreviewImport: () => {
       mobileDrawer.close();
       setImportPreviewOpened(true);
@@ -251,22 +259,47 @@ export function WorkspacePage() {
     onPanelChange: setNavigationPanel,
     outline,
   };
+  const revealOutline = () => {
+    setOutlineVisible(true);
+    setNavigationPanel("outline");
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      setReturnNavigationFocus(true);
+      mobileDrawer.open();
+    }
+  };
   return (
-    <div className={styles.shell}>
+    <div
+      className={`${styles.shell} ${active?.type === "markdown" && outlineVisible ? styles.shellWithOutline : ""}`}
+    >
       <aside className={styles.sidebar}>
+        <div className={styles.brandRow}>
+          <div className={styles.brand}>
+            <span aria-hidden className={styles.brandMark} />
+            madoc
+          </div>
+        </div>
         <Menu width={250}>
           <Menu.Target>
             <button
               className={styles.workspaceButton}
               aria-label="Workspace 菜单"
             >
-              <Group gap="sm" wrap="nowrap">
-                <Avatar size={26} radius="md" color="blue">
+              <Group
+                gap="sm"
+                wrap="nowrap"
+                className={styles.workspaceIdentity}
+              >
+                <Avatar size={34} radius="md" color="blue">
                   {workspace.data?.name.slice(0, 1)}
                 </Avatar>
-                <Text fw={650} size="sm" truncate>
-                  {workspace.data?.name}
-                </Text>
+                <div className={styles.workspaceIdentityText}>
+                  <Text fw={650} size="sm" truncate>
+                    {workspace.data?.name}
+                  </Text>
+                  <Text size="xs" c="dimmed" truncate>
+                    专注记录，成就成长
+                  </Text>
+                </div>
               </Group>
               <IconChevronDown size={14} />
             </button>
@@ -274,30 +307,35 @@ export function WorkspacePage() {
           <Menu.Dropdown>
             <Menu.Item
               leftSection={<IconHome size={15} />}
-              onClick={() => navigate({ to: '/workspaces' })}
+              onClick={() => navigate({ to: "/workspaces" })}
             >
               所有 Workspaces
             </Menu.Item>
-            {!unavailable && workspace.data && workspace.data.role !== 'viewer' && (
-              <Menu.Item
-                leftSection={<IconDownload size={15} />}
-                onClick={() => setWorkspaceExportOpened(true)}
-              >
-                导出 Workspace ZIP
-              </Menu.Item>
-            )}
+            {!unavailable &&
+              workspace.data &&
+              workspace.data.role !== "viewer" && (
+                <Menu.Item
+                  leftSection={<IconDownload size={15} />}
+                  onClick={() => setWorkspaceExportOpened(true)}
+                >
+                  导出 Workspace ZIP
+                </Menu.Item>
+              )}
             <Menu.Item
               leftSection={<IconUsers size={15} />}
               onClick={membersDrawer.open}
             >
               成员管理
             </Menu.Item>
-            <Menu.Item leftSection={<IconHistory size={15} />} onClick={activityDrawer.open}>
+            <Menu.Item
+              leftSection={<IconHistory size={15} />}
+              onClick={activityDrawer.open}
+            >
               活动记录
             </Menu.Item>
             {!unavailable &&
               workspace.data &&
-              workspace.data.role !== 'viewer' && (
+              workspace.data.role !== "viewer" && (
                 <Menu.Item
                   leftSection={<IconTrash size={15} />}
                   onClick={trashModal.open}
@@ -305,7 +343,7 @@ export function WorkspacePage() {
                   回收站
                 </Menu.Item>
               )}
-            {!unavailable && workspace.data?.role === 'owner' && (
+            {!unavailable && workspace.data?.role === "owner" && (
               <Menu.Item
                 leftSection={<IconSettings size={15} />}
                 onClick={settingsModal.open}
@@ -316,19 +354,35 @@ export function WorkspacePage() {
           </Menu.Dropdown>
         </Menu>
         <Button
-          variant="subtle"
-          color="gray"
-          leftSection={<IconSearch size={15} />}
+          variant="default"
+          className={styles.sidebarSearch}
+          leftSection={<IconSearch size={16} />}
           onClick={searchModal.open}
           disabled={unavailable}
+          rightSection={<kbd className={styles.shortcutKey}>Ctrl K</kbd>}
         >
-          快速打开与搜索
+          搜索文档、页面内容…
         </Button>
-        <WorkspaceNavigation
-          {...navigationProps}
-          onNavigateHeading={(position) => outline?.navigate(position)}
-        />
-        <AccountMenu user={session.data.user} />
+        <div className={styles.sidebarScroll}>
+          <WorkspaceNavigation
+            {...navigationProps}
+            onNavigateHeading={(position) => outline?.navigate(position)}
+          />
+        </div>
+        <div className={styles.sidebarBottom}>
+          {!unavailable && workspace.data?.role !== "viewer" && (
+            <Button
+              variant="subtle"
+              color="gray"
+              className={styles.footerAction}
+              leftSection={<IconTrash size={16} />}
+              onClick={trashModal.open}
+            >
+              回收站
+            </Button>
+          )}
+          <AccountMenu user={session.data.user} />
+        </div>
       </aside>
       <main className={styles.main}>
         <header className={styles.topbar}>
@@ -344,6 +398,12 @@ export function WorkspacePage() {
                 aria-label="打开内容导航"
               />
             </span>
+            {active &&
+              (active.type === "whiteboard" ? (
+                <IconWhiteboard size={16} />
+              ) : (
+                <IconFileText size={16} />
+              ))}
             <Text size="sm" c="dimmed">
               {workspace.data?.name}
             </Text>
@@ -368,14 +428,14 @@ export function WorkspacePage() {
             </span>
             {!unavailable &&
               workspace.data &&
-              workspace.data.role !== 'viewer' && (
+              workspace.data.role !== "viewer" && (
                 <span className={styles.mobileMenu}>
                   <ActionIcon aria-label="回收站" onClick={trashModal.open}>
                     <IconTrash size={17} />
                   </ActionIcon>
                 </span>
               )}
-            {!unavailable && workspace.data?.role === 'owner' && (
+            {!unavailable && workspace.data?.role === "owner" && (
               <span className={styles.mobileMenu}>
                 <ActionIcon
                   aria-label="Workspace 设置"
@@ -391,12 +451,55 @@ export function WorkspacePage() {
               </ActionIcon>
             </Tooltip>
             <Tooltip label="活动记录">
-              <ActionIcon aria-label="活动记录" onClick={activityDrawer.open} disabled={unavailable}>
+              <ActionIcon
+                aria-label="活动记录"
+                onClick={activityDrawer.open}
+                disabled={unavailable}
+              >
                 <IconHistory size={17} />
               </ActionIcon>
             </Tooltip>
-            {active && !missing && <Tooltip label="评论"><ActionIcon aria-label="文档评论" onClick={commentsDrawer.open}><IconComments size={17} /></ActionIcon></Tooltip>}
-            {active && !unavailable && workspace.data?.role !== 'viewer' && (
+            {active?.type === "markdown" && !missing && (
+              <Button
+                variant="default"
+                size="compact-sm"
+                leftSection={<IconShare size={15} />}
+                onClick={() =>
+                  setVersionsRequest((value) => ({
+                    itemId: active.id,
+                    sequence: (value?.sequence ?? 0) + 1,
+                  }))
+                }
+              >
+                版本与分享
+              </Button>
+            )}
+            {active?.type === "markdown" && !outlineVisible && (
+              <Tooltip label="显示大纲">
+                <ActionIcon aria-label="显示大纲" onClick={revealOutline}>
+                  <IconOutline size={17} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+            {active?.type === "markdown" && outlineVisible && (
+              <Tooltip label="文档大纲">
+                <ActionIcon
+                  className={styles.responsiveOutlineToggle}
+                  aria-label="显示大纲"
+                  onClick={revealOutline}
+                >
+                  <IconOutline size={17} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+            {active && !missing && (
+              <Tooltip label="评论">
+                <ActionIcon aria-label="文档评论" onClick={commentsDrawer.open}>
+                  <IconComments size={17} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+            {active && !unavailable && workspace.data?.role !== "viewer" && (
               <Button
                 variant="subtle"
                 color="gray"
@@ -423,25 +526,25 @@ export function WorkspacePage() {
             <div className={styles.empty}>
               <div>
                 <Title order={2}>
-                  {itemId ? '内容暂不可用' : '从一个文档或白板开始'}
+                  {itemId ? "内容暂不可用" : "从一个文档或白板开始"}
                 </Title>
                 <Text c="dimmed" mt="xs">
                   左侧内容树是这个 Workspace 的唯一结构来源。
                 </Text>
                 {!itemId &&
                   !unavailable &&
-                  workspace.data?.role !== 'viewer' && (
+                  workspace.data?.role !== "viewer" && (
                     <Group justify="center" mt="xl">
                       <Button
                         leftSection={<IconFileText size={16} />}
-                        onClick={() => openCreate('markdown')}
+                        onClick={() => openCreate("markdown")}
                       >
                         新建文档
                       </Button>
                       <Button
                         variant="light"
                         leftSection={<IconWhiteboard size={16} />}
-                        onClick={() => openCreate('whiteboard')}
+                        onClick={() => openCreate("whiteboard")}
                       >
                         新建白板
                       </Button>
@@ -457,19 +560,21 @@ export function WorkspacePage() {
                 </Center>
               }
             >
-              {active.type === 'markdown' ? (
+              {active.type === "markdown" ? (
                 <MarkdownEditor
                   key={active.id}
                   item={active}
-                  role={missing ? 'viewer' : workspace.data!.role}
+                  role={missing ? "viewer" : workspace.data!.role}
                   user={session.data.user}
                   onOutlineChange={setOutline}
+                  versionsRequest={versionsRequest?.sequence}
+                  versionsRequestItemId={versionsRequest?.itemId}
                 />
-              ) : active.type === 'whiteboard' ? (
+              ) : active.type === "whiteboard" ? (
                 <WhiteboardEditor
                   key={`${session.data.user.id}:${active.id}`}
                   item={active}
-                  role={missing ? 'viewer' : workspace.data!.role}
+                  role={missing ? "viewer" : workspace.data!.role}
                   user={session.data.user}
                 />
               ) : null}
@@ -477,6 +582,27 @@ export function WorkspacePage() {
           )}
         </section>
       </main>
+      {active?.type === "markdown" && outlineVisible && (
+        <aside className={styles.outlinePanel} aria-label="文档大纲面板">
+          <div className={styles.outlineHeader}>
+            <Text size="sm" fw={650}>
+              大纲
+            </Text>
+            <ActionIcon
+              aria-label="隐藏大纲"
+              onClick={() => setOutlineVisible(false)}
+            >
+              <span aria-hidden>×</span>
+            </ActionIcon>
+          </div>
+          <MarkdownOutlineView
+            title={active.title}
+            outline={outline?.itemId === active.id ? outline : null}
+            onNavigate={(position) => outline?.navigate(position)}
+            showTitle={false}
+          />
+        </aside>
+      )}
       <Drawer
         opened={mobileOpened}
         onClose={mobileDrawer.close}
@@ -509,7 +635,7 @@ export function WorkspacePage() {
       {trashOpened &&
         !unavailable &&
         workspace.data &&
-        workspace.data.role !== 'viewer' && (
+        workspace.data.role !== "viewer" && (
           <WorkspaceTrash
             key={`trash:${workspaceId}`}
             workspace={workspace.data}
@@ -523,7 +649,7 @@ export function WorkspacePage() {
           opened={searchOpened}
           onClose={searchModal.close}
           onSelect={async (id, type) => {
-            if (type === 'folder') {
+            if (type === "folder") {
               searchModal.close();
               const expanded: Record<string, boolean> = {};
               let node = items.data?.find((item) => item.id === id);
@@ -532,13 +658,13 @@ export function WorkspacePage() {
                 node = items.data?.find((item) => item.id === node?.parentId);
               }
               setCollapsedFolders((previous) => ({ ...previous, ...expanded }));
-              setNavigationPanel('files');
-              if (window.matchMedia('(max-width: 760px)').matches)
+              setNavigationPanel("files");
+              if (window.matchMedia("(max-width: 760px)").matches)
                 mobileDrawer.open();
               return;
             }
             await navigate({
-              to: '/workspace/$workspaceId/$itemId',
+              to: "/workspace/$workspaceId/$itemId",
               params: { workspaceId, itemId: id },
             });
             searchModal.close();
@@ -549,10 +675,24 @@ export function WorkspacePage() {
         opened={membersOpened}
         onClose={membersDrawer.close}
         workspaceId={workspaceId}
-        currentRole={workspace.data?.role ?? 'viewer'}
+        currentRole={workspace.data?.role ?? "viewer"}
       />
-      {workspace.data && <WorkspaceActivityDrawer opened={activityOpened} onClose={activityDrawer.close} workspaceId={workspaceId} workspaceName={workspace.data.name} />}
-      {commentsOpened && active && !missing && <ItemCommentsDrawer item={active} role={workspace.data?.role ?? 'viewer'} opened onClose={commentsDrawer.close} />}
+      {workspace.data && (
+        <WorkspaceActivityDrawer
+          opened={activityOpened}
+          onClose={activityDrawer.close}
+          workspaceId={workspaceId}
+          workspaceName={workspace.data.name}
+        />
+      )}
+      {commentsOpened && active && !missing && (
+        <ItemCommentsDrawer
+          item={active}
+          role={workspace.data?.role ?? "viewer"}
+          opened
+          onClose={commentsDrawer.close}
+        />
+      )}
       {workspace.data && (
         <WorkspaceSettings
           key={`settings:${workspaceId}`}
@@ -566,19 +706,27 @@ export function WorkspacePage() {
           <PortableImportDialog
             key={`import:${workspaceId}`}
             workspaceId={workspaceId}
-            canWrite={!unavailable && !!workspace.data && workspace.data.role !== 'viewer'}
+            canWrite={
+              !unavailable &&
+              !!workspace.data &&
+              workspace.data.role !== "viewer"
+            }
             onClose={() => setImportPreviewOpened(false)}
           />
         )}
-        {workspaceExportOpened && !unavailable && workspace.data && items.data && workspace.data.role !== 'viewer' && (
-          <WorkspaceExportDialog
-            workspace={workspace.data}
-            items={items.data}
-            onClose={() => setWorkspaceExportOpened(false)}
-          />
-        )}
+        {workspaceExportOpened &&
+          !unavailable &&
+          workspace.data &&
+          items.data &&
+          workspace.data.role !== "viewer" && (
+            <WorkspaceExportDialog
+              workspace={workspace.data}
+              items={items.data}
+              onClose={() => setWorkspaceExportOpened(false)}
+            />
+          )}
       </Suspense>
-      {documentParent && !unavailable && workspace.data?.role !== 'viewer' && (
+      {documentParent && !unavailable && workspace.data?.role !== "viewer" && (
         <CreateDocument
           workspaceId={workspaceId}
           parentId={documentParent.parentId}
@@ -590,9 +738,9 @@ export function WorkspacePage() {
         opened={itemModal}
         onClose={itemActions.close}
         title={
-          draft.mode === 'rename'
-            ? '重命名'
-            : `新建${draft.type === 'markdown' ? '文档' : draft.type === 'whiteboard' ? '白板' : '文件夹'}`
+          draft.mode === "rename"
+            ? "重命名"
+            : `新建${draft.type === "markdown" ? "文档" : draft.type === "whiteboard" ? "白板" : "文件夹"}`
         }
       >
         <Stack>
@@ -605,7 +753,7 @@ export function WorkspacePage() {
               setDraft((v) => ({ ...v, title }));
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && draft.title.trim()) void saveItem();
+              if (e.key === "Enter" && draft.title.trim()) void saveItem();
             }}
           />
           <Button
@@ -622,15 +770,15 @@ export function WorkspacePage() {
       <Modal
         opened={moveOpened}
         onClose={moveModal.close}
-        title={`移动“${movingItem?.title ?? ''}”`}
+        title={`移动“${movingItem?.title ?? ""}”`}
       >
         <Stack>
           <Select
             label="目标位置"
             value={moveParent}
-            onChange={(value) => setMoveParent(value ?? 'root')}
+            onChange={(value) => setMoveParent(value ?? "root")}
             data={[
-              { value: 'root', label: 'Workspace 根目录' },
+              { value: "root", label: "Workspace 根目录" },
               ...(items.data ?? [])
                 .filter(isMoveTarget)
                 .map((item) => ({ value: item.id, label: item.title })),

@@ -1,18 +1,18 @@
-import { ActionIcon, Text, Tooltip, UnstyledButton } from '@mantine/core';
+import { ActionIcon, Text, Tooltip, UnstyledButton } from "@mantine/core";
 import {
   ChevronDown,
   ChevronRight,
   ChevronsDownUp,
   ChevronsUpDown,
-} from 'lucide-react';
-import { useMemo } from 'react';
+} from "lucide-react";
+import { useMemo } from "react";
 import {
   buildOutlineTree,
   outlineParentPositions,
   type MarkdownOutline as Outline,
   type OutlineBranch,
-} from './markdown-outline-model';
-import * as styles from './markdown-outline.css';
+} from "./markdown-outline-model";
+import * as styles from "./markdown-outline.css";
 
 type Props = {
   title: string;
@@ -30,7 +30,12 @@ function containsActive(
   );
 }
 
-export function MarkdownOutline({ title, outline, onNavigate }: Props) {
+export function MarkdownOutline({
+  title,
+  outline,
+  onNavigate,
+  showTitle = true,
+}: Props & { showTitle?: boolean }) {
   const branches = useMemo(
     () => buildOutlineTree(outline?.headings ?? []),
     [outline?.headings],
@@ -60,7 +65,7 @@ export function MarkdownOutline({ title, outline, onNavigate }: Props) {
                   color="gray"
                   size={26}
                   className={styles.toggle}
-                  aria-label={`${closed ? '展开' : '折叠'} ${heading.text}`}
+                  aria-label={`${closed ? "展开" : "折叠"} ${heading.text}`}
                   aria-expanded={!closed}
                   onClick={() => outline!.toggleCollapsed(heading.position)}
                 >
@@ -77,10 +82,10 @@ export function MarkdownOutline({ title, outline, onNavigate }: Props) {
                 className={styles.heading}
                 aria-current={
                   outline!.activePosition === heading.position
-                    ? 'location'
+                    ? "location"
                     : undefined
                 }
-                aria-label={`${heading.text}，${heading.level} 级标题${activeWithin && outline!.activePosition !== heading.position ? '，包含当前章节' : ''}`}
+                aria-label={`${heading.text}，${heading.level} 级标题${activeWithin && outline!.activePosition !== heading.position ? "，包含当前章节" : ""}`}
                 title={heading.text}
                 onClick={() => onNavigate(heading.position)}
               >
@@ -99,15 +104,17 @@ export function MarkdownOutline({ title, outline, onNavigate }: Props) {
   return (
     <nav aria-label="文档大纲" className={styles.outline}>
       <div className={styles.header}>
-        <Text
-          size="xs"
-          fw={600}
-          c="gray.7"
-          className={styles.documentTitle}
-          title={title}
-        >
-          {title}
-        </Text>
+        {showTitle && (
+          <Text
+            size="xs"
+            fw={600}
+            c="gray.7"
+            className={styles.documentTitle}
+            title={title}
+          >
+            {title}
+          </Text>
+        )}
         {parents.length > 0 && (
           <div className={styles.tools}>
             <Tooltip label="全部展开">
