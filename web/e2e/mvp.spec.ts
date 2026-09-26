@@ -202,7 +202,7 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await member.getByLabel('姓名').fill('Member');
   await member.getByLabel('设置密码').fill('password123');
   await member.getByRole('button', { name: '接受邀请' }).click();
-  await member.getByText('Architecture', { exact: true }).click();
+  await member.getByRole('button', { name: 'Architecture', exact: true }).click();
   await member.locator('.ProseMirror').click();
   await member.locator('.ProseMirror').press('End');
   await expect(page.locator('.ProseMirror .madoc-remote-cursor')).toHaveCount(1);

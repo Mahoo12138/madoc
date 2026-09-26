@@ -14,6 +14,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useFavorite, usePersonalItems } from "@/api/personal-items";
 import type { Item } from "@/api/types";
 import * as styles from "./personal-navigation.css";
+import { touchAction } from "@/styles/interaction.css";
 
 const icons = { markdown: FileText, whiteboard: PenTool, folder: Folder };
 export function PersonalNavigation({
@@ -118,6 +119,7 @@ export function PersonalNavigation({
                 </UnstyledButton>
                 {section === "favorites" && (
                   <Button
+                    className={touchAction}
                     size="compact-xs"
                     variant="subtle"
                     color="gray"

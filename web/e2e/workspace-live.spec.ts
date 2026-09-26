@@ -28,7 +28,7 @@ test('one socket refreshes metadata and retains a deleted editor for rescue', as
   ).toBe(204);
   await expect(page.getByLabel('文档标题')).toHaveValue('Remote title');
   await expect(
-    observer.getByText('Remote title', { exact: true }),
+    observer.getByRole('button', { name: 'Remote title', exact: true }),
   ).toBeVisible();
   const folder = await (
     await page.request.post(`/api/workspaces/${workspace}/items`, {
@@ -37,7 +37,7 @@ test('one socket refreshes metadata and retains a deleted editor for rescue', as
     })
   ).json();
   await expect(
-    observer.getByText('Live folder', { exact: true }),
+    observer.getByRole('button', { name: 'Live folder', exact: true }),
   ).toBeVisible();
   expect(
     (
@@ -56,9 +56,9 @@ test('one socket refreshes metadata and retains a deleted editor for rescue', as
       await page.request.delete(`/api/items/${folder.id}`, { headers })
     ).status(),
   ).toBe(204);
-  await expect(observer.getByText('Live folder', { exact: true })).toHaveCount(
-    0,
-  );
+  await expect(
+    observer.getByRole('button', { name: 'Live folder', exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole('alert').filter({ hasText: '此内容已删除' }),
   ).toBeVisible();
@@ -80,7 +80,7 @@ test('one socket refreshes metadata and retains a deleted editor for rescue', as
     { headers, data: {} },
   );
   await expect(
-    observer.getByText('Live folder', { exact: true }),
+    observer.getByRole('button', { name: 'Live folder', exact: true }),
   ).toBeVisible();
   await observer.close();
 });

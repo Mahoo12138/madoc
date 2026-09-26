@@ -63,7 +63,20 @@ test('all seven preferences affect only this view and survive refresh', async ({
   await expect(editor).toHaveCSS('font-size', '20px');
   await expect(editor).toHaveCSS('line-height', '40px');
   await expect(editor.locator('h1')).toHaveCSS('font-size', '40px');
+  await expect(page.locator('article')).toHaveCSS(
+    '--madoc-content-width',
+    '960px',
+  );
+  const availableWidth = await page
+    .locator('main')
+    .evaluate((el) => el.clientWidth - 48);
+  await expect(page.locator('article')).toHaveCSS(
+    'width',
+    `${Math.min(960, availableWidth)}px`,
+  );
+  await page.setViewportSize({ width: 1920, height: 900 });
   await expect(page.locator('article')).toHaveCSS('width', '960px');
+  await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator('.cm-lineNumbers')).toBeHidden();
   expect(
     await (await page.request.get(`/api/items/${item.id}/export.md`)).text(),

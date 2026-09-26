@@ -3,7 +3,6 @@ import {
   ActionIcon,
   Alert,
   Avatar,
-  Burger,
   Button,
   Center,
   Drawer,
@@ -16,7 +15,6 @@ import {
   Text,
   TextInput,
   Title,
-  Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -26,14 +24,11 @@ import {
   Home as IconHome,
   Settings as IconSettings,
   Trash2 as IconTrash,
-  MessageSquare as IconComments,
   Search as IconSearch,
   Users as IconUsers,
   PenTool as IconWhiteboard,
   Download as IconDownload,
   History as IconHistory,
-  ListTree as IconOutline,
-  Share2 as IconShare,
 } from "lucide-react";
 import {
   useItems,
@@ -44,6 +39,9 @@ import {
 import { APIError, type Item, type ItemType } from "@/api/types";
 import { CreateDocument } from "./create-document";
 import { WorkspaceNavigation } from "./workspace-navigation";
+import { WorkspaceHeader } from "./workspace-header";
+import { WorkspaceLoadNotice } from "./workspace-load-notice";
+import { touchAction } from "@/styles/interaction.css";
 import type { MarkdownOutline } from "@/features/markdown/markdown-outline-model";
 import { MarkdownOutline as MarkdownOutlineView } from "@/features/markdown/markdown-outline";
 import { MemberDrawer } from "./member-drawer";
@@ -92,12 +90,13 @@ export function WorkspacePage() {
     workspaceId,
     session.data?.user?.id,
   );
-  const unavailable =
-    realtimeUnavailable ||
-    [workspace.error, items.error].some(
-      (error) =>
-        error instanceof APIError && [401, 403, 404].includes(error.status),
-    );
+  const permissionError = [workspace.error, items.error].find(
+    (error) =>
+      error instanceof APIError && [401, 403, 404].includes(error.status),
+  );
+  const unavailable = realtimeUnavailable || !!permissionError;
+  const readError = permissionError ?? workspace.error ?? items.error;
+  const readProblem = !!readError || realtimeUnavailable;
   const retained = useRef<Item>();
   const currentItem = items.data?.find((item) => item.id === itemId);
   if (currentItem) retained.current = currentItem;
@@ -106,7 +105,9 @@ export function WorkspacePage() {
     retained.current?.workspaceId !== workspaceId
   )
     retained.current = undefined;
-  const missing = unavailable || (!!retained.current && !currentItem);
+  const missing =
+    unavailable ||
+    (items.data !== undefined && !!retained.current && !currentItem);
 
   const mutations = useWorkspaceMutations(workspaceId);
   const [membersOpened, membersDrawer] = useDisclosure(false);
@@ -154,7 +155,10 @@ export function WorkspacePage() {
   )
     return (
       <Center mih="100vh">
-        <Loader />
+        <Stack align="center" role="status">
+          <Loader aria-hidden />
+          <Text>正在加载工作区…</Text>
+        </Stack>
       </Center>
     );
   if (!session.data?.user) {
@@ -293,7 +297,12 @@ export function WorkspacePage() {
                   {workspace.data?.name.slice(0, 1)}
                 </Avatar>
                 <div className={styles.workspaceIdentityText}>
-                  <Text fw={650} size="sm" truncate>
+                  <Text
+                    fw={650}
+                    size="sm"
+                    truncate
+                    title={workspace.data?.name}
+                  >
                     {workspace.data?.name}
                   </Text>
                   <Text size="xs" c="dimmed" truncate>
@@ -385,173 +394,99 @@ export function WorkspacePage() {
         </div>
       </aside>
       <main className={styles.main}>
-        <header className={styles.topbar}>
-          <Group gap="xs">
-            <span className={styles.mobileMenu}>
-              <Burger
-                size="sm"
-                opened={mobileOpened}
-                onClick={() => {
-                  setReturnNavigationFocus(true);
-                  mobileDrawer.toggle();
-                }}
-                aria-label="打开内容导航"
-              />
-            </span>
-            {active &&
-              (active.type === "whiteboard" ? (
-                <IconWhiteboard size={16} />
-              ) : (
-                <IconFileText size={16} />
-              ))}
-            <Text size="sm" c="dimmed">
-              {workspace.data?.name}
-            </Text>
-            {active && (
-              <>
-                <Text c="dimmed">/</Text>
-                <Text size="sm" fw={600}>
-                  {active.title}
-                </Text>
-              </>
-            )}
-          </Group>
-          <Group>
-            <span className={styles.mobileMenu}>
-              <ActionIcon
-                aria-label="快速打开与搜索"
-                onClick={searchModal.open}
-                disabled={unavailable}
-              >
-                <IconSearch size={17} />
-              </ActionIcon>
-            </span>
-            {!unavailable &&
-              workspace.data &&
-              workspace.data.role !== "viewer" && (
-                <span className={styles.mobileMenu}>
-                  <ActionIcon aria-label="回收站" onClick={trashModal.open}>
-                    <IconTrash size={17} />
-                  </ActionIcon>
-                </span>
-              )}
-            {!unavailable && workspace.data?.role === "owner" && (
-              <span className={styles.mobileMenu}>
-                <ActionIcon
-                  aria-label="Workspace 设置"
-                  onClick={settingsModal.open}
-                >
-                  <IconSettings size={17} />
-                </ActionIcon>
-              </span>
-            )}
-            <Tooltip label="成员">
-              <ActionIcon aria-label="成员管理" onClick={membersDrawer.open}>
-                <IconUsers size={17} />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="活动记录">
-              <ActionIcon
-                aria-label="活动记录"
-                onClick={activityDrawer.open}
-                disabled={unavailable}
-              >
-                <IconHistory size={17} />
-              </ActionIcon>
-            </Tooltip>
-            {active?.type === "markdown" && !missing && (
-              <Button
-                variant="default"
-                size="compact-sm"
-                leftSection={<IconShare size={15} />}
-                onClick={() =>
-                  setVersionsRequest((value) => ({
-                    itemId: active.id,
-                    sequence: (value?.sequence ?? 0) + 1,
-                  }))
-                }
-              >
-                版本与分享
-              </Button>
-            )}
-            {active?.type === "markdown" && !outlineVisible && (
-              <Tooltip label="显示大纲">
-                <ActionIcon aria-label="显示大纲" onClick={revealOutline}>
-                  <IconOutline size={17} />
-                </ActionIcon>
-              </Tooltip>
-            )}
-            {active?.type === "markdown" && outlineVisible && (
-              <Tooltip label="文档大纲">
-                <ActionIcon
-                  className={styles.responsiveOutlineToggle}
-                  aria-label="显示大纲"
-                  onClick={revealOutline}
-                >
-                  <IconOutline size={17} />
-                </ActionIcon>
-              </Tooltip>
-            )}
-            {active && !missing && (
-              <Tooltip label="评论">
-                <ActionIcon aria-label="文档评论" onClick={commentsDrawer.open}>
-                  <IconComments size={17} />
-                </ActionIcon>
-              </Tooltip>
-            )}
-            {active && !unavailable && workspace.data?.role !== "viewer" && (
-              <Button
-                variant="subtle"
-                color="gray"
-                size="compact-sm"
-                onClick={() => openRename(active)}
-              >
-                重命名
-              </Button>
-            )}
-          </Group>
-        </header>
+        <WorkspaceHeader
+          workspaceName={workspace.data?.name}
+          role={workspace.data?.role}
+          active={active}
+          unavailable={unavailable}
+          missing={missing}
+          outlineVisible={outlineVisible}
+          navigationOpened={mobileOpened}
+          actions={{
+            search: searchModal.open,
+            members: membersDrawer.open,
+            activity: activityDrawer.open,
+            versions: () => {
+              if (active)
+                setVersionsRequest((value) => ({
+                  itemId: active.id,
+                  sequence: (value?.sequence ?? 0) + 1,
+                }));
+            },
+            comments: commentsDrawer.open,
+            rename: () => {
+              if (active) openRename(active);
+            },
+            outline: revealOutline,
+            settings: settingsModal.open,
+            trash: trashModal.open,
+            export: () => setWorkspaceExportOpened(true),
+            workspaces: () => {
+              void navigate({ to: "/workspaces" });
+            },
+            navigation: () => {
+              setReturnNavigationFocus(true);
+              mobileDrawer.toggle();
+            },
+          }}
+        />
         <section className={styles.content}>
-          {itemId && !active && (
+          {readProblem && (
+            <WorkspaceLoadNotice
+              resource={workspace.error ? "工作区" : "内容目录"}
+              error={readError}
+              unavailable={unavailable}
+              cached={!!active && !!workspace.data}
+              pending={workspace.isFetching || items.isFetching}
+              onRetry={() => {
+                if (workspace.error) void workspace.refetch();
+                if (items.error) void items.refetch();
+              }}
+            />
+          )}
+          {!readProblem && items.isSuccess && itemId && !active && (
             <Alert color="orange" role="alert">
               无法打开此链接：内容可能已删除，或当前账号没有访问权限。请从内容导航选择其他条目。
             </Alert>
           )}
-          {missing && active && (
+          {!readProblem && missing && active && (
             <Alert color="orange" role="alert">
               此内容已删除或访问权限已变更。已停止保存，请保留本地副本；可从内容树选择其他条目。
             </Alert>
           )}
-          {!active ? (
-            <div className={styles.empty}>
-              <div>
-                <Title order={2}>
-                  {itemId ? "内容暂不可用" : "从一个文档或白板开始"}
-                </Title>
-                <Text c="dimmed" mt="xs">
-                  左侧内容树是这个 Workspace 的唯一结构来源。
-                </Text>
-                {!itemId &&
-                  !unavailable &&
-                  workspace.data?.role !== "viewer" && (
-                    <Group justify="center" mt="xl">
-                      <Button
-                        leftSection={<IconFileText size={16} />}
-                        onClick={() => openCreate("markdown")}
-                      >
-                        新建文档
-                      </Button>
-                      <Button
-                        variant="light"
-                        leftSection={<IconWhiteboard size={16} />}
-                        onClick={() => openCreate("whiteboard")}
-                      >
-                        新建白板
-                      </Button>
-                    </Group>
-                  )}
+          {!active || !workspace.data ? (
+            !readProblem && (
+              <div className={styles.empty}>
+                <div>
+                  <Title order={2}>
+                    {itemId ? "内容暂不可用" : "从一个文档或白板开始"}
+                  </Title>
+                  <Text c="dimmed" mt="xs">
+                    左侧内容树是这个 Workspace 的唯一结构来源。
+                  </Text>
+                  {!itemId &&
+                    !unavailable &&
+                    workspace.data &&
+                    workspace.data.role !== "viewer" && (
+                      <Group justify="center" mt="xl">
+                        <Button
+                          leftSection={<IconFileText size={16} />}
+                          onClick={() => openCreate("markdown")}
+                        >
+                          新建文档
+                        </Button>
+                        <Button
+                          variant="light"
+                          leftSection={<IconWhiteboard size={16} />}
+                          onClick={() => openCreate("whiteboard")}
+                        >
+                          新建白板
+                        </Button>
+                      </Group>
+                    )}
+                </div>
               </div>
-            </div>
+            )
           ) : (
             <Suspense
               fallback={
@@ -589,6 +524,7 @@ export function WorkspacePage() {
               大纲
             </Text>
             <ActionIcon
+              className={touchAction}
               aria-label="隐藏大纲"
               onClick={() => setOutlineVisible(false)}
             >
@@ -607,7 +543,11 @@ export function WorkspacePage() {
         opened={mobileOpened}
         onClose={mobileDrawer.close}
         title={workspace.data?.name}
-        size="min(86vw, 320px)"
+        size="min(100vw, 360px)"
+        closeButtonProps={{
+          "aria-label": "关闭内容导航",
+          className: touchAction,
+        }}
         returnFocus={returnNavigationFocus}
         onExitTransitionEnd={() => {
           pendingHeading.current?.();

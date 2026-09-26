@@ -1,4 +1,5 @@
 import { style } from "@vanilla-extract/css";
+import { touchControls } from "@/styles/interaction.css";
 
 export const shell = style({
   vars: { "--madoc-sidebar-width": "300px", "--madoc-outline-width": "306px" },
@@ -64,13 +65,13 @@ export const workspaceIdentityText = style({
   display: "flex",
   flexDirection: "column",
   gap: 2,
-  alignItems: "flex-start",
+  alignItems: "stretch",
 });
 export const shortcutKey = style({
   padding: "2px 5px",
   border: "1px solid var(--mantine-color-gray-3)",
   borderRadius: 5,
-  color: "var(--mantine-color-gray-6)",
+  color: "var(--mantine-color-dimmed)",
   background: "var(--mantine-color-gray-0)",
   fontSize: 11,
   lineHeight: 1.3,
@@ -109,10 +110,6 @@ export const footerAction = style({
   color: "var(--mantine-color-dark-6)",
   fontSize: 14,
   selectors: { "&:hover": { background: "var(--mantine-color-gray-1)" } },
-});
-export const mobileMenu = style({
-  display: "none",
-  "@media": { "(max-width: 760px)": { display: "block" } },
 });
 export const workspaceButton = style({
   width: "100%",
@@ -156,10 +153,6 @@ export const mobileNavigation = style({
   marginTop: 4,
   "@media": { "(max-width: 1180px)": { display: "flex" } },
 });
-export const responsiveOutlineToggle = style({
-  display: "none",
-  "@media": { "(max-width: 1180px)": { display: "inline-flex" } },
-});
 export const navSectionHeader = style({
   minHeight: 34,
   display: "flex",
@@ -168,6 +161,7 @@ export const navSectionHeader = style({
   padding: "0 6px 0 2px",
 });
 export const navSectionToggle = style({
+  "@media": { [touchControls]: { height: 44 } },
   flex: 1,
   minWidth: 0,
   display: "flex",
@@ -184,6 +178,7 @@ export const navSectionChevron = style({
   opacity: 0,
   visibility: "hidden",
   transition: "opacity 120ms ease",
+  "@media": { "(hover: none)": { opacity: 1, visibility: "visible" } },
   selectors: {
     [`${navSectionToggle}:hover &`]: { opacity: 1, visibility: "visible" },
     [`${navSectionToggle}:focus-visible &`]: {
@@ -224,6 +219,7 @@ export const treeLink = style({
   },
 });
 export const treeRow = style({
+  "@media": { [touchControls]: { height: 44 } },
   width: "100%",
   height: 34,
   display: "flex",
@@ -277,20 +273,6 @@ export const outlineHeader = style({
   alignItems: "center",
   justifyContent: "space-between",
   padding: "0 2px 8px",
-});
-export const topbar = style({
-  height: 58,
-  position: "sticky",
-  top: 0,
-  zIndex: 10,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 12,
-  padding: "0 22px",
-  borderBottom: "1px solid var(--mantine-color-gray-2)",
-  background: "color-mix(in srgb, var(--mantine-color-white) 93%, transparent)",
-  backdropFilter: "blur(12px)",
 });
 export const content = style({ minHeight: "calc(100vh - 58px)" });
 export const editorPage = style({

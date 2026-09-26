@@ -252,11 +252,11 @@ test('switching to another item retains an unconfirmed local board draft', async
   hold = true;
   await rectangle(page);
   await expect.poll(async () => (await drafts(page)).length).toBe(1);
-  await page.getByText('Inline writing', { exact: true }).click();
+  await page.getByRole('button', { name: 'Inline writing', exact: true }).click();
   await expect(page.locator('.ProseMirror')).toBeVisible();
   expect((await drafts(page)).length).toBe(1);
   hold = false;
-  await page.getByText('Save state board', { exact: true }).click();
+  await page.getByRole('button', { name: 'Save state board', exact: true }).click();
   await expect(page.getByText('Saved', { exact: true })).toBeVisible();
   await expect.poll(() => drafts(page)).toEqual([]);
   expect((await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements).toHaveLength(1);

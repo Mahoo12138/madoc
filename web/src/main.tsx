@@ -12,11 +12,15 @@ import '@/styles/global.css';
 import { queryClient } from '@/api/query-client';
 import { router } from '@/app/router';
 import { AccountProvider } from '@/features/account/account-provider';
-import { theme } from '@/app/theme';
+import { cssVariablesResolver, theme } from '@/app/theme';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <MantineProvider theme={theme} defaultColorScheme="light">
+    <MantineProvider
+      theme={theme}
+      cssVariablesResolver={cssVariablesResolver}
+      defaultColorScheme="light"
+    >
       <Notifications position="bottom-right" />
       <QueryClientProvider client={queryClient}>
         <AccountProvider>

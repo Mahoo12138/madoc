@@ -15,8 +15,13 @@ import {
 } from 'lucide-react';
 import { DuplicateItem } from './duplicate-item';
 import type { Item, ItemType, Role } from '@/api/types';
+import { touchAction } from '@/styles/interaction.css';
 
-const FolderExportDialog = lazy(() => import('./folder-export-dialog').then((module) => ({ default: module.FolderExportDialog })));
+const FolderExportDialog = lazy(() =>
+  import('./folder-export-dialog').then((module) => ({
+    default: module.FolderExportDialog,
+  })),
+);
 
 // Titles and parent folders are deliberately absent from the destination.
 export function itemURL(item: Pick<Item, 'workspaceId' | 'id'>) {
@@ -68,6 +73,7 @@ export function ItemActions({
       <Menu position="bottom-end" withinPortal>
         <Menu.Target>
           <ActionIcon
+            className={touchAction}
             size="xs"
             aria-label={`${item.title} 的操作`}
             onClick={(e) => e.stopPropagation()}
@@ -96,7 +102,10 @@ export function ItemActions({
             <>
               {folder && (
                 <>
-                  <Menu.Item leftSection={<Download size={14} />} onClick={() => setFolderExportOpened(true)}>
+                  <Menu.Item
+                    leftSection={<Download size={14} />}
+                    onClick={() => setFolderExportOpened(true)}
+                  >
                     导出文件夹 ZIP
                   </Menu.Item>
                   <Menu.Item
@@ -153,7 +162,11 @@ export function ItemActions({
       )}
       {folderExportOpened && role !== 'viewer' && (
         <Suspense fallback={null}>
-          <FolderExportDialog folder={item} items={items} onClose={() => setFolderExportOpened(false)} />
+          <FolderExportDialog
+            folder={item}
+            items={items}
+            onClose={() => setFolderExportOpened(false)}
+          />
         </Suspense>
       )}
       {manualLink && (

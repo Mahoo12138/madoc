@@ -132,6 +132,7 @@ export function MemberDrawer({
                     </Text>
                   </div>
                   <Select
+                    aria-label={`${member.name} 的角色`}
                     size="xs"
                     w={110}
                     value={member.role}
@@ -170,12 +171,15 @@ export function MemberDrawer({
                 <Stack>
                   <Text fw={600}>创建邀请链接</Text>
                   <TextInput
+                    label="邀请邮箱"
+                    type="email"
                     leftSection={<IconMail size={15} />}
                     placeholder="member@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.currentTarget.value)}
                   />
                   <Select
+                    label="邀请角色"
                     value={role}
                     onChange={(value) =>
                       setRole((value ?? 'editor') as 'editor' | 'viewer')
@@ -194,11 +198,11 @@ export function MemberDrawer({
                   </Button>
                   {link && (
                     <Group wrap="nowrap">
-                      <TextInput value={link} readOnly style={{ flex: 1 }} />
+                      <TextInput aria-label="邀请链接" value={link} readOnly style={{ flex: 1, minWidth: 0 }} />
                       <CopyButton value={link}>
                         {({ copied, copy }) => (
                           <Tooltip label={copied ? '已复制' : '复制'}>
-                            <Button variant="light" onClick={copy}>
+                            <Button variant="light" onClick={copy} aria-label={copied ? '邀请链接已复制' : '复制邀请链接'}>
                               {copied ? (
                                 <IconCheck size={15} />
                               ) : (

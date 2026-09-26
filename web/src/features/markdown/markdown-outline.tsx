@@ -13,6 +13,7 @@ import {
   type OutlineBranch,
 } from "./markdown-outline-model";
 import * as styles from "./markdown-outline.css";
+import { touchAction } from "@/styles/interaction.css";
 
 type Props = {
   title: string;
@@ -64,7 +65,7 @@ export function MarkdownOutline({
                   variant="subtle"
                   color="gray"
                   size={26}
-                  className={styles.toggle}
+                  className={`${styles.toggle} ${touchAction}`}
                   aria-label={`${closed ? "展开" : "折叠"} ${heading.text}`}
                   aria-expanded={!closed}
                   onClick={() => outline!.toggleCollapsed(heading.position)}
@@ -119,6 +120,7 @@ export function MarkdownOutline({
           <div className={styles.tools}>
             <Tooltip label="全部展开">
               <ActionIcon
+                className={touchAction}
                 aria-label="全部展开"
                 variant="subtle"
                 color="gray"
@@ -131,6 +133,7 @@ export function MarkdownOutline({
             </Tooltip>
             <Tooltip label="全部折叠">
               <ActionIcon
+                className={touchAction}
                 aria-label="全部折叠"
                 variant="subtle"
                 color="gray"

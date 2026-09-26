@@ -27,10 +27,13 @@ for (const mobile of [false, true]) {
     await page.request.delete(`/api/items/${child.id}`, { headers });
     await page.request.delete(`/api/items/${folder.id}`, { headers });
     await page.reload();
-    if (!mobile)
-      await page.getByRole('button', { name: 'Workspace 菜单' }).click();
     await page
-      .getByRole(mobile ? 'button' : 'menuitem', {
+      .getByRole('button', {
+        name: mobile ? '工作区更多操作' : 'Workspace 菜单',
+      })
+      .click();
+    await page
+      .getByRole('menuitem', {
         name: '回收站',
         exact: true,
       })

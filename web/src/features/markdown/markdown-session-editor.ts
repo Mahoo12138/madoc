@@ -19,6 +19,12 @@ import { asymmetricEmphasisInput } from './markdown-emphasis';
 import { configureReferences, preserveReferences, referenceDefinition, resolveReferences } from './markdown-reference';
 import { blockImageSource, inlineImageSource, configureImageSource } from './markdown-image-source';
 
+const editorAccessibility = $prose(() => new Plugin({
+  props: {
+    attributes: { role: 'textbox', 'aria-label': '文档正文', 'aria-multiline': 'true' },
+  },
+}));
+
 // Keep the single-backtick input rule from consuming a literal backtick inside a double-delimited span.
 const doubleBacktickInput = $prose((ctx) => {
   const inlineCodeMark = inlineCodeSchema.type(ctx);
@@ -125,6 +131,7 @@ export function createMarkdownCrepe({ root, itemId, uploadImage, onInlinePreview
   // Preserve escapes before line-break normalization discards text positions.
   void crepe.editor.remove(remarkLineBreak);
   crepe.editor
+    .use(editorAccessibility)
     .use(codeHighlightSchema)
     .use(codeHighlights)
     .use(blockMathNavigation)

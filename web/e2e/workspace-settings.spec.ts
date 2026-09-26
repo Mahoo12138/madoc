@@ -38,7 +38,7 @@ async function setup(page: Page) {
   await expect(
     page
       .getByRole('button', { name: 'Workspace 菜单' })
-      .or(page.getByRole('button', { name: 'Workspace 设置', exact: true }))
+      .or(page.getByRole('button', { name: '工作区更多操作', exact: true }))
       .first(),
   ).toBeAttached();
   const csrfCookie = (await page.context().cookies()).find(
@@ -268,10 +268,13 @@ test('mobile settings stay within the viewport and keyboard dismissal restores f
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page);
   const entry = page.getByRole('button', {
-    name: 'Workspace 设置',
+    name: '工作区更多操作',
     exact: true,
   });
   await entry.click();
+  await page
+    .getByRole('menuitem', { name: 'Workspace 设置', exact: true })
+    .click();
   const dialog = page.getByRole('dialog', { name: 'Workspace 设置' });
   await expect(dialog).toBeVisible();
   const box = await dialog.boundingBox();

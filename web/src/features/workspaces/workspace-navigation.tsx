@@ -26,6 +26,7 @@ import type { MarkdownOutline as Outline } from "@/features/markdown/markdown-ou
 import { ItemTree } from "./item-tree";
 import { PersonalNavigation } from "./personal-navigation";
 import * as styles from "./workspace-shell.css";
+import { touchAction, touchRow } from "@/styles/interaction.css";
 
 type Props = ComponentProps<typeof ItemTree> & {
   active?: Item;
@@ -62,7 +63,7 @@ export function WorkspaceNavigation({
   const createMenu = (
     <Menu position="bottom-end">
       <Menu.Target>
-        <ActionIcon size="sm" aria-label="新建内容">
+        <ActionIcon className={touchAction} size="sm" aria-label="新建内容">
           <Plus size={15} />
         </ActionIcon>
       </Menu.Target>
@@ -184,6 +185,7 @@ export function WorkspaceNavigation({
         value={!isDocument && panel === "outline" ? "files" : panel}
         onChange={(value) => onPanelChange(value ?? "files")}
         className={styles.mobileNavigation}
+        classNames={{ tab: touchRow }}
         keepMounted
       >
         <Tabs.List grow aria-label="内容导航">

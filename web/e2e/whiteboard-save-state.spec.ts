@@ -93,7 +93,7 @@ test('switching boards keeps editor contents isolated', async ({ page }) => {
   const second = await response.json();
   await page.reload();
   await expect(page.getByText('Saved', { exact: true })).toBeVisible();
-  await page.getByText('Other empty board', { exact: true }).click();
+  await page.getByRole('button', { name: 'Other empty board', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(second.id));
   await expect(page.getByText('Saved', { exact: true })).toBeVisible();
   const ready = page.waitForEvent('download');
@@ -101,7 +101,7 @@ test('switching boards keeps editor contents isolated', async ({ page }) => {
   await page.getByRole('menuitem', { name: 'Excalidraw JSON', exact: true }).click();
   const { readFile } = await import('node:fs/promises');
   expect(JSON.parse(await readFile((await (await ready).path())!, 'utf8')).elements).toEqual([]);
-  await page.getByText('Save state board', { exact: true }).click();
+  await page.getByRole('button', { name: 'Save state board', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(first));
   await expect(page.getByText('Saved', { exact: true })).toBeVisible();
   expect((await (await page.request.get(`/api/items/${first}/whiteboard`)).json()).scene.elements).toHaveLength(1);

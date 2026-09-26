@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import {
-  Avatar,
   Button,
   Card,
   Center,
   Group,
   Loader,
-  Menu,
   Modal,
   Stack,
   Text,
@@ -14,18 +12,16 @@ import {
   Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import {
   ChevronRight as IconChevronRight,
-  LogOut as IconLogout,
   Plus as IconPlus,
 } from 'lucide-react';
-import { api } from '@/api/client';
 import { useSession, useWorkspaces, useWorkspaceMutations } from '@/api/hooks';
-import { queryClient } from '@/api/query-client';
 import { AccountMenu } from '@/features/account/account-menu';
 import * as styles from './workspace-list-page.css';
 import { roleLabels } from './role-labels';
+import { WorkspaceLoadNotice } from './workspace-load-notice';
 
 export function WorkspaceListPage() {
   const session = useSession();
@@ -37,7 +33,10 @@ export function WorkspaceListPage() {
   if (session.isLoading || workspaces.isLoading)
     return (
       <Center mih="100vh">
-        <Loader />
+        <Stack align="center" role="status">
+          <Loader aria-hidden />
+          <Text>正在加载工作区列表…</Text>
+        </Stack>
       </Center>
     );
   if (!session.data?.user) {
@@ -52,11 +51,6 @@ export function WorkspaceListPage() {
       to: '/workspace/$workspaceId',
       params: { workspaceId: workspace.id },
     });
-  };
-  const signOut = async () => {
-    await api.signOut();
-    queryClient.clear();
-    await navigate({ to: '/sign-in' });
   };
   return (
     <main className={styles.page}>
@@ -80,32 +74,52 @@ export function WorkspaceListPage() {
         </Group>
       </header>
       <section className={styles.grid}>
+        {workspaces.error && (
+          <WorkspaceLoadNotice
+            resource="工作区列表"
+            error={workspaces.error}
+            cached={false}
+            pending={workspaces.isFetching}
+            onRetry={() => {
+              void workspaces.refetch();
+            }}
+            showReturn={false}
+          />
+        )}
         {workspaces.data?.map((workspace) => (
           <Card
+            renderRoot={(props) => (
+              <Link
+                {...props}
+                to="/workspace/$workspaceId"
+                params={{ workspaceId: workspace.id }}
+              />
+            )}
+            aria-label={`打开工作区 ${workspace.name}`}
             key={workspace.id}
             withBorder
             radius="lg"
             p="lg"
             className={styles.workspaceCard}
-            onClick={() =>
-              navigate({
-                to: '/workspace/$workspaceId',
-                params: { workspaceId: workspace.id },
-              })
-            }
           >
-            <Group justify="space-between">
-              <Stack gap={4}>
-                <Title order={3}>{workspace.name}</Title>
+            <Group justify="space-between" wrap="nowrap">
+              <Stack gap={4} className={styles.workspaceName}>
+                <Title order={3}>
+                  <bdi>{workspace.name}</bdi>
+                </Title>
                 <Text size="sm" c="dimmed">
                   {roleLabels[workspace.role]}
                 </Text>
               </Stack>
-              <IconChevronRight size={20} color="var(--mantine-color-gray-5)" />
+              <IconChevronRight
+                size={20}
+                className={styles.chevron}
+                aria-hidden
+              />
             </Group>
           </Card>
         ))}
-        {workspaces.data?.length === 0 && (
+        {!workspaces.error && workspaces.data?.length === 0 && (
           <Card withBorder radius="lg" p="xl">
             <Title order={3}>你的第一个 Workspace</Title>
             <Text c="dimmed" mt="xs">

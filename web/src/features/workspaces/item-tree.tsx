@@ -13,6 +13,7 @@ import { useFavorite, usePersonalItems } from '@/api/personal-items';
 import { useNavigate } from '@tanstack/react-router';
 import type { Item, ItemType, Role } from '@/api/types';
 import * as styles from './workspace-shell.css';
+import { touchAction } from '@/styles/interaction.css';
 
 type Props = {
   workspaceId: string;
@@ -93,6 +94,7 @@ export function ItemTree({
               <span className={styles.rowTitle}>{item.title}</span>
             </UnstyledButton>
             <ActionIcon
+              className={touchAction}
               size="xs"
               variant="subtle"
               color={favorites.has(item.id) ? 'yellow' : 'gray'}

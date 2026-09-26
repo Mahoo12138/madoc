@@ -1,4 +1,5 @@
 import { style } from '@vanilla-extract/css';
+import { touchControls } from '@/styles/interaction.css';
 
 export const outline = style({ paddingTop: 14 });
 export const documentTitle = style({
@@ -22,7 +23,11 @@ export const header = style({
 });
 export const tools = style({ display: 'flex', flexShrink: 0, gap: 2 });
 export const toggle = style({ flexShrink: 0 });
-export const spacer = style({ width: 26, flexShrink: 0 });
+export const spacer = style({
+  width: 26,
+  flexShrink: 0,
+  '@media': { [touchControls]: { width: 44 } },
+});
 export const children = style({ paddingLeft: 14 });
 export const row = style({
   display: 'flex',
@@ -43,6 +48,7 @@ export const heading = style({
   flex: 1,
   minWidth: 0,
   minHeight: 34,
+  '@media': { [touchControls]: { minHeight: 44 } },
   padding: '7px 8px 7px 2px',
   overflow: 'hidden',
   textOverflow: 'ellipsis',

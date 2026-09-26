@@ -139,7 +139,9 @@ test('viewer can manually copy a private link, but revocation still denies acces
       { headers },
     );
     await viewer.reload();
-    await expect(viewer.getByRole('alert')).toContainText('无法打开此链接');
+    await expect(
+      viewer.getByRole('alert', { name: '工作区不可用' }),
+    ).toContainText('当前账号没有访问权限');
     await expect(viewer.locator('.ProseMirror')).toHaveCount(0);
   } finally {
     await context.close();

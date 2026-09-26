@@ -183,13 +183,21 @@ test('quick open reveals a collapsed folder without navigating to an empty edito
     headers,
     data: { type: 'markdown', title: 'Inside target', parentId: folder.id },
   });
-  await expect(page.getByText('Inside target', { exact: true })).toBeVisible();
-  await page.getByText('Folder target', { exact: true }).click();
-  await expect(page.getByText('Inside target', { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Inside target', exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Folder target', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Inside target', exact: true }),
+  ).toHaveCount(0);
   await page.keyboard.press('Control+k');
   const dialog = page.getByRole('dialog', { name: '快速打开与搜索' });
   await dialog.getByRole('option', { name: /^Folder target 文件夹/ }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByText('Inside target', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Inside target', exact: true }),
+  ).toBeVisible();
   expect(page.url()).toBe(original);
 });
