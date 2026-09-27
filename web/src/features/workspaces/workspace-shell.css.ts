@@ -1,3 +1,4 @@
+import { workspaceMedia } from "./workspace-layout";
 import { style } from "@vanilla-extract/css";
 import { touchControls } from "@/styles/interaction.css";
 
@@ -7,13 +8,13 @@ export const shell = style({
   display: "grid",
   gridTemplateColumns: "var(--madoc-sidebar-width) minmax(0, 1fr)",
   background: "var(--mantine-color-white)",
-  "@media": { "(max-width: 760px)": { display: "block" } },
+  "@media": { [workspaceMedia.mobile]: { display: "block" } },
 });
 export const shellWithOutline = style({
   gridTemplateColumns:
     "var(--madoc-sidebar-width) minmax(0, 1fr) var(--madoc-outline-width)",
   "@media": {
-    "(max-width: 1180px)": {
+    [workspaceMedia.compact]: {
       gridTemplateColumns: "var(--madoc-sidebar-width) minmax(0, 1fr)",
     },
   },
@@ -29,7 +30,7 @@ export const sidebar = style({
   padding: "16px 14px 12px",
   gap: 14,
   overflow: "hidden",
-  "@media": { "(max-width: 760px)": { display: "none" } },
+  "@media": { [workspaceMedia.mobile]: { display: "none" } },
 });
 export const brandRow = style({
   minHeight: 36,
@@ -142,16 +143,14 @@ export const desktopNavigation = style({
   flexDirection: "column",
   gap: 12,
   paddingBottom: 8,
-  "@media": { "(max-width: 1180px)": { display: "none" } },
 });
 export const navSectionGroup = style({ flexShrink: 0 });
 export const mobileNavigation = style({
-  display: "none",
+  display: "flex",
   flex: 1,
   minHeight: 0,
   flexDirection: "column",
   marginTop: 4,
-  "@media": { "(max-width: 1180px)": { display: "flex" } },
 });
 export const navSectionHeader = style({
   minHeight: 34,
@@ -265,7 +264,7 @@ export const outlinePanel = style({
   background: "var(--mantine-color-white)",
   overflowY: "auto",
   overscrollBehavior: "contain",
-  "@media": { "(max-width: 1180px)": { display: "none" } },
+  "@media": { [workspaceMedia.compact]: { display: "none" } },
 });
 export const outlineHeader = style({
   minHeight: 40,

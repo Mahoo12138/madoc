@@ -3,7 +3,6 @@ import { Alert, Center, Container, Loader, Paper, Stack, Text, Title } from '@ma
 import { useParams } from '@tanstack/react-router';
 import { api } from '@/api/client';
 import type { SharedItem } from '@/api/types';
-import { createMarkdownCrepe } from '@/features/markdown/markdown-session-editor';
 import { hardenSharedMarkdown, prepareSharedMarkdown } from './public-markdown';
 import { content, header, page } from './public-share-page.css';
 
@@ -26,27 +25,31 @@ export function PublicSharePage() {
   useEffect(() => {
     if (!item?.markdown || !markdownRoot.current) return;
     let active = true;
-    let created = false;
+    let cleanup: (() => void) | undefined;
     const root = markdownRoot.current;
+    const markdown = item.markdown;
     root.replaceChildren();
     const allowedAssets = new Set(item.assets.map((asset) => asset.id));
-    const crepe = createMarkdownCrepe({
-      root,
-      itemId: 'public-share',
-      defaultValue: prepareSharedMarkdown(item.markdown, token, allowedAssets),
-      collaborative: false,
-      uploadImage: async () => { throw new Error('公开分享只读'); },
-      onInlinePreviewChange: () => {},
-      onOutlineChange: () => {},
-    });
-    void crepe.create().then(() => {
-      created = true;
+    void (async () => {
+      const { createMarkdownCrepe } = await import('@/features/markdown/markdown-session-editor');
+      if (!active) return;
+      const crepe = createMarkdownCrepe({
+        root,
+        itemId: 'public-share',
+        defaultValue: prepareSharedMarkdown(markdown, token, allowedAssets),
+        collaborative: false,
+        uploadImage: async () => { throw new Error('公开分享只读'); },
+        onInlinePreviewChange: () => {},
+        onOutlineChange: () => {},
+      });
+      await crepe.create();
       if (!active) { void crepe.destroy(); return; }
+      cleanup = () => { void crepe.destroy(); };
       crepe.setReadonly(true);
       root.setAttribute('aria-readonly', 'true');
       hardenSharedMarkdown(root, token, allowedAssets);
-    }).catch(() => { if (active) root.replaceChildren(); });
-    return () => { active = false; if (created) void crepe.destroy(); };
+    })().catch(() => { if (active) root.replaceChildren(); });
+    return () => { active = false; cleanup?.(); };
   }, [item, token]);
 
   const [boardSVG, setBoardSVG] = useState('');

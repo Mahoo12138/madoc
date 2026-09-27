@@ -1,0 +1,158 @@
+import { globalStyle } from '@vanilla-extract/css';
+
+globalStyle('.milkdown', { minHeight: '60vh' });
+globalStyle('.milkdown .ProseMirror', {
+  outline: 'none',
+  padding: '18px 0 120px',
+  color: 'var(--mantine-color-dark-8)',
+  fontSize: 'var(--madoc-font-size, 16px)',
+  lineHeight: 'var(--madoc-line-height, 1.75)',
+});
+globalStyle('.milkdown .ProseMirror h1', {
+  fontSize: 'calc(var(--madoc-font-size, 16px) * 2)',
+  lineHeight: '1.2',
+  letterSpacing: '-0.025em',
+});
+globalStyle('.milkdown .ProseMirror h2', {
+  fontSize: 'calc(var(--madoc-font-size, 16px) * 1.5)',
+  lineHeight: '1.3',
+  letterSpacing: '-0.018em',
+});
+globalStyle('.milkdown .ProseMirror h3', {
+  fontSize: 'calc(var(--madoc-font-size, 16px) * 1.25)',
+  lineHeight: '1.4',
+  letterSpacing: '-0.012em',
+});
+globalStyle('.milkdown .ProseMirror h4', {
+  fontSize: 'calc(var(--madoc-font-size, 16px) * 1.125)',
+  lineHeight: '1.45',
+  letterSpacing: '-0.008em',
+});
+globalStyle('.milkdown .ProseMirror h5', {
+  fontSize: 'calc(var(--madoc-font-size, 16px) * 1)',
+  lineHeight: '1.5',
+});
+globalStyle('.milkdown .ProseMirror h6', {
+  fontSize: 'calc(var(--madoc-font-size, 16px) * 0.875)',
+  lineHeight: '1.5',
+});
+// Inline code participates in normal line wrapping, including unbroken tokens.
+// Fenced code blocks keep their own scrolling and whitespace behavior.
+globalStyle('.milkdown .ProseMirror :not(pre) > code', {
+  display: 'inline',
+  whiteSpace: 'break-spaces',
+  overflowWrap: 'anywhere',
+  wordBreak: 'normal',
+});
+globalStyle('.milkdown .ProseMirror pre', {
+  borderRadius: '10px',
+  overflowX: 'auto',
+});
+globalStyle('.milkdown .ProseMirror img', {
+  maxWidth: '100%',
+  borderRadius: '8px',
+});
+globalStyle('.milkdown .ProseMirror .madoc-inline-source-shell', {
+  display: 'inline',
+});
+globalStyle('.milkdown .ProseMirror .madoc-inline-measure-clip', {
+  position: 'absolute',
+  width: 0,
+  height: 0,
+  overflow: 'hidden',
+  visibility: 'hidden',
+  pointerEvents: 'none',
+});
+globalStyle('.milkdown .ProseMirror .madoc-inline-measure', {
+  position: 'absolute',
+  visibility: 'hidden',
+  pointerEvents: 'none',
+  whiteSpace: 'pre',
+  width: 'max-content',
+});
+globalStyle('.milkdown .ProseMirror .madoc-inline-source', {
+  maxWidth: '100%',
+  padding: 0,
+  border: 0,
+  outline: 0,
+  background: 'transparent',
+  color: 'var(--mantine-color-dark-8)',
+  font: 'inherit',
+  lineHeight: 'inherit',
+  verticalAlign: 'baseline',
+  caretColor: 'var(--mantine-primary-color-filled)',
+});
+globalStyle('.milkdown .ProseMirror .madoc-inline-hidden', { display: 'none' });
+// The hidden code text still has a padded mark wrapper; collapse that wrapper too.
+globalStyle(
+  '.milkdown .ProseMirror code:has(> .madoc-inline-hidden:only-child)',
+  { display: 'none' },
+);
+globalStyle('.madoc-inline-math-preview', {
+  maxWidth: 'calc(100vw - 24px)',
+  padding: '12px 16px',
+  overflowX: 'auto',
+  background: 'var(--mantine-color-body)',
+  color: 'var(--mantine-color-text)',
+  border: '1px solid var(--mantine-color-gray-3)',
+  borderRadius: 'var(--mantine-radius-md)',
+  boxShadow: 'var(--mantine-shadow-sm)',
+  fontSize: 'var(--mantine-font-size-md)',
+});
+globalStyle('.milkdown .ProseMirror .madoc-remote-cursor', {
+  display: 'inline-block',
+  position: 'relative',
+  width: 0,
+  height: '1.35em',
+  marginLeft: -1,
+  borderLeft:
+    '2px solid var(--madoc-remote-color, var(--mantine-primary-color-filled))',
+  verticalAlign: 'text-bottom',
+  pointerEvents: 'none',
+  zIndex: 1,
+});
+globalStyle('.milkdown .ProseMirror .madoc-remote-cursor-label', {
+  position: 'absolute',
+  top: '-1.65em',
+  left: -1,
+  display: 'block',
+  padding: '2px 5px',
+  border:
+    '1px solid var(--madoc-remote-color, var(--mantine-primary-color-filled))',
+  borderRadius: '4px',
+  background: 'var(--mantine-color-dark-7)',
+  color: 'var(--mantine-color-white)',
+  fontFamily: 'var(--mantine-font-family)',
+  fontSize: '10px',
+  fontWeight: 600,
+  lineHeight: 1.2,
+  whiteSpace: 'nowrap',
+  pointerEvents: 'none',
+});
+globalStyle('.milkdown .ProseMirror .madoc-remote-selection', {
+  background:
+    'color-mix(in srgb, var(--madoc-remote-color, var(--mantine-primary-color-filled)), transparent 88%)',
+  borderBottom:
+    '2px solid color-mix(in srgb, var(--madoc-remote-color, var(--mantine-primary-color-filled)), transparent 55%)',
+});
+
+globalStyle('.milkdown .ProseMirror .madoc-escape-source-shell', {
+  display: 'inline-block',
+  position: 'relative',
+  verticalAlign: 'baseline',
+});
+globalStyle('.milkdown .ProseMirror .madoc-escape-source-paint', {
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  alignItems: 'center',
+  whiteSpace: 'pre',
+  pointerEvents: 'none',
+  userSelect: 'none',
+});
+globalStyle('.milkdown .ProseMirror .madoc-escape-source-paint[hidden]', {
+  display: 'none',
+});
+globalStyle('.milkdown .ProseMirror .madoc-escape-marker', {
+  color: 'var(--mantine-color-dimmed)',
+});

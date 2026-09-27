@@ -1,7 +1,7 @@
+import { workspaceMedia } from "./workspace-layout";
 import { style } from "@vanilla-extract/css";
 import { touchControls } from "@/styles/interaction.css";
 
-const compact = "(max-width: 1180px)";
 export const header = style({
   minHeight: 58,
   position: "sticky",
@@ -13,7 +13,7 @@ export const header = style({
   padding: "7px 22px",
   borderBottom: "1px solid var(--mantine-color-gray-2)",
   background: "var(--mantine-color-body)",
-  "@media": { [compact]: { gap: 4, paddingInline: 8 } },
+  "@media": { [workspaceMedia.compact]: { gap: 4, paddingInline: 8 } },
 });
 export const identity = style({
   flex: 1,
@@ -24,7 +24,7 @@ export const identity = style({
 });
 export const typeIcon = style({
   flexShrink: 0,
-  "@media": { [compact]: { display: "none" } },
+  "@media": { [workspaceMedia.compact]: { display: "none" } },
 });
 export const names = style({
   minWidth: 0,
@@ -32,20 +32,26 @@ export const names = style({
   alignItems: "center",
   gap: 10,
   "@media": {
-    [compact]: { flexDirection: "column", alignItems: "stretch", gap: 0 },
+    [workspaceMedia.compact]: {
+      flexDirection: "column",
+      alignItems: "stretch",
+      gap: 0,
+    },
   },
 });
 export const workspaceName = style({
   minWidth: 0,
   flexShrink: 2,
   color: "var(--mantine-color-gray-7)",
-  "@media": { [compact]: { fontSize: "var(--mantine-font-size-xs)" } },
+  "@media": {
+    [workspaceMedia.compact]: { fontSize: "var(--mantine-font-size-xs)" },
+  },
 });
 export const itemName = style({ minWidth: 0, flexShrink: 1 });
 export const separator = style({
   flexShrink: 0,
   color: "var(--mantine-color-gray-7)",
-  "@media": { [compact]: { display: "none" } },
+  "@media": { [workspaceMedia.compact]: { display: "none" } },
 });
 export const actions = style({
   display: "flex",
@@ -56,7 +62,7 @@ export const actions = style({
 export const desktopActions = style([
   actions,
   {
-    "@media": { [compact]: { display: "none" } },
+    "@media": { [workspaceMedia.compact]: { display: "none" } },
   },
 ]);
 export const compactActions = style([
@@ -64,7 +70,7 @@ export const compactActions = style([
   {
     display: "none",
     gap: 4,
-    "@media": { [compact]: { display: "flex" } },
+    "@media": { [workspaceMedia.compact]: { display: "flex" } },
   },
 ]);
 export const compactAction = style({
@@ -78,7 +84,7 @@ export const navigationToggle = style([
     display: "none",
     alignItems: "center",
     justifyContent: "center",
-    "@media": { "(max-width: 760px)": { display: "inline-flex" } },
+    "@media": { [workspaceMedia.mobile]: { display: "inline-flex" } },
   },
 ]);
 export const menu = style({

@@ -1,3 +1,4 @@
+import { workspaceMedia } from "./workspace-layout";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ActionIcon,
@@ -16,7 +17,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   ChevronDown as IconChevronDown,
@@ -128,6 +129,21 @@ export function WorkspacePage() {
   }>();
   const [mobileOpened, mobileDrawer] = useDisclosure(false);
   const [navigationPanel, setNavigationPanel] = useState("files");
+  const mobile = useMediaQuery(workspaceMedia.mobile, undefined, {
+    getInitialValueInEffect: false,
+  });
+  const compactNavigation = useMediaQuery(workspaceMedia.compact, undefined, {
+    getInitialValueInEffect: false,
+  });
+  const [closedSections, setClosedSections] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [personalSection, setPersonalSection] = useState<
+    "favorites" | "recent"
+  >("favorites");
+  useEffect(() => {
+    if (!mobile) mobileDrawer.close();
+  }, [mobile, mobileDrawer.close]);
   const [outlineVisible, setOutlineVisible] = useState(true);
   const [versionsRequest, setVersionsRequest] = useState<{
     itemId: string;
@@ -243,6 +259,11 @@ export function WorkspacePage() {
   };
   const navigationProps = {
     workspaceId,
+    compact: compactNavigation,
+    closedSections,
+    onClosedSectionsChange: setClosedSections,
+    personalSection,
+    onPersonalSectionChange: setPersonalSection,
     items: items.data ?? [],
     activeId: itemId,
     active,
@@ -266,7 +287,7 @@ export function WorkspacePage() {
   const revealOutline = () => {
     setOutlineVisible(true);
     setNavigationPanel("outline");
-    if (window.matchMedia("(max-width: 760px)").matches) {
+    if (window.matchMedia(workspaceMedia.mobile).matches) {
       setReturnNavigationFocus(true);
       mobileDrawer.open();
     }
@@ -275,124 +296,126 @@ export function WorkspacePage() {
     <div
       className={`${styles.shell} ${active?.type === "markdown" && outlineVisible ? styles.shellWithOutline : ""}`}
     >
-      <aside className={styles.sidebar}>
-        <div className={styles.brandRow}>
-          <div className={styles.brand}>
-            <span aria-hidden className={styles.brandMark} />
-            madoc
+      {!mobile && (
+        <aside className={styles.sidebar}>
+          <div className={styles.brandRow}>
+            <div className={styles.brand}>
+              <span aria-hidden className={styles.brandMark} />
+              madoc
+            </div>
           </div>
-        </div>
-        <Menu width={250}>
-          <Menu.Target>
-            <button
-              className={styles.workspaceButton}
-              aria-label="Workspace 菜单"
-            >
-              <Group
-                gap="sm"
-                wrap="nowrap"
-                className={styles.workspaceIdentity}
+          <Menu width={250}>
+            <Menu.Target>
+              <button
+                className={styles.workspaceButton}
+                aria-label="Workspace 菜单"
               >
-                <Avatar size={34} radius="md" color="blue">
-                  {workspace.data?.name.slice(0, 1)}
-                </Avatar>
-                <div className={styles.workspaceIdentityText}>
-                  <Text
-                    fw={650}
-                    size="sm"
-                    truncate
-                    title={workspace.data?.name}
-                  >
-                    {workspace.data?.name}
-                  </Text>
-                  <Text size="xs" c="dimmed" truncate>
-                    专注记录，成就成长
-                  </Text>
-                </div>
-              </Group>
-              <IconChevronDown size={14} />
-            </button>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item
-              leftSection={<IconHome size={15} />}
-              onClick={() => navigate({ to: "/workspaces" })}
-            >
-              所有 Workspaces
-            </Menu.Item>
-            {!unavailable &&
-              workspace.data &&
-              workspace.data.role !== "viewer" && (
-                <Menu.Item
-                  leftSection={<IconDownload size={15} />}
-                  onClick={() => setWorkspaceExportOpened(true)}
+                <Group
+                  gap="sm"
+                  wrap="nowrap"
+                  className={styles.workspaceIdentity}
                 >
-                  导出 Workspace ZIP
-                </Menu.Item>
-              )}
-            <Menu.Item
-              leftSection={<IconUsers size={15} />}
-              onClick={membersDrawer.open}
-            >
-              成员管理
-            </Menu.Item>
-            <Menu.Item
-              leftSection={<IconHistory size={15} />}
-              onClick={activityDrawer.open}
-            >
-              活动记录
-            </Menu.Item>
-            {!unavailable &&
-              workspace.data &&
-              workspace.data.role !== "viewer" && (
-                <Menu.Item
-                  leftSection={<IconTrash size={15} />}
-                  onClick={trashModal.open}
-                >
-                  回收站
-                </Menu.Item>
-              )}
-            {!unavailable && workspace.data?.role === "owner" && (
+                  <Avatar size={34} radius="md" color="blue">
+                    {workspace.data?.name.slice(0, 1)}
+                  </Avatar>
+                  <div className={styles.workspaceIdentityText}>
+                    <Text
+                      fw={650}
+                      size="sm"
+                      truncate
+                      title={workspace.data?.name}
+                    >
+                      {workspace.data?.name}
+                    </Text>
+                    <Text size="xs" c="dimmed" truncate>
+                      专注记录，成就成长
+                    </Text>
+                  </div>
+                </Group>
+                <IconChevronDown size={14} />
+              </button>
+            </Menu.Target>
+            <Menu.Dropdown>
               <Menu.Item
-                leftSection={<IconSettings size={15} />}
-                onClick={settingsModal.open}
+                leftSection={<IconHome size={15} />}
+                onClick={() => navigate({ to: "/workspaces" })}
               >
-                设置
+                所有 Workspaces
               </Menu.Item>
+              {!unavailable &&
+                workspace.data &&
+                workspace.data.role !== "viewer" && (
+                  <Menu.Item
+                    leftSection={<IconDownload size={15} />}
+                    onClick={() => setWorkspaceExportOpened(true)}
+                  >
+                    导出 Workspace ZIP
+                  </Menu.Item>
+                )}
+              <Menu.Item
+                leftSection={<IconUsers size={15} />}
+                onClick={membersDrawer.open}
+              >
+                成员管理
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconHistory size={15} />}
+                onClick={activityDrawer.open}
+              >
+                活动记录
+              </Menu.Item>
+              {!unavailable &&
+                workspace.data &&
+                workspace.data.role !== "viewer" && (
+                  <Menu.Item
+                    leftSection={<IconTrash size={15} />}
+                    onClick={trashModal.open}
+                  >
+                    回收站
+                  </Menu.Item>
+                )}
+              {!unavailable && workspace.data?.role === "owner" && (
+                <Menu.Item
+                  leftSection={<IconSettings size={15} />}
+                  onClick={settingsModal.open}
+                >
+                  设置
+                </Menu.Item>
+              )}
+            </Menu.Dropdown>
+          </Menu>
+          <Button
+            variant="default"
+            className={styles.sidebarSearch}
+            leftSection={<IconSearch size={16} />}
+            onClick={searchModal.open}
+            disabled={unavailable}
+            rightSection={<kbd className={styles.shortcutKey}>Ctrl K</kbd>}
+          >
+            搜索文档、页面内容…
+          </Button>
+          <div className={styles.sidebarScroll}>
+            <WorkspaceNavigation
+              {...navigationProps}
+              onNavigateHeading={(position) => outline?.navigate(position)}
+            />
+          </div>
+          <div className={styles.sidebarBottom}>
+            {!unavailable && workspace.data?.role !== "viewer" && (
+              <Button
+                variant="subtle"
+                color="gray"
+                className={styles.footerAction}
+                leftSection={<IconTrash size={16} />}
+                onClick={trashModal.open}
+              >
+                回收站
+              </Button>
             )}
-          </Menu.Dropdown>
-        </Menu>
-        <Button
-          variant="default"
-          className={styles.sidebarSearch}
-          leftSection={<IconSearch size={16} />}
-          onClick={searchModal.open}
-          disabled={unavailable}
-          rightSection={<kbd className={styles.shortcutKey}>Ctrl K</kbd>}
-        >
-          搜索文档、页面内容…
-        </Button>
-        <div className={styles.sidebarScroll}>
-          <WorkspaceNavigation
-            {...navigationProps}
-            onNavigateHeading={(position) => outline?.navigate(position)}
-          />
-        </div>
-        <div className={styles.sidebarBottom}>
-          {!unavailable && workspace.data?.role !== "viewer" && (
-            <Button
-              variant="subtle"
-              color="gray"
-              className={styles.footerAction}
-              leftSection={<IconTrash size={16} />}
-              onClick={trashModal.open}
-            >
-              回收站
-            </Button>
-          )}
-          <AccountMenu user={session.data.user} />
-        </div>
-      </aside>
+            <AccountMenu user={session.data.user} />
+          </div>
+        </aside>
+      )}
       <main className={styles.main}>
         <WorkspaceHeader
           workspaceName={workspace.data?.name}
@@ -517,7 +540,7 @@ export function WorkspacePage() {
           )}
         </section>
       </main>
-      {active?.type === "markdown" && outlineVisible && (
+      {!compactNavigation && active?.type === "markdown" && outlineVisible && (
         <aside className={styles.outlinePanel} aria-label="文档大纲面板">
           <div className={styles.outlineHeader}>
             <Text size="sm" fw={650}>
@@ -540,7 +563,7 @@ export function WorkspacePage() {
         </aside>
       )}
       <Drawer
-        opened={mobileOpened}
+        opened={mobile && mobileOpened}
         onClose={mobileDrawer.close}
         title={workspace.data?.name}
         size="min(100vw, 360px)"
@@ -554,15 +577,17 @@ export function WorkspacePage() {
           pendingHeading.current = null;
         }}
       >
-        <WorkspaceNavigation
-          {...navigationProps}
-          onSelect={mobileDrawer.close}
-          onNavigateHeading={(position) => {
-            setReturnNavigationFocus(false);
-            pendingHeading.current = () => outline?.navigate(position);
-            mobileDrawer.close();
-          }}
-        />
+        {mobile && (
+          <WorkspaceNavigation
+            {...navigationProps}
+            onSelect={mobileDrawer.close}
+            onNavigateHeading={(position) => {
+              setReturnNavigationFocus(false);
+              pendingHeading.current = () => outline?.navigate(position);
+              mobileDrawer.close();
+            }}
+          />
+        )}
         <AccountMenu
           user={session.data.user}
           onAction={(action) => {
@@ -599,7 +624,7 @@ export function WorkspacePage() {
               }
               setCollapsedFolders((previous) => ({ ...previous, ...expanded }));
               setNavigationPanel("files");
-              if (window.matchMedia("(max-width: 760px)").matches)
+              if (window.matchMedia(workspaceMedia.mobile).matches)
                 mobileDrawer.open();
               return;
             }

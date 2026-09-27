@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Alert,
   Button,
@@ -22,18 +21,16 @@ export function PersonalNavigation({
   items,
   onFolder,
   onSelect,
-  section: sectionProp,
+  section,
+  onSectionChange,
 }: {
   workspaceId: string;
   items: Item[];
   onFolder: (item: Item) => void;
   onSelect?: () => void;
-  section?: "favorites" | "recent";
+  section: "favorites" | "recent";
+  onSectionChange?: (section: "favorites" | "recent") => void;
 }) {
-  const [selectedSection, setSelectedSection] = useState<
-    "favorites" | "recent"
-  >("favorites");
-  const section = sectionProp ?? selectedSection;
   const personal = usePersonalItems(workspaceId);
   const favorite = useFavorite(workspaceId);
   const navigate = useNavigate();
@@ -54,13 +51,11 @@ export function PersonalNavigation({
   };
   return (
     <Stack gap="sm" className={styles.panel}>
-      {!sectionProp && (
+      {!!onSectionChange && (
         <SegmentedControl
           fullWidth
           value={section}
-          onChange={(value) =>
-            setSelectedSection(value as "favorites" | "recent")
-          }
+          onChange={(value) => onSectionChange(value as "favorites" | "recent")}
           data={[
             { label: "收藏", value: "favorites" },
             { label: "最近访问", value: "recent" },
@@ -106,12 +101,12 @@ export function PersonalNavigation({
                       {item.title}
                     </Text>
                   </Group>
-                  {!sectionProp && (
+                  {!!onSectionChange && (
                     <Text size="xs" c="dimmed" lineClamp={1}>
                       {path(item)}
                     </Text>
                   )}
-                  {!sectionProp && visitedAt && (
+                  {!!onSectionChange && visitedAt && (
                     <Text size="xs" c="dimmed">
                       {new Date(visitedAt).toLocaleString()}
                     </Text>

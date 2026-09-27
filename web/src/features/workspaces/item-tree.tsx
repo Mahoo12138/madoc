@@ -1,4 +1,5 @@
-import type { Dispatch, SetStateAction } from 'react';
+import { useMemo, type Dispatch, type SetStateAction } from 'react';
+import { indexChildren } from './item-tree-model';
 import { ActionIcon, UnstyledButton } from '@mantine/core';
 import {
   ChevronDown as IconChevronDown,
@@ -52,12 +53,9 @@ export function ItemTree({
   const personal = usePersonalItems(workspaceId);
   const favorite = useFavorite(workspaceId);
   const favorites = new Set(personal.data?.favorites.map((item) => item.id));
-  const children = (parentId: string | null) =>
-    items
-      .filter((item) => item.parentId === parentId)
-      .sort((a, b) => a.sortKey - b.sortKey);
+  const children = useMemo(() => indexChildren(items), [items]);
   const render = (parentId: string | null, depth: number): React.ReactNode =>
-    children(parentId).map((item) => {
+    (children.get(parentId) ?? []).map((item) => {
       const Icon = icons[item.type];
       const isFolder = item.type === 'folder';
       const closed = collapsed[item.id];

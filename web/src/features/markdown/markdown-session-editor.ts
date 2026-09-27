@@ -1,3 +1,7 @@
+import '@milkdown/crepe/theme/common/style.css';
+import '@milkdown/crepe/theme/frame.css';
+// Editor overrides must follow the lazily loaded Crepe theme.
+import './markdown-base.css';
 import { Crepe } from '@milkdown/crepe';
 import { inlineCodeSchema, remarkInlineLinkPlugin, remarkLineBreak } from '@milkdown/kit/preset/commonmark';
 import { Plugin, TextSelection } from '@milkdown/kit/prose/state';

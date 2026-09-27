@@ -1,4 +1,4 @@
-import { useState, type ComponentProps } from "react";
+import { type ComponentProps, type Dispatch, type SetStateAction } from "react";
 import {
   ActionIcon,
   Group,
@@ -30,6 +30,11 @@ import { touchAction, touchRow } from "@/styles/interaction.css";
 
 type Props = ComponentProps<typeof ItemTree> & {
   active?: Item;
+  compact: boolean;
+  closedSections: Record<string, boolean>;
+  onClosedSectionsChange: Dispatch<SetStateAction<Record<string, boolean>>>;
+  personalSection: "favorites" | "recent";
+  onPersonalSectionChange: (section: "favorites" | "recent") => void;
   panel: string;
   onPanelChange: (panel: string) => void;
   outline: Outline | null;
@@ -39,6 +44,11 @@ type Props = ComponentProps<typeof ItemTree> & {
 
 export function WorkspaceNavigation({
   active,
+  compact,
+  closedSections: closed,
+  onClosedSectionsChange,
+  personalSection,
+  onPersonalSectionChange,
   panel,
   onPanelChange,
   outline,
@@ -47,9 +57,11 @@ export function WorkspaceNavigation({
   ...treeProps
 }: Props) {
   const isDocument = active?.type === "markdown";
-  const [closed, setClosed] = useState<Record<string, boolean>>({});
   const toggle = (section: string) =>
-    setClosed((value) => ({ ...value, [section]: !value[section] }));
+    onClosedSectionsChange((value) => ({
+      ...value,
+      [section]: !value[section],
+    }));
   const onFolder = (item: Item) => {
     const expanded: Record<string, boolean> = {};
     let node: Item | undefined = item;
@@ -120,8 +132,8 @@ export function WorkspaceNavigation({
       </UnstyledButton>
     </div>
   );
-  return (
-    <>
+  if (!compact)
+    return (
       <div className={styles.desktopNavigation} aria-label="工作区导航">
         <section className={styles.navSectionGroup}>
           {sectionHeader("recent", "最近", Clock3)}
@@ -181,59 +193,62 @@ export function WorkspaceNavigation({
           )}
         </section>
       </div>
-      <Tabs
-        value={!isDocument && panel === "outline" ? "files" : panel}
-        onChange={(value) => onPanelChange(value ?? "files")}
-        className={styles.mobileNavigation}
-        classNames={{ tab: touchRow }}
-        keepMounted
-      >
-        <Tabs.List grow aria-label="内容导航">
-          <Tabs.Tab value="files" leftSection={<FileText size={14} />}>
-            文件
-          </Tabs.Tab>
-          <Tabs.Tab
-            value="outline"
-            leftSection={<ListTree size={14} />}
-            disabled={!isDocument}
-          >
-            大纲
-          </Tabs.Tab>
-          <Tabs.Tab value="personal" leftSection={<Star size={14} />}>
-            我的
-          </Tabs.Tab>
-        </Tabs.List>
-        <Tabs.Panel value="files" className={styles.navigationPanel}>
-          <Group justify="space-between" mt="md" px={8}>
-            <Text size="xs" fw={700} c="dimmed">
-              内容
-            </Text>
-            {treeProps.role !== "viewer" && createMenu}
-          </Group>
-          <nav className={styles.tree} aria-label="文件列表">
-            <ItemTree {...treeProps} />
-          </nav>
-        </Tabs.Panel>
-        <Tabs.Panel value="personal" className={styles.navigationPanel}>
-          {panel === "personal" && (
-            <PersonalNavigation
-              workspaceId={treeProps.workspaceId}
-              items={treeProps.items}
-              onSelect={treeProps.onSelect}
-              onFolder={onFolder}
-            />
-          )}
-        </Tabs.Panel>
-        <Tabs.Panel value="outline" className={styles.navigationPanel}>
-          {isDocument && (
-            <MarkdownOutline
-              title={active.title}
-              outline={outline?.itemId === active.id ? outline : null}
-              onNavigate={onNavigateHeading}
-            />
-          )}
-        </Tabs.Panel>
-      </Tabs>
-    </>
+    );
+  return (
+    <Tabs
+      value={!isDocument && panel === "outline" ? "files" : panel}
+      onChange={(value) => onPanelChange(value ?? "files")}
+      className={styles.mobileNavigation}
+      classNames={{ tab: touchRow }}
+      keepMounted={false}
+    >
+      <Tabs.List grow aria-label="内容导航">
+        <Tabs.Tab value="files" leftSection={<FileText size={14} />}>
+          文件
+        </Tabs.Tab>
+        <Tabs.Tab
+          value="outline"
+          leftSection={<ListTree size={14} />}
+          disabled={!isDocument}
+        >
+          大纲
+        </Tabs.Tab>
+        <Tabs.Tab value="personal" leftSection={<Star size={14} />}>
+          我的
+        </Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel value="files" className={styles.navigationPanel}>
+        <Group justify="space-between" mt="md" px={8}>
+          <Text size="xs" fw={700} c="dimmed">
+            内容
+          </Text>
+          {treeProps.role !== "viewer" && createMenu}
+        </Group>
+        <nav className={styles.tree} aria-label="文件列表">
+          <ItemTree {...treeProps} />
+        </nav>
+      </Tabs.Panel>
+      <Tabs.Panel value="personal" className={styles.navigationPanel}>
+        {panel === "personal" && (
+          <PersonalNavigation
+            section={personalSection}
+            onSectionChange={onPersonalSectionChange}
+            workspaceId={treeProps.workspaceId}
+            items={treeProps.items}
+            onSelect={treeProps.onSelect}
+            onFolder={onFolder}
+          />
+        )}
+      </Tabs.Panel>
+      <Tabs.Panel value="outline" className={styles.navigationPanel}>
+        {isDocument && (
+          <MarkdownOutline
+            title={active.title}
+            outline={outline?.itemId === active.id ? outline : null}
+            onNavigate={onNavigateHeading}
+          />
+        )}
+      </Tabs.Panel>
+    </Tabs>
   );
 }

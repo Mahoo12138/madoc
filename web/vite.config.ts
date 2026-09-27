@@ -13,10 +13,18 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          mantine: ['@mantine/core', '@mantine/hooks'],
-          editor: ['@milkdown/crepe'],
-          whiteboard: ['@excalidraw/excalidraw'],
+        // Keep shared dependencies outside engine chunks so Shell imports cannot
+        // pull either engine into the initial module graph.
+        onlyExplicitManualChunks: true,
+        manualChunks(id) {
+          if (id.includes('/node_modules/@mantine/')) return 'mantine';
+          if (id.includes('/node_modules/@milkdown/crepe/')) return 'editor';
+          if (
+            /\/node_modules\/@excalidraw\/excalidraw\/dist\/[^/]+\/index\.js$/.test(
+              id,
+            )
+          )
+            return 'whiteboard';
         },
       },
     },
