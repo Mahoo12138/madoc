@@ -82,6 +82,7 @@ export function PersonalNavigation({
               <div className={styles.row} key={item.id}>
                 <UnstyledButton
                   className={styles.link}
+                  title={item.title}
                   aria-label={`${item.title}${visitedAt ? `，最近访问 ${new Date(visitedAt).toLocaleString()}` : ""}`}
                   onClick={async () => {
                     if (item.type === "folder") {
@@ -96,7 +97,7 @@ export function PersonalNavigation({
                   }}
                 >
                   <Group gap="xs" wrap="nowrap">
-                    <Icon size={15} />
+                    <Icon size={15} className={styles.icon} aria-hidden />
                     <Text size="sm" truncate>
                       {item.title}
                     </Text>

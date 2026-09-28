@@ -279,9 +279,7 @@ test('editor, member roles, invitation fields and overlay close controls have ac
     drawer.getByRole('textbox', { name: '邀请角色', exact: true }),
   ).toBeVisible();
   await drawer.getByRole('button', { name: '关闭', exact: true }).click();
-  await page
-    .getByRole('button', { name: '搜索文档、页面内容… Ctrl K' })
-    .click();
+  await page.getByRole('button', { name: /搜索文档、页面内容/ }).click();
   await expect(
     page.getByRole('dialog').getByRole('button', { name: '关闭', exact: true }),
   ).toBeVisible();
@@ -294,7 +292,7 @@ test('secondary text is readable on the actual workspace surfaces', async ({
   for (const target of [
     page.getByLabel('文档统计'),
     page.getByText('还没有收藏，可使用文件旁的星标添加。', { exact: true }),
-    page.locator('kbd').filter({ hasText: 'Ctrl K' }),
+    page.getByRole('button', { name: /搜索文档、页面内容/ }).locator('kbd'),
   ]) {
     expect(await contrastRatio(target)).toBeGreaterThanOrEqual(4.5);
   }

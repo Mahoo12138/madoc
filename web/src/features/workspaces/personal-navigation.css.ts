@@ -12,3 +12,5 @@ export const link = style({
   overflowWrap: "anywhere",
   selectors: { "&:hover": { background: "var(--mantine-color-gray-1)" } },
 });
+
+export const icon = style({ flexShrink: 0 });

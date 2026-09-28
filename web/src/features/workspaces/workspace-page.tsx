@@ -30,6 +30,7 @@ import {
   PenTool as IconWhiteboard,
   Download as IconDownload,
   History as IconHistory,
+  X as IconClose,
 } from "lucide-react";
 import {
   useItems,
@@ -390,7 +391,11 @@ export function WorkspacePage() {
             leftSection={<IconSearch size={16} />}
             onClick={searchModal.open}
             disabled={unavailable}
-            rightSection={<kbd className={styles.shortcutKey}>Ctrl K</kbd>}
+            rightSection={
+              <kbd className={styles.shortcutKey}>
+                {navigator.platform.includes("Mac") ? "⌘ K" : "Ctrl K"}
+              </kbd>
+            }
           >
             搜索文档、页面内容…
           </Button>
@@ -551,7 +556,7 @@ export function WorkspacePage() {
               aria-label="隐藏大纲"
               onClick={() => setOutlineVisible(false)}
             >
-              <span aria-hidden>×</span>
+              <IconClose size={15} aria-hidden />
             </ActionIcon>
           </div>
           <MarkdownOutlineView

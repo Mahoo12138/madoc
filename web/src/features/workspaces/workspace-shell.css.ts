@@ -124,7 +124,12 @@ export const workspaceButton = style({
   background:
     "color-mix(in srgb, var(--mantine-color-white) 80%, var(--mantine-color-gray-0))",
   cursor: "pointer",
+  textAlign: "left",
   selectors: {
+    "&:focus-visible": {
+      outline: "2px solid var(--mantine-primary-color-filled)",
+      outlineOffset: 2,
+    },
     "&:hover": {
       background: "var(--mantine-color-white)",
       borderColor: "var(--mantine-color-gray-3)",
@@ -240,6 +245,7 @@ export const treeRow = style({
     },
   },
 });
+export const treeIcon = style({ flexShrink: 0 });
 export const rowTitle = style({
   flex: 1,
   overflow: "hidden",

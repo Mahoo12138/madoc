@@ -64,6 +64,7 @@ export function ItemTree({
           <div className={styles.treeRow} data-active={activeId === item.id}>
             <UnstyledButton
               className={styles.treeLink}
+              title={item.title}
               style={{ paddingLeft: 8 + depth * 17 }}
               aria-expanded={isFolder ? !closed : undefined}
               aria-current={activeId === item.id ? 'page' : undefined}
@@ -81,14 +82,18 @@ export function ItemTree({
             >
               {isFolder ? (
                 closed ? (
-                  <IconChevronRight size={14} />
+                  <IconChevronRight size={14} className={styles.treeIcon} />
                 ) : (
-                  <IconChevronDown size={14} />
+                  <IconChevronDown size={14} className={styles.treeIcon} />
                 )
               ) : (
-                <span style={{ width: 14 }} />
+                <span
+                  className={styles.treeIcon}
+                  style={{ width: 14 }}
+                  aria-hidden
+                />
               )}
-              <Icon size={15} />
+              <Icon size={15} className={styles.treeIcon} aria-hidden />
               <span className={styles.rowTitle}>{item.title}</span>
             </UnstyledButton>
             <ActionIcon
