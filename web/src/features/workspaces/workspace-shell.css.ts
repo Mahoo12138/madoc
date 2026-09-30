@@ -50,11 +50,8 @@ export const brand = style({
 export const brandMark = style({
   width: 22,
   height: 22,
-  borderRadius: 6,
-  background:
-    "linear-gradient(135deg, var(--mantine-primary-color-filled) 0 48%, #8dbbff 48% 65%, var(--mantine-primary-color-7) 65%)",
-  boxShadow:
-    "0 2px 5px color-mix(in srgb, var(--mantine-primary-color-filled) 24%, transparent)",
+  display: "block",
+  flexShrink: 0,
 });
 export const workspaceIdentity = style({
   flex: 1,

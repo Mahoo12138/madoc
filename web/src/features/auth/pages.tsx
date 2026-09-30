@@ -10,7 +10,7 @@ import { APIError } from '@/api/types';
 import * as styles from './pages.css';
 
 function Brand() {
-  return <div className={styles.brand}><div className={styles.mark}>m</div><Text fw={700} size="lg">madoc</Text></div>;
+  return <div className={styles.brand}><img src="/logo.svg" alt="" aria-hidden className={styles.mark} /><Text fw={700} size="lg">madoc</Text></div>;
 }
 
 function ErrorAlert({ error }: { error: string }) {

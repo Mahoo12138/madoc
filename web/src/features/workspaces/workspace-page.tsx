@@ -301,7 +301,7 @@ export function WorkspacePage() {
         <aside className={styles.sidebar}>
           <div className={styles.brandRow}>
             <div className={styles.brand}>
-              <span aria-hidden className={styles.brandMark} />
+              <img src="/logo.svg" alt="" aria-hidden className={styles.brandMark} />
               madoc
             </div>
           </div>

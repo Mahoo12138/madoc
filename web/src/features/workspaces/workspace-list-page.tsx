@@ -56,9 +56,12 @@ export function WorkspaceListPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Text c="blue" fw={700}>
-            madoc
-          </Text>
+          <Group gap={8} wrap="nowrap">
+            <img src="/logo.svg" width={20} height={20} alt="" aria-hidden />
+            <Text c="blue" fw={700}>
+              madoc
+            </Text>
+          </Group>
           <Title order={1} mt={6}>
             Workspaces
           </Title>
