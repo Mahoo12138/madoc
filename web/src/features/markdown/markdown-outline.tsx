@@ -4,6 +4,7 @@ import {
   ChevronRight,
   ChevronsDownUp,
   ChevronsUpDown,
+  X,
 } from "lucide-react";
 import { useMemo } from "react";
 import {
@@ -19,6 +20,7 @@ type Props = {
   title: string;
   outline: Outline | null;
   onNavigate: (position: number) => void;
+  onClose?: () => void;
 };
 
 function containsActive(
@@ -35,6 +37,7 @@ export function MarkdownOutline({
   title,
   outline,
   onNavigate,
+  onClose,
   showTitle = true,
 }: Props & { showTitle?: boolean }) {
   const branches = useMemo(
@@ -45,8 +48,10 @@ export function MarkdownOutline({
     () => outlineParentPositions(outline?.headings ?? []),
     [outline?.headings],
   );
-  const render = (entries: OutlineBranch[]) => (
-    <ol className={styles.list}>
+  const render = (entries: OutlineBranch[], root = false) => (
+    <ol
+      className={root ? `${styles.list} ${styles.rootList}` : styles.list}
+    >
       {entries.map((heading) => {
         const hasChildren = heading.children.length > 0;
         const closed = outline!.collapsed.has(heading.position);
@@ -103,9 +108,13 @@ export function MarkdownOutline({
   );
 
   return (
-    <nav aria-label="文档大纲" className={styles.outline}>
+    <nav
+      aria-label="文档大纲"
+      className={styles.outline}
+      data-desktop={!showTitle}
+    >
       <div className={styles.header}>
-        {showTitle && (
+        {showTitle ? (
           <Text
             size="xs"
             fw={600}
@@ -115,37 +124,59 @@ export function MarkdownOutline({
           >
             {title}
           </Text>
+        ) : (
+          <Text size="sm" fw={650} className={styles.documentTitle}>
+            大纲
+          </Text>
         )}
-        {parents.length > 0 && (
+        {(parents.length > 0 || onClose) && (
           <div className={styles.tools}>
-            <Tooltip label="全部展开">
-              <ActionIcon
-                className={touchAction}
-                aria-label="全部展开"
-                variant="subtle"
-                color="gray"
-                size={26}
-                disabled={!outline?.collapsed.size}
-                onClick={() => outline?.setAllCollapsed(false)}
-              >
-                <ChevronsUpDown size={15} />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="全部折叠">
-              <ActionIcon
-                className={touchAction}
-                aria-label="全部折叠"
-                variant="subtle"
-                color="gray"
-                size={26}
-                disabled={parents.every((position) =>
-                  outline?.collapsed.has(position),
-                )}
-                onClick={() => outline?.setAllCollapsed(true)}
-              >
-                <ChevronsDownUp size={15} />
-              </ActionIcon>
-            </Tooltip>
+            {parents.length > 0 && (
+              <>
+                <Tooltip label="全部展开">
+                  <ActionIcon
+                    className={touchAction}
+                    aria-label="全部展开"
+                    variant="subtle"
+                    color="gray"
+                    size={26}
+                    disabled={!outline?.collapsed.size}
+                    onClick={() => outline?.setAllCollapsed(false)}
+                  >
+                    <ChevronsUpDown size={15} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="全部折叠">
+                  <ActionIcon
+                    className={touchAction}
+                    aria-label="全部折叠"
+                    variant="subtle"
+                    color="gray"
+                    size={26}
+                    disabled={parents.every((position) =>
+                      outline?.collapsed.has(position),
+                    )}
+                    onClick={() => outline?.setAllCollapsed(true)}
+                  >
+                    <ChevronsDownUp size={15} />
+                  </ActionIcon>
+                </Tooltip>
+              </>
+            )}
+            {onClose && (
+              <Tooltip label="隐藏大纲">
+                <ActionIcon
+                  className={touchAction}
+                  aria-label="隐藏大纲"
+                  variant="subtle"
+                  color="gray"
+                  size={26}
+                  onClick={onClose}
+                >
+                  <X size={15} aria-hidden />
+                </ActionIcon>
+              </Tooltip>
+            )}
           </div>
         )}
       </div>
@@ -161,7 +192,7 @@ export function MarkdownOutline({
           </Text>
         </div>
       ) : (
-        render(branches)
+        render(branches, true)
       )}
     </nav>
   );

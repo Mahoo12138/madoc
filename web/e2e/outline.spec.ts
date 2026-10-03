@@ -278,7 +278,8 @@ test("desktop right outline and mobile drawer navigation", async ({
   await expect(outline).toBeVisible();
   await page.getByRole("button", { name: "版本与分享" }).click();
   const versions = page.getByRole("dialog");
-  await expect(versions).toContainText("只读分享与发布");
+  await versions.getByRole("tab", { name: "只读分享" }).click();
+  await expect(versions.getByRole("textbox", { name: "发布版本" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(versions).toBeHidden();
   await page.screenshot({ path: testInfo.outputPath("desktop.png") });

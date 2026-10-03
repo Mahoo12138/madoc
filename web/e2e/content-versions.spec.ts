@@ -1,15 +1,29 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { openDocument } from './helpers/writing';
 import { openBoard, rectangle } from './helpers/whiteboard';
+
+async function saveManualVersion(page: Page, history: Locator, label: string) {
+  await history.getByRole('button', { name: '保存手动版本', exact: true }).click();
+  const form = page.getByRole('dialog', { name: '保存手动版本', exact: true });
+  await form.getByLabel('版本名称').fill(label);
+  await form.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(form).toHaveCount(0);
+  await expect(history.getByText('手动版本已保存。')).toBeVisible();
+}
+
+async function restoreCopy(page: Page, history: Locator, title: string) {
+  await history.getByRole('button', { name: '恢复为新副本', exact: true }).click();
+  const form = page.getByRole('dialog', { name: '恢复为新副本', exact: true });
+  await form.getByLabel('恢复副本名称').fill(title);
+  await form.getByRole('button', { name: '恢复副本', exact: true }).click();
+}
 
 test('Markdown history creates named checkpoints, previews old text, and restores a copy', async ({ page }) => {
   const sourceId = await openDocument(page, 'Before edit');
   await page.getByRole('button', { name: '版本历史' }).click();
   let dialog = page.getByRole('dialog', { name: '版本历史' });
-  await expect(dialog.getByText(/Workspace 历史占用/)).toBeVisible();
-  await dialog.getByLabel('版本名称').fill('Before release');
-  await dialog.getByRole('button', { name: '保存手动版本' }).click();
-  await expect(dialog.getByText('手动版本已保存。')).toBeVisible();
+  await expect(dialog.getByText(/工作区历史占用/)).toBeVisible();
+  await saveManualVersion(page, dialog, 'Before release');
   await page.keyboard.press('Escape');
 
   await page.locator('.ProseMirror').click();
@@ -27,8 +41,7 @@ test('Markdown history creates named checkpoints, previews old text, and restore
   const checkpoint = dialog.getByRole('button').filter({ hasText: 'Before release' });
   await checkpoint.click();
   await expect(dialog.getByText('Before edit', { exact: true })).toBeVisible();
-  await dialog.getByLabel('恢复副本名称').fill('Recovered draft');
-  await dialog.getByRole('button', { name: '恢复为新副本' }).click();
+  await restoreCopy(page, dialog, 'Recovered draft');
 
   await expect(page.getByRole('dialog', { name: '版本历史' })).toHaveCount(0);
   await expect(page.locator('.ProseMirror')).toHaveText('Before edit');
@@ -44,9 +57,7 @@ test('whiteboard history renders a preview and restores the selected scene', asy
   await openBoard(page);
   await page.getByRole('button', { name: '版本历史' }).click();
   let dialog = page.getByRole('dialog', { name: '版本历史' });
-  await dialog.getByLabel('版本名称').fill('Empty board');
-  await dialog.getByRole('button', { name: '保存手动版本' }).click();
-  await expect(dialog.getByText('手动版本已保存。')).toBeVisible();
+  await saveManualVersion(page, dialog, 'Empty board');
   await page.keyboard.press('Escape');
 
   await rectangle(page);
@@ -55,8 +66,7 @@ test('whiteboard history renders a preview and restores the selected scene', asy
   dialog = page.getByRole('dialog', { name: '版本历史' });
   await dialog.getByRole('button').filter({ hasText: 'Empty board' }).click();
   await expect(dialog.getByRole('img', { name: '白板版本预览' })).toBeVisible();
-  await dialog.getByLabel('恢复副本名称').fill('Recovered board');
-  await dialog.getByRole('button', { name: '恢复为新副本' }).click();
+  await restoreCopy(page, dialog, 'Recovered board');
   await expect(page.locator('.excalidraw')).toBeVisible();
   await expect(page.getByRole('dialog', { name: '版本历史' })).toHaveCount(0);
 });

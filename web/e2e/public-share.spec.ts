@@ -1,6 +1,31 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { openDocument } from './helpers/writing';
 import { prepareSharedMarkdown } from '../src/features/sharing/public-markdown';
+
+async function saveManualVersion(page: Page, history: Locator, label: string) {
+  await history.getByRole('button', { name: '保存手动版本', exact: true }).click();
+  const form = page.getByRole('dialog', { name: '保存手动版本', exact: true });
+  await form.getByLabel('版本名称').fill(label);
+  await form.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(form).toHaveCount(0);
+  await expect(history.getByText('手动版本已保存。')).toBeVisible();
+}
+
+async function createShare(page: Page, history: Locator) {
+  await history.getByRole('tab', { name: '只读分享', exact: true }).click();
+  await history.getByRole('button', { name: '新建分享', exact: true }).click();
+  const form = page.getByRole('dialog', { name: '新建只读分享', exact: true });
+  await form.getByRole('button', { name: '创建只读分享', exact: true }).click();
+  await expect(form).toHaveCount(0);
+  const input = history.getByRole('alert').getByRole('textbox');
+  await expect(input).toBeVisible();
+  await expect(input).toHaveAttribute('readonly', '');
+  const shareURL = await input.inputValue();
+  await history.getByRole('tab', { name: '历史记录', exact: true }).click();
+  await history.getByRole('tab', { name: '只读分享', exact: true }).click();
+  await expect(input).toHaveValue(shareURL);
+  return shareURL;
+}
 
 test('public Markdown blocks external images and unsafe links', async () => {
   const source = [
@@ -26,13 +51,8 @@ test('a public share stays fixed until explicit publish and stops after revoke',
   const itemId = await openDocument(page, 'Initial private draft');
   await page.getByRole('button', { name: '版本历史' }).click();
   let dialog = page.getByRole('dialog', { name: '版本历史' });
-  await dialog.getByLabel('版本名称').fill('Release one');
-  await dialog.getByRole('button', { name: '保存手动版本' }).click();
-  await expect(dialog.getByText('手动版本已保存。')).toBeVisible();
-  await dialog.getByRole('button', { name: '创建只读分享' }).click();
-  const linkInput = dialog.getByRole('alert').getByRole('textbox');
-  await expect(linkInput).toBeVisible();
-  const shareURL = await linkInput.inputValue();
+  await saveManualVersion(page, dialog, 'Release one');
+  const shareURL = await createShare(page, dialog);
   await page.keyboard.press('Escape');
 
   const anonymous = await browser.newPage();
@@ -50,9 +70,8 @@ test('a public share stays fixed until explicit publish and stops after revoke',
 
   await page.getByRole('button', { name: '版本历史' }).click();
   dialog = page.getByRole('dialog', { name: '版本历史' });
-  await dialog.getByLabel('版本名称').fill('Release two');
-  await dialog.getByRole('button', { name: '保存手动版本' }).click();
-  await expect(dialog.getByText('手动版本已保存。')).toBeVisible();
+  await saveManualVersion(page, dialog, 'Release two');
+  await dialog.getByRole('tab', { name: '只读分享', exact: true }).click();
   await dialog.getByRole('button', { name: '发布更新' }).click();
   await anonymous.reload();
   await expect(anonymous.locator('.ProseMirror')).toContainText('Updated private draft');
@@ -105,11 +124,8 @@ test('a shared Markdown version exposes only its referenced uploaded image', asy
 
   await page.getByRole('button', { name: '版本历史' }).click();
   const dialog = page.getByRole('dialog', { name: '版本历史' });
-  await dialog.getByLabel('版本名称').fill('Image release');
-  await dialog.getByRole('button', { name: '保存手动版本' }).click();
-  await expect(dialog.getByText('手动版本已保存。')).toBeVisible();
-  await dialog.getByRole('button', { name: '创建只读分享' }).click();
-  const shareURL = await dialog.getByRole('alert').getByRole('textbox').inputValue();
+  await saveManualVersion(page, dialog, 'Image release');
+  const shareURL = await createShare(page, dialog);
   const token = new URL(shareURL).pathname.split('/').pop()!;
   const anonymous = await browser.newPage();
   const metadataResponse = await anonymous.request.get(`/api/public/shares/${token}`);
