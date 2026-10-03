@@ -3,8 +3,9 @@ import { createTheme, type CSSVariablesResolver } from '@mantine/core';
 export const cssVariablesResolver: CSSVariablesResolver = (theme) => ({
   variables: {},
   light: {
-    '--mantine-color-dimmed': theme.colors.gray[7],
-    '--mantine-color-placeholder': theme.colors.gray[7],
+    '--mantine-color-text': theme.colors.gray[9],
+    '--mantine-color-dimmed': theme.colors.gray[6],
+    '--mantine-color-placeholder': theme.colors.gray[6],
   },
   dark: {
     '--mantine-color-dimmed': theme.colors.gray[4],
@@ -15,25 +16,40 @@ export const cssVariablesResolver: CSSVariablesResolver = (theme) => ({
 export const theme = createTheme({
   primaryColor: 'blue',
   primaryShade: { light: 6, dark: 5 },
-  defaultRadius: 'md',
+  defaultRadius: 'sm',
   fontFamily:
-    'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
+  fontFamilyMonospace:
+    '"SFMono-Regular", Consolas, "Liberation Mono", monospace',
   headings: {
-    fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
-    fontWeight: '650',
+    fontFamily: 'var(--mantine-font-family)',
+    fontWeight: '600',
   },
+  radius: { xs: '4px', sm: '6px', md: '8px', lg: '8px' },
   colors: {
+    gray: [
+      '#f7f8fa',
+      '#f0f2f5',
+      '#e5e8ed',
+      '#d4d9e1',
+      '#b2bac6',
+      '#8993a2',
+      '#626d7d',
+      '#505a69',
+      '#394352',
+      '#252e3b',
+    ],
     blue: [
-      '#eef6ff',
-      '#d9eaff',
-      '#bad8ff',
-      '#8fc0ff',
-      '#5da2ff',
-      '#3182f6',
-      '#1f6feb',
-      '#1b5dcc',
-      '#1b4fa5',
-      '#193f7f',
+      '#f0f5fc',
+      '#e2ecfa',
+      '#c7d9f2',
+      '#a8c2e9',
+      '#81a4d9',
+      '#5c86c6',
+      '#3869ad',
+      '#305b98',
+      '#294e82',
+      '#23416b',
     ],
   },
   components: {
@@ -42,7 +58,7 @@ export const theme = createTheme({
     Modal: {
       defaultProps: {
         centered: true,
-        radius: 'lg',
+        radius: 'md',
         closeButtonProps: { 'aria-label': '关闭' },
       },
     },

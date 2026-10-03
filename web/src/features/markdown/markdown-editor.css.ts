@@ -19,18 +19,19 @@ export const title = style({
   border: 0,
   outline: 0,
   background: 'transparent',
-  color: 'var(--mantine-color-dark-9)',
+  color: 'var(--mantine-color-text)',
   caretColor: 'var(--mantine-primary-color-filled)',
-  fontSize: 38,
-  fontWeight: 700,
-  lineHeight: 1.15,
-  letterSpacing: '-0.032em',
+  fontSize: 34,
+  fontWeight: 600,
+  lineHeight: 1.3,
+  letterSpacing: 0,
+  overflowWrap: 'anywhere',
   selectors: {
-    '&::placeholder': { color: 'var(--mantine-color-gray-5)' },
+    '&::placeholder': { color: 'var(--mantine-color-dimmed)' },
     '&:focus-visible': { textDecoration: 'underline', textDecorationColor: 'var(--mantine-color-blue-2)', textUnderlineOffset: 8 },
   },
   '@media': {
-    '(max-width: 760px)': { fontSize: 32 },
+    '(max-width: 760px)': { fontSize: 28 },
   },
 });
 
@@ -38,6 +39,7 @@ export const meta = style({
   minHeight: 36,
   marginTop: 14,
   color: 'var(--mantine-color-gray-6)',
+  fontVariantNumeric: 'tabular-nums',
 });
 
 export const editor = style({

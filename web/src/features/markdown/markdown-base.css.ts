@@ -11,22 +11,22 @@ globalStyle('.milkdown .ProseMirror', {
 globalStyle('.milkdown .ProseMirror h1', {
   fontSize: 'calc(var(--madoc-font-size, 16px) * 2)',
   lineHeight: '1.2',
-  letterSpacing: '-0.025em',
+  letterSpacing: 0,
 });
 globalStyle('.milkdown .ProseMirror h2', {
   fontSize: 'calc(var(--madoc-font-size, 16px) * 1.5)',
   lineHeight: '1.3',
-  letterSpacing: '-0.018em',
+  letterSpacing: 0,
 });
 globalStyle('.milkdown .ProseMirror h3', {
   fontSize: 'calc(var(--madoc-font-size, 16px) * 1.25)',
   lineHeight: '1.4',
-  letterSpacing: '-0.012em',
+  letterSpacing: 0,
 });
 globalStyle('.milkdown .ProseMirror h4', {
   fontSize: 'calc(var(--madoc-font-size, 16px) * 1.125)',
   lineHeight: '1.45',
-  letterSpacing: '-0.008em',
+  letterSpacing: 0,
 });
 globalStyle('.milkdown .ProseMirror h5', {
   fontSize: 'calc(var(--madoc-font-size, 16px) * 1)',
