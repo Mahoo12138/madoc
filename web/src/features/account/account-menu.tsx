@@ -1,15 +1,10 @@
-import {
-  Avatar,
-  Divider,
-  Group,
-  Menu,
-  Text,
-  UnstyledButton,
-} from '@mantine/core';
+import { Avatar, Menu, Text, UnstyledButton } from '@mantine/core';
 import { ChevronUp, LogOut, Settings2 } from 'lucide-react';
+import { useNavigate, useRouterState } from '@tanstack/react-router';
 import type { User } from '@/api/types';
 import { useAccount } from './account-provider';
 import * as styles from './account.css';
+
 export function AccountMenu({
   user,
   compact = false,
@@ -20,9 +15,41 @@ export function AccountMenu({
   onAction?: (action: () => void) => void;
 }) {
   const account = useAccount();
+  const navigate = useNavigate();
+  const managementReturnItemId = useRouterState({
+    select: (state) =>
+      (state.location.state as { madocManagementReturnItemId?: unknown })
+        ?.madocManagementReturnItemId,
+  });
   const run = (action: () => void) => (onAction ? onAction(action) : action());
+  const openSettings = () => {
+    if (window.location.pathname === '/settings') return;
+    const fromManagement = /^\/workspace\/[^/]+\/manage$/.test(
+      window.location.pathname,
+    );
+    void navigate({
+      to: '/settings',
+      state: (previous) => ({
+        ...previous,
+        madocSettingsFrom: window.location.pathname + window.location.hash,
+        madocManagementReturnItemId:
+          fromManagement && typeof managementReturnItemId === 'string'
+            ? managementReturnItemId
+            : undefined,
+      }),
+    });
+  };
   return (
-    <Menu width={250} position={compact ? 'bottom-end' : 'top-start'}>
+    <Menu
+      width={280}
+      shadow="md"
+      radius="md"
+      position={compact ? 'bottom-end' : 'top-start'}
+      classNames={{
+        item: styles.menuItem,
+        itemSection: styles.menuItemSection,
+      }}
+    >
       <Menu.Target>
         <UnstyledButton aria-label="账号菜单" className={styles.trigger}>
           <Avatar src={user.avatarUrl} radius="xl" size={compact ? 34 : 30}>
@@ -43,35 +70,45 @@ export function AccountMenu({
           )}
         </UnstyledButton>
       </Menu.Target>
-      <Menu.Dropdown className={styles.modalContent}>
-        <Menu.Label>
-          <Group gap="xs" wrap="nowrap">
-            <Avatar src={user.avatarUrl} radius="xl" size={28}>
-              {[...user.name][0]}
-            </Avatar>
-            <Text size="sm" fw={600} truncate>
+      <Menu.Dropdown className={styles.menuDropdown}>
+        <Menu.Label className={styles.menuIdentity}>
+          <Avatar src={user.avatarUrl} radius="xl" size={40}>
+            {[...user.name][0]}
+          </Avatar>
+          <div className={styles.menuIdentityText}>
+            <Text
+              size="sm"
+              fw={600}
+              className={styles.menuName}
+              title={user.name}
+            >
               {user.name}
             </Text>
-          </Group>
-          <Text size="xs" truncate>
-            {user.email}
-          </Text>
+            <Text
+              size="xs"
+              c="dimmed"
+              className={styles.menuEmail}
+              title={user.email}
+            >
+              {user.email}
+            </Text>
+          </div>
         </Menu.Label>
-        <Divider />
-        <Menu.Item
-          leftSection={<Settings2 size={16} />}
-          onClick={() => run(() => account.open('profile'))}
-        >
-          设置
-        </Menu.Item>
-        <Menu.Divider />
-        <Menu.Item
-          color="red"
-          leftSection={<LogOut size={16} />}
-          onClick={() => run(account.signOut)}
-        >
-          退出登录
-        </Menu.Item>
+        <div className={styles.menuActions}>
+          <Menu.Item
+            leftSection={<Settings2 size={17} aria-hidden />}
+            onClick={() => run(openSettings)}
+          >
+            设置
+          </Menu.Item>
+          <Menu.Item
+            color="red"
+            leftSection={<LogOut size={17} aria-hidden />}
+            onClick={() => run(account.signOut)}
+          >
+            退出登录
+          </Menu.Item>
+        </div>
       </Menu.Dropdown>
     </Menu>
   );

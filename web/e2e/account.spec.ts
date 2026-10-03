@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { accountFixture, accountHeaders, openAccount } from './helpers/account';
 
-test('profile save preserves editor, undo and Markdown; cancel protects the draft', async ({
+test('profile save preserves saved Markdown across page navigation; cancel protects the draft', async ({
   page,
   baseURL,
 }) => {
@@ -12,12 +12,16 @@ test('profile save preserves editor, undo and Markdown; cancel protects the draf
   await editor.click();
   await page.keyboard.insertText('An account change preserves this text.');
   await expect(page.getByText('已保存', { exact: true })).toBeVisible();
-  await editor.evaluate((el) =>
-    el.setAttribute('data-session-check', 'original'),
-  );
   await openAccount(page);
+  await expect(page).toHaveURL(/\/settings(?:#profile)?$/);
+  await expect(editor).toHaveCount(0);
+  await expect(page.getByLabel('显示名称', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: '编辑资料' }).click();
+  await expect(
+    page.getByRole('dialog', { name: '编辑个人资料' }),
+  ).toBeVisible();
   await page.getByLabel('显示名称', { exact: true }).fill('Changed owner');
-  await page.getByRole('button', { name: '账号安全', exact: true }).click();
+  await page.keyboard.press('Escape');
   await expect(
     page.getByRole('dialog', { name: '保存个人资料？' }),
   ).toBeVisible();
@@ -26,19 +30,19 @@ test('profile save preserves editor, undo and Markdown; cancel protects the draf
     path: '/tmp/madoc-account-desktop.png',
     animations: 'disabled',
   });
-  await page.getByRole('button', { name: '保存更改', exact: true }).click();
+  await page
+    .getByRole('dialog', { name: '编辑个人资料' })
+    .getByRole('button', { name: '保存更改', exact: true })
+    .click();
   await expect(
-    page.getByRole('button', { name: '保存更改', exact: true }),
-  ).toHaveCount(0);
-  await page.keyboard.press('Escape');
-  await expect(editor).toHaveAttribute('data-session-check', 'original');
+    page.getByRole('dialog', { name: '编辑个人资料' }),
+  ).not.toBeVisible();
+  await page.getByRole('button', { name: '返回工作区' }).click();
+  await expect(page).toHaveURL(new RegExp(`/workspace/[^/]+/${item.id}$`));
+  await expect(editor).toBeVisible();
   await expect(
     page.getByRole('button', { name: '账号菜单', exact: true }),
   ).toContainText('Changed owner');
-  await editor.click();
-  await editor.press('ControlOrMeta+z');
-  await expect(editor).not.toContainText('An account change');
-  await editor.press('ControlOrMeta+Shift+z');
   await expect(editor).toContainText('An account change');
   await expect
     .poll(async () =>
@@ -54,6 +58,7 @@ test('avatar upload, validation, partial-save retry and removal', async ({
 }) => {
   const { user } = await accountFixture(page, baseURL!);
   await openAccount(page);
+  await page.getByRole('button', { name: '编辑资料' }).click();
   const image = await page.screenshot({
     clip: { x: 0, y: 0, width: 48, height: 48 },
   });
@@ -76,8 +81,8 @@ test('avatar upload, validation, partial-save retry and removal', async ({
   await page.unroute('**/api/me');
   await page.getByRole('button', { name: '保存更改', exact: true }).click();
   await expect(
-    page.getByRole('button', { name: '保存更改', exact: true }),
-  ).toHaveCount(0);
+    page.getByRole('dialog', { name: '编辑个人资料' }),
+  ).not.toBeVisible();
   expect(
     (await page.request.get(`/api/users/${user.id}/avatar`)).status(),
   ).toBe(200);
@@ -93,11 +98,12 @@ test('avatar upload, validation, partial-save retry and removal', async ({
     },
   });
   expect(bad.status()).toBe(400);
+  await page.getByRole('button', { name: '编辑资料' }).click();
   await page.getByRole('button', { name: '恢复默认', exact: true }).click();
   await page.getByRole('button', { name: '保存更改', exact: true }).click();
   await expect(
-    page.getByRole('button', { name: '保存更改', exact: true }),
-  ).toHaveCount(0);
+    page.getByRole('dialog', { name: '编辑个人资料' }),
+  ).not.toBeVisible();
   expect(
     (await page.request.get(`/api/users/${user.id}/avatar`)).status(),
   ).toBe(404);
@@ -142,15 +148,25 @@ test('password keeps this browser and revokes another live collaboration session
     await expect(member.locator('.ProseMirror')).toBeVisible();
     await expect(other.getByText('已保存', { exact: true })).toBeVisible();
     await openAccount(member, '账号安全');
+    await expect(member.getByLabel('当前密码', { exact: true })).toHaveCount(0);
+    await member.getByRole('button', { name: '修改密码', exact: true }).click();
+    await expect(
+      member.getByRole('dialog', { name: '修改密码' }),
+    ).toBeVisible();
+    await member.getByLabel('当前密码', { exact: true }).fill('password123');
+    await member.keyboard.press('Escape');
+    await expect(member.getByLabel('当前密码', { exact: true })).toHaveCount(0);
+    await member.getByRole('button', { name: '修改密码', exact: true }).click();
+    await expect(member.getByLabel('当前密码', { exact: true })).toBeEmpty();
     await member.getByLabel('当前密码', { exact: true }).fill('incorrect');
     await member.getByLabel('新密码', { exact: true }).fill('nextpassword123');
     await member
       .getByLabel('确认新密码', { exact: true })
       .fill('nextpassword123');
-    await member.getByRole('button', { name: '修改密码', exact: true }).click();
+    await member.getByRole('button', { name: '保存密码', exact: true }).click();
     await expect(member.getByRole('alert')).toContainText('当前密码不正确');
     await member.getByLabel('当前密码', { exact: true }).fill('password123');
-    await member.getByRole('button', { name: '修改密码', exact: true }).click();
+    await member.getByRole('button', { name: '保存密码', exact: true }).click();
     await expect(member.getByRole('status')).toContainText('密码已修改');
     await expect(other).toHaveURL(`${baseURL}/sign-in`);
     expect((await member.request.get(`${baseURL}/api/me`)).ok()).toBeTruthy();
@@ -183,10 +199,8 @@ test('mobile personal settings and shared menu on workspace list', async ({
   await accountFixture(page, baseURL!);
   await page.getByRole('button', { name: '打开内容导航' }).click();
   await openAccount(page);
-  await expect(page.getByLabel('登录邮箱', { exact: true })).toHaveAttribute(
-    'readonly',
-    '',
-  );
+  await expect(page.getByText('登录邮箱', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('登录邮箱', { exact: true })).toHaveCount(0);
   await page.screenshot({
     path: '/tmp/madoc-account-mobile.png',
     animations: 'disabled',
@@ -194,6 +208,7 @@ test('mobile personal settings and shared menu on workspace list', async ({
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(390);
+  await page.getByRole('button', { name: '编辑资料' }).click();
   await page.getByLabel('显示名称', { exact: true }).fill('Discard');
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: '放弃更改' }).click();
@@ -202,7 +217,7 @@ test('mobile personal settings and shared menu on workspace list', async ({
   await expect(page.getByText('编辑快捷键', { exact: true })).toBeVisible();
 });
 
-test('account menu keyboard navigation restores trigger focus', async ({
+test('account menu keyboard navigation opens a page and browser back restores the document', async ({
   page,
   baseURL,
 }) => {
@@ -218,11 +233,106 @@ test('account menu keyboard navigation restores trigger focus', async ({
     page.getByRole('menuitem', { name: '设置', exact: true }),
   ).toBeFocused();
   await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect(page.getByRole('main', { name: '个人设置' })).toBeVisible();
+  await page.goBack();
+  await expect(page.locator('.ProseMirror')).toBeVisible();
+});
+
+test('direct settings session failure stays on the page and can retry', async ({
+  page,
+  baseURL,
+}) => {
+  await accountFixture(page, baseURL!);
+  let failed = false;
+  await page.route('**/api/auth/session', (route) => {
+    if (!failed) {
+      failed = true;
+      return route.fulfill({ status: 503, json: {} });
+    }
+    return route.continue();
+  });
+  await page.goto(`${baseURL}/settings`);
+  await expect(page).toHaveURL(`${baseURL}/settings`);
+  await expect(page.getByRole('alert')).toContainText('无法验证登录状态');
+  await page.getByRole('button', { name: '重试', exact: true }).click();
+  await expect(page.getByRole('main', { name: '个人设置' })).toBeVisible();
+});
+
+test('settings returns to the same management section and document', async ({
+  page,
+  baseURL,
+}) => {
+  const { workspace, item } = await accountFixture(page, baseURL!);
+  await page.getByRole('button', { name: '工作区菜单' }).click();
+  await page.getByRole('menuitem', { name: '管理' }).click();
+  await expect(page).toHaveURL(
+    `${baseURL}/workspace/${workspace.id}/manage#workspace`,
+  );
+  await page
+    .getByRole('navigation', { name: '工作区管理导航' })
+    .getByRole('button', { name: '成员管理' })
+    .click();
+  await expect(page).toHaveURL(
+    `${baseURL}/workspace/${workspace.id}/manage#members`,
+  );
+  await openAccount(page);
+  await page.getByRole('button', { name: '返回工作区', exact: true }).click();
+  await expect(page).toHaveURL(
+    `${baseURL}/workspace/${workspace.id}/manage#members`,
+  );
+  await page.getByRole('button', { name: '返回工作区', exact: true }).click();
+  await expect(page).toHaveURL(
+    `${baseURL}/workspace/${workspace.id}/${item.id}`,
+  );
+});
+
+test('browser back asks before discarding an unsaved profile draft', async ({
+  page,
+  baseURL,
+}) => {
+  await accountFixture(page, baseURL!);
+  const documentUrl = page.url();
+  await openAccount(page);
+  await page.getByRole('button', { name: '编辑资料' }).click();
+  await page.getByLabel('显示名称', { exact: true }).fill('Unsaved name');
+  await page.evaluate(() => window.history.back());
+  const confirm = page.getByRole('dialog', { name: '保存个人资料？' });
+  await expect(confirm).toBeVisible();
+  await confirm.getByRole('button', { name: '继续编辑' }).click();
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect(page.getByLabel('显示名称', { exact: true })).toHaveValue(
+    'Unsaved name',
+  );
+  await page.evaluate(() => window.history.back());
+  await confirm.getByRole('button', { name: '放弃更改' }).click();
+  await expect(page).toHaveURL(documentUrl);
+  await expect(page.locator('.ProseMirror')).toBeVisible();
   await expect(
-    page.getByRole('dialog', { name: '个人设置', exact: true }),
-  ).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(trigger).toBeFocused();
+    page.getByRole('button', { name: '账号菜单', exact: true }),
+  ).not.toContainText('Unsaved name');
+});
+
+test('changing the settings hash cannot discard an open profile draft', async ({
+  page,
+  baseURL,
+}) => {
+  await accountFixture(page, baseURL!);
+  await openAccount(page);
+  await page.getByRole('button', { name: '编辑资料' }).click();
+  await page.getByLabel('显示名称', { exact: true }).fill('Keep this draft');
+  await page.evaluate(() => {
+    window.location.hash = 'security';
+  });
+  await expect(page.getByLabel('显示名称', { exact: true })).toHaveValue(
+    'Keep this draft',
+  );
+  await expect(page.getByRole('region', { name: '个人资料' })).toBeVisible();
+  const confirm = page.getByRole('dialog', { name: '保存个人资料？' });
+  if (await confirm.isVisible()) {
+    await confirm.getByRole('button', { name: '继续编辑' }).click();
+  }
+  await expect(page).not.toHaveURL(/#security$/);
 });
 
 test('account entries are grouped under settings with a shortcuts navigation item', async ({
@@ -242,12 +352,24 @@ test('account entries are grouped under settings with a shortcuts navigation ite
     '本地恢复',
   ]);
   await nav.getByRole('button', { name: '快捷键', exact: true }).click();
+  await expect(page).toHaveURL(/\/settings#shortcuts$/);
   await expect(
     nav.getByRole('button', { name: '快捷键', exact: true }),
   ).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByText('编辑快捷键', { exact: true })).toBeVisible();
+  await page.reload();
   await expect(page.getByText('编辑快捷键', { exact: true })).toBeVisible();
   await page.screenshot({
     path: '/tmp/madoc-settings-shortcuts-desktop.png',
     animations: 'disabled',
   });
+  await page.goto(`${baseURL}/settings#recovery`);
+  await expect(page.getByRole('main', { name: '个人设置' })).toBeVisible();
+  await expect(
+    page
+      .getByRole('navigation', { name: '个人设置分类' })
+      .getByRole('button', { name: '本地恢复' }),
+  ).toHaveAttribute('aria-current', 'page');
+  await page.getByRole('button', { name: '返回工作区' }).click();
+  await expect(page).toHaveURL(`${baseURL}/workspaces`);
 });

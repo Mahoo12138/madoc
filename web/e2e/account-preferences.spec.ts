@@ -3,6 +3,10 @@ import { accountFixture, accountHeaders, openAccount } from './helpers/account';
 import { defaultPreferences } from '../src/features/account/preferences-model';
 const source =
   '# A heading\n\nA paragraph to read.\n\n```ts\nconst answer = 42;\nconsole.log(answer);\n```\n';
+async function selectFontSize(page: Page, size: number) {
+  await page.getByRole('textbox', { name: '正文字号', exact: true }).click();
+  await page.getByRole('option', { name: `${size} px`, exact: true }).click();
+}
 async function setup(page: Page, baseURL: string) {
   const result = await accountFixture(page, baseURL, source);
   expect(
@@ -20,6 +24,11 @@ async function setup(page: Page, baseURL: string) {
 async function synced(page: Page) {
   await expect(page.getByLabel('偏好同步状态')).toHaveText('已同步');
 }
+async function returnToDocument(page: Page, documentUrl: string) {
+  await page.getByRole('button', { name: '返回工作区' }).click();
+  await expect(page).toHaveURL(documentUrl);
+  await expect(page.locator('.ProseMirror')).toBeVisible();
+}
 
 test('all seven preferences affect only this view and survive refresh', async ({
   page,
@@ -29,15 +38,15 @@ test('all seven preferences affect only this view and survive refresh', async ({
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 900 });
   const { item } = await setup(page, baseURL!);
+  const documentUrl = page.url();
   const before = await (
     await page.request.get(`/api/items/${item.id}/export.md`)
   ).text();
   const editor = page.locator('.ProseMirror');
-  await editor.evaluate((el) =>
-    el.setAttribute('data-session-check', 'unchanged'),
-  );
   await openAccount(page, 'Markdown 偏好');
-  await page.getByRole('textbox', { name: '正文字号', exact: true }).fill('20');
+  await expect(editor).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '编辑偏好' })).toHaveCount(0);
+  await selectFontSize(page, 20);
   await page.getByRole('textbox', { name: '行距', exact: true }).click();
   await page.getByRole('option', { name: '宽松', exact: true }).click();
   await page.getByRole('textbox', { name: '正文宽度', exact: true }).click();
@@ -48,18 +57,12 @@ test('all seven preferences affect only this view and survive refresh', async ({
   await page.getByRole('switch', { name: '打字机模式', exact: true }).check();
   await synced(page);
   await page.getByLabel('阅读预览').scrollIntoViewIfNeeded();
-  await page
-    .getByRole('dialog')
-    .locator('section')
-    .evaluate((el) => {
-      el.scrollTop = 0;
-    });
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     path: '/tmp/madoc-preferences-desktop.png',
     animations: 'disabled',
   });
-  await page.keyboard.press('Escape');
-  await expect(editor).toHaveAttribute('data-session-check', 'unchanged');
+  await returnToDocument(page, documentUrl);
   await expect(editor).toHaveCSS('font-size', '20px');
   await expect(editor).toHaveCSS('line-height', '40px');
   await expect(editor.locator('h1')).toHaveCSS('font-size', '40px');
@@ -92,6 +95,7 @@ test('all seven preferences affect only this view and survive refresh', async ({
   await page.getByRole('button', { name: '恢复默认设置', exact: true }).click();
   await page.getByRole('button', { name: '确认恢复', exact: true }).click();
   await synced(page);
+  await returnToDocument(page, documentUrl);
   await expect(editor).toHaveCSS('font-size', '16px');
   expect(
     await (await page.request.get(`/api/items/${item.id}/export.md`)).text(),
@@ -99,15 +103,16 @@ test('all seven preferences affect only this view and survive refresh', async ({
   expect(errors).toEqual([]);
 });
 
-test('auto pairing can be toggled without recreating the editor or changing escaping', async ({
+test('auto pairing applies after returning to the document without changing escaping', async ({
   page,
   baseURL,
 }) => {
   await setup(page, baseURL!);
+  const documentUrl = page.url();
   await openAccount(page, 'Markdown 偏好');
   await page.getByRole('switch', { name: '括号与引号自动配对' }).uncheck();
   await synced(page);
-  await page.keyboard.press('Escape');
+  await returnToDocument(page, documentUrl);
   const paragraph = page.locator('.ProseMirror p').first();
   await paragraph.click();
   await page.keyboard.press('End');
@@ -122,7 +127,7 @@ test('auto pairing can be toggled without recreating the editor or changing esca
   await openAccount(page, 'Markdown 偏好');
   await page.getByRole('switch', { name: '括号与引号自动配对' }).check();
   await synced(page);
-  await page.keyboard.press('Escape');
+  await returnToDocument(page, documentUrl);
   await paragraph.click();
   await page.keyboard.press('End');
   await page.keyboard.press('Enter');
@@ -138,12 +143,13 @@ test('same-browser tabs and another device synchronize field changes', async ({
   baseURL,
 }) => {
   await setup(page, baseURL!);
+  const documentUrl = page.url();
   const second = await page.context().newPage();
-  await second.goto(page.url());
+  await second.goto(documentUrl);
   await expect(second.locator('.ProseMirror')).toBeVisible();
   await openAccount(page, 'Markdown 偏好');
   await openAccount(second, 'Markdown 偏好');
-  await page.getByRole('textbox', { name: '正文字号', exact: true }).fill('19');
+  await selectFontSize(page, 19);
   await second.getByRole('switch', { name: '专注模式', exact: true }).check();
   await synced(page);
   await synced(second);
@@ -163,7 +169,7 @@ test('same-browser tabs and another device synchronize field changes', async ({
         })
       ).ok(),
     ).toBeTruthy();
-    await device.goto(page.url());
+    await device.goto(documentUrl);
     await expect(device.locator('.ProseMirror')).toHaveCSS('font-size', '19px');
     await openAccount(device, 'Markdown 偏好');
     await device
@@ -187,11 +193,10 @@ test('offline preferences remain usable, warn on logout, and sync on reconnect',
   await setup(page, baseURL!);
   await openAccount(page, 'Markdown 偏好');
   await page.context().setOffline(true);
-  await page.getByRole('textbox', { name: '正文字号', exact: true }).fill('22');
+  await selectFontSize(page, 22);
   await expect(page.getByLabel('偏好同步状态')).toHaveText('待同步');
   await expect(page.getByRole('button', { name: '重试同步' })).toBeVisible();
-  await expect(page.locator('.ProseMirror')).toHaveCSS('font-size', '22px');
-  await page.keyboard.press('Escape');
+  await expect(page.getByLabel('阅读预览')).toHaveCSS('font-size', '22px');
   await page.getByRole('button', { name: '账号菜单', exact: true }).click();
   await page.getByRole('menuitem', { name: '退出登录', exact: true }).click();
   await expect(
@@ -199,7 +204,6 @@ test('offline preferences remain usable, warn on logout, and sync on reconnect',
   ).toBeVisible();
   await page.getByRole('button', { name: '继续等待', exact: true }).click();
   await page.context().setOffline(false);
-  await openAccount(page, 'Markdown 偏好');
   await synced(page);
   expect(
     (await (await page.request.get('/api/me/preferences')).json()).preferences
@@ -212,21 +216,24 @@ test('failed saves retain pending fields across reload and retry', async ({
   baseURL,
 }) => {
   await setup(page, baseURL!);
+  const documentUrl = page.url();
   await page.route('**/api/me/preferences', (route) =>
     route.request().method() === 'PATCH'
       ? route.fulfill({ status: 503, json: {} })
       : route.continue(),
   );
   await openAccount(page, 'Markdown 偏好');
-  await page.getByRole('textbox', { name: '正文字号', exact: true }).fill('21');
+  await selectFontSize(page, 21);
   await expect(page.getByRole('button', { name: '重试同步' })).toBeVisible();
   await page.reload();
-  await expect(page.locator('.ProseMirror')).toHaveCSS('font-size', '21px');
-  await openAccount(page, 'Markdown 偏好');
+  await expect(page).toHaveURL(/\/settings#preferences$/);
+  await expect(page.getByLabel('阅读预览')).toHaveCSS('font-size', '21px');
   await expect(page.getByRole('button', { name: '重试同步' })).toBeVisible();
   await page.unroute('**/api/me/preferences');
   await page.getByRole('button', { name: '重试同步' }).click();
   await synced(page);
+  await returnToDocument(page, documentUrl);
+  await expect(page.locator('.ProseMirror')).toHaveCSS('font-size', '21px');
   expect(
     (await (await page.request.get('/api/me/preferences')).json()).preferences
       .fontSize,
@@ -239,8 +246,9 @@ test('viewer preferences are isolated; legacy modes migrate only once; mobile fi
   baseURL,
 }) => {
   const { workspace, item } = await setup(page, baseURL!);
+  const documentUrl = page.url();
   await openAccount(page, 'Markdown 偏好');
-  await page.getByRole('textbox', { name: '正文字号', exact: true }).fill('20');
+  await selectFontSize(page, 20);
   await synced(page);
   const invite = await (
     await page.request.post(`/api/workspaces/${workspace.id}/invites`, {
@@ -271,16 +279,9 @@ test('viewer preferences are isolated; legacy modes migrate only once; mobile fi
     await viewer
       .getByRole('switch', { name: '专注模式', exact: true })
       .uncheck();
-    await viewer
-      .getByRole('textbox', { name: '正文字号', exact: true })
-      .fill('18');
+    await selectFontSize(viewer, 18);
     await synced(viewer);
-    await viewer
-      .getByRole('dialog')
-      .locator('section')
-      .evaluate((el) => {
-        el.scrollTop = 0;
-      });
+    await viewer.evaluate(() => window.scrollTo(0, 0));
     await viewer.screenshot({
       path: '/tmp/madoc-preferences-mobile.png',
       animations: 'disabled',
@@ -289,8 +290,12 @@ test('viewer preferences are isolated; legacy modes migrate only once; mobile fi
       await viewer.evaluate(() => document.documentElement.scrollWidth),
     ).toBeLessThanOrEqual(390);
     await viewer.reload();
+    await expect(viewer).toHaveURL(/\/settings#preferences$/);
+    await viewer.getByRole('button', { name: '返回工作区' }).click();
+    await expect(viewer.locator('.ProseMirror')).toBeVisible();
     await expect(viewer.locator('.ProseMirror')).toHaveCSS('font-size', '18px');
     await expect(viewer.locator('[data-focus-mode=true]')).toHaveCount(0);
+    await returnToDocument(page, documentUrl);
     await expect(page.locator('.ProseMirror')).toHaveCSS('font-size', '20px');
   } finally {
     await context.close();
@@ -302,6 +307,7 @@ test('outdated backend is explained and pending preferences sync after service r
   baseURL,
 }) => {
   await setup(page, baseURL!);
+  const documentUrl = page.url();
   await page.route('**/api/me/preferences', (route) =>
     route.fulfill({
       status: 404,
@@ -310,10 +316,10 @@ test('outdated backend is explained and pending preferences sync after service r
     }),
   );
   await openAccount(page, 'Markdown 偏好');
-  await page.getByRole('textbox', { name: '正文字号', exact: true }).fill('21');
+  await selectFontSize(page, 21);
   await expect(page.getByLabel('偏好同步状态')).toHaveText('待同步');
   await expect(page.getByRole('alert')).toContainText('更新并重启服务');
-  await expect(page.locator('.ProseMirror')).toHaveCSS('font-size', '21px');
+  await expect(page.getByLabel('阅读预览')).toHaveCSS('font-size', '21px');
   await page.unroute('**/api/me/preferences');
   await page.getByRole('button', { name: '重试同步' }).click();
   await synced(page);
@@ -322,5 +328,7 @@ test('outdated backend is explained and pending preferences sync after service r
       .fontSize,
   ).toBe(21);
   await page.reload();
+  await expect(page).toHaveURL(/\/settings#preferences$/);
+  await returnToDocument(page, documentUrl);
   await expect(page.locator('.ProseMirror')).toHaveCSS('font-size', '21px');
 });

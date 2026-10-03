@@ -13,6 +13,10 @@ import {
 } from '@/features/auth/pages';
 import { WorkspaceListPage } from '@/features/workspaces/workspace-list-page';
 import { WorkspacePage } from '@/features/workspaces/workspace-page';
+const AccountSettingsPage = lazyRouteComponent(
+  () => import('@/features/account/account-settings-page'),
+  'AccountSettingsPage',
+);
 const PublicSharePage = lazyRouteComponent(
   () => import('@/features/sharing/public-share-page'),
   'PublicSharePage',
@@ -44,6 +48,11 @@ const workspacesRoute = createRoute({
   path: '/workspaces',
   component: WorkspaceListPage,
 });
+const accountSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/settings',
+  component: AccountSettingsPage,
+});
 const workspaceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/workspace/$workspaceId',
@@ -66,6 +75,7 @@ const routeTree = rootRoute.addChildren([
   signInRoute,
   inviteRoute,
   workspacesRoute,
+  accountSettingsRoute,
   workspaceRoute,
   itemRoute,
   publicShareRoute,

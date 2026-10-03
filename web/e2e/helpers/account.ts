@@ -51,24 +51,22 @@ export async function accountHeaders(page: Page, baseURL: string) {
   return { 'x-madoc-csrf-token': cookie!.value.split('.')[0], Origin: baseURL };
 }
 export async function openAccount(page: Page, section = '个人资料') {
-  await page.getByRole('button', { name: '账号菜单', exact: true }).click();
-  await page.getByRole('menuitem', { name: '设置', exact: true }).click();
-  await expect(
-    page.getByRole('dialog', { name: '个人设置', exact: true }),
-  ).toBeVisible();
-  if (section !== '个人资料') {
-    const mobile = page.getByRole('textbox', {
-      name: '个人设置分类',
-      exact: true,
-    });
-    if (await mobile.isVisible()) {
-      await mobile.click();
-      await page.getByRole('option', { name: section, exact: true }).click();
-    } else {
-      await page
-        .getByRole('navigation', { name: '个人设置分类' })
-        .getByRole('button', { name: section, exact: true })
-        .click();
-    }
+  if (new URL(page.url()).pathname !== '/settings') {
+    await page.getByRole('button', { name: '账号菜单', exact: true }).click();
+    await page.getByRole('menuitem', { name: '设置', exact: true }).click();
   }
+  await expect(page).toHaveURL(/\/settings(?:#.*)?$/);
+  await expect(page.getByRole('main', { name: '个人设置' })).toBeVisible();
+  const activeSection = page
+    .getByRole('main', { name: '个人设置' })
+    .getByRole('region', { name: section });
+  if (!(await activeSection.isVisible())) {
+    const mobileMenu = page.getByRole('button', { name: '打开设置导航' });
+    if (await mobileMenu.isVisible()) await mobileMenu.click();
+    await page
+      .getByRole('navigation', { name: '个人设置分类' })
+      .getByRole('button', { name: section, exact: true })
+      .click();
+  }
+  await expect(activeSection).toBeVisible();
 }

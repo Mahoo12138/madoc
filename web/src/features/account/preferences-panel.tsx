@@ -5,7 +5,6 @@ import {
   Divider,
   Group,
   Modal,
-  NumberInput,
   Select,
   Stack,
   Switch,
@@ -14,6 +13,12 @@ import {
 import { usePreferences } from './preferences-provider';
 import { defaultPreferences } from './preferences-model';
 import * as styles from './account.css';
+
+const fontSizes = Array.from({ length: 9 }, (_, index) => {
+  const value = String(index + 14);
+  return { value, label: `${value} px` };
+});
+
 export function PreferencesPanel() {
   const { values, set, status, error, retry } = usePreferences();
   const [reset, setReset] = useState(false);
@@ -53,18 +58,12 @@ export function PreferencesPanel() {
             正文与标题按比例调整
           </Text>
         </div>
-        <NumberInput
+        <Select
           className={styles.control}
           aria-label="正文字号"
-          min={14}
-          max={22}
-          step={1}
-          allowDecimal={false}
-          suffix=" px"
-          value={values.fontSize}
-          onChange={(value) =>
-            typeof value === 'number' && set({ fontSize: value })
-          }
+          value={String(values.fontSize)}
+          data={fontSizes}
+          onChange={(value) => value && set({ fontSize: Number(value) })}
         />
       </div>
       <div className={styles.preferenceRow}>
