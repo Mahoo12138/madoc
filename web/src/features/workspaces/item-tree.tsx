@@ -96,37 +96,39 @@ export function ItemTree({
               <Icon size={15} className={styles.treeIcon} aria-hidden />
               <span className={styles.rowTitle}>{item.title}</span>
             </UnstyledButton>
-            <ActionIcon
-              className={touchAction}
-              size="xs"
-              variant="subtle"
-              color={favorites.has(item.id) ? 'yellow' : 'gray'}
-              aria-label={`${favorites.has(item.id) ? '取消收藏' : '收藏'} ${item.title}`}
-              aria-pressed={favorites.has(item.id)}
-              disabled={!personal.isSuccess || favorite.isPending}
-              onClick={() =>
-                favorite.mutate({
-                  id: item.id,
-                  favorite: !favorites.has(item.id),
-                })
-              }
-            >
-              <IconStar
-                size={13}
-                fill={favorites.has(item.id) ? 'currentColor' : 'none'}
+            <div className={styles.treeRowActions}>
+              <ActionIcon
+                className={touchAction}
+                size="xs"
+                variant="subtle"
+                color={favorites.has(item.id) ? 'yellow' : 'gray'}
+                aria-label={`${favorites.has(item.id) ? '取消收藏' : '收藏'} ${item.title}`}
+                aria-pressed={favorites.has(item.id)}
+                disabled={!personal.isSuccess || favorite.isPending}
+                onClick={() =>
+                  favorite.mutate({
+                    id: item.id,
+                    favorite: !favorites.has(item.id),
+                  })
+                }
+              >
+                <IconStar
+                  size={13}
+                  fill={favorites.has(item.id) ? 'currentColor' : 'none'}
+                />
+              </ActionIcon>
+              <ItemActions
+                item={item}
+                items={items}
+                active={activeId === item.id}
+                onOpen={onSelect}
+                role={role}
+                onCreate={onCreate}
+                onRename={onRename}
+                onMove={onMove}
+                onDelete={onDelete}
               />
-            </ActionIcon>
-            <ItemActions
-              item={item}
-              items={items}
-              active={activeId === item.id}
-              onOpen={onSelect}
-              role={role}
-              onCreate={onCreate}
-              onRename={onRename}
-              onMove={onMove}
-              onDelete={onDelete}
-            />
+            </div>
           </div>
           {isFolder && !closed && render(item.id, depth + 1)}
         </div>

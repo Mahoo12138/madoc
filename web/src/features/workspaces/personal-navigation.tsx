@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Alert,
   Button,
   Group,
@@ -6,9 +7,10 @@ import {
   SegmentedControl,
   Stack,
   Text,
+  Tooltip,
   UnstyledButton,
 } from "@mantine/core";
-import { FileText, Folder, PenTool } from "lucide-react";
+import { FileText, Folder, PenTool, X } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useFavorite, usePersonalItems } from "@/api/personal-items";
 import type { Item } from "@/api/types";
@@ -50,7 +52,10 @@ export function PersonalNavigation({
     return parts.join(" / ");
   };
   return (
-    <Stack gap="sm" className={styles.panel}>
+    <Stack
+      gap="sm"
+      className={`${styles.panel}${onSectionChange ? ` ${styles.detailedPanel}` : ""}`}
+    >
       {!!onSectionChange && (
         <SegmentedControl
           fullWidth
@@ -98,7 +103,7 @@ export function PersonalNavigation({
                 >
                   <Group gap="xs" wrap="nowrap">
                     <Icon size={15} className={styles.icon} aria-hidden />
-                    <Text size="sm" truncate>
+                    <Text size="sm" className={styles.title} truncate>
                       {item.title}
                     </Text>
                   </Group>
@@ -114,19 +119,21 @@ export function PersonalNavigation({
                   )}
                 </UnstyledButton>
                 {section === "favorites" && (
-                  <Button
-                    className={touchAction}
-                    size="compact-xs"
-                    variant="subtle"
-                    color="gray"
-                    aria-label={`取消收藏 ${item.title}`}
-                    disabled={favorite.isPending}
-                    onClick={() =>
-                      favorite.mutate({ id: item.id, favorite: false })
-                    }
-                  >
-                    移除
-                  </Button>
+                  <Tooltip label="取消收藏">
+                    <ActionIcon
+                      className={`${styles.favoriteAction} ${touchAction}`}
+                      size={26}
+                      variant="subtle"
+                      color="gray"
+                      aria-label={`取消收藏 ${item.title}`}
+                      disabled={favorite.isPending}
+                      onClick={() =>
+                        favorite.mutate({ id: item.id, favorite: false })
+                      }
+                    >
+                      <X size={15} aria-hidden />
+                    </ActionIcon>
+                  </Tooltip>
                 )}
               </div>
             );
