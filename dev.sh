@@ -43,7 +43,7 @@ start_backend() {
 
 start_frontend() {
     echo -e "${CYAN}[frontend] Starting vite dev server...${NC}"
-    echo -e "${CYAN}[frontend] port 8080${NC}"
+    echo -e "${CYAN}[frontend] port 8000${NC}"
     (
         cd "$ROOT_DIR/web"
         # Install dependencies if vite is not found
