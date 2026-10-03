@@ -26,10 +26,7 @@ import {
   Settings as IconSettings,
   Trash2 as IconTrash,
   Search as IconSearch,
-  Users as IconUsers,
   PenTool as IconWhiteboard,
-  Download as IconDownload,
-  History as IconHistory,
   X as IconClose,
 } from "lucide-react";
 import {
@@ -46,14 +43,11 @@ import { WorkspaceLoadNotice } from "./workspace-load-notice";
 import { touchAction } from "@/styles/interaction.css";
 import type { MarkdownOutline } from "@/features/markdown/markdown-outline-model";
 import { MarkdownOutline as MarkdownOutlineView } from "@/features/markdown/markdown-outline";
-import { MemberDrawer } from "./member-drawer";
 import { AccountMenu } from "@/features/account/account-menu";
 import { useWorkspaceEvents } from "./use-workspace-events";
 import { WorkspaceSearch, useSearchShortcut } from "./workspace-search";
 import { WorkspaceTrash } from "./workspace-trash";
-import { WorkspaceSettings } from "./workspace-settings";
 import { ItemCommentsDrawer } from "@/features/comments/item-comments-drawer";
-import { WorkspaceActivityDrawer } from "./workspace-activity-drawer";
 import * as styles from "./workspace-shell.css";
 
 const MarkdownEditor = lazy(() =>
@@ -66,12 +60,6 @@ const WhiteboardEditor = lazy(() =>
     default: module.WhiteboardEditor,
   })),
 );
-const WorkspaceExportDialog = lazy(() =>
-  import("./workspace-export-dialog").then((module) => ({
-    default: module.WorkspaceExportDialog,
-  })),
-);
-
 const PortableImportDialog = lazy(() =>
   import("./portable-import-dialog").then((module) => ({
     default: module.PortableImportDialog,
@@ -112,8 +100,6 @@ export function WorkspacePage() {
     (items.data !== undefined && !!retained.current && !currentItem);
 
   const mutations = useWorkspaceMutations(workspaceId);
-  const [membersOpened, membersDrawer] = useDisclosure(false);
-  const [activityOpened, activityDrawer] = useDisclosure(false);
   const [commentsOpened, commentsDrawer] = useDisclosure(false);
   const [searchOpened, searchModal] = useDisclosure(false);
   useSearchShortcut(searchModal.open, !unavailable);
@@ -121,8 +107,6 @@ export function WorkspacePage() {
     searchModal.close();
   }, [workspaceId, itemId, searchModal.close]);
   const [trashOpened, trashModal] = useDisclosure(false);
-  const [settingsOpened, settingsModal] = useDisclosure(false);
-  const [workspaceExportOpened, setWorkspaceExportOpened] = useState(false);
   const [importPreviewOpened, setImportPreviewOpened] = useState(false);
   const [itemModal, itemActions] = useDisclosure(false);
   const [documentParent, setDocumentParent] = useState<{
@@ -293,6 +277,17 @@ export function WorkspacePage() {
       mobileDrawer.open();
     }
   };
+  const openManagement = () => {
+    void navigate({
+      to: "/workspace/$workspaceId/manage",
+      params: { workspaceId },
+      hash: "workspace",
+      state: (previous) => ({
+        ...previous,
+        madocManagementReturnItemId: itemId ?? null,
+      }),
+    });
+  };
   return (
     <div
       className={`${styles.shell} ${active?.type === "markdown" && outlineVisible ? styles.shellWithOutline : ""}`}
@@ -301,7 +296,12 @@ export function WorkspacePage() {
         <aside className={styles.sidebar}>
           <div className={styles.brandRow}>
             <div className={styles.brand}>
-              <img src="/logo.svg" alt="" aria-hidden className={styles.brandMark} />
+              <img
+                src="/logo.svg"
+                alt=""
+                aria-hidden
+                className={styles.brandMark}
+              />
               madoc
             </div>
           </div>
@@ -309,7 +309,7 @@ export function WorkspacePage() {
             <Menu.Target>
               <button
                 className={styles.workspaceButton}
-                aria-label="Workspace 菜单"
+                aria-label="工作区菜单"
               >
                 <Group
                   gap="sm"
@@ -341,46 +341,14 @@ export function WorkspacePage() {
                 leftSection={<IconHome size={15} />}
                 onClick={() => navigate({ to: "/workspaces" })}
               >
-                所有 Workspaces
+                所有工作区
               </Menu.Item>
-              {!unavailable &&
-                workspace.data &&
-                workspace.data.role !== "viewer" && (
-                  <Menu.Item
-                    leftSection={<IconDownload size={15} />}
-                    onClick={() => setWorkspaceExportOpened(true)}
-                  >
-                    导出 Workspace ZIP
-                  </Menu.Item>
-                )}
-              <Menu.Item
-                leftSection={<IconUsers size={15} />}
-                onClick={membersDrawer.open}
-              >
-                成员管理
-              </Menu.Item>
-              <Menu.Item
-                leftSection={<IconHistory size={15} />}
-                onClick={activityDrawer.open}
-              >
-                活动记录
-              </Menu.Item>
-              {!unavailable &&
-                workspace.data &&
-                workspace.data.role !== "viewer" && (
-                  <Menu.Item
-                    leftSection={<IconTrash size={15} />}
-                    onClick={trashModal.open}
-                  >
-                    回收站
-                  </Menu.Item>
-                )}
-              {!unavailable && workspace.data?.role === "owner" && (
+              {!unavailable && workspace.data && (
                 <Menu.Item
                   leftSection={<IconSettings size={15} />}
-                  onClick={settingsModal.open}
+                  onClick={openManagement}
                 >
-                  设置
+                  管理
                 </Menu.Item>
               )}
             </Menu.Dropdown>
@@ -432,8 +400,6 @@ export function WorkspacePage() {
           navigationOpened={mobileOpened}
           actions={{
             search: searchModal.open,
-            members: membersDrawer.open,
-            activity: activityDrawer.open,
             versions: () => {
               if (active)
                 setVersionsRequest((value) => ({
@@ -446,9 +412,8 @@ export function WorkspacePage() {
               if (active) openRename(active);
             },
             outline: revealOutline,
-            settings: settingsModal.open,
+            settings: openManagement,
             trash: trashModal.open,
-            export: () => setWorkspaceExportOpened(true),
             workspaces: () => {
               void navigate({ to: "/workspaces" });
             },
@@ -490,7 +455,7 @@ export function WorkspacePage() {
                     {itemId ? "内容暂不可用" : "从一个文档或白板开始"}
                   </Title>
                   <Text c="dimmed" mt="xs">
-                    左侧内容树是这个 Workspace 的唯一结构来源。
+                    左侧内容树是这个工作区的唯一结构来源。
                   </Text>
                   {!itemId &&
                     !unavailable &&
@@ -547,22 +512,11 @@ export function WorkspacePage() {
       </main>
       {!compactNavigation && active?.type === "markdown" && outlineVisible && (
         <aside className={styles.outlinePanel} aria-label="文档大纲面板">
-          <div className={styles.outlineHeader}>
-            <Text size="sm" fw={650}>
-              大纲
-            </Text>
-            <ActionIcon
-              className={touchAction}
-              aria-label="隐藏大纲"
-              onClick={() => setOutlineVisible(false)}
-            >
-              <IconClose size={15} aria-hidden />
-            </ActionIcon>
-          </div>
           <MarkdownOutlineView
             title={active.title}
             outline={outline?.itemId === active.id ? outline : null}
             onNavigate={(position) => outline?.navigate(position)}
+            onClose={() => setOutlineVisible(false)}
             showTitle={false}
           />
         </aside>
@@ -641,34 +595,12 @@ export function WorkspacePage() {
           }}
         />
       )}
-      <MemberDrawer
-        opened={membersOpened}
-        onClose={membersDrawer.close}
-        workspaceId={workspaceId}
-        currentRole={workspace.data?.role ?? "viewer"}
-      />
-      {workspace.data && (
-        <WorkspaceActivityDrawer
-          opened={activityOpened}
-          onClose={activityDrawer.close}
-          workspaceId={workspaceId}
-          workspaceName={workspace.data.name}
-        />
-      )}
       {commentsOpened && active && !missing && (
         <ItemCommentsDrawer
           item={active}
           role={workspace.data?.role ?? "viewer"}
           opened
           onClose={commentsDrawer.close}
-        />
-      )}
-      {workspace.data && (
-        <WorkspaceSettings
-          key={`settings:${workspaceId}`}
-          opened={settingsOpened}
-          workspace={workspace.data}
-          onClose={settingsModal.close}
         />
       )}
       <Suspense fallback={null}>
@@ -684,17 +616,6 @@ export function WorkspacePage() {
             onClose={() => setImportPreviewOpened(false)}
           />
         )}
-        {workspaceExportOpened &&
-          !unavailable &&
-          workspace.data &&
-          items.data &&
-          workspace.data.role !== "viewer" && (
-            <WorkspaceExportDialog
-              workspace={workspace.data}
-              items={items.data}
-              onClose={() => setWorkspaceExportOpened(false)}
-            />
-          )}
       </Suspense>
       {documentParent && !unavailable && workspace.data?.role !== "viewer" && (
         <CreateDocument
@@ -748,7 +669,7 @@ export function WorkspacePage() {
             value={moveParent}
             onChange={(value) => setMoveParent(value ?? "root")}
             data={[
-              { value: "root", label: "Workspace 根目录" },
+              { value: "root", label: "工作区根目录" },
               ...(items.data ?? [])
                 .filter(isMoveTarget)
                 .map((item) => ({ value: item.id, label: item.title })),

@@ -187,7 +187,7 @@ export function WorkspaceTrash({
                   onChange={setDestination}
                   disabled={busy || items.isError || items.isPending}
                   data={[
-                    { value: 'root', label: 'Workspace 根目录' },
+                    { value: 'root', label: '工作区根目录' },
                     ...(items.data ?? [])
                       .filter((item) => item.type === 'folder')
                       .map((item) => ({

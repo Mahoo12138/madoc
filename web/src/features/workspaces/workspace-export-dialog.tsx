@@ -22,10 +22,10 @@ export function WorkspaceExportDialog({ workspace, items, onClose }: { workspace
       if (controller.signal.aborted) return;
       downloadPortableExport(result);
       const packageCount = result.mode === 'set' ? result.packages.length : 1;
-      notifications.show({ message: `Workspace 导出完成：${packageCount} 个 ZIP、${result.itemCount} 个内容、${result.attachmentCount} 个附件；${result.externalImageCount} 个外部图片仍使用原地址。` });
+      notifications.show({ message: `工作区导出完成：${packageCount} 个 ZIP、${result.itemCount} 个内容、${result.attachmentCount} 个附件；${result.externalImageCount} 个外部图片仍使用原地址。` });
       onClose();
     } catch (failure) {
-      if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : 'Workspace 导出失败，请重试。');
+      if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : '工作区导出失败，请重试。');
     } finally {
       if (attempt.current === controller) attempt.current = undefined;
       setBusy(false);
@@ -33,9 +33,9 @@ export function WorkspaceExportDialog({ workspace, items, onClose }: { workspace
   };
 
   return (
-    <Modal opened title={`导出 Workspace：${workspace.name}`} onClose={busy ? () => {} : onClose} closeOnClickOutside={!busy} closeOnEscape={!busy} withCloseButton={!busy}>
+    <Modal opened title={`导出工作区：${workspace.name}`} onClose={busy ? () => {} : onClose} closeOnClickOutside={!busy} closeOnEscape={!busy} withCloseButton={!busy}>
       <Stack>
-        <Text size="sm">将按每篇内容分别捕获服务端已保存版本，并记录各自水位和时间。未确认修改不会包含；这不是 Workspace 同一时刻的快照。附件总量不超过 50 MiB 时导出单个 ZIP；超过时拆成内容包和附件包，并附包集清单。分包需解压到同一目录；浏览器可能询问是否允许下载多个文件。</Text>
+        <Text size="sm">将按每篇内容分别捕获服务端已保存版本，并记录各自水位和时间。未确认修改不会包含；这不是工作区同一时刻的快照。附件总量不超过 50 MiB 时导出单个 ZIP；超过时拆成内容包和附件包，并附包集清单。分包需解压到同一目录；浏览器可能询问是否允许下载多个文件。</Text>
         {busy && <Progress value={progress.total ? progress.done / progress.total * 100 : 0} aria-label="导出进度" />}
         {busy && <Text size="sm">正在捕获内容：{progress.done} / {progress.total}</Text>}
         {error && <Alert color="red" role="alert">{error}</Alert>}

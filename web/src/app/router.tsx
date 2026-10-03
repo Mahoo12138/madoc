@@ -17,6 +17,10 @@ const AccountSettingsPage = lazyRouteComponent(
   () => import('@/features/account/account-settings-page'),
   'AccountSettingsPage',
 );
+const WorkspaceManagementPage = lazyRouteComponent(
+  () => import('@/features/workspaces/workspace-management-page'),
+  'WorkspaceManagementPage',
+);
 const PublicSharePage = lazyRouteComponent(
   () => import('@/features/sharing/public-share-page'),
   'PublicSharePage',
@@ -58,6 +62,11 @@ const workspaceRoute = createRoute({
   path: '/workspace/$workspaceId',
   component: WorkspacePage,
 });
+const workspaceManagementRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/workspace/$workspaceId/manage',
+  component: WorkspaceManagementPage,
+});
 const itemRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/workspace/$workspaceId/$itemId',
@@ -77,6 +86,7 @@ const routeTree = rootRoute.addChildren([
   workspacesRoute,
   accountSettingsRoute,
   workspaceRoute,
+  workspaceManagementRoute,
   itemRoute,
   publicShareRoute,
 ]);

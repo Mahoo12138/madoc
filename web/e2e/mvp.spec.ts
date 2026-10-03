@@ -9,7 +9,7 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await page.getByLabel('邮箱').fill('owner@example.test');
   await page.getByLabel('密码').fill('password123');
   await page.getByRole('button', { name: '创建并进入' }).click();
-  await page.getByRole('button', { name: '新建 Workspace' }).click();
+  await page.getByRole('button', { name: '新建工作区' }).click();
   await page.getByLabel('名称').fill('Project Atlas');
   await page.getByRole('button', { name: '创建', exact: true }).click();
 
@@ -190,12 +190,18 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await expect.poll(() => codeBlock.evaluate((element) => Math.round(element.getBoundingClientRect().height))).toBe(codeBlockHeight);
   await page.screenshot({ path: '/tmp/madoc-mvp-final.png', fullPage: true });
 
-  await page.getByRole('button', { name: '成员管理' }).click();
+  await page.getByRole('button', { name: '工作区菜单' }).click();
+  await page.getByRole('menuitem', { name: '管理' }).click();
+  await page.getByRole('navigation', { name: '工作区管理导航' }).getByRole('button', { name: '成员管理' }).click();
   await page.getByRole('tab', { name: '邀请' }).click();
+  await page.getByRole('button', { name: '创建邀请' }).click();
   await page.getByPlaceholder('member@example.com').fill('member@example.test');
   await page.getByRole('button', { name: '创建链接' }).click();
-  await expect(page.locator('input[readonly]')).toHaveCount(3);
-  const inviteLink = await page.locator('input[readonly]').last().inputValue();
+  const inviteLinkInput = page.getByRole('textbox', { name: '邀请链接' });
+  await expect(inviteLinkInput).toBeVisible();
+  const inviteLink = await inviteLinkInput.inputValue();
+  await page.goto(documentURL);
+  await expect(page.locator('.ProseMirror')).toBeVisible();
   const memberContext = await browser.newContext();
   const member = await memberContext.newPage();
   await member.goto(inviteLink);

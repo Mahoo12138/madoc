@@ -4,7 +4,7 @@ import { touchControls } from "@/styles/interaction.css";
 
 export const shell = style({
   vars: { "--madoc-sidebar-width": "300px", "--madoc-outline-width": "306px" },
-  minHeight: "100vh",
+  minHeight: "100dvh",
   display: "grid",
   gridTemplateColumns: "var(--madoc-sidebar-width) minmax(0, 1fr)",
   background: "var(--mantine-color-white)",
@@ -20,7 +20,7 @@ export const shellWithOutline = style({
   },
 });
 export const sidebar = style({
-  height: "100vh",
+  height: "100dvh",
   position: "sticky",
   top: 0,
   display: "flex",
@@ -28,7 +28,7 @@ export const sidebar = style({
   background: "var(--mantine-color-gray-0)",
   borderRight: "1px solid var(--mantine-color-gray-2)",
   padding: "16px 14px 12px",
-  gap: 14,
+  gap: 16,
   overflow: "hidden",
   "@media": { [workspaceMedia.mobile]: { display: "none" } },
 });
@@ -44,8 +44,8 @@ export const brand = style({
   alignItems: "center",
   gap: 10,
   fontSize: 21,
-  fontWeight: 700,
-  letterSpacing: "-0.04em",
+  fontWeight: 650,
+  letterSpacing: 0,
 });
 export const brandMark = style({
   width: 22,
@@ -79,7 +79,7 @@ export const sidebarSearch = style({
   justifyContent: "flex-start",
   fontWeight: 400,
   color: "var(--mantine-color-dimmed)",
-  borderColor: "var(--mantine-color-gray-3)",
+  borderColor: "var(--mantine-color-gray-2)",
   background: "var(--mantine-color-white)",
   height: 40,
 });
@@ -105,7 +105,7 @@ export const footerAction = style({
   gap: 9,
   padding: "0 9px",
   borderRadius: 7,
-  color: "var(--mantine-color-dark-6)",
+  color: "var(--mantine-color-gray-7)",
   fontSize: 14,
   selectors: { "&:hover": { background: "var(--mantine-color-gray-1)" } },
 });
@@ -113,13 +113,12 @@ export const workspaceButton = style({
   width: "100%",
   padding: "10px 10px",
   minHeight: 64,
-  border: "1px solid var(--mantine-color-gray-2)",
-  borderRadius: 10,
+  border: "1px solid transparent",
+  borderRadius: "var(--mantine-radius-md)",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  background:
-    "color-mix(in srgb, var(--mantine-color-white) 80%, var(--mantine-color-gray-0))",
+  background: "transparent",
   cursor: "pointer",
   textAlign: "left",
   selectors: {
@@ -129,7 +128,7 @@ export const workspaceButton = style({
     },
     "&:hover": {
       background: "var(--mantine-color-white)",
-      borderColor: "var(--mantine-color-gray-3)",
+      borderColor: "var(--mantine-color-gray-2)",
     },
   },
 });
@@ -143,7 +142,7 @@ export const navigation = style({
 export const desktopNavigation = style({
   display: "flex",
   flexDirection: "column",
-  gap: 12,
+  gap: 6,
   paddingBottom: 8,
 });
 export const navSectionGroup = style({ flexShrink: 0 });
@@ -155,7 +154,7 @@ export const mobileNavigation = style({
   marginTop: 4,
 });
 export const navSectionHeader = style({
-  minHeight: 34,
+  minHeight: 32,
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
@@ -169,9 +168,11 @@ export const navSectionToggle = style({
   alignItems: "center",
   justifyContent: "flex-start",
   gap: 8,
-  height: 34,
-  color: "var(--mantine-color-dark-7)",
+  height: 32,
+  color: "var(--mantine-color-gray-6)",
   textAlign: "left",
+  fontSize: 12,
+  fontWeight: 600,
 });
 export const navSectionChevron = style({
   display: "flex",
@@ -200,14 +201,14 @@ export const navigationPanel = style({
   overflowY: "auto",
   overscrollBehavior: "contain",
 });
-export const tree = style({ paddingTop: 10 });
+export const tree = style({ paddingTop: 4 });
 export const treeLink = style({
   flex: 1,
   minWidth: 0,
   height: "100%",
   display: "flex",
   alignItems: "center",
-  gap: 7,
+  gap: 8,
   fontSize: "inherit",
   fontWeight: "inherit",
   color: "inherit",
@@ -222,14 +223,14 @@ export const treeLink = style({
 export const treeRow = style({
   "@media": { [touchControls]: { height: 44 } },
   width: "100%",
-  height: 34,
+  height: 32,
   display: "flex",
   alignItems: "center",
   gap: 7,
   border: 0,
   borderRadius: 7,
   background: "transparent",
-  color: "var(--mantine-color-dark-6)",
+  color: "var(--mantine-color-gray-7)",
   cursor: "pointer",
   fontSize: 14,
   textAlign: "left",
@@ -242,6 +243,23 @@ export const treeRow = style({
     },
   },
 });
+export const treeRowActions = style({
+  display: "flex",
+  alignItems: "center",
+  flexShrink: 0,
+  gap: 7,
+  // Keep the title width and keyboard focus order stable when icons are hidden.
+  opacity: 0,
+  selectors: {
+    [`${treeRow}:hover &`]: { opacity: 1 },
+    [`${treeRow}:focus-within &`]: { opacity: 1 },
+    "&:has([data-expanded])": { opacity: 1 },
+  },
+  "@media": {
+    [touchControls]: { opacity: 1 },
+    "(hover: none)": { opacity: 1 },
+  },
+});
 export const treeIcon = style({ flexShrink: 0 });
 export const rowTitle = style({
   flex: 1,
@@ -251,13 +269,13 @@ export const rowTitle = style({
 });
 export const main = style({
   minWidth: 0,
-  minHeight: "100vh",
+  minHeight: "100dvh",
   background: "var(--mantine-color-white)",
 });
 export const outlinePanel = style({
   minWidth: 0,
-  minHeight: "calc(100vh - 58px)",
-  height: "calc(100vh - 58px)",
+  minHeight: "calc(100dvh - 58px)",
+  height: "calc(100dvh - 58px)",
   position: "sticky",
   top: 58,
   display: "flex",
@@ -265,18 +283,11 @@ export const outlinePanel = style({
   padding: "14px 14px 20px",
   borderLeft: "1px solid var(--mantine-color-gray-2)",
   background: "var(--mantine-color-white)",
-  overflowY: "auto",
+  overflow: "hidden",
   overscrollBehavior: "contain",
   "@media": { [workspaceMedia.compact]: { display: "none" } },
 });
-export const outlineHeader = style({
-  minHeight: 40,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0 2px 8px",
-});
-export const content = style({ minHeight: "calc(100vh - 58px)" });
+export const content = style({ minHeight: "calc(100dvh - 58px)" });
 export const editorPage = style({
   vars: { "--madoc-editor-max-width": "760px" },
   width: "min(var(--madoc-editor-max-width), calc(100% - 48px))",
@@ -284,7 +295,7 @@ export const editorPage = style({
   paddingTop: 46,
 });
 export const empty = style({
-  minHeight: "calc(100vh - 58px)",
+  minHeight: "calc(100dvh - 58px)",
   display: "grid",
   placeItems: "center",
   padding: 30,

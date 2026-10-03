@@ -39,9 +39,9 @@ test('workspace list rate limiting offers retry instead of an empty state', asyn
   await expect(page.getByRole('alert')).toContainText('请求过于频繁', {
     timeout: 20_000,
   });
-  await expect(
-    page.getByText('你的第一个 Workspace', { exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByText('你的第一个工作区', { exact: true })).toHaveCount(
+    0,
+  );
   await page.unroute('**/api/workspaces');
   await page.getByRole('button', { name: '重试加载', exact: true }).click();
   await expect(
@@ -262,23 +262,33 @@ test('editor, member roles, invitation fields and overlay close controls have ac
   page,
 }) => {
   await openDocument(page, '# 可访问正文');
+  const documentURL = page.url();
   await expect(
     page.getByRole('textbox', { name: '文档正文', exact: true }),
   ).toHaveAttribute('aria-multiline', 'true');
-  await page.getByRole('button', { name: '成员管理', exact: true }).click();
-  const drawer = page.getByRole('dialog', { name: '成员与邀请', exact: true });
-  await expect(drawer.getByRole('textbox', { name: / 的角色$/ })).toBeVisible();
+  await page.getByRole('button', { name: '工作区菜单' }).click();
+  await page.getByRole('menuitem', { name: '管理' }).click();
+  await page
+    .getByRole('navigation', { name: '工作区管理导航' })
+    .getByRole('button', { name: '成员管理' })
+    .click();
+  const drawer = page.getByRole('main', { name: '工作区管理' });
+  await expect(drawer.getByText('所有者', { exact: true })).toBeVisible();
   await expect(
-    drawer.getByRole('button', { name: '关闭', exact: true }),
+    drawer.getByRole('button', { name: '返回工作区' }),
   ).toBeVisible();
   await drawer.getByRole('tab', { name: '邀请', exact: true }).click();
+  await drawer.getByRole('button', { name: '创建邀请' }).click();
+  const inviteDialog = page.getByRole('dialog', { name: '创建邀请' });
   await expect(
-    drawer.getByRole('textbox', { name: '邀请邮箱', exact: true }),
+    inviteDialog.getByRole('textbox', { name: '邀请邮箱', exact: true }),
   ).toBeVisible();
   await expect(
-    drawer.getByRole('textbox', { name: '邀请角色', exact: true }),
+    inviteDialog.getByRole('textbox', { name: '邀请角色', exact: true }),
   ).toBeVisible();
-  await drawer.getByRole('button', { name: '关闭', exact: true }).click();
+  await inviteDialog.getByRole('button', { name: '关闭', exact: true }).click();
+  await drawer.getByRole('button', { name: '返回工作区' }).click();
+  await expect(page).toHaveURL(documentURL);
   await page.getByRole('button', { name: /搜索文档、页面内容/ }).click();
   await expect(
     page.getByRole('dialog').getByRole('button', { name: '关闭', exact: true }),

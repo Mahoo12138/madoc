@@ -45,6 +45,10 @@ async function downloadPortableExport(page: Page, start: () => Promise<void>, ex
 
 async function reimportDownload(page: Page, paths: Map<string, string>, title: string) {
   // Leave any export modal and import the exact downloaded bytes.
+  const current = new URL(page.url());
+  if (current.pathname.endsWith('/manage')) {
+    await page.goto(current.pathname.slice(0, -'/manage'.length));
+  }
   await page.reload();
   await page.locator('aside').getByRole('button', { name: '新建内容' }).click();
   await page.getByRole('menuitem', { name: '导入内容包' }).click();
@@ -203,10 +207,11 @@ test('workspace export splits only oversized attachment sets while keeping conte
   expect(updated.ok(), `${updated.status()} ${await updated.text()}`).toBeTruthy();
 
   await page.reload();
-  await page.getByRole('button', { name: 'Workspace 菜单' }).click();
-  await page.getByRole('menuitem', { name: '导出 Workspace ZIP' }).click();
-  const dialog = page.getByRole('dialog', { name: '导出 Workspace：Writing regression' });
-  await expect(dialog).toContainText('不是 Workspace 同一时刻的快照');
+  await page.getByRole('button', { name: '工作区菜单' }).click();
+  await page.getByRole('menuitem', { name: '管理' }).click();
+  await page.getByRole('main', { name: '工作区管理' }).getByRole('button', { name: '导出工作区 ZIP' }).click();
+  const dialog = page.getByRole('dialog', { name: '导出工作区：Writing regression' });
+  await expect(dialog).toContainText('不是工作区同一时刻的快照');
   const downloaded = await downloadPortableExport(page, () => dialog.getByRole('button', { name: '生成导出包' }).click(), true);
   const packageSet = downloaded.packageSet!;
   expect(packageSet.format).toBe('madoc-package-set');

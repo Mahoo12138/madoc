@@ -16,7 +16,7 @@ test('one socket refreshes metadata and retains a deleted editor for rescue', as
   const observer = await context.newPage();
   await observer.goto(`/workspace/${workspace}`);
   await expect(
-    observer.getByRole('button', { name: 'Workspace 菜单' }),
+    observer.getByRole('button', { name: '工作区菜单' }),
   ).toBeVisible();
   expect(
     (

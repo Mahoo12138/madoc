@@ -54,11 +54,82 @@ test('workspace members see safe activity summaries within their access boundary
     expect(JSON.stringify(activity)).not.toContain(body);
 
     await viewerPage.goto(`http://127.0.0.1:3100/workspace/${workspaceId}`);
-    await viewerPage.getByRole('button', { name: '活动记录' }).click();
-    const drawer = viewerPage.getByRole('dialog', { name: /活动记录/ });
+    await viewerPage.getByRole('button', { name: '工作区菜单' }).click();
+    await viewerPage.getByRole('menuitem', { name: '管理' }).click();
+    await viewerPage
+      .getByRole('navigation', { name: '工作区管理导航' })
+      .getByRole('button', { name: '活动记录' })
+      .click();
+    const drawer = viewerPage.getByRole('main', { name: '工作区管理' });
     await expect(drawer).toContainText('添加了一条评论');
     await expect(drawer).not.toContainText(body);
+    await viewerPage.screenshot({
+      path: '/tmp/madoc-management-activity.png',
+      animations: 'disabled',
+    });
   } finally {
     await viewerContext.close();
   }
+});
+
+test('activity keeps loaded records when an older page fails and retries', async ({
+  page,
+}) => {
+  await openDocument(page);
+  const workspaceId = new URL(page.url()).pathname.split('/')[2];
+  let failOlderPage = true;
+  await page.route(
+    `**/api/workspaces/${workspaceId}/activity?*`,
+    async (route) => {
+      const before = new URL(route.request().url()).searchParams.get('before');
+      if (before && failOlderPage) {
+        await route.fulfill({
+          status: 503,
+          json: { error: { code: 'UNAVAILABLE', message: 'Unavailable' } },
+        });
+        return;
+      }
+      await route.fulfill({
+        json: before
+          ? {
+              events: [
+                {
+                  id: 'older-event',
+                  actorName: 'Old Member',
+                  type: 'item.created',
+                  summary: '更早的活动',
+                  createdAt: '2026-09-28T08:00:00Z',
+                },
+              ],
+              nextBefore: '',
+            }
+          : {
+              events: [
+                {
+                  id: 'recent-event',
+                  actorName: 'Current Member',
+                  type: 'item.created',
+                  summary: '最近的活动',
+                  createdAt: '2026-09-29T08:00:00Z',
+                },
+              ],
+              nextBefore: 'older',
+            },
+      });
+    },
+  );
+
+  await page.getByRole('button', { name: '工作区菜单' }).click();
+  await page.getByRole('menuitem', { name: '管理' }).click();
+  const management = page.getByRole('main', { name: '工作区管理' });
+  await page.getByRole('navigation', { name: '工作区管理导航' })
+    .getByRole('button', { name: '活动记录' }).click();
+  await expect(management).toContainText('最近的活动');
+  await management.getByRole('button', { name: '加载更早记录' }).click();
+  await expect(management).toContainText('更早的记录加载失败');
+  await expect(management).toContainText('最近的活动');
+  failOlderPage = false;
+  await management.getByRole('button', { name: '重试加载' }).click();
+  await expect(management).toContainText('更早的活动');
+  await expect(management).not.toContainText('更早的记录加载失败');
 });

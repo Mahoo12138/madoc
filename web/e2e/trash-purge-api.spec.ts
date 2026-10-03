@@ -173,11 +173,7 @@ for (const role of ['editor', 'viewer']) {
       ).toBe(role === 'editor' ? 200 : 403);
       const memberPage = await context.newPage();
       await memberPage.goto(`${origin}/workspace/${workspace}`);
-      await memberPage.getByRole('button', { name: 'Workspace 菜单' }).click();
-      const entry = memberPage.getByRole('menuitem', {
-        name: '回收站',
-        exact: true,
-      });
+      const entry = memberPage.getByRole('button', { name: '回收站', exact: true });
       if (role === 'viewer') await expect(entry).toHaveCount(0);
       else {
         await entry.click();

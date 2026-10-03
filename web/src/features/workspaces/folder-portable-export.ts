@@ -178,7 +178,7 @@ async function fetchAsset(id: string, signal: AbortSignal) {
 
 async function exportPortableTreePackage(root: { id: string; title: string; type: 'folder' | 'workspace' }, rootParentId: string | null, workspaceItems: Item[], signal: AbortSignal, onProgress: (done: number, total: number) => void): Promise<PortableTreeExportResult> {
   const tree = packagePathMap(root, rootParentId, workspaceItems);
-  if (tree.descendants.length === 0) throw new Error(`${root.type === 'folder' ? '文件夹' : 'Workspace'} 中没有可导出的内容。`);
+  if (tree.descendants.length === 0) throw new Error(`${root.type === 'folder' ? '文件夹' : '工作区'} 中没有可导出的内容。`);
   const leaves = tree.descendants.filter((item) => item.type !== 'folder');
   const entries: CapturedEntry[] = [];
   for (const item of leaves) {

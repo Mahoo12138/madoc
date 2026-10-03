@@ -11,7 +11,7 @@ export const useWorkspaces = () => useQuery({ queryKey: keys.workspaces, queryFn
 export const useWorkspace = (id: string) => useQuery({ queryKey: keys.workspace(id), queryFn: () => api.workspace(id), retry: retryWorkspaceRead, retryOnMount: false });
 export const useItems = (id: string) => useQuery({ queryKey: keys.items(id), queryFn: () => api.items(id), retry: retryWorkspaceRead, retryOnMount: false });
 export const useMembers = (id: string) => useQuery({ queryKey: keys.members(id), queryFn: () => api.members(id) });
-export const useInvites = (id: string) => useQuery({ queryKey: keys.invites(id), queryFn: () => api.invites(id) });
+export const useInvites = (id: string, enabled = true) => useQuery({ queryKey: keys.invites(id), queryFn: () => api.invites(id), enabled });
 export const useWorkspaceActivity = (id: string) => useInfiniteQuery({ queryKey: keys.activity(id), queryFn: ({ pageParam }) => api.workspaceActivity(id, pageParam), initialPageParam: '', getNextPageParam: (page) => page.nextBefore || undefined });
 export const useMarkdown = (id: string) => useQuery({ queryKey: keys.markdown(id), queryFn: () => api.markdown(id) });
 export const useWhiteboard = (id: string) => useQuery({ queryKey: keys.whiteboard(id), queryFn: () => api.whiteboard(id) });

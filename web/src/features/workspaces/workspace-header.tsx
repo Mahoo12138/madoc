@@ -1,7 +1,6 @@
 import { useRef } from "react";
-import { ActionIcon, Burger, Button, Menu, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Burger, Menu, Text, Tooltip } from "@mantine/core";
 import {
-  Download,
   Ellipsis,
   FileText,
   History,
@@ -12,25 +11,19 @@ import {
   PenTool,
   Search,
   Settings,
-  Share2,
   Trash2,
-  Users,
 } from "lucide-react";
 import type { Item, Role } from "@/api/types";
-import { touchAction } from "@/styles/interaction.css";
 import * as styles from "./workspace-header.css";
 
 type Actions = {
   search: () => void;
-  members: () => void;
-  activity: () => void;
   versions: () => void;
   comments: () => void;
   rename: () => void;
   outline: () => void;
   settings: () => void;
   trash: () => void;
-  export: () => void;
   workspaces: () => void;
   navigation: () => void;
 };
@@ -68,7 +61,7 @@ export function WorkspaceHeader({
   const itemActions = [
     {
       label: "版本与分享",
-      Icon: Share2,
+      Icon: History,
       run: actions.versions,
       show: canOpenVersions,
     },
@@ -130,69 +123,59 @@ export function WorkspaceHeader({
         </div>
       </div>
       <div className={styles.desktopActions}>
-        <Tooltip label="成员">
-          <ActionIcon
-            className={touchAction}
-            aria-label="成员管理"
-            onClick={actions.members}
-          >
-            <Users size={17} />
-          </ActionIcon>
-        </Tooltip>
-        <Tooltip label="活动记录">
-          <ActionIcon
-            className={touchAction}
-            aria-label="活动记录"
-            onClick={actions.activity}
-            disabled={unavailable}
-          >
-            <History size={17} />
-          </ActionIcon>
-        </Tooltip>
         {canOpenVersions && (
-          <Button
-            variant="default"
-            size="compact-sm"
-            className={touchAction}
-            leftSection={<Share2 size={15} />}
-            onClick={actions.versions}
-          >
-            版本与分享
-          </Button>
-        )}
-        {isMarkdown && !outlineVisible && (
-          <Tooltip label="显示大纲">
+          <Tooltip label="版本与分享">
             <ActionIcon
-              className={touchAction}
-              aria-label="显示大纲"
-              onClick={actions.outline}
+              variant="light"
+              color="gray"
+              size={36}
+              className={styles.versionAction}
+              aria-label="版本与分享"
+              aria-haspopup="dialog"
+              onClick={actions.versions}
             >
-              <ListTree size={17} />
+              <History size={17} aria-hidden />
             </ActionIcon>
           </Tooltip>
         )}
-        {canComment && (
-          <Tooltip label="评论">
-            <ActionIcon
-              className={touchAction}
-              aria-label="文档评论"
-              onClick={actions.comments}
-            >
-              <MessageSquare size={17} />
-            </ActionIcon>
-          </Tooltip>
-        )}
-        {canRename && (
-          <Button
-            variant="subtle"
-            color="gray"
-            size="compact-sm"
-            className={touchAction}
-            onClick={actions.rename}
-          >
-            重命名
-          </Button>
-        )}
+        <div className={styles.secondaryActions}>
+          {isMarkdown && !outlineVisible && (
+            <Tooltip label="显示大纲">
+              <ActionIcon
+                size={36}
+                className={styles.desktopAction}
+                aria-label="显示大纲"
+                onClick={actions.outline}
+              >
+                <ListTree size={17} aria-hidden />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          {canComment && (
+            <Tooltip label="评论">
+              <ActionIcon
+                size={36}
+                className={styles.desktopAction}
+                aria-label="文档评论"
+                onClick={actions.comments}
+              >
+                <MessageSquare size={17} aria-hidden />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          {canRename && (
+            <Tooltip label="重命名">
+              <ActionIcon
+                size={36}
+                className={styles.desktopAction}
+                aria-label="重命名"
+                onClick={actions.rename}
+              >
+                <Pencil size={17} aria-hidden />
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </div>
       </div>
       <div className={styles.compactActions}>
         <ActionIcon
@@ -234,46 +217,22 @@ export function WorkspaceHeader({
               </Menu.Item>
             ))}
             {itemActions.length > 0 && <Menu.Divider />}
-            <Menu.Item
-              className={styles.menuItem}
-              leftSection={<Users size={16} />}
-              onClick={() => runMenuAction(actions.members)}
-            >
-              成员管理
-            </Menu.Item>
-            <Menu.Item
-              className={styles.menuItem}
-              leftSection={<History size={16} />}
-              onClick={() => runMenuAction(actions.activity)}
-              disabled={unavailable}
-            >
-              活动记录
-            </Menu.Item>
             {canWrite && (
-              <>
-                <Menu.Item
-                  className={styles.menuItem}
-                  leftSection={<Trash2 size={16} />}
-                  onClick={() => runMenuAction(actions.trash)}
-                >
-                  回收站
-                </Menu.Item>
-                <Menu.Item
-                  className={styles.menuItem}
-                  leftSection={<Download size={16} />}
-                  onClick={() => runMenuAction(actions.export)}
-                >
-                  导出 Workspace ZIP
-                </Menu.Item>
-              </>
+              <Menu.Item
+                className={styles.menuItem}
+                leftSection={<Trash2 size={16} />}
+                onClick={() => runMenuAction(actions.trash)}
+              >
+                回收站
+              </Menu.Item>
             )}
-            {!unavailable && role === "owner" && (
+            {!unavailable && role && (
               <Menu.Item
                 className={styles.menuItem}
                 leftSection={<Settings size={16} />}
                 onClick={() => runMenuAction(actions.settings)}
               >
-                Workspace 设置
+                管理
               </Menu.Item>
             )}
             <Menu.Divider />
@@ -282,7 +241,7 @@ export function WorkspaceHeader({
               leftSection={<Home size={16} />}
               onClick={() => runMenuAction(actions.workspaces)}
             >
-              所有 Workspaces
+              所有工作区
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>

@@ -27,17 +27,12 @@ for (const mobile of [false, true]) {
     await page.request.delete(`/api/items/${child.id}`, { headers });
     await page.request.delete(`/api/items/${folder.id}`, { headers });
     await page.reload();
-    await page
-      .getByRole('button', {
-        name: mobile ? '工作区更多操作' : 'Workspace 菜单',
-      })
-      .click();
-    await page
-      .getByRole('menuitem', {
-        name: '回收站',
-        exact: true,
-      })
-      .click();
+    if (mobile) {
+      await page.getByRole('button', { name: '工作区更多操作' }).click();
+      await page.getByRole('menuitem', { name: '回收站', exact: true }).click();
+    } else {
+      await page.getByRole('button', { name: '回收站', exact: true }).click();
+    }
     const dialog = page.getByRole('dialog', { name: '回收站' });
     const batch = dialog.getByRole('group', {
       name: '删除批次：Separate child',
@@ -56,7 +51,7 @@ for (const mobile of [false, true]) {
       dialog.getByRole('button', { name: '确认恢复' }),
     ).toBeDisabled();
     await dialog.getByLabel('恢复位置').click();
-    await page.getByRole('option', { name: 'Workspace 根目录' }).click();
+    await page.getByRole('option', { name: '工作区根目录' }).click();
     await dialog.getByRole('button', { name: '确认恢复' }).click();
     await expect(batch).toHaveCount(0);
     expect(

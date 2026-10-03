@@ -90,7 +90,7 @@ export function ItemCommentsDrawer({ opened, onClose, item, role }: { opened: bo
         </Stack>
       </Stack>
       <Modal opened={Boolean(pendingDelete)} onClose={() => !busy && setPendingDelete(undefined)} title="删除评论？" centered>
-        <Stack><Text size="sm">删除后评论将从这篇内容中移除，其他 Workspace 成员也无法再查看。</Text><Group justify="flex-end"><Button variant="default" onClick={() => setPendingDelete(undefined)} disabled={busy}>取消</Button><Button color="red" onClick={() => void removeComment()} loading={busy}>删除评论</Button></Group></Stack>
+        <Stack><Text size="sm">删除后评论将从这篇内容中移除，其他工作区成员也无法再查看。</Text><Group justify="flex-end"><Button variant="default" onClick={() => setPendingDelete(undefined)} disabled={busy}>取消</Button><Button color="red" onClick={() => void removeComment()} loading={busy}>删除评论</Button></Group></Stack>
       </Modal>
     </Drawer>
   );

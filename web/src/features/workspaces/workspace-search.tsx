@@ -124,7 +124,7 @@ export function WorkspaceSearch({
     >
       <Stack gap="sm">
         <Text size="sm" c="dimmed">
-          当前 Workspace · 标题、路径和文档正文
+          当前工作区 · 标题、路径和文档正文
         </Text>
         <Combobox
           store={combobox}
@@ -140,7 +140,7 @@ export function WorkspaceSearch({
               data-autofocus
               role="combobox"
               aria-autocomplete="list"
-              aria-label="搜索当前 Workspace"
+              aria-label="搜索当前工作区"
               placeholder="输入标题、路径或正文关键词"
               leftSection={<Search size={16} />}
               rightSection={waiting && valid ? <Loader size="xs" /> : null}
@@ -181,7 +181,7 @@ export function WorkspaceSearch({
             <Alert color="red" role="alert">
               {error instanceof APIError &&
               (error.status === 403 || error.status === 404)
-                ? '无法搜索此 Workspace，请确认访问权限。'
+                ? '无法搜索此工作区，请确认访问权限。'
                 : '搜索未完成，请检查网络后重试。'}
               <Button
                 variant="subtle"
@@ -239,7 +239,7 @@ export function WorkspaceSearch({
             })}
             {!waiting && valid && !error && rows.length === 0 && (
               <Combobox.Empty>
-                {query ? '没有匹配结果' : '当前 Workspace 还没有内容'}
+                {query ? '没有匹配结果' : '当前工作区还没有内容'}
               </Combobox.Empty>
             )}
           </Combobox.Options>
