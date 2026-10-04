@@ -11,6 +11,7 @@ import { configureFootnotes, footnotes, preserveFootnoteReferences } from './mar
 import { footnoteDefinitionView } from './markdown-footnote-view';
 import { blockMathNavigation } from './markdown-block-math';
 import { codeHighlights, codeHighlightSchema } from './markdown-code-highlights';
+import { configureCodeFenceMetadata } from './markdown-code-fence';
 import { configureEscapes, escapedText, preserveEscapes } from './markdown-escape';
 import { activeBlockDecoration, comfortableMarkdownInput } from './markdown-input';
 import { inlineSourceEditing } from './markdown-inline-source';
@@ -137,7 +138,8 @@ export function createMarkdownCrepe({ root, itemId, uploadImage, onInlinePreview
   crepe.editor
     .use(editorAccessibility)
     .use(codeHighlightSchema)
-    .use(codeHighlights)
+    .use(codeHighlights(root))
+    .config(configureCodeFenceMetadata)
     .use(blockMathNavigation)
     .config(configureEscapes)
     .use(escapedText)

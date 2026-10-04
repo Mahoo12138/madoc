@@ -38,8 +38,8 @@ test('fence line highlights survive editing, language changes, export and reload
   await expect(highlighted).toHaveCount(2);
   await block.hover();
   await block.locator('.language-button').click();
-  await block.getByPlaceholder('搜索语言').fill('javascript');
-  await block.locator('[data-language="JavaScript"]').click();
+  await page.getByPlaceholder('搜索语言').fill('javascript');
+  await page.getByRole('option', { name: 'JavaScript', exact: true }).click();
   await expect.poll(async () => (await (await page.request.get(`/api/items/${id}/export.md`)).text())).toMatch(/```javascript \{2,3\}/i);
   await page.getByLabel('文档标题').click();
   await expect(highlighted).toHaveCount(2);

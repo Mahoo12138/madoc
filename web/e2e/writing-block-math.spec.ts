@@ -146,8 +146,8 @@ test('changing a code block to LaTeX adopts the math presentation', async ({ pag
   const block = page.locator('.milkdown-code-block');
   await block.hover();
   await block.locator('.language-button').click();
-  await block.getByPlaceholder('搜索语言').fill('latex');
-  await block.locator('[data-language="LaTeX"]').click();
+  await page.getByPlaceholder('搜索语言').fill('latex');
+  await page.getByRole('option', { name: 'LaTeX', exact: true }).click();
   await expect(block).toHaveClass(/madoc-block-math/);
   await expect(block.locator('.katex')).toBeVisible();
   await block.locator('.preview').click();

@@ -43,9 +43,9 @@ test('code tools float outside/inside the panel without adding a header row', as
   const language = block.locator('.language-button');
   await language.focus();
   await language.press('Enter');
-  await expect(block.getByPlaceholder('搜索语言')).toBeFocused();
-  await block.getByPlaceholder('搜索语言').fill('typescript');
-  await block.locator('[data-language="TypeScript"]').click();
+  await expect(page.getByPlaceholder('搜索语言')).toBeFocused();
+  await page.getByPlaceholder('搜索语言').fill('typescript');
+  await page.getByRole('option', { name: 'TypeScript', exact: true }).click();
   await expect(language).toContainText('TypeScript');
   await expect.poll(async () => (await (await page.request.get(`/api/items/${id}/export.md`)).text())).toMatch(/```typescript/i);
   expect((await block.boundingBox())!.height).toBe(initialHeight);
@@ -64,16 +64,16 @@ test('code tools float outside/inside the panel without adding a header row', as
 
   await page.setViewportSize({ width: 390, height: 844 });
   await language.click();
-  await expect(block.getByPlaceholder('搜索语言')).toBeFocused();
+  await expect(page.getByPlaceholder('搜索语言')).toBeFocused();
   await expectFloatingTools(block);
-  const menu = (await block.locator('.list-wrapper').boundingBox())!;
+  const menu = (await page.locator('.mantine-Combobox-dropdown').boundingBox())!;
   expect(menu.x).toBeGreaterThanOrEqual(0);
   expect(menu.x + menu.width).toBeLessThanOrEqual(390);
   await page.screenshot({ path: '/tmp/madoc-code-block-mobile.png' });
-  await block.getByPlaceholder('搜索语言').fill('not-a-real-language');
-  await expect(block.getByText('没有匹配的语言')).toBeVisible();
+  await page.getByPlaceholder('搜索语言').fill('not-a-real-language');
+  await expect(page.getByText('没有匹配的语言')).toBeVisible();
   await page.getByLabel('文档标题').click();
-  await expect(block.locator('.list-wrapper')).toHaveCount(0);
+  await expect(page.locator('.mantine-Combobox-dropdown')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
@@ -95,6 +95,6 @@ test('touch users can discover both controls without hover or editor focus', asy
   await expect(block.locator('.language-button')).toHaveCSS('opacity', '1');
   await expect(block.locator('.copy-button')).toHaveCSS('opacity', '1');
   await block.locator('.language-button').tap();
-  await expect(block.getByPlaceholder('搜索语言')).toBeVisible();
+  await expect(page.getByPlaceholder('搜索语言')).toBeVisible();
   await context.close();
 });

@@ -20,6 +20,7 @@ import { MarkdownEditorControls } from "./markdown-editor-controls";
 import { startMarkdownSession, type SaveStatus } from "./markdown-session";
 import { getMarkdownStats } from "./markdown-stats";
 import { MarkdownMathPreview } from "./markdown-math-preview";
+import { MarkdownCodeLanguagePickers } from "./markdown-code-language-picker";
 import { VersionHistoryDialog } from "@/features/content-versions/version-history-dialog";
 import type { InlineMathPreview } from "./markdown-inline-presentation";
 import type { MarkdownOutline } from "./markdown-outline-model";
@@ -337,6 +338,7 @@ export function MarkdownEditor({
         data-typewriter-mode={typewriterMode || undefined}
       />
       <MarkdownMathPreview preview={inlinePreview} />
+      <MarkdownCodeLanguagePickers root={rootRef.current} />
       {sourceOpened && (
         <MarkdownSource
           title={item.title}

@@ -1,5 +1,5 @@
-import { StateEffect, StateField } from '@codemirror/state';
-import { Decoration, EditorView as CodeMirror } from '@codemirror/view';
+import { Prec, StateEffect, StateField } from '@codemirror/state';
+import { Decoration, EditorView as CodeMirror, keymap } from '@codemirror/view';
 import { nodesCtx, nodeViewCtx } from '@milkdown/kit/core';
 import { CodeMirrorBlock } from '@milkdown/kit/component/code-block';
 import { codeBlockSchema } from '@milkdown/kit/preset/commonmark';
@@ -7,6 +7,8 @@ import type { NodeViewConstructor } from '@milkdown/kit/prose/view';
 import { $node, $view } from '@milkdown/kit/utils';
 import { presentBlockMath } from './markdown-block-math';
 import { highlightedCodeLines } from './markdown-code-lines';
+import { presentCodeLanguagePicker } from './markdown-code-language-view';
+import { parseCodeFenceInfo, startsWithCodeLineGroup } from './markdown-code-fence';
 
 const refreshHighlights = StateEffect.define<null>();
 
@@ -29,7 +31,7 @@ export const codeHighlightSchema = $node('code_block', (ctx) => {
     parseMarkdown: {
       match: (node) => node.type === 'code',
       runner: (state, node, type) => {
-        state.openNode(type, { language: node.lang ?? '', meta: node.meta ?? '' });
+        state.openNode(type, parseCodeFenceInfo(String(node.lang ?? ''), String(node.meta ?? '')));
         if (node.value) state.addText(String(node.value));
         state.closeNode();
       },
@@ -38,8 +40,10 @@ export const codeHighlightSchema = $node('code_block', (ctx) => {
       match: (node) => node.type.name === 'code_block',
       runner: (state, node) => {
         if (!node.attrs.meta) return schema.toMarkdown.runner(state, node);
-        state.addNode('code', undefined, node.textContent, {
-          lang: node.attrs.language || null,
+        const plain = !node.attrs.language;
+        const meta = String(node.attrs.meta);
+        state.addNode(plain && startsWithCodeLineGroup(meta) ? 'madocPlainCode' : 'code', undefined, node.textContent, {
+          lang: node.attrs.language || 'text',
           meta: node.attrs.meta || null,
         });
       },
@@ -48,7 +52,7 @@ export const codeHighlightSchema = $node('code_block', (ctx) => {
 });
 
 /** Extend Crepe's existing, lazily created CodeMirror view rather than replacing it. */
-export const codeHighlights = $view(codeBlockSchema.node, (ctx): NodeViewConstructor => {
+export const codeHighlights = (root: HTMLElement) => $view(codeBlockSchema.node, (ctx): NodeViewConstructor => {
   const create = ctx.get(nodeViewCtx).find(([name]) => name === 'code_block')![1];
   return (node, view, getPos, decorations, innerDecorations) => {
     const inner = create(node, view, getPos, decorations, innerDecorations);
@@ -68,7 +72,15 @@ export const codeHighlights = $view(codeBlockSchema.node, (ctx): NodeViewConstru
     });
     // The constructor waits for IntersectionObserver before creating CodeMirror.
     // Keep this per-node configuration for off-screen teardown/recreation too.
-    inner.config = { ...inner.config, extensions: [...inner.config.extensions, highlights] };
+    // These Crepe shortcuts dispatch ProseMirror changes directly, bypassing
+    // CodeMirror's readOnly facet/change filter. Check live editor permissions
+    // before its keymap while leaving navigation and copying available.
+    const readonlyShortcuts = Prec.highest(keymap.of(
+      ['Backspace', 'Mod-Enter', 'Mod-z', 'Mod-y', 'Shift-Mod-z'].map((key) => ({
+        key, run: () => !view.editable,
+      })),
+    ));
+    inner.config = { ...inner.config, extensions: [...inner.config.extensions, readonlyShortcuts, highlights] };
     const update = inner.update.bind(inner);
     inner.update = (next) => {
       if (next.type !== node.type) return false;
@@ -79,6 +91,7 @@ export const codeHighlights = $view(codeBlockSchema.node, (ctx): NodeViewConstru
       if (accepted && changed && inner.cm?.dom.isConnected) inner.cm.dispatch({ effects: refreshHighlights.of(null) });
       return accepted;
     };
+    presentCodeLanguagePicker(inner, root);
     return presentBlockMath(inner, node, view);
   };
 });
