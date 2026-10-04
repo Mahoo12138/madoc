@@ -27,6 +27,7 @@ export const api = {
   workspace: (id: string) => request<Workspace>(`/workspaces/${id}`),
   createWorkspace: (name: string) => request<Workspace>('/workspaces', { method: 'POST', body: JSON.stringify({ name }) }),
   renameWorkspace: (id: string, name: string) => request<void>(`/workspaces/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+  describeWorkspace: (id: string, description: string) => request<void>(`/workspaces/${id}`, { method: 'PATCH', body: JSON.stringify({ description }) }),
   deleteWorkspace: (id: string) => request<void>(`/workspaces/${id}`, { method: 'DELETE' }),
   members: (workspaceId: string) => request<Member[]>(`/workspaces/${workspaceId}/members`),
   workspaceActivity: (workspaceId: string, before = '', limit = 30) => request<{ events: ActivityEvent[]; nextBefore: string }>(`/workspaces/${workspaceId}/activity?${new URLSearchParams({ before, limit: String(limit) })}`, { cache: 'no-store' }),

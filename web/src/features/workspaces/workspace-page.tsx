@@ -328,8 +328,13 @@ export function WorkspacePage() {
                     >
                       {workspace.data?.name}
                     </Text>
-                    <Text size="xs" c="dimmed" truncate>
-                      专注记录，成就成长
+                    <Text
+                      size="xs"
+                      c="dimmed"
+                      truncate
+                      title={workspace.data?.description || "未设置介绍"}
+                    >
+                      {workspace.data?.description || "未设置介绍"}
                     </Text>
                   </div>
                 </Group>

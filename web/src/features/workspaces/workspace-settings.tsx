@@ -12,6 +12,7 @@ import {
   Stack,
   Text,
   TextInput,
+  getDefaultZIndex,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -34,6 +35,7 @@ import { AccountMenu } from "@/features/account/account-menu";
 import { MemberManagement } from "./member-management";
 import { roleDescriptions, roleLabels } from "./role-labels";
 import { WorkspaceActivity } from "./workspace-activity";
+import { WorkspaceDescriptionDialog } from "./workspace-description-dialog";
 import { workspaceMedia } from "./workspace-layout";
 import * as shell from "./workspace-shell.css";
 import * as styles from "./workspace-management.css";
@@ -80,25 +82,31 @@ export function WorkspaceSettings({
   const [name, setName] = useState(workspace.name);
   const [inviteLink, setInviteLink] = useState("");
   const [editingName, setEditingName] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [memberBusy, setMemberBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const [navigationOpened, navigationDrawer] = useDisclosure(false);
   const allowLeave = useRef(false);
-  const { rename, remove } = useWorkspaceSettings(workspace.id);
+  const { rename, describe, remove } = useWorkspaceSettings(workspace.id);
   const navigate = useNavigate();
   const mobile = useMediaQuery(workspaceMedia.mobile, undefined, {
     getInitialValueInEffect: false,
   });
   const owner = workspace.role === "owner";
-  const busy = rename.isPending || remove.isPending || memberBusy;
+  const busy =
+    rename.isPending || describe.isPending || remove.isPending || memberBusy;
   const showingDeleteConfirmation = confirming && owner;
   const error = showingDeleteConfirmation ? errorMessage(remove.error) : null;
   const canRename = name.trim() !== "" && name.trim() !== workspace.name;
   const canDelete = owner && confirmation === workspace.name;
   const shouldGuardLeave =
-    busy || editingName || memberDialogOpen || showingDeleteConfirmation;
+    busy ||
+    editingName ||
+    editingDescription ||
+    memberDialogOpen ||
+    showingDeleteConfirmation;
   const blocker = useBlocker({
     shouldBlockFn: ({ current, next }) =>
       current.pathname !== next.pathname &&
@@ -109,6 +117,7 @@ export function WorkspaceSettings({
   });
 
   const resetRename = rename.reset;
+  const resetDescription = describe.reset;
   const resetRemove = remove.reset;
   useEffect(() => {
     const requested = sectionFromHash(hash);
@@ -156,12 +165,14 @@ export function WorkspaceSettings({
   useEffect(() => {
     if (!owner) {
       setEditingName(false);
+      setEditingDescription(false);
       setConfirming(false);
       setConfirmation("");
       resetRename();
+      resetDescription();
       resetRemove();
     }
-  }, [owner, resetRename, resetRemove]);
+  }, [owner, resetRename, resetDescription, resetRemove]);
 
   const goToWorkspace = () => {
     if (returnItemId) {
@@ -178,8 +189,7 @@ export function WorkspaceSettings({
   };
   const goToWorkspaces = () => void navigate({ to: "/workspaces" });
   const selectSection = (target: Section) => {
-    if (busy || showingDeleteConfirmation || editingName || memberDialogOpen)
-      return;
+    if (shouldGuardLeave) return;
     setSection(target);
     void navigate({
       to: "/workspace/$workspaceId/manage",
@@ -436,6 +446,35 @@ export function WorkspaceSettings({
                       )}
                     </div>
                   </section>
+                  <section
+                    className={styles.sectionRule}
+                    aria-label="工作区介绍"
+                  >
+                    <div className={styles.actionRow}>
+                      <div className={styles.actionText}>
+                        <h3 className={styles.sectionHeading}>介绍</h3>
+                        <Text
+                          size="sm"
+                          c={workspace.description ? undefined : "dimmed"}
+                          className={styles.workspaceDescription}
+                        >
+                          {workspace.description || "未设置介绍"}
+                        </Text>
+                      </div>
+                      {owner && (
+                        <Button
+                          variant="default"
+                          disabled={busy}
+                          onClick={() => {
+                            describe.reset();
+                            setEditingDescription(true);
+                          }}
+                        >
+                          编辑介绍
+                        </Button>
+                      )}
+                    </div>
+                  </section>
                   {workspace.role !== "viewer" && (
                     <section
                       className={styles.sectionRule}
@@ -570,8 +609,28 @@ export function WorkspaceSettings({
           </div>
         </form>
       </Modal>
+      {owner && (
+        <WorkspaceDescriptionDialog
+          opened={editingDescription}
+          description={workspace.description}
+          busy={busy}
+          blocked={blocker.status === "blocked"}
+          error={errorMessage(describe.error)}
+          onClose={() => {
+            if (busy) return;
+            setEditingDescription(false);
+            describe.reset();
+          }}
+          onSave={async (description) => {
+            await describe.mutateAsync(description);
+            setEditingDescription(false);
+            notifications.show({ message: "工作区介绍已更新", color: "blue" });
+          }}
+        />
+      )}
       <Modal
         opened={blocker.status === "blocked"}
+        zIndex={getDefaultZIndex("modal") + 1}
         onClose={() => {
           if (busy || blocker.status !== "blocked") return;
           blocker.reset();
@@ -581,7 +640,9 @@ export function WorkspaceSettings({
             ? "正在保存"
             : editingName
               ? "放弃名称修改？"
-              : "离开工作区管理？"
+              : editingDescription
+                ? "放弃介绍修改？"
+                : "离开工作区管理？"
         }
         centered
         closeOnEscape={!busy}

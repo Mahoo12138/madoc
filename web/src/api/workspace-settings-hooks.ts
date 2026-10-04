@@ -1,27 +1,35 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from './client';
-import { keys } from './hooks';
-import type { Item, Workspace } from './types';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "./client";
+import { keys } from "./hooks";
+import type { Item, Workspace } from "./types";
 
 export function useWorkspaceSettings(workspaceId: string) {
   const client = useQueryClient();
+  const refreshWorkspace = async (
+    patch: Partial<Pick<Workspace, "name" | "description">>,
+  ) => {
+    client.setQueryData<Workspace>(keys.workspace(workspaceId), (workspace) =>
+      workspace ? { ...workspace, ...patch } : workspace,
+    );
+    client.setQueryData<Workspace[]>(keys.workspaces, (workspaces) =>
+      workspaces?.map((workspace) =>
+        workspace.id === workspaceId ? { ...workspace, ...patch } : workspace,
+      ),
+    );
+    await Promise.all([
+      client.invalidateQueries({ queryKey: keys.workspace(workspaceId) }),
+      client.invalidateQueries({ queryKey: keys.workspaces }),
+    ]);
+  };
   const rename = useMutation({
     mutationFn: (name: string) => api.renameWorkspace(workspaceId, name),
-    onSuccess: async (_, name) => {
-      client.setQueryData<Workspace>(
-        keys.workspace(workspaceId),
-        (workspace) => (workspace ? { ...workspace, name } : workspace),
-      );
-      client.setQueryData<Workspace[]>(keys.workspaces, (workspaces) =>
-        workspaces?.map((workspace) =>
-          workspace.id === workspaceId ? { ...workspace, name } : workspace,
-        ),
-      );
-      await Promise.all([
-        client.invalidateQueries({ queryKey: keys.workspace(workspaceId) }),
-        client.invalidateQueries({ queryKey: keys.workspaces }),
-      ]);
-    },
+    onSuccess: (_, name) => refreshWorkspace({ name: name.trim() }),
+  });
+  const describe = useMutation({
+    mutationFn: (description: string) =>
+      api.describeWorkspace(workspaceId, description),
+    onSuccess: (_, description) =>
+      refreshWorkspace({ description: description.trim() }),
   });
   const remove = useMutation({
     mutationFn: () => api.deleteWorkspace(workspaceId),
@@ -47,5 +55,5 @@ export function useWorkspaceSettings(workspaceId: string) {
       await client.invalidateQueries({ queryKey: keys.workspaces });
     },
   });
-  return { rename, remove };
+  return { rename, describe, remove };
 }

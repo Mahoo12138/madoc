@@ -224,6 +224,10 @@ export const actionRow = style({
   },
 });
 export const actionText = style({ minWidth: 0 });
+export const workspaceDescription = style({
+  whiteSpace: "pre-wrap",
+  overflowWrap: "anywhere",
+});
 export const formActions = style({
   display: "flex",
   justifyContent: "flex-end",
