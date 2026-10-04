@@ -1,10 +1,14 @@
-# madoc MVP Status
+# Madoc Status
 
-更新时间：2026-10-04
+更新时间：2026-10-05
 
 ## 当前结论
 
-项目仍处于 MVP 阶段。本轮工作是内部架构重构，不是正式版本升级，也不引入公开 API 版本号。
+项目进入首个 alpha 发布准备阶段，版本为 `v0.1.0-alpha.1`。历史架构重置属于 MVP 内部迁移；本次发行提供 Git tag、GitHub 预发布、单二进制压缩包及 GHCR 镜像，不改变公开 API 的命名方式。
+
+新增 tag 触发的固定提交发布流程：Go test / race / vet、前端 typecheck / build、普通 Chromium 全套、独立首次安装与重启恢复通过后，构建单二进制包与多架构 Docker 镜像，执行生产镜像持久卷冒烟，再发布 GitHub Release。Actions 使用固定提交；镜像记录来源、版本与源码提交，alpha 不设置 `latest`。实际发布验收和远端产物仍待执行，见 [发布说明](docs/releases/v0.1.0-alpha.1.md)。
+
+发布准备初检：`go test -count=1 ./...`、`go test -race -count=1 ./...`、`go vet ./...`、前端 typecheck / production build、`actionlint 1.7.12` 和 Docker 新卷初始化 / 容器重建持久性冒烟通过。主机 npm / actionlint 下载受限后分别通过授权网络与 Docker 工具环境完成。尚待固定提交的浏览器全套及远端发布验证；保留现有大 chunk 构建警告。
 
 madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Workspace：Go 单二进制、SQLite、本地 Asset、REST、原生 WebSocket、Milkdown/Crepe 和 Excalidraw。
 

@@ -1,6 +1,8 @@
-# madoc
+# Madoc
 
-**madoc** 是一个面向个人、小团队和家庭的轻量级、开源、自部署协同 Markdown 工作区。
+**Madoc** 是一个面向个人、小团队和家庭的轻量级、自部署协同 Markdown 工作区。当前发布为 **v0.1.0-alpha.1**，用于早期试用与反馈；重要内容请保留独立备份。
+
+预构建镜像：`ghcr.io/mahoo12138/madoc:v0.1.0-alpha.1`。部署步骤、首次管理员与 HTTPS 配置前提见 [BUILD.md](./BUILD.md#docker)，功能及已知限制见 [发布说明](./docs/releases/v0.1.0-alpha.1.md)。
 
 项目仍处于 MVP 阶段，但 MVP 的实现路线不再以“将 AFFiNE 0.26.x 整体移植到 Go + SQLite”为目标。AFFiNE 仅作为产品体验和协同架构参考，不再作为前端代码基座、API 兼容目标或数据模型规范。
 
@@ -69,9 +71,9 @@ Workspace
 6. **Mantine 与 Vanilla Extract 分工明确。** Mantine 负责成熟的通用 UI primitive 与交互组件；Vanilla Extract 负责 madoc 自己的产品级布局、视觉语言和复杂页面样式。不要重复实现 Mantine 已经成熟提供的基础组件，也不要维护第二套平行 Design Token。
 7. **先做小而完整的 MVP，再扩展。**
 
-## MVP
+## 当前功能
 
-当前 MVP 的发布边界只要求：
+本次 alpha 包含：
 
 - 首次初始化管理员；
 - Email + Password 登录；
@@ -85,23 +87,28 @@ Workspace
 - Excalidraw 白板；
 - Whiteboard 多人实时协作；
 - 自动保存；
+- 工作区搜索、个人收藏与最近访问；
+- Item / 目录回收站及恢复；
+- 单项、目录与工作区可移植 ZIP 导出和整组导入；
+- Markdown / 白板版本历史、检查点与恢复为新副本；
+- 绑定手动版本的单项只读分享；
+- 整篇内容评论与工作区活动记录；
 - Docker 和单二进制部署；
-- 基础备份说明。
+- 停服备份、验证与可回滚恢复命令。
 
-暂不进入 MVP：
+当前不提供：
 
 - Database / Kanban；
 - Calendar；
 - AI；
-- 评论；
 - 知识图谱；
 - Notion-style database；
 - OAuth；
 - 第三方云存储；
 - WebDAV；
 - Git 双向同步；
-- 完整历史版本 UI；
-- 公开发布站点；
+- 历史版本原位覆盖式恢复；
+- 公开目录或完整发布站点；
 - 插件系统。
 
 ## 文档导航
@@ -110,6 +117,7 @@ Workspace
 - [PLAN.md](./PLAN.md)：MVP 实施计划
 - [STATUS.md](./STATUS.md)：当前迁移状态
 - [BUILD.md](./BUILD.md)：开发、构建与部署
+- [v0.1.0-alpha.1 发布说明](./docs/releases/v0.1.0-alpha.1.md)：安装、升级与已知限制
 - [AGENTS.md](./AGENTS.md)：仓库实现约束
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)：总体架构
 - [docs/EDITOR.md](./docs/EDITOR.md)：Markdown 编辑器设计
@@ -129,7 +137,7 @@ madoc 的竞争力不在“比 AFFiNE 功能更多”，而在：
 
 ## 当前数据安全边界
 
-当前开发版的 Item / 目录删除已改为进入回收站，已提供批次查看、恢复位置选择和 owner 完整名称确认的彻底删除界面。
+当前版本的 Item / 目录删除进入回收站，已提供批次查看、恢复位置选择和 owner 完整名称确认的彻底删除界面。
 Workspace 删除仍为永久删除。重要内容请按 [备份步骤](BUILD.md#backup) 保留实例备份；
 本地待提交草稿不能替代完整备份。回收站接口与边界见 [内容生命周期](docs/CONTENT_LIFECYCLE.md)。
 可靠保存、恢复支持范围和固定提交验收见 [发布检查](docs/RELEASE.md)。
