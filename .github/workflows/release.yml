@@ -18,7 +18,7 @@ permissions:
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'push' && github.ref_type == 'branch' }}
 
 jobs:
   verify:
@@ -125,19 +125,22 @@ jobs:
           corepack enable
           pnpm install --frozen-lockfile
           pnpm --dir web build
-          mkdir -p dist
+          export ARTIFACT_DIR="$RUNNER_TEMP/madoc-release-artifacts"
+          printf 'ARTIFACT_DIR=%s\n' "$ARTIFACT_DIR" >> "$GITHUB_ENV"
+          mkdir -p "$ARTIFACT_DIR"
           for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
             os="${target%/*}"
             arch="${target#*/}"
             directory="madoc-${RELEASE_TAG}-${os}-${arch}"
-            mkdir -p "dist/$directory"
-            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath -ldflags='-s -w' -o "dist/$directory/madoc" .
-            cp BUILD.md README.md "dist/$directory/"
-            cp -r docs "dist/$directory/docs"
-            tar -C dist -czf "dist/$directory.tar.gz" "$directory"
-            rm -r "dist/$directory"
+            test -z "$(git status --porcelain)"
+            mkdir -p "$ARTIFACT_DIR/$directory"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath -ldflags='-s -w' -o "$ARTIFACT_DIR/$directory/madoc" .
+            cp BUILD.md README.md "$ARTIFACT_DIR/$directory/"
+            cp -r docs "$ARTIFACT_DIR/$directory/docs"
+            tar -C "$ARTIFACT_DIR" -czf "$ARTIFACT_DIR/$directory.tar.gz" "$directory"
+            rm -r "$ARTIFACT_DIR/$directory"
           done
-          (cd dist && sha256sum *.tar.gz > SHA256SUMS)
+          (cd "$ARTIFACT_DIR" && sha256sum *.tar.gz > SHA256SUMS)
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - name: Build production candidate
@@ -178,9 +181,9 @@ jobs:
           IMAGE: ${{ steps.release.outputs.image }}
           DIGEST: ${{ steps.image.outputs.digest }}
         run: |
-          printf '%s@%s\n' "$IMAGE" "$DIGEST" > dist/IMAGE_DIGEST
+          printf '%s@%s\n' "$IMAGE" "$DIGEST" > "$ARTIFACT_DIR/IMAGE_DIGEST"
           flags=()
           if [[ "$RELEASE_TAG" == *-* ]]; then
             flags+=(--prerelease --latest=false)
           fi
-          gh release create "$RELEASE_TAG" dist/* --verify-tag --title "Madoc $RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md" "${flags[@]}"
+          gh release create "$RELEASE_TAG" "$ARTIFACT_DIR"/* --verify-tag --title "Madoc $RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md" "${flags[@]}"

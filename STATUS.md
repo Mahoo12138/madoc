@@ -18,6 +18,8 @@ Alpha 第二轮固定提交 `a54b5d8`：Go test / race / vet、前端 typecheck 
 
 首轮远端 CI [37224537436](https://github.com/Mahoo12138/madoc/actions/runs/37224537436) 未通过：依赖安装成功，Go 内部各包测试通过，但根包的 `go:embed all:web/dist` 在全新 checkout 下不存在。此前本地已有构建目录掩盖了工作流顺序问题；将前端 typecheck / build 移到 Go test / race / vet 之前，浏览器测试随后执行。未发布 Release 或镜像，tag 保持原源码；失败日志保留在 `/tmp/madoc-alpha-ci-first-verify.log`，修正后的控制器仍待完整远端复验。
 
+产物预检发现原打包流程在仓库未忽略的根 `dist/` 内连续构建，会使后续二进制带 `vcs.modified=true`。改为在 `$RUNNER_TEMP` 下生成全部压缩包、校验清单与镜像摘要，每个交叉编译前断言 checkout 无改动。更新同一发布控制分支时取消被替代的运行；tag / 手动发布和同版本 publish job 仍串行。源码 tag 不变，新控制器须重新通过完整远端门槛，下载后严格核对四平台源码 SHA 与干净状态。
+
 madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Workspace：Go 单二进制、SQLite、本地 Asset、REST、原生 WebSocket、Milkdown/Crepe 和 Excalidraw。
 
 ## 已完成
