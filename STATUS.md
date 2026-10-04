@@ -14,7 +14,9 @@ Alpha 首轮固定提交 `20685fa`：Go test / race / vet、前端 typecheck / b
 
 Alpha 第二轮固定提交 `a54b5d8`：Go test / race / vet、前端 typecheck / build、414 项普通 Chromium 与独立 MVP 均通过，无重试；真实重启 5 / 6 通过，备份恢复用例仍等待改版前白板状态文案 `Saved`，同步为当前「已保存」后 6 项真实重启 / 独立目录备份恢复全部通过。产品代码未改；后续固定提交 Docker 与远端 tag 的完整 CI 发布门槛仍待执行。
 
-`v0.1.0-alpha.1` 已推送，固定源码提交为 `432df65c561bda15feb5b788a5fcdc6e2b9ccec1`，该提交 Docker 构建与新卷持久性冒烟通过。GitHub 已登记 active 发布工作流，但首次 main / tag 原子推送未生成运行记录，原因未确认；新增手动指定既有 tag 与 `codex/release-*` 分支创建入口。验收 job 检出既有 tag，发布 job 固定使用验收 SHA，镜像源码标签与实际构建一致；同版本发布串行且拒绝覆盖已存在 Release，保持已推送 tag 不变。新增入口仍须通过完整验收才能发布。
+`v0.1.0-alpha.1` 已推送，固定源码提交为 `432df65c561bda15feb5b788a5fcdc6e2b9ccec1`，该提交 Docker 构建与新卷持久性冒烟通过。GitHub 已登记 active 发布工作流，但首次 main / tag 原子推送未生成运行记录，原因未确认；新增手动指定既有 tag 与 `codex/release-*` 分支推送入口。验收 job 检出既有 tag，发布 job 固定使用验收 SHA，镜像源码标签与实际构建一致；同版本发布串行且拒绝覆盖已存在 Release，保持已推送 tag 不变。新增入口仍须通过完整验收才能发布。
+
+首轮远端 CI [37224537436](https://github.com/Mahoo12138/madoc/actions/runs/37224537436) 未通过：依赖安装成功，Go 内部各包测试通过，但根包的 `go:embed all:web/dist` 在全新 checkout 下不存在。此前本地已有构建目录掩盖了工作流顺序问题；将前端 typecheck / build 移到 Go test / race / vet 之前，浏览器测试随后执行。未发布 Release 或镜像，tag 保持原源码；失败日志保留在 `/tmp/madoc-alpha-ci-first-verify.log`，修正后的控制器仍待完整远端复验。
 
 madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Workspace：Go 单二进制、SQLite、本地 Asset、REST、原生 WebSocket、Milkdown/Crepe 和 Excalidraw。
 
