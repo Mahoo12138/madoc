@@ -10,6 +10,8 @@
 
 发布准备初检：`go test -count=1 ./...`、`go test -race -count=1 ./...`、`go vet ./...`、前端 typecheck / production build、`actionlint 1.7.12` 和 Docker 新卷初始化 / 容器重建持久性冒烟通过。主机 npm / actionlint 下载受限后分别通过授权网络与 Docker 工具环境完成。尚待固定提交的浏览器全套及远端发布验证；保留现有大 chunk 构建警告。
 
+Alpha 首轮固定提交 `20685fa`：Go test / race / vet、前端 typecheck / build 通过；普通 Chromium 412 / 414 通过，两项桌面收藏操作因测试直接命中尚未悬停启用的按钮而超时。轨迹确认恢复 API 与数据正常，补充父行悬停及 opacity / pointer-events 断言，保留原取消收藏、键盘、未删除及恢复断言，不使用强制点击或重试。修正后 5 项收藏桌面 / 320px / 390px 专项通过。失败记录见 `docs/RELEASE.md`；尚待新固定提交全套复验。
+
 madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Workspace：Go 单二进制、SQLite、本地 Asset、REST、原生 WebSocket、Milkdown/Crepe 和 Excalidraw。
 
 ## 已完成

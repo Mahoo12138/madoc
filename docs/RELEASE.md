@@ -1,5 +1,13 @@
 # 固定提交发布检查
 
+## v0.1.0-alpha.1 发布准备（2026-10-05）
+
+首轮固定提交 `20685fa4e943a4d0abe2d7d23fc9b9ac83ec532e`：锁文件安装、Go test / race（`-count=1`）/ vet、前端 typecheck / production build 通过；普通 Chromium 全套 412 / 414 通过，后续首次安装、重启恢复和固定提交 Docker 检查按门槛停止，未运行。
+
+两项失败均在 `personal-navigation.spec.ts` 的桌面收藏操作：恢复 API 返回 204，收藏 / 最近访问 GET 正常返回；另一用例的键盘取消收藏与未删除断言也已通过。隐藏按钮默认 `opacity: 0; pointer-events: none`，测试直接 click / hover 时被父行命中检查拦截。修正为先进入父行悬停，再验证 `opacity: 1` / `pointer-events: auto` 并保留原业务操作与断言；不强制点击、不增加重试、不改产品样式。
+
+首次失败日志与 Go 检查记录保存在 `/tmp/madoc-alpha-release-checks/`；两项轨迹及截图保留在 `/tmp/madoc-alpha-release-first-test-results/`。候选镜像的准备性构建与原生产持久卷冒烟此前已通过，但不代替新固定提交的最终检查。Browser / CUA 初始化反复 30 秒超时，浏览器验收使用仓库已有 Playwright 流程。新固定提交与远端发行物验证待完成。
+
 发布结论绑定完整 Git commit，不沿用之前提交的 STATUS 记录。改动正文协议、存储、
 权限或编辑器后须重新验证。阶段 0 的行为设计见 `RELIABILITY.md` 和 `WHITEBOARD.md`。
 

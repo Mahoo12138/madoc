@@ -13,7 +13,7 @@
 
 ## 产品目标
 
-madoc 希望提供一种比 AFFiNE、Notion 类产品更克制的自部署体验：
+Madoc 希望提供一种比 AFFiNE、Notion 类产品更克制的自部署体验：
 
 - 单机即可运行；
 - 默认 SQLite；
@@ -51,9 +51,9 @@ Workspace
 | UI Components | Mantine |
 | Styling | Vanilla Extract |
 | Markdown Editor | Milkdown / Crepe |
-| Markdown Collaboration | Yjs + `@milkdown/plugin-collab` + madoc provider |
+| Markdown Collaboration | Yjs + `@milkdown/plugin-collab` + Madoc provider |
 | Whiteboard | `@excalidraw/excalidraw` |
-| Whiteboard Collaboration | madoc Excalidraw collaboration adapter |
+| Whiteboard Collaboration | Madoc Excalidraw collaboration adapter |
 | Realtime Transport | Native WebSocket |
 | WebSocket Library | `github.com/coder/websocket` |
 | Asset Storage | Local filesystem + SQLite metadata |
@@ -68,7 +68,7 @@ Workspace
 3. **Go 后端保持内容尽量“盲”。** Markdown Yjs update 由浏览器产生和合并，Go 负责权限、sequence、relay、persistence。
 4. **Markdown 是可移植格式，但实时协作的 canonical state 是 Yjs。** 服务端同时维护可导出的 Markdown cache。
 5. **不要为了技术统一造新的 BlockSuite。** 编辑器与白板是两个独立内容引擎，共享 Workspace、权限、资产、实时连接和应用 Shell。
-6. **Mantine 与 Vanilla Extract 分工明确。** Mantine 负责成熟的通用 UI primitive 与交互组件；Vanilla Extract 负责 madoc 自己的产品级布局、视觉语言和复杂页面样式。不要重复实现 Mantine 已经成熟提供的基础组件，也不要维护第二套平行 Design Token。
+6. **Mantine 与 Vanilla Extract 分工明确。** Mantine 负责成熟的通用 UI primitive 与交互组件；Vanilla Extract 负责 Madoc 自己的产品级布局、视觉语言和复杂页面样式。不要重复实现 Mantine 已经成熟提供的基础组件，也不要维护第二套平行 Design Token。
 7. **先做小而完整的 MVP，再扩展。**
 
 ## 当前功能
@@ -131,7 +131,7 @@ Workspace
 
 ## 不变的长期目标
 
-madoc 的竞争力不在“比 AFFiNE 功能更多”，而在：
+Madoc 的竞争力不在“比 AFFiNE 功能更多”，而在：
 
 > **Markdown-first、协作、轻量、自部署、可理解、可维护。**
 
