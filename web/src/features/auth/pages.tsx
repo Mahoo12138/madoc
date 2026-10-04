@@ -10,7 +10,7 @@ import { APIError } from '@/api/types';
 import * as styles from './pages.css';
 
 function Brand() {
-  return <div className={styles.brand}><img src="/logo.svg" alt="" aria-hidden className={styles.mark} /><Text fw={700} size="lg">madoc</Text></div>;
+  return <div className={styles.brand}><img src="/logo.svg" alt="" aria-hidden className={styles.mark} /><Text fw={700} size="lg">Madoc</Text></div>;
 }
 
 function ErrorAlert({ error }: { error: string }) {
@@ -39,7 +39,7 @@ export function SetupPage() {
     catch (e) { setError(e instanceof Error ? e.message : '初始化失败'); }
     finally { setLoading(false); }
   });
-  return <main className={styles.page}><section className={styles.panel}><Brand /><Paper withBorder shadow="xs" radius="lg" p="xl"><Stack gap="lg"><div><Title order={2}>创建管理员</Title><Text c="dimmed" mt={6}>首次启动只需完成一次。数据会保存在当前 madoc 实例中。</Text></div><ErrorAlert error={error} /><form onSubmit={submit}><Stack><TextInput label="姓名" placeholder="你的名字" {...form.getInputProps('name')} /><TextInput label="邮箱" placeholder="you@example.com" {...form.getInputProps('email')} /><PasswordInput label="密码" placeholder="至少 8 个字符" {...form.getInputProps('password')} /><Button type="submit" loading={loading} rightSection={<IconArrowRight size={16} />}>创建并进入</Button></Stack></form></Stack></Paper></section></main>;
+  return <main className={styles.page}><section className={styles.panel}><Brand /><Paper withBorder shadow="xs" radius="lg" p="xl"><Stack gap="lg"><div><Title order={2}>创建管理员</Title><Text c="dimmed" mt={6}>首次启动只需完成一次。数据会保存在当前 Madoc 实例中。</Text></div><ErrorAlert error={error} /><form onSubmit={submit}><Stack><TextInput label="姓名" placeholder="你的名字" {...form.getInputProps('name')} /><TextInput label="邮箱" placeholder="you@example.com" {...form.getInputProps('email')} /><PasswordInput label="密码" placeholder="至少 8 个字符" {...form.getInputProps('password')} /><Button type="submit" loading={loading} rightSection={<IconArrowRight size={16} />}>创建并进入</Button></Stack></form></Stack></Paper></section></main>;
 }
 
 export function SignInPage() {
@@ -53,7 +53,7 @@ export function SignInPage() {
     catch (e) { setError(e instanceof Error ? e.message : '登录失败'); }
     finally { setLoading(false); }
   });
-  return <main className={styles.page}><section className={styles.panel}><Brand /><Paper withBorder shadow="xs" radius="lg" p="xl"><Stack gap="lg"><div><Title order={2}>欢迎回来</Title><Text c="dimmed" mt={6}>登录你的 madoc workspace。</Text></div><ErrorAlert error={error} /><form onSubmit={submit}><Stack><TextInput label="邮箱" autoComplete="email" {...form.getInputProps('email')} /><PasswordInput label="密码" autoComplete="current-password" {...form.getInputProps('password')} /><Button type="submit" loading={loading}>登录</Button></Stack></form></Stack></Paper></section></main>;
+  return <main className={styles.page}><section className={styles.panel}><Brand /><Paper withBorder shadow="xs" radius="lg" p="xl"><Stack gap="lg"><div><Title order={2}>欢迎回来</Title><Text c="dimmed" mt={6}>登录你的 Madoc workspace。</Text></div><ErrorAlert error={error} /><form onSubmit={submit}><Stack><TextInput label="邮箱" autoComplete="email" {...form.getInputProps('email')} /><PasswordInput label="密码" autoComplete="current-password" {...form.getInputProps('password')} /><Button type="submit" loading={loading}>登录</Button></Stack></form></Stack></Paper></section></main>;
 }
 
 export function InvitePage() {
