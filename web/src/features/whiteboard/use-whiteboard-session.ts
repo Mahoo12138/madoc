@@ -1,7 +1,7 @@
 import { registerContentSave, waitForSave } from '@/features/content/content-save';
 import { useEffect, useRef, useState } from 'react';
 import { useBlocker } from '@tanstack/react-router';
-import { reconcileElements } from '@excalidraw/excalidraw';
+import { CaptureUpdateAction, reconcileElements, restoreAppState } from '@excalidraw/excalidraw';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useWhiteboard } from '@/api/hooks';
 import type { BoardScene, Item, Role, User } from '@/api/types';
@@ -10,13 +10,16 @@ import { RealtimeClient } from '@/features/realtime/client';
 import { WhiteboardOutbox } from './whiteboard-outbox';
 import { WhiteboardDrafts } from './whiteboard-drafts';
 import { WhiteboardSaveState } from './whiteboard-save-state';
-import { durableBoardScene } from './whiteboard-scene';
+import { WhiteboardSettingsState } from './whiteboard-settings-state';
+import { durableBoardAppState, durableBoardScene } from './whiteboard-scene';
 
 export function useWhiteboardSession(item: Item, role: Role, user: User) {
   useEffect(() => { if (role === 'viewer') realtimeRef.current?.rejectItem(item.id); }, [role, item.id]);
   const initial = useWhiteboard(item.id); const apiRef = useRef<ExcalidrawImperativeAPI>(); const revisionRef = useRef(0); const [status, setStatus] = useState<'Saving' | 'Saved' | 'Offline' | 'Reconnecting' | 'Local'>('Reconnecting'); const [presence, setPresence] = useState(1);
   const realtimeRef = useRef<RealtimeClient>(); const timerRef = useRef(0); const remoteRef = useRef(false); const collaboratorsRef = useRef(new Map());
   const lastScene = useRef<string>();
+  const lastSettings = useRef<Record<string, unknown>>({});
+  const settingsState = useRef(new WhiteboardSettingsState());
   const waitingScene = useRef<BoardScene>();
   const saveState = useRef(new WhiteboardSaveState());
   const joined = useRef(false);
@@ -67,6 +70,7 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
     if (!hydrating.current || !joined.current || !api || halted.current) return;
     const scene = durableBoardScene(api.getSceneElementsIncludingDeleted(), api.getAppState(), api.getFiles());
     lastScene.current = JSON.stringify(scene);
+    lastSettings.current = scene.appState;
     const id = saveState.current.requestId;
     if (id) persist(id, scene);
     hydrating.current = false;
@@ -79,7 +83,7 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
       waitingScene.current = undefined;
       remoteRef.current = true;
       const elements = reconcileElements(api.getSceneElementsIncludingDeleted(), scene.elements as never[], api.getAppState());
-      api.updateScene({ elements, appState: (saveState.current.pending ? durableBoardScene([], api.getAppState(), {}).appState : scene.appState) as never });
+      api.updateScene({ elements, appState: settingsState.current.merge(scene.appState, api.getAppState()) as never, captureUpdate: CaptureUpdateAction.NEVER });
       api.addFiles(Object.values(scene.files ?? {}) as never[]);
       window.setTimeout(() => { remoteRef.current = false; finishHydration(); publishRef.current(); }, 0);
     } else { finishHydration(); publishRef.current(); }
@@ -98,6 +102,7 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
         revisionRef.current = initial.data!.revision;
         if (loaded.requestId) {
           saveState.current.changed(loaded.requestId);
+          settingsState.current.changed(restoreAppState(initial.data!.scene.appState, null), restoreAppState(loaded.scene.appState, null), loaded.requestId);
           setPendingChanges(`whiteboard:${item.id}`, true);
         }
         lastScene.current = JSON.stringify(durableBoardScene(loaded.scene.elements, loaded.scene.appState, loaded.scene.files));
@@ -107,7 +112,7 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
         const api = apiRef.current;
         if (api) {
           remoteRef.current = true;
-          api.updateScene({ elements: loaded.scene.elements as never[], appState: loaded.scene.appState as never });
+          api.updateScene({ elements: loaded.scene.elements as never[], appState: durableBoardAppState(loaded.scene.appState) as never, captureUpdate: CaptureUpdateAction.NEVER });
           api.addFiles(Object.values(loaded.scene.files) as never[]);
           window.setTimeout(() => { if (!disposed) remoteRef.current = false; }, 0);
         }
@@ -129,6 +134,7 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
       const scene = durableBoardScene(api.getSceneElementsIncludingDeleted(), api.getAppState(), api.getFiles());
       if (realtime.sendOnline('whiteboard.scene.update', item.id, { baseRevision: revisionRef.current, scene }, id)) {
         saveState.current.sending(id);
+        settingsState.current.sending(id);
         drafts.sending(id);
       }
     };
@@ -162,7 +168,7 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
         const api = apiRef.current;
         if (api) {
           const elements = reconcileElements(api.getSceneElementsIncludingDeleted(), payload.scene.elements as Parameters<typeof reconcileElements>[1], api.getAppState());
-          api.updateScene({ elements, appState: (saveState.current.pending ? durableBoardScene([], api.getAppState(), {}).appState : payload.scene.appState) as never });
+          api.updateScene({ elements, appState: settingsState.current.merge(payload.scene.appState, api.getAppState()) as never, captureUpdate: CaptureUpdateAction.NEVER });
         } else waitingScene.current = payload.scene;
         apiRef.current?.addFiles(Object.values(payload.scene.files ?? {}) as never[]);
         window.setTimeout(() => {
@@ -172,6 +178,14 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
             joined.current = true;
             finishHydration();
             flush();
+          } else {
+            const id = saveState.current.requestId;
+            const currentAPI = apiRef.current;
+            // A pending draft must include accepted remote settings too, so a
+            // refresh cannot replay the old background over the newer scene.
+            if (id && currentAPI && role !== 'viewer') {
+              persist(id, durableBoardScene(currentAPI.getSceneElementsIncludingDeleted(), currentAPI.getAppState(), currentAPI.getFiles()));
+            }
           }
           publish();
         }, 0);
@@ -180,6 +194,7 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
       if (message.type === 'whiteboard.scene.ack') {
         const payload = message.payload as { revision: number; clientUpdateId?: string };
         if (!saveState.current.acknowledge(payload.clientUpdateId)) return;
+        settingsState.current.acknowledge(payload.clientUpdateId);
         void drafts.acknowledge(payload.clientUpdateId!).catch(failStorage);
         const pending = saveState.current.pending;
         setPendingChanges(`whiteboard:${item.id}`, pending);
@@ -230,13 +245,16 @@ export function useWhiteboardSession(item: Item, role: Role, user: User) {
       publishRef.current();
     } catch { failStorage(); }
   };
-  const onChange = (elements: readonly unknown[], appState: Record<string, unknown>, files: Record<string, unknown>) => {
+  const onChange = (elements: readonly unknown[], appState: object, files: Record<string, unknown>) => {
     const scene = durableBoardScene(elements, appState, files);
     const serialized = JSON.stringify(scene);
     if (lastScene.current === serialized) return;
+    const previousSettings = lastSettings.current;
+    lastSettings.current = scene.appState;
     lastScene.current = serialized;
     if (hydrating.current || remoteRef.current || halted.current || role === 'viewer') return;
     saveState.current.changed();
+    settingsState.current.changed(previousSettings, scene.appState, saveState.current.requestId!);
     setPendingChanges(`whiteboard:${item.id}`, true);
     setStatus(realtimeRef.current?.state === 'online' ? 'Saving' : 'Offline');
     persist(saveState.current.requestId!, scene);

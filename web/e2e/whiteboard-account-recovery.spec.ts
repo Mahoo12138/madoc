@@ -25,7 +25,7 @@ async function pendingBoard(page: Page) {
     });
   });
   const id = await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await rectangle(page);
   await expect.poll(async () => (await stored(page)).length).toBe(1);
   return id;

@@ -183,9 +183,9 @@ test('deleted whiteboard remains available as a local rescue', async ({
 }) => {
   const board = await openBoard(page);
   const headers = await accountHeaders(page, 'http://127.0.0.1:3100');
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await rectangle(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   expect(
     (await page.request.delete(`/api/items/${board}`, { headers })).status(),
   ).toBe(204);

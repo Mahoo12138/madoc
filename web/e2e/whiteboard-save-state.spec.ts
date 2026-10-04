@@ -8,7 +8,7 @@ test('idle board and transient tool selection do not continually persist scenes'
   const baseline = await state();
   await page.waitForTimeout(1500);
   expect((await state()).revision).toBe(baseline.revision);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await page.locator('label').filter({ has: page.getByRole('radio', { name: 'Rectangle', exact: true }) }).click();
   await page.mouse.move(700, 350);
   await page.keyboard.press('Escape');
@@ -16,15 +16,15 @@ test('idle board and transient tool selection do not continually persist scenes'
   // increment the server revision even though no content changed.
   await page.waitForTimeout(1500);
   expect((await state()).revision).toBe(baseline.revision);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await rectangle(page);
   await expect.poll(async () => (await state()).scene.elements.length).toBe(1);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   const saved = await state();
   await page.waitForTimeout(1000);
   expect((await state()).revision).toBe(saved.revision);
   await page.reload();
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   expect((await state()).scene.elements).toEqual(saved.scene.elements);
 });
 
@@ -43,23 +43,23 @@ test('partial ACK and remote scenes cannot confirm pending local changes or crea
     });
   });
   const id = await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   const peer = await page.context().newPage();
   try {
     await peer.goto(page.url());
-    await expect(peer.getByText('Saved', { exact: true })).toBeVisible();
+    await expect(peer.getByText('已保存', { exact: true })).toBeVisible();
     hold = true;
     await rectangle(page);
     await expect.poll(() => held.length).toBeGreaterThan(0);
-    await expect(page.getByText('Saving', { exact: true })).toBeVisible();
+    await expect(page.getByText('保存中', { exact: true })).toBeVisible();
     await rectangle(page, 60);
     await expect.poll(() => held.length).toBeGreaterThanOrEqual(2);
     releaseOne();
     await page.waitForTimeout(800);
-    await expect(page.getByText('Saving', { exact: true })).toBeVisible();
+    await expect(page.getByText('保存中', { exact: true })).toBeVisible();
     release();
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
-    await expect(peer.getByText('Saved', { exact: true })).toBeVisible();
+    await expect(page.getByText('已保存', { exact: true })).toBeVisible();
+    await expect(peer.getByText('已保存', { exact: true })).toBeVisible();
     const state = async () => (await (await page.request.get(`/api/items/${id}/whiteboard`)).json());
     const saved = await state();
     expect(saved.scene.elements).toHaveLength(2);
@@ -67,7 +67,7 @@ test('partial ACK and remote scenes cannot confirm pending local changes or crea
     await page.waitForTimeout(1200);
     expect((await state()).revision).toBe(saved.revision);
     await peer.reload();
-    await expect(peer.getByText('Saved', { exact: true })).toBeVisible();
+    await expect(peer.getByText('已保存', { exact: true })).toBeVisible();
     const downloadReady = peer.waitForEvent('download');
     await peer.getByRole('button', { name: '导出', exact: true }).click();
     await peer.getByRole('menuitem', { name: 'Excalidraw JSON', exact: true }).click();
@@ -79,9 +79,9 @@ test('partial ACK and remote scenes cannot confirm pending local changes or crea
 
 test('switching boards keeps editor contents isolated', async ({ page }) => {
   const first = await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await rectangle(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await expect.poll(async () => (await (await page.request.get(`/api/items/${first}/whiteboard`)).json()).scene.elements.length).toBe(1);
   const workspaceId = new URL(page.url()).pathname.split('/')[2];
   const { csrfToken } = await (await page.request.get('/api/auth/session')).json();
@@ -92,10 +92,10 @@ test('switching boards keeps editor contents isolated', async ({ page }) => {
   expect(response.ok()).toBeTruthy();
   const second = await response.json();
   await page.reload();
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Other empty board', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(second.id));
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   const ready = page.waitForEvent('download');
   await page.getByRole('button', { name: '导出', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Excalidraw JSON', exact: true }).click();
@@ -103,7 +103,7 @@ test('switching boards keeps editor contents isolated', async ({ page }) => {
   expect(JSON.parse(await readFile((await (await ready).path())!, 'utf8')).elements).toEqual([]);
   await page.getByRole('button', { name: 'Save state board', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(first));
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   expect((await (await page.request.get(`/api/items/${first}/whiteboard`)).json()).scene.elements).toHaveLength(1);
   expect((await (await page.request.get(`/api/items/${second.id}/whiteboard`)).json()).scene.elements).toEqual([]);
 });
@@ -126,11 +126,11 @@ for (const editOffline of [false, true]) {
       });
     });
     const id = await openBoard(page);
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await expect(page.getByText('已保存', { exact: true })).toBeVisible();
     holdACK = true;
     await rectangle(page);
     await expect.poll(async () => (await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements.length).toBe(1);
-    await expect(page.getByText('Saving', { exact: true })).toBeVisible();
+    await expect(page.getByText('保存中', { exact: true })).toBeVisible();
     const pendingId = ids.at(-1);
     offline = true;
     disconnect();
@@ -140,13 +140,13 @@ for (const editOffline of [false, true]) {
     frames.length = 0;
     holdACK = false;
     offline = false;
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await expect(page.getByText('已保存', { exact: true })).toBeVisible();
     const durableFrames = frames.filter(type => type === 'whiteboard.join' || type === 'whiteboard.scene.update');
     expect(durableFrames[0]).toBe('whiteboard.join');
     if (!editOffline) expect(ids.at(-1)).toBe(pendingId);
     await expect.poll(async () => (await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements.length).toBe(editOffline ? 2 : 1);
     await page.reload();
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await expect(page.getByText('已保存', { exact: true })).toBeVisible();
     expect((await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements).toHaveLength(editOffline ? 2 : 1);
   });
 }
@@ -167,7 +167,7 @@ test('server rejection stops writes and preserves an explicit local board copy',
     });
   });
   await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   rejectWrites = true;
   await rectangle(page);
   await expect(page.getByRole('alert')).toContainText('白板保存已停止');

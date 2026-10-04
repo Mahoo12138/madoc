@@ -35,7 +35,7 @@ for (const lost of ['send', 'ack']) {
       });
     });
     const id = await openBoard(page);
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await expect(page.getByText('已保存', { exact: true })).toBeVisible();
     hold = true;
     await rectangle(page);
     await expect.poll(async () => (await drafts(page)).filter(record => record.scene.elements.length === 1).length).toBe(1);
@@ -44,7 +44,7 @@ for (const lost of ['send', 'ack']) {
     const count = ids.length;
     hold = false;
     await page.reload();
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+    await expect(page.getByText('已保存', { exact: true })).toBeVisible();
     expect(ids.slice(count)).toContain(pending);
     await expect.poll(() => drafts(page)).toEqual([]);
     expect((await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements).toHaveLength(1);
@@ -61,16 +61,16 @@ test('two closed offline tabs retain independent shapes and a new tab merges bot
   });
   await route(page);
   const id = await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   const url = page.url();
   const peer = await page.context().newPage();
   await route(peer);
   await peer.goto(url);
-  await expect(peer.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(peer.getByText('已保存', { exact: true })).toBeVisible();
   offline = true;
   disconnects.forEach(disconnect => disconnect());
-  await expect(page.getByText('Offline', { exact: true })).toBeVisible();
-  await expect(peer.getByText('Offline', { exact: true })).toBeVisible();
+  await expect(page.getByText('离线', { exact: true })).toBeVisible();
+  await expect(peer.getByText('离线', { exact: true })).toBeVisible();
   await rectangle(page);
   await rectangle(peer, 60);
   await expect(page.getByText('已保存到此设备，待同步', { exact: true })).toBeVisible();
@@ -81,7 +81,7 @@ test('two closed offline tabs retain independent shapes and a new tab merges bot
   await page.close();
   const recovered = await context.newPage();
   await recovered.goto(url);
-  await expect(recovered.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(recovered.getByText('已保存', { exact: true })).toBeVisible();
   await expect.poll(() => drafts(recovered)).toEqual([]);
   expect((await (await recovered.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements).toHaveLength(2);
   await recovered.close();
@@ -104,7 +104,7 @@ test('local storage failure prevents sends, preserves the board and can be retri
     });
   });
   const id = await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   const before = writes;
   await page.evaluate(() => { (window as unknown as { failBoardStorage: boolean }).failBoardStorage = true; });
   await rectangle(page);
@@ -120,7 +120,7 @@ test('local storage failure prevents sends, preserves the board and can be retri
   await page.evaluate(() => { (window as unknown as { failBoardStorage: boolean }).failBoardStorage = false; });
   await page.getByRole('button', { name: '重试本地保存' }).click();
   await expect(page.getByRole('alert')).toHaveCount(0);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await expect.poll(() => drafts(page)).toEqual([]);
   expect((await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements.length).toBeGreaterThan(0);
 });
@@ -143,7 +143,7 @@ test('failed draft reads can retry without overwriting the existing local copy',
     });
   });
   const id = await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   hold = true;
   await rectangle(page);
   await expect.poll(async () => (await drafts(page)).length).toBe(1);
@@ -157,7 +157,7 @@ test('failed draft reads can retry without overwriting the existing local copy',
   await page.evaluate(() => sessionStorage.removeItem('fail-board-read'));
   hold = false;
   await page.getByRole('button', { name: '重试本地保存' }).click();
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await expect.poll(() => drafts(page)).toEqual([]);
   expect((await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements).toHaveLength(1);
 });
@@ -173,10 +173,10 @@ test('a server revision older than the draft baseline opens a local rescue witho
     });
   });
   const id = await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await rectangle(page);
   await expect.poll(async () => (await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).revision).toBeGreaterThan(0);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   hold = true;
   await rectangle(page, 60);
   await expect.poll(async () => (await drafts(page)).filter(record => record.scene.elements.length === 2).length).toBe(1);
@@ -198,7 +198,7 @@ test('a server revision older than the draft baseline opens a local rescue witho
 
 test('an editor downgraded to viewer can rescue drafts without replaying them', async ({ page, browser }) => {
   const id = await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   const url = page.url();
   const workspaceId = new URL(url).pathname.split('/')[2];
   const { csrfToken } = await (await page.request.get('/api/auth/session')).json();
@@ -220,7 +220,7 @@ test('an editor downgraded to viewer can rescue drafts without replaying them', 
       });
     });
     await member.goto(url);
-    await expect(member.getByText('Saved', { exact: true })).toBeVisible();
+    await expect(member.getByText('已保存', { exact: true })).toBeVisible();
     hold = true;
     await rectangle(member);
     await expect.poll(async () => (await drafts(member)).length).toBe(1);
@@ -248,7 +248,7 @@ test('switching to another item retains an unconfirmed local board draft', async
     });
   });
   const id = await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   hold = true;
   await rectangle(page);
   await expect.poll(async () => (await drafts(page)).length).toBe(1);
@@ -257,7 +257,7 @@ test('switching to another item retains an unconfirmed local board draft', async
   expect((await drafts(page)).length).toBe(1);
   hold = false;
   await page.getByRole('button', { name: 'Save state board', exact: true }).click();
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await expect.poll(() => drafts(page)).toEqual([]);
   expect((await (await page.request.get(`/api/items/${id}/whiteboard`)).json()).scene.elements).toHaveLength(1);
 });

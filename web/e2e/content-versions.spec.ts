@@ -61,7 +61,7 @@ test('whiteboard history renders a preview and restores the selected scene', asy
   await page.keyboard.press('Escape');
 
   await rectangle(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '版本历史' }).click();
   dialog = page.getByRole('dialog', { name: '版本历史' });
   await dialog.getByRole('button').filter({ hasText: 'Empty board' }).click();

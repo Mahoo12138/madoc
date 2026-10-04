@@ -107,7 +107,7 @@ test('board copying drains pending scene ACK before capturing', async ({
     });
   });
   await openBoard(page);
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   hold = true;
   await rectangle(page);
   await expect.poll(() => acks.length).toBeGreaterThan(0);
@@ -125,7 +125,7 @@ test('board copying drains pending scene ACK before capturing', async ({
   for (const ack of acks) deliver(ack);
   await expect(dialog.getByText('副本已创建。')).toBeVisible();
   await dialog.getByRole('button', { name: '打开副本' }).click();
-  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
   const copy = page.url().split('/').pop();
   expect(
     (await (await page.request.get(`/api/items/${copy}/whiteboard`)).json())
