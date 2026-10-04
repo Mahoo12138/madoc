@@ -79,7 +79,7 @@ export function PublicSharePage() {
         ) : (
           <Stack gap="lg">
             <header className={header}>
-              <Text size="xs" c="dimmed">MADOC · 只读发布</Text>
+              <Text size="xs" c="dimmed">Madoc · 只读发布</Text>
               <Title order={1}>{item.title}</Title>
               <Text size="sm" c="dimmed">版本：{item.versionName} · 发布于 {new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(item.publishedAt))}</Text>
             </header>
