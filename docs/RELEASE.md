@@ -1,5 +1,13 @@
 # 固定提交发布检查
 
+## v0.1.0-alpha.2 发布准备（2026-10-05）
+
+首个候选 `v0.1.0-alpha.1` 的远端普通 Chromium 411 / 414 通过，两个错误提示用例暴露真实登录状态挂载竞争，分享用例在活动房间关闭尚未完成时 PUT 替换正文被安全保护拒绝。保留原 tag 与所有失败记录；新目标 `v0.1.0-alpha.2` 包含 `retryOnMount: false` 修复、受控慢懒加载 / 请求次数回归、合法顺序的分享夹具及遗漏品牌文案修正。
+
+修正后账号 / 管理 11 项、分享 4 项回归，以及 Go test / vet、前端 typecheck / build 通过。分享源正文额外确认仍包含远程图片与危险链接；首次新增断言因私有编辑器会转义目标括号而失败，按实际规范化源码校正，未减弱公开渲染断言。沙箱首次禁止本地端口绑定的失败也保留，授权后服务使用独立临时数据库。日志分别在 `/tmp/madoc-alpha-session-fix-tests-authorized.log`、`/tmp/madoc-alpha-share-fixture-final-tests.log`，初次附加断言轨迹在 `/tmp/madoc-alpha-share-fixture-initial-results/`。
+
+发行仍待新 tag 的完整远端 Go / race / vet、前端构建、414 项普通 Chromium、独立 MVP、6 项真实重启 / 备份恢复及生产镜像持久卷检查。控制器将产物放在仓库外，下载后须对四平台归档验证 SHA256、二进制源码提交、`vcs.modified=false`，并检查最终镜像 manifest、OCI 来源与摘要。
+
 ## v0.1.0-alpha.1 发布准备（2026-10-05）
 
 首轮固定提交 `20685fa4e943a4d0abe2d7d23fc9b9ac83ec532e`：锁文件安装、Go test / race（`-count=1`）/ vet、前端 typecheck / production build 通过；普通 Chromium 全套 412 / 414 通过，后续首次安装、重启恢复和固定提交 Docker 检查按门槛停止，未运行。
@@ -11,6 +19,16 @@
 第二轮固定提交 `a54b5d8d2f315af1679d63133ae7bba4a1ae3521`：Go test / race / vet、前端 typecheck / build、414 项普通 Chromium 与独立首次安装 / 邀请 / 协作 / 导出全部通过，无重试。6 项真实重启测试中 5 项通过，备份恢复用例等待旧白板状态文案 `Saved` 而失败；当前项目工具栏已统一为「已保存」。同步该用例首次建图及恢复后导出的两处文案断言，保持备份、独立目录、附件、历史、session、回收站与导出等价校验。固定提交 Docker 检查按失败门槛尚未运行。日志保存在 `/tmp/madoc-alpha-release-final-checks/`，首次重启失败轨迹在 `/tmp/madoc-alpha-release-restart-first-test-results/`。
 
 同步状态断言后，6 项真实重启 / 独立目录备份恢复全部通过，无重试，日志在 `/tmp/madoc-alpha-restart-final.log`。此调整仅更新两处测试文案，没有改变受测产品代码。最终 tag 的完整门槛由发布工作流重新执行，成功后才上传镜像并创建预发布。
+
+Alpha.1 完整远端运行 [37225613180](https://github.com/Mahoo12138/madoc/actions/runs/37225613180) 在固定源码 `432df65c561bda15feb5b788a5fcdc6e2b9ccec1` 上前端 typecheck / build、Go test / race / vet 通过；普通 Chromium 411 / 414 通过，无重试，约 13.8 分钟。后续独立 MVP、重启与发布按失败门槛未执行。完整日志 `/tmp/madoc-alpha-ci-full-failure.log`；官方失败产物 [11312173258](https://github.com/Mahoo12138/madoc/actions/runs/37225613180/artifacts/11312173258) 下载为 `/tmp/madoc-alpha1-ci-failure.zip`，SHA256 `8dd7138bed3b29af30ee7790feda12b08f1745b3347afbad02be214237c9a454` 已核对。
+
+两份直达页面轨迹在无 UI click 时出现 session 503 → 200，相隔约 20 / 34 ms；独立隔离复现通过控制懒加载 chunk 重现，设置 `retryOnMount: false` 后 4 个候选场景均只在手动重试时请求并恢复。公开分享失败轨迹只有 PUT Markdown 的 409，没有版本 / 分享创建或公开页请求；对应 API 明确拒绝活动协作房间被整体替换。修正按原设计保留安全保护和全部渲染断言，不重试 / 强制覆盖来绕过冲突。
+
+最终 tag `v0.1.0-alpha.1` 固定源码为 `432df65c561bda15feb5b788a5fcdc6e2b9ccec1`，该提交本地 Docker 构建与生产新卷 / 重建容器持久性冒烟通过。首次 main / tag 原子推送没有生成 Actions 运行，原因未确认；发布控制器随后独立提交，仍检出既有 tag 验收，发布仅使用验收输出的源码 SHA。
+
+首次远端运行 [37224537436](https://github.com/Mahoo12138/madoc/actions/runs/37224537436) 的锁文件安装及 Go 内部各包测试通过，根包在全新 checkout 下因 `go:embed all:web/dist` 没有构建目录而失败。race / vet、浏览器及发布 job 未执行；失败日志保留在 `/tmp/madoc-alpha-ci-first-verify.log`。此前本地构建目录掩盖了这个顺序错误，控制器改为先执行前端 typecheck / build，再执行 Go 与浏览器检查，不重写已推送 tag，不以重跑结果覆盖此失败记录。
+
+第二次远端运行 [37224813149](https://github.com/Mahoo12138/madoc/actions/runs/37224813149) 的前端 typecheck / build 与 Go test / race / vet 通过。发行物预检发现仓库内未忽略的 `dist/` 会使后续归档二进制带 `vcs.modified=true`，因此在旧运行仍验收时更新控制器并取消该运行；未上传镜像或创建 Release。浏览器取消前 dot 报告有 320 个完成结果，其中 3 项失败，没有终局失败详情，不构成全套通过。完整日志保留在 `/tmp/madoc-alpha-ci-cancelled-verify.log`。新控制器在 `$RUNNER_TEMP` 下打包，每次交叉编译前断言 checkout 干净，并重新执行固定 tag 的全部门槛。
 
 发布结论绑定完整 Git commit，不沿用之前提交的 STATUS 记录。改动正文协议、存储、
 权限或编辑器后须重新验证。阶段 0 的行为设计见 `RELIABILITY.md` 和 `WHITEBOARD.md`。
@@ -25,11 +43,11 @@ git rev-parse HEAD
 git diff --exit-code HEAD
 pnpm install --frozen-lockfile
 pnpm --dir web exec playwright install chromium
+pnpm --dir web typecheck
+pnpm --dir web build
 go test -count=1 ./...
 go test -race -count=1 ./...
 go vet ./...
-pnpm --dir web typecheck
-pnpm --dir web build
 pnpm --dir web exec playwright test --grep-invert 'first run, invite, collaborative Markdown, whiteboard and export'
 pnpm --dir web exec playwright test mvp.spec.ts
 pnpm --dir web exec playwright test --config playwright.restart.config.ts
@@ -37,6 +55,7 @@ git diff --exit-code HEAD
 ```
 
 按顺序执行并在任一步失败时停止。首次安装用例要求空数据库，故必须单独启动；
+Go 根包通过 `go:embed` 嵌入 `web/dist`，干净 checkout 必须先完成前端构建，不能依赖本机遗留的构建目录。
 重启套件自行管理真实二进制和进程，不可与普通浏览器套件并行。不要通过复用真实
 服务或已有数据库使测试通过。保存命令输出、失败 trace 与完整提交号；重跑通过也要
 记录最初失败及原因，不能只保留最后的绿色结果。

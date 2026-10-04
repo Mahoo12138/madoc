@@ -113,16 +113,16 @@ PRAGMA busy_timeout = 5000;
 使用发布的预构建镜像。以下示例将 HTTP 端口仅绑定到主机回环地址，供同一主机上的 HTTPS 反向代理转发：
 
 ```sh
-docker pull ghcr.io/mahoo12138/madoc:v0.1.0-alpha.1
+docker pull ghcr.io/mahoo12138/madoc:v0.1.0-alpha.2
 docker run -d \
   --name madoc \
   --restart unless-stopped \
   -p 127.0.0.1:3000:3000 \
   -v madoc-data:/data \
-  ghcr.io/mahoo12138/madoc:v0.1.0-alpha.1
+  ghcr.io/mahoo12138/madoc:v0.1.0-alpha.2
 ```
 
-镜像目标架构为 `linux/amd64` 和 `linux/arm64`，Docker 按主机架构选择镜像。版本标签固定为 `v0.1.0-alpha.1`；升级时显式选择目标版本，不依赖 `latest`。
+镜像目标架构为 `linux/amd64` 和 `linux/arm64`，Docker 按主机架构选择镜像。版本标签固定为 `v0.1.0-alpha.2`；升级时显式选择目标版本，不依赖 `latest`。
 
 生产部署必须由 HTTPS 反向代理接入。Madoc 进程提供 HTTP，生产会话和 CSRF Cookie 带 `Secure` 标记；直接通过普通 HTTP 访问容器端口不能作为生产浏览器登录方式。代理需将同一域名下的页面、`/api` 与 `/ws` 转发到 Madoc，并支持 WebSocket Upgrade。不要设置 `MADOC_DEV=true` 来绕过生产 Cookie 的安全设置。
 
@@ -162,7 +162,7 @@ madoc maintenance backup
 docker stop madoc
 docker run --rm --network none \
   -v madoc-data:/data \
-  ghcr.io/mahoo12138/madoc:v0.1.0-alpha.1 maintenance backup
+  ghcr.io/mahoo12138/madoc:v0.1.0-alpha.2 maintenance backup
 docker cp madoc:/data/backups ./madoc-backups
 docker start madoc
 ```
@@ -194,7 +194,7 @@ madoc maintenance restore /path/to/backup-directory --confirm
 
 ## Alpha 支持范围
 
-v0.1.0-alpha.1 面向早期试用、单实例和小团队。整站离线启动、跨实例实时协同与历史原位覆盖式恢复尚未提供；性能容量上限、Safari / Firefox 及真机覆盖尚未完成验收。Item / 目录删除进入回收站，Workspace 删除仍永久；本地待提交草稿不是完整备份。详细功能及限制见 [发布说明](docs/releases/v0.1.0-alpha.1.md)。
+v0.1.0-alpha.2 面向早期试用、单实例和小团队。整站离线启动、跨实例实时协同与历史原位覆盖式恢复尚未提供；性能容量上限、Safari / Firefox 及真机覆盖尚未完成验收。Item / 目录删除进入回收站，Workspace 删除仍永久；本地待提交草稿不是完整备份。详细功能及限制见 [发布说明](docs/releases/v0.1.0-alpha.2.md)。
 
 ## 独立进程重启验证
 
