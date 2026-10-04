@@ -265,7 +265,7 @@ export function AccountSettingsPage() {
               aria-hidden
               className={shell.brandMark}
             />
-            madoc
+            Madoc
           </div>
         </div>
         <div className={styles.sidebarIdentity}>

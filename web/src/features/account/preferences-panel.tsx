@@ -126,7 +126,7 @@ export function PreferencesPanel() {
             </span>
           )}
           <code>
-            const idea = 'madoc';
+            const idea = 'Madoc';
             <br />
             write(idea);
           </code>
