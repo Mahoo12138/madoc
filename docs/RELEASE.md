@@ -8,6 +8,10 @@
 
 首次失败日志与 Go 检查记录保存在 `/tmp/madoc-alpha-release-checks/`；两项轨迹及截图保留在 `/tmp/madoc-alpha-release-first-test-results/`。候选镜像的准备性构建与原生产持久卷冒烟此前已通过，但不代替新固定提交的最终检查。Browser / CUA 初始化反复 30 秒超时，浏览器验收使用仓库已有 Playwright 流程。新固定提交与远端发行物验证待完成。
 
+第二轮固定提交 `a54b5d8d2f315af1679d63133ae7bba4a1ae3521`：Go test / race / vet、前端 typecheck / build、414 项普通 Chromium 与独立首次安装 / 邀请 / 协作 / 导出全部通过，无重试。6 项真实重启测试中 5 项通过，备份恢复用例等待旧白板状态文案 `Saved` 而失败；当前项目工具栏已统一为「已保存」。同步该用例首次建图及恢复后导出的两处文案断言，保持备份、独立目录、附件、历史、session、回收站与导出等价校验。固定提交 Docker 检查按失败门槛尚未运行。日志保存在 `/tmp/madoc-alpha-release-final-checks/`，首次重启失败轨迹在 `/tmp/madoc-alpha-release-restart-first-test-results/`。
+
+同步状态断言后，6 项真实重启 / 独立目录备份恢复全部通过，无重试，日志在 `/tmp/madoc-alpha-restart-final.log`。此调整仅更新两处测试文案，没有改变受测产品代码。最终 tag 的完整门槛由发布工作流重新执行，成功后才上传镜像并创建预发布。
+
 发布结论绑定完整 Git commit，不沿用之前提交的 STATUS 记录。改动正文协议、存储、
 权限或编辑器后须重新验证。阶段 0 的行为设计见 `RELIABILITY.md` 和 `WHITEBOARD.md`。
 

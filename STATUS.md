@@ -12,6 +12,8 @@
 
 Alpha 首轮固定提交 `20685fa`：Go test / race / vet、前端 typecheck / build 通过；普通 Chromium 412 / 414 通过，两项桌面收藏操作因测试直接命中尚未悬停启用的按钮而超时。轨迹确认恢复 API 与数据正常，补充父行悬停及 opacity / pointer-events 断言，保留原取消收藏、键盘、未删除及恢复断言，不使用强制点击或重试。修正后 5 项收藏桌面 / 320px / 390px 专项通过。失败记录见 `docs/RELEASE.md`；尚待新固定提交全套复验。
 
+Alpha 第二轮固定提交 `a54b5d8`：Go test / race / vet、前端 typecheck / build、414 项普通 Chromium 与独立 MVP 均通过，无重试；真实重启 5 / 6 通过，备份恢复用例仍等待改版前白板状态文案 `Saved`，同步为当前「已保存」后 6 项真实重启 / 独立目录备份恢复全部通过。产品代码未改；后续固定提交 Docker 与远端 tag 的完整 CI 发布门槛仍待执行。
+
 madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Workspace：Go 单二进制、SQLite、本地 Asset、REST、原生 WebSocket、Milkdown/Crepe 和 Excalidraw。
 
 ## 已完成
