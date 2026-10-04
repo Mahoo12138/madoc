@@ -99,6 +99,15 @@ DELETE /api/workspaces/:workspaceId
 
 创建者自动成为 owner。
 
+Workspace 列表、详情、创建和接受邀请的响应包含 `description` 字符串，新工作区默认为空。
+`PATCH /api/workspaces/:workspaceId` 仅 owner 可调用，支持可选 `name` 和 `description`：
+
+```json
+{ "description": "记录项目文档与设计白板" }
+```
+
+只更新提供的字段，省略的字段保持不变；至少提供一个字段。名称 trim 后不能为空，介绍 trim 后最多 500 个 Unicode 字符，可传 `""` 清除。整次请求验证通过后才写入，失败不部分保存；成功返回 204 并发送既有工作区变更通知。
+
 ## 5. Members
 
 ```text

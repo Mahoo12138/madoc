@@ -44,11 +44,14 @@ CREATE TABLE sessions (
 CREATE TABLE workspaces (
     id         TEXT PRIMARY KEY,
     name       TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
     created_by TEXT NOT NULL REFERENCES users(id),
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL
 );
 ```
+
+工作区介绍由 `0016_workspace_description.sql` 增量添加，既有工作区默认为空；不是将侧栏此前的固定文案作为用户介绍回填。介绍最多 500 个 Unicode 字符，由服务端校验，空字符串表示未设置。列表、详情和接受邀请返回的 Workspace 使用相同字段。
 
 ## 5. workspace_members
 
