@@ -142,20 +142,23 @@ test('a shared Markdown version exposes only its referenced uploaded image', asy
 });
 
 test('public rendering does not fetch remote images or retain unsafe links', async ({ page, browser }) => {
-  const itemId = await openDocument(page);
+  const markdown = 'Public rendering check\n\n![tracker](https://tracker.example/pixel.png)\n\n[unsafe](javascript:alert(1))';
+  // Seed the fixture before joining its collaboration room; replacement rejects active rooms.
+  const itemId = await openDocument(page, markdown);
   const request = page.request;
   await page.close();
   const session = await (await request.get('/api/auth/session')).json() as { csrfToken: string };
   const headers = { 'x-madoc-csrf-token': session.csrfToken, Origin: 'http://127.0.0.1:3100' };
-  const markdown = 'Public rendering check\n\n![tracker](https://tracker.example/pixel.png)\n\n[unsafe](javascript:alert(1))';
-  const reset = await request.put(`/api/items/${itemId}/markdown`, { headers, data: { snapshot: '', markdown } });
-  expect(reset.ok(), await reset.text()).toBeTruthy();
   const createdVersion = await request.post(`/api/items/${itemId}/versions`, { headers, data: { label: 'Sanitizer fixture', assetIds: [] } });
   expect(createdVersion.ok()).toBeTruthy();
   const { version } = await createdVersion.json() as { version: { id: string } };
   const response = await request.post(`/api/items/${itemId}/shares`, { headers, data: { versionId: version.id } });
   expect(response.ok()).toBeTruthy();
   const { token } = await response.json() as { token: string };
+  const shared = await (await request.get(`/api/public/shares/${token}`)).json() as { markdown: string };
+  expect(shared.markdown).toContain('https://tracker.example/pixel.png');
+  // The private editor serializer escapes destination parentheses; the unsafe scheme remains.
+  expect(shared.markdown).toContain('[unsafe](javascript:alert\\(1\\))');
 
   const anonymous = await browser.newPage();
   let externalImageRequests = 0;

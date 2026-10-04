@@ -22,6 +22,8 @@ Alpha 第二轮固定提交 `a54b5d8`：Go test / race / vet、前端 typecheck 
 
 Alpha.1 完整远端运行 [37225613180](https://github.com/Mahoo12138/madoc/actions/runs/37225613180)：前端 typecheck / build、Go test / race / vet 通过，普通 Chromium 411 / 414 通过，独立首次安装 / 重启及发布未执行。两项 session 失败的轨迹确认没有用户点击却发生 503 → 200：全局 AccountProvider 先订阅查询，懒加载页面后订阅时默认 `retryOnMount` 重取。修复 `useSession` 为失败后不在新订阅挂载时自动重取，保留按钮显式重试；两个既有用例加入受控慢 chunk 与点击前后请求数断言。独立隔离复现及临时候选验证各保存 4 份轨迹于 `/tmp/madoc-session-race-repro/`；账号 / 管理专项 11 项、Go test / vet、typecheck / build 通过。最初本地服务因沙箱禁止绑定端口而未启动，授权后专项通过；完整发行门槛仍须在新 alpha tag 重跑。
 
+第三项失败是公开分享测试关闭编辑器后立即 PUT 替换正文，服务端协作房间仍活动而返回 409；轨迹确认尚未创建版本 / 分享，未运行公开渲染安全断言。将危险内容夹具在首次加入房间之前写入，再保存分享版本；增加分享源正文仍含远程图片 URL 与危险 scheme 的校验，保留原 CSP、无外部图片请求、无危险链接、只读与固定版本 / 撤销 / 精确附件断言。初次附加源正文断言未考虑私有编辑器对目标括号的 Markdown 转义，按实际规范化字符串修正，记录与轨迹留在 `/tmp/madoc-alpha-share-fixture-initial-results/`；最终完整分享专项 4 / 4 通过。未修改服务端活动房间保护。
+
 madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Workspace：Go 单二进制、SQLite、本地 Asset、REST、原生 WebSocket、Milkdown/Crepe 和 Excalidraw。
 
 ## 已完成
