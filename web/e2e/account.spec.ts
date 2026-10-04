@@ -245,7 +245,18 @@ test('direct settings session failure stays on the page and can retry', async ({
 }) => {
   await accountFixture(page, baseURL!);
   let failed = false;
+  let sessionRequests = 0;
+  const failedSession = page.waitForResponse((response) =>
+    response.url().endsWith('/api/auth/session') && response.status() === 503,
+  );
+  // Mount the lazy page after the global account query has already failed.
+  await page.route('**/assets/account-settings-page-*.js', async (route) => {
+    await failedSession;
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await route.continue();
+  });
   await page.route('**/api/auth/session', (route) => {
+    sessionRequests++;
     if (!failed) {
       failed = true;
       return route.fulfill({ status: 503, json: {} });
@@ -255,8 +266,10 @@ test('direct settings session failure stays on the page and can retry', async ({
   await page.goto(`${baseURL}/settings`);
   await expect(page).toHaveURL(`${baseURL}/settings`);
   await expect(page.getByRole('alert')).toContainText('无法验证登录状态');
+  expect(sessionRequests).toBe(1);
   await page.getByRole('button', { name: '重试', exact: true }).click();
   await expect(page.getByRole('main', { name: '个人设置' })).toBeVisible();
+  expect(sessionRequests).toBe(2);
 });
 
 test('settings returns to the same management section and document', async ({

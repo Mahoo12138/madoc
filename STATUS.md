@@ -4,7 +4,7 @@
 
 ## 当前结论
 
-项目进入首个 alpha 发布准备阶段，版本为 `v0.1.0-alpha.1`。历史架构重置属于 MVP 内部迁移；本次发行提供 Git tag、GitHub 预发布、单二进制压缩包及 GHCR 镜像，不改变公开 API 的命名方式。
+项目进入首个 alpha 发布准备阶段，最终版本目标为 `v0.1.0-alpha.2`。`v0.1.0-alpha.1` 候选在远端验收失败，保留原 tag 供审计，未创建 Release 或镜像。历史架构重置属于 MVP 内部迁移；本次发行提供 Git tag、GitHub 预发布、单二进制压缩包及 GHCR 镜像，不改变公开 API 的命名方式。
 
 新增 tag 触发的固定提交发布流程：Go test / race / vet、前端 typecheck / build、普通 Chromium 全套、独立首次安装与重启恢复通过后，构建单二进制包与多架构 Docker 镜像，执行生产镜像持久卷冒烟，再发布 GitHub Release。Actions 使用固定提交；镜像记录来源、版本与源码提交，alpha 不设置 `latest`。实际发布验收和远端产物仍待执行，见 [发布说明](docs/releases/v0.1.0-alpha.1.md)。
 
@@ -19,6 +19,8 @@ Alpha 第二轮固定提交 `a54b5d8`：Go test / race / vet、前端 typecheck 
 首轮远端 CI [37224537436](https://github.com/Mahoo12138/madoc/actions/runs/37224537436) 未通过：依赖安装成功，Go 内部各包测试通过，但根包的 `go:embed all:web/dist` 在全新 checkout 下不存在。此前本地已有构建目录掩盖了工作流顺序问题；将前端 typecheck / build 移到 Go test / race / vet 之前，浏览器测试随后执行。未发布 Release 或镜像，tag 保持原源码；失败日志保留在 `/tmp/madoc-alpha-ci-first-verify.log`，修正后的控制器仍待完整远端复验。
 
 产物预检发现原打包流程在仓库未忽略的根 `dist/` 内连续构建，会使后续二进制带 `vcs.modified=true`。改为在 `$RUNNER_TEMP` 下生成全部压缩包、校验清单与镜像摘要，每个交叉编译前断言 checkout 无改动。更新同一发布控制分支时取消被替代的运行；tag / 手动发布和同版本 publish job 仍串行。源码 tag 不变，新控制器须重新通过完整远端门槛，下载后严格核对四平台源码 SHA 与干净状态。
+
+Alpha.1 完整远端运行 [37225613180](https://github.com/Mahoo12138/madoc/actions/runs/37225613180)：前端 typecheck / build、Go test / race / vet 通过，普通 Chromium 411 / 414 通过，独立首次安装 / 重启及发布未执行。两项 session 失败的轨迹确认没有用户点击却发生 503 → 200：全局 AccountProvider 先订阅查询，懒加载页面后订阅时默认 `retryOnMount` 重取。修复 `useSession` 为失败后不在新订阅挂载时自动重取，保留按钮显式重试；两个既有用例加入受控慢 chunk 与点击前后请求数断言。独立隔离复现及临时候选验证各保存 4 份轨迹于 `/tmp/madoc-session-race-repro/`；账号 / 管理专项 11 项、Go test / vet、typecheck / build 通过。最初本地服务因沙箱禁止绑定端口而未启动，授权后专项通过；完整发行门槛仍须在新 alpha tag 重跑。
 
 madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Workspace：Go 单二进制、SQLite、本地 Asset、REST、原生 WebSocket、Milkdown/Crepe 和 Excalidraw。
 
