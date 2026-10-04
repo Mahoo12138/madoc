@@ -5,3 +5,8 @@ node_modules
 web/node_modules
 web/dist
 *.log
+web/test-results
+web/playwright-report
+madoc
+madoc.exe
+dist
