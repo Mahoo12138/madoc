@@ -6,12 +6,13 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 )
 
 func (s *Service) ListWorkspaces(ctx context.Context, userID string) ([]Workspace, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT w.id,w.name,m.role,w.created_at,w.updated_at FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id WHERE m.user_id=? ORDER BY w.updated_at DESC`, userID)
+	rows, err := s.db.QueryContext(ctx, `SELECT w.id,w.name,w.description,m.role,w.created_at,w.updated_at FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id WHERE m.user_id=? ORDER BY w.updated_at DESC`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +20,7 @@ func (s *Service) ListWorkspaces(ctx context.Context, userID string) ([]Workspac
 	result := []Workspace{}
 	for rows.Next() {
 		var workspace Workspace
-		if err := rows.Scan(&workspace.ID, &workspace.Name, &workspace.Role, &workspace.CreatedAt, &workspace.UpdatedAt); err != nil {
+		if err := rows.Scan(&workspace.ID, &workspace.Name, &workspace.Description, &workspace.Role, &workspace.CreatedAt, &workspace.UpdatedAt); err != nil {
 			return nil, err
 		}
 		result = append(result, workspace)
@@ -53,7 +54,7 @@ func (s *Service) CreateWorkspace(ctx context.Context, userID, name string) (Wor
 
 func (s *Service) GetWorkspace(ctx context.Context, userID, id string) (Workspace, error) {
 	var workspace Workspace
-	err := s.db.QueryRowContext(ctx, `SELECT w.id,w.name,m.role,w.created_at,w.updated_at FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id WHERE w.id=? AND m.user_id=?`, id, userID).Scan(&workspace.ID, &workspace.Name, &workspace.Role, &workspace.CreatedAt, &workspace.UpdatedAt)
+	err := s.db.QueryRowContext(ctx, `SELECT w.id,w.name,w.description,m.role,w.created_at,w.updated_at FROM workspaces w JOIN workspace_members m ON m.workspace_id=w.id WHERE w.id=? AND m.user_id=?`, id, userID).Scan(&workspace.ID, &workspace.Name, &workspace.Description, &workspace.Role, &workspace.CreatedAt, &workspace.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Workspace{}, ErrNotFound
 	}
@@ -61,14 +62,31 @@ func (s *Service) GetWorkspace(ctx context.Context, userID, id string) (Workspac
 }
 
 func (s *Service) RenameWorkspace(ctx context.Context, userID, id, name string) error {
+	return s.UpdateWorkspace(ctx, userID, id, WorkspaceUpdate{Name: &name})
+}
+
+func (s *Service) UpdateWorkspace(ctx context.Context, userID, id string, update WorkspaceUpdate) error {
 	if err := s.requireOwner(ctx, userID, id); err != nil {
 		return err
 	}
-	name = strings.TrimSpace(name)
-	if name == "" {
+	if update.Name == nil && update.Description == nil {
 		return ErrInvalid
 	}
-	_, err := s.db.ExecContext(ctx, `UPDATE workspaces SET name=?,updated_at=? WHERE id=?`, name, time.Now().UTC(), id)
+	if update.Name != nil {
+		name := strings.TrimSpace(*update.Name)
+		if name == "" {
+			return ErrInvalid
+		}
+		update.Name = &name
+	}
+	if update.Description != nil {
+		description := strings.TrimSpace(*update.Description)
+		if utf8.RuneCountInString(description) > 500 {
+			return ErrInvalid
+		}
+		update.Description = &description
+	}
+	_, err := s.db.ExecContext(ctx, `UPDATE workspaces SET name=COALESCE(?,name),description=COALESCE(?,description),updated_at=? WHERE id=?`, update.Name, update.Description, time.Now().UTC(), id)
 	return err
 }
 

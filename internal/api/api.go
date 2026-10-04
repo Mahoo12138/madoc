@@ -52,7 +52,7 @@ func (a *API) Routes() http.Handler {
 		r.Get("/workspaces", a.listWorkspaces)
 		r.Post("/workspaces", a.csrfRequired(a.createWorkspace))
 		r.Get("/workspaces/{workspaceId}", a.getWorkspace)
-		r.Patch("/workspaces/{workspaceId}", a.csrfRequired(a.renameWorkspace))
+		r.Patch("/workspaces/{workspaceId}", a.csrfRequired(a.updateWorkspace))
 		r.Delete("/workspaces/{workspaceId}", a.csrfRequired(a.deleteWorkspace))
 		r.Get("/workspaces/{workspaceId}/members", a.listMembers)
 		r.Get("/workspaces/{workspaceId}/activity", a.listWorkspaceActivity)
@@ -269,13 +269,13 @@ func (a *API) createWorkspace(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, 201, v)
 }
-func (a *API) renameWorkspace(w http.ResponseWriter, r *http.Request) {
-	var b struct{ Name string }
+func (a *API) updateWorkspace(w http.ResponseWriter, r *http.Request) {
+	var b core.WorkspaceUpdate
 	if decode(r, &b) != nil {
 		domainError(w, core.ErrInvalid)
 		return
 	}
-	e := a.core.RenameWorkspace(r.Context(), userID(r), chi.URLParam(r, "workspaceId"), b.Name)
+	e := a.core.UpdateWorkspace(r.Context(), userID(r), chi.URLParam(r, "workspaceId"), b)
 	if e != nil {
 		domainError(w, e)
 		return

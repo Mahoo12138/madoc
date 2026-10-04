@@ -144,7 +144,7 @@ func (s *Service) AcceptInvite(ctx context.Context, token, name, password string
 		return auth.User{}, Workspace{}, ErrConflict
 	}
 	var workspace Workspace
-	if err := tx.QueryRowContext(ctx, `SELECT id,name,created_at,updated_at FROM workspaces WHERE id=?`, invite.WorkspaceID).Scan(&workspace.ID, &workspace.Name, &workspace.CreatedAt, &workspace.UpdatedAt); err != nil {
+	if err := tx.QueryRowContext(ctx, `SELECT id,name,description,created_at,updated_at FROM workspaces WHERE id=?`, invite.WorkspaceID).Scan(&workspace.ID, &workspace.Name, &workspace.Description, &workspace.CreatedAt, &workspace.UpdatedAt); err != nil {
 		return auth.User{}, Workspace{}, err
 	}
 	workspace.Role = invite.Role
