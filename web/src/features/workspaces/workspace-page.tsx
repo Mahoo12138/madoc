@@ -302,7 +302,7 @@ export function WorkspacePage() {
                 aria-hidden
                 className={styles.brandMark}
               />
-              madoc
+              Madoc
             </div>
           </div>
           <Menu width={250}>

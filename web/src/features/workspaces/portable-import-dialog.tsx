@@ -94,7 +94,7 @@ export function PortableImportDialog({
     >
       <Stack>
         <Text size="sm">
-          选择 madoc 导出的文件夹或 Workspace ZIP。若为分包，请同时选择 .package-set.json 清单与全部 ZIP。
+          选择 Madoc 导出的文件夹或 Workspace ZIP。若为分包，请同时选择 .package-set.json 清单与全部 ZIP。
         </Text>
         <Text size="sm" c="dimmed">
           整组上限：压缩文件合计 256 MiB、解压合计 512 MiB、5000 个文件和目录（含清单）。

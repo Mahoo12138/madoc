@@ -257,7 +257,7 @@ export function WorkspaceSettings({
               aria-hidden
               className={shell.brandMark}
             />
-            madoc
+            Madoc
           </div>
         </div>
         <button

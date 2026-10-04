@@ -69,7 +69,7 @@ export function WorkspaceListPage() {
               aria-hidden
               className={styles.brandMark}
             />
-            madoc
+            Madoc
           </div>
           <div className={styles.account}>
             <AccountMenu user={user} compact />
