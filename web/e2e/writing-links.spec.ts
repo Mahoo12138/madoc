@@ -59,7 +59,7 @@ test('link editing renders on desktop and narrow screens without runtime errors'
   page.on('console', (message) => { if (['error', 'warning'].includes(message.type())) errors.push(message.text()); });
   await page.setViewportSize({ width: 1280, height: 800 });
   await openDocument(page, '普通链接：[示例](https://example.com "说明")\n\n[**加粗的链接文字**](../guide.md)');
-  await expect(page).toHaveTitle(/madoc/);
+  await expect(page).toHaveTitle(/Madoc/);
   await expect(page).toHaveURL(/\/workspace\//);
   await page.locator('.ProseMirror a').first().click();
   await expect(page.getByLabel('编辑链接源码')).toBeFocused();

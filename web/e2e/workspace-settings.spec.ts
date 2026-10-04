@@ -34,7 +34,7 @@ async function setup(page: Page) {
     .first()
     .click();
   await expect(page).toHaveURL(`/workspace/${workspace.id}`);
-  await expect(page).toHaveTitle('madoc — collaborative Markdown workspace');
+  await expect(page).toHaveTitle('Madoc — collaborative Markdown workspace');
   await expect(
     page
       .getByRole('button', { name: '工作区菜单' })

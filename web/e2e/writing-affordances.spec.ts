@@ -95,7 +95,7 @@ test('inline editing stays visually compact on desktop and mobile', async ({ pag
   page.on('console', (message) => { if (message.type() === 'error' || message.type() === 'warning') errors.push(message.text()); });
   await page.setViewportSize({ width: 1280, height: 800 });
   await openDocument(page, '测试**粗体**文本，*斜体文字*与`行内代码`。\n\n行内公式：$x^2+y^2=z^2$，输入时显示预览。');
-  await expect(page).toHaveTitle(/madoc/);
+  await expect(page).toHaveTitle(/Madoc/);
   await expect(page).toHaveURL(/\/workspace\//);
   await expect(page.locator('vite-error-overlay')).toHaveCount(0);
   await page.locator('.ProseMirror strong').click();

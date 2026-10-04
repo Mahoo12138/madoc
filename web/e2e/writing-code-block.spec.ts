@@ -29,7 +29,7 @@ test('code tools float outside/inside the panel without adding a header row', as
   await page.setViewportSize({ width: 1280, height: 800 });
   const content = 'console.log("hello world");\nconst answer = 42;';
   const id = await openDocument(page, `\`\`\`javascript\n${content}\n\`\`\`\n\n代码块之后的正文。`);
-  await expect(page).toHaveTitle(/madoc/);
+  await expect(page).toHaveTitle(/Madoc/);
   await expect(page).toHaveURL(/\/workspace\//);
   await expect(page.locator('vite-error-overlay')).toHaveCount(0);
   const block = page.locator('.milkdown-code-block');

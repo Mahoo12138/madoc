@@ -17,7 +17,7 @@ for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
     const id = await openDocument(page, `矩阵：\n\n$$\n${matrix}\n$$\n\n后续正文`);
     await expect(page).toHaveURL(/\/workspace\//);
-    await expect(page).toHaveTitle(/madoc/);
+    await expect(page).toHaveTitle(/Madoc/);
     await expect(page.locator('vite-error-overlay')).toHaveCount(0);
     const block = page.getByRole('group', { name: '块级公式' });
     const source = block.locator('.cm-content');
