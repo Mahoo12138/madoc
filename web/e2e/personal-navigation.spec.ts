@@ -159,12 +159,14 @@ for (const width of [0, 320, 390]) {
       `/api/workspaces/${workspace}/trash/${batch.id}/restore`,
       { headers, data: {} },
     );
-    await expect(
-      favorites.getByRole("button", { name: "取消收藏 Inline writing" }),
-    ).toBeVisible();
-    await favorites
-      .getByRole("button", { name: "取消收藏 Inline writing" })
-      .click();
+    const restoredRemove = favorites.getByRole("button", {
+      name: "取消收藏 Inline writing",
+    });
+    await expect(restoredRemove).toBeVisible();
+    if (!mobile) await restoredRemove.locator("..").hover();
+    await expect(restoredRemove).toHaveCSS("opacity", "1");
+    await expect(restoredRemove).toHaveCSS("pointer-events", "auto");
+    await restoredRemove.click();
     await expect(favorites.getByRole("button")).toHaveCount(0);
     expect((await page.request.get(`/api/items/${id}`)).ok()).toBeTruthy();
     if (mobile)
@@ -289,6 +291,9 @@ test("favorite rows share hover and keyboard focus across remove without opening
     exact: true,
   });
   await expect(remainingRemove).toBeEnabled();
+  await remainingRemove.locator("..").hover();
+  await expect(remainingRemove).toHaveCSS("opacity", "1");
+  await expect(remainingRemove).toHaveCSS("pointer-events", "auto");
   await remainingRemove.hover();
   await saveSidebarScreenshot(page, "desktop-content-favorite-hover");
   await folderToggle.click();
