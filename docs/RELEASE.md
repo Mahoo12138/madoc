@@ -1,5 +1,17 @@
 # 固定提交发布检查
 
+## v0.1.0-alpha.3 发布准备（2026-10-06）
+
+Alpha.2 的固定提交 `cea1adecfab147cec5b696ff5af7966643d33612` 在远端 [37227480767](https://github.com/Mahoo12138/madoc/actions/runs/37227480767) 的前端 typecheck / build、Go test / race / vet 通过；普通 Chromium 413 / 414 通过，唯一失败为副本桌面用例，后续独立 MVP、重启恢复与 publish 均按门槛未执行。完整日志为 `/tmp/madoc-alpha2-ci-failure.log`，官方 [失败产物 11313021491](https://github.com/Mahoo12138/madoc/actions/runs/37227480767/artifacts/11313021491) 下载文件 SHA256 `026e4d7b3581a38344ff6ea60007c2817db9a6e121d4986d56b96bdad6d71767` 已验证。
+
+失败轨迹确认，名称填入后副本弹窗仍存在；约 135 ms 的 fullPage 截图期间画面短暂切到手机布局，桌面侧栏及其弹窗卸载，回到桌面后操作组件 IDs 全部换新。之后定位“创建副本”耗尽 60 秒总预算，没有发出复制请求。该截图高度由 720 扩为 762，正文和标题保持；独立原用例无重试复现 3 / 3 通过。这不是保存 ACK 或复制 API 的失败，不通过增加 timeout、重试或减弱内容断言掩盖。将此处改为视口截图，保留弹窗和名称检查及原保存阻塞、复制次数、独立内容 / ID 断言。
+
+独立诊断在原 fullPage 步骤的第 4、5 轮捕获瞬时 `innerWidth=1 / innerHeight=1`，两条媒体查询变为 true，随后弹窗 DOM 移除，再恢复 1280×720；没有 Escape、关闭点击或复制提交。调查按指令停止，主动中断及未执行轮次不计为失败。仅在临时夹具改用视口截图后 3 / 3 通过，逐事件确认没有 resize、media-change 或 1×1 视口；证据在 `/tmp/madoc-duplicate-repro/viewport-verification.json`。
+
+仓库修正后的副本专项最终 5 / 5 通过，包含截图后弹窗与名称仍保留的新断言；追加断言前的桌面重复 3 / 3 通过，均无测试重试。Go test（`-count=1`）/ vet、前端 typecheck / build 与 diff 检查通过，日志为 `/tmp/madoc-alpha3-go-test.log`、`/tmp/madoc-alpha3-go-vet.log`、`/tmp/madoc-alpha3-typecheck.log`、`/tmp/madoc-alpha3-build.log`、`/tmp/madoc-alpha2-duplicate-ui-final.log`。原桌面重复的首次 grep 锚点未匹配任何用例，调整标题匹配后才执行；首次专项启动受 Go 默认缓存写权限阻止，授权后使用临时缓存完成。
+
+保留已推送 Alpha.2 tag，不覆盖候选；新目标为 `v0.1.0-alpha.3`。修改测试夹具与发布记录，不改变正文协议、权限和保存逻辑。完整远端门槛及下载 / 匿名镜像验证仍待执行。
+
 ## v0.1.0-alpha.2 发布准备（2026-10-05）
 
 首个候选 `v0.1.0-alpha.1` 的远端普通 Chromium 411 / 414 通过，两个错误提示用例暴露真实登录状态挂载竞争，分享用例在活动房间关闭尚未完成时 PUT 替换正文被安全保护拒绝。保留原 tag 与所有失败记录；新目标 `v0.1.0-alpha.2` 包含 `retryOnMount: false` 修复、受控慢懒加载 / 请求次数回归、合法顺序的分享夹具及遗漏品牌文案修正。
