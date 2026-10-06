@@ -41,8 +41,10 @@ for (const mobile of [false, true]) {
     await dialog.getByLabel('副本名称').fill('Confirmed copy');
     await page.screenshot({
       path: testInfo.outputPath('copy-dialog.png'),
-      fullPage: true,
+      fullPage: false,
     });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('副本名称')).toHaveValue('Confirmed copy');
     let copies = 0;
     page.on('request', (request) => {
       if (request.url().endsWith('/duplicate')) copies++;
