@@ -1,5 +1,17 @@
 # 固定提交发布检查
 
+## v0.1.0-alpha.4 发布准备（2026-10-07）
+
+Alpha.3 固定源码 `5d550d861fee703eb83f3d85d5e58ab86f98571c` 的远端 [37488738110](https://github.com/Mahoo12138/madoc/actions/runs/37488738110) 前端 typecheck / build、Go test / race / vet 通过，普通 Chromium 413 / 414 通过；独立 MVP、重启与 publish 按失败门槛未执行。副本截屏回归通过，唯一失败为大纲远端标题更名用例。完整日志 `/tmp/madoc-alpha3-ci-verify-failure.log`，官方 [失败产物 11424898311](https://github.com/Mahoo12138/madoc/actions/runs/37488738110/artifacts/11424898311) 下载摘要 `72ef43234370813a3e746714b2be784b322eb0d441e715f735765e9c4ca0883b` 已验证。
+
+轨迹显示远端 h3 点击、Home、输入“改名”后实际正文为“小节改名”，本地同步完全相同且仍有“展开 小节改名”，子项保持折叠。失败是标题起始光标的输入前提未成立，没有显示协作或折叠状态丢失。将该处改为 DOM Range 明确定位标题文本起点，通知 selectionchange，先检查远端为“改名小节”，再沿用全部本地折叠、远端独立状态与删除后隔离断言。大纲全文件 3 / 3、受影响场景重复 3 / 3 通过，无测试重试，记录在 `/tmp/madoc-alpha3-outline-validation.log` 与 `/tmp/madoc-alpha3-outline-repeat3.log`。
+
+发布入口调整为候选分支先验收：`codex/release-v0.1.0-alpha.4` 的 push 使用事件固定 SHA，完整检查及生产候选镜像持久性检查通过后，才创建注解 tag 并上传 GHCR / Release。既有 tag 严格检查目标提交，不更新 / 覆盖；手动既有 tag 和 tag push 入口继续按固定 tag 验收。取消策略只作用于候选 verify job，进行中的 publish 不因分支更新被取消，同版本 publish 串行。GitHub API 失败必须终止，不能被当成 tag 缺失；同一次 Git ref 响应读取类型和 SHA，防止混用查询结果。
+
+本轮 Go test（`-count=1`）/ vet、前端 typecheck / production build、最终工作流 `actionlint 1.7.12` 与 diff 检查通过，日志在 `/tmp/madoc-alpha4-{go-test,go-vet,typecheck,build,actionlint-final}.log`。标签 shell 以离线 fake gh 执行：首次审阅发现旧 matching-ref SHA 与新 ref 类型混用的竞争，修正为同一响应读取类型及 SHA；最终 GNU Bash 5.2 的 18 / 18 场景通过，覆盖新建、已有轻量 / 注解 tag、ref 移动、提交不一致、网络失败、空响应、非法 SHA 和 ref 创建竞争。未对真实 GitHub执行这些模拟写操作，记录在 `/tmp/madoc-release-tag-audit/results.json`。工作流用仓库 `GITHUB_TOKEN` 创建通过验收的 tag，其 push 不触发递归运行，见 [GitHub 官方触发说明](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow#triggering-a-workflow-from-a-workflow)。
+
+正式发行物仍须下载核对四平台校验和 / 源码 SHA / 干净状态，并运行原生 macOS arm64 与发布的 Linux arm64 镜像持久性检查；镜像 Public 后验证无 Docker 凭据的匿名访问。验证器已在干净 Alpha.3 源码的本地候选上预演，确认生产 cookie、API、资源 MIME、初始化和真实重启的检查预期正确；该预演不代表正式发行物已经通过。
+
 ## v0.1.0-alpha.3 发布准备（2026-10-06）
 
 Alpha.2 的固定提交 `cea1adecfab147cec5b696ff5af7966643d33612` 在远端 [37227480767](https://github.com/Mahoo12138/madoc/actions/runs/37227480767) 的前端 typecheck / build、Go test / race / vet 通过；普通 Chromium 413 / 414 通过，唯一失败为副本桌面用例，后续独立 MVP、重启恢复与 publish 均按门槛未执行。完整日志为 `/tmp/madoc-alpha2-ci-failure.log`，官方 [失败产物 11313021491](https://github.com/Mahoo12138/madoc/actions/runs/37227480767/artifacts/11313021491) 下载文件 SHA256 `026e4d7b3581a38344ff6ea60007c2817db9a6e121d4986d56b96bdad6d71767` 已验证。

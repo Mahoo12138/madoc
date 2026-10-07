@@ -1,12 +1,12 @@
 # Madoc Status
 
-更新时间：2026-10-06
+更新时间：2026-10-07
 
 ## 当前结论
 
-项目进入首个 alpha 发布准备阶段，最终版本目标为 `v0.1.0-alpha.3`。`v0.1.0-alpha.1` 与 `v0.1.0-alpha.2` 候选在远端验收失败，保留原 tag 供审计，未创建 Release 或镜像。历史架构重置属于 MVP 内部迁移；本次发行提供 Git tag、GitHub 预发布、单二进制压缩包及 GHCR 镜像，不改变公开 API 的命名方式。
+项目进入首个 alpha 发布准备阶段，最终版本目标为 `v0.1.0-alpha.4`。`v0.1.0-alpha.1`、`v0.1.0-alpha.2` 与 `v0.1.0-alpha.3` 候选在远端验收失败，保留原 tag 供审计，未创建 Release 或镜像。历史架构重置属于 MVP 内部迁移；本次发行提供 Git tag、GitHub 预发布、单二进制压缩包及 GHCR 镜像，不改变公开 API 的命名方式。
 
-新增 tag 触发的固定提交发布流程：前端 typecheck / build、Go test / race / vet、普通 Chromium 全套、独立首次安装与重启恢复通过后，构建单二进制包与多架构 Docker 镜像，执行生产镜像持久卷冒烟，再发布 GitHub Release。Actions 使用固定提交；镜像记录来源、版本与源码提交，alpha 不设置 `latest`。实际发布验收和远端产物仍待执行，见 [发布说明](docs/releases/v0.1.0-alpha.3.md)。
+新增候选分支 / tag 触发的固定提交发布流程：前端 typecheck / build、Go test / race / vet、普通 Chromium 全套、独立首次安装与重启恢复通过后，构建单二进制包与多架构 Docker 镜像，执行生产镜像持久卷冒烟，再发布 GitHub Release。Actions 使用固定提交，候选通过后创建 tag，已有 tag 不覆盖；镜像记录来源、版本与源码提交，alpha 不设置 `latest`。实际发布验收和远端产物仍待执行，见 [发布说明](docs/releases/v0.1.0-alpha.4.md)。
 
 发布准备初检：`go test -count=1 ./...`、`go test -race -count=1 ./...`、`go vet ./...`、前端 typecheck / production build、`actionlint 1.7.12` 和 Docker 新卷初始化 / 容器重建持久性冒烟通过。主机 npm / actionlint 下载受限后分别通过授权网络与 Docker 工具环境完成。尚待固定提交的浏览器全套及远端发布验证；保留现有大 chunk 构建警告。
 
@@ -27,6 +27,8 @@ Alpha.1 完整远端运行 [37225613180](https://github.com/Mahoo12138/madoc/act
 madoc 已从 AFFiNE-compatible 原型切换为 madoc-native 协同 Markdown Workspace：Go 单二进制、SQLite、本地 Asset、REST、原生 WebSocket、Milkdown/Crepe 和 Excalidraw。
 
 Alpha.2 远端运行普通 Chromium 413 / 414 通过，副本用例在全页截图期间短暂切换手机布局而卸载弹窗，后续定位按钮超时，复制请求尚未发出。Go test / race / vet、前端 typecheck / build 通过，后续 MVP、重启与发布跳过；失败日志、官方产物摘要及画面证据见 `docs/RELEASE.md`。独立诊断捕获瞬时 1×1 视口与媒体切换；改为视口截图后逐事件确认不再发生。最终副本专项 5 / 5（含截图后弹窗 / 名称保留断言）、追加断言前桌面重复 3 / 3、Go test / vet、前端 typecheck / build、diff 检查通过，无测试重试。新的完整发行门槛尚待执行。
+
+Alpha.3 远端普通 Chromium 413 / 414 通过，唯一失败是大纲测试预期标题前缀输入，实际 Home 后输入成为后缀，两端同步与折叠均保留。明确设置标题起点并先断言远端正文，保留原折叠 / 隔离断言；全文件 3 / 3 与受影响场景重复 3 / 3 通过，无测试重试。发布入口改为候选分支固定 SHA 验收后创建 tag，既有 tag 严格比对，进行中的发布不因候选更新被取消；Go test / vet、前端 typecheck / build、最终 actionlint 与 diff 检查通过；标签 shell 离线 18 / 18 场景验证通过，覆盖已有 ref 变化 / 网络失败 / 创建竞争。正式 Alpha.4 完整门槛与发行物仍待验证。失败日志与产物摘要见 `docs/RELEASE.md`。
 
 ## 已完成
 

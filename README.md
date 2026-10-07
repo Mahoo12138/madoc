@@ -1,8 +1,8 @@
 # Madoc
 
-**Madoc** 是一个面向个人、小团队和家庭的轻量级、自部署协同 Markdown 工作区。当前预发布目标为 **v0.1.0-alpha.3**，用于早期试用与反馈；发行物通过发布检查后提供，重要内容请保留独立备份。
+**Madoc** 是一个面向个人、小团队和家庭的轻量级、自部署协同 Markdown 工作区。当前预发布目标为 **v0.1.0-alpha.4**，用于早期试用与反馈；发行物通过发布检查后提供，重要内容请保留独立备份。
 
-预构建镜像：`ghcr.io/mahoo12138/madoc:v0.1.0-alpha.3`。部署步骤、首次管理员与 HTTPS 配置前提见 [BUILD.md](./BUILD.md#docker)，功能及已知限制见 [发布说明](./docs/releases/v0.1.0-alpha.3.md)。
+预构建镜像：`ghcr.io/mahoo12138/madoc:v0.1.0-alpha.4`。部署步骤、首次管理员与 HTTPS 配置前提见 [BUILD.md](./BUILD.md#docker)，功能及已知限制见 [发布说明](./docs/releases/v0.1.0-alpha.4.md)。
 
 项目仍处于 MVP 阶段，但 MVP 的实现路线不再以“将 AFFiNE 0.26.x 整体移植到 Go + SQLite”为目标。AFFiNE 仅作为产品体验和协同架构参考，不再作为前端代码基座、API 兼容目标或数据模型规范。
 
@@ -117,7 +117,7 @@ Workspace
 - [PLAN.md](./PLAN.md)：MVP 实施计划
 - [STATUS.md](./STATUS.md)：当前迁移状态
 - [BUILD.md](./BUILD.md)：开发、构建与部署
-- [v0.1.0-alpha.3 发布说明](./docs/releases/v0.1.0-alpha.3.md)：安装、升级与已知限制
+- [v0.1.0-alpha.4 发布说明](./docs/releases/v0.1.0-alpha.4.md)：安装、升级与已知限制
 - [AGENTS.md](./AGENTS.md)：仓库实现约束
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)：总体架构
 - [docs/EDITOR.md](./docs/EDITOR.md)：Markdown 编辑器设计
