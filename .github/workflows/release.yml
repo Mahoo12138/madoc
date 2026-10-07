@@ -16,12 +16,11 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'push' && github.ref_type == 'branch' }}
-
 jobs:
   verify:
+    concurrency:
+      group: verify-release-${{ github.ref }}-${{ inputs.tag }}
+      cancel-in-progress: ${{ github.event_name == 'push' && github.ref_type == 'branch' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     outputs:
@@ -41,7 +40,7 @@ jobs:
           printf 'tag=%s\n' "$tag" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: refs/tags/${{ steps.target.outputs.tag }}
+          ref: ${{ github.event_name == 'push' && github.ref_type == 'branch' && github.sha || format('refs/tags/{0}', steps.target.outputs.tag) }}
           persist-credentials: false
       - name: Record verified source
         id: source
@@ -154,6 +153,30 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Verify production persistence
         run: python3 scripts/docker-smoke.py madoc-release:candidate
+      - name: Create verified version tag
+        shell: bash
+        env:
+          VERIFIED_COMMIT: ${{ needs.verify.outputs.commit }}
+        run: |
+          [[ "$VERIFIED_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          ref="refs/tags/$RELEASE_TAG"
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$RELEASE_TAG" --jq ".[] | select(.ref == \"$ref\") | .object.sha")
+          if [[ -n "$existing" ]]; then
+            reference=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq '.object | [.type, .sha] | @tsv')
+            read -r type target <<< "$reference"
+            if [[ "$type" == tag ]]; then
+              [[ "$target" =~ ^[0-9a-f]{40}$ ]]
+              reference=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$target" --jq '.object | [.type, .sha] | @tsv')
+              read -r type target <<< "$reference"
+            fi
+            test "$type" = commit
+            test "$target" = "$VERIFIED_COMMIT"
+          else
+            tag_object=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/tags" \
+              -f tag="$RELEASE_TAG" -f message="Madoc $RELEASE_TAG" \
+              -f object="$VERIFIED_COMMIT" -f type=commit --jq '.sha')
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="$ref" -f sha="$tag_object"
+          fi
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
