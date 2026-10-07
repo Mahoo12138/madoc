@@ -4,9 +4,13 @@
 
 ## 当前结论
 
-项目进入首个 alpha 发布准备阶段，最终版本目标为 `v0.1.0-alpha.4`。`v0.1.0-alpha.1`、`v0.1.0-alpha.2` 与 `v0.1.0-alpha.3` 候选在远端验收失败，保留原 tag 供审计，未创建 Release 或镜像。历史架构重置属于 MVP 内部迁移；本次发行提供 Git tag、GitHub 预发布、单二进制压缩包及 GHCR 镜像，不改变公开 API 的命名方式。
+首个 alpha **[v0.1.0-alpha.4](https://github.com/Mahoo12138/madoc/releases/tag/v0.1.0-alpha.4)** 已发布，固定源码为 `265b3b37a5c87d569d1abab21f163cdbe1bd43f9`。注解 Git tag、GitHub 预发布、Linux / macOS 的 amd64 / arm64 单二进制压缩包及公开的 [GHCR Package](https://github.com/Mahoo12138/madoc/pkgs/container/madoc) 均已核对。`v0.1.0-alpha.1`、`v0.1.0-alpha.2` 与 `v0.1.0-alpha.3` 候选在远端验收失败，保留原 tag 供审计，未创建 Release 或镜像。本次发行不改变公开 API 的命名方式。
 
-新增候选分支 / tag 触发的固定提交发布流程：前端 typecheck / build、Go test / race / vet、普通 Chromium 全套、独立首次安装与重启恢复通过后，构建单二进制包与多架构 Docker 镜像，执行生产镜像持久卷冒烟，再发布 GitHub Release。Actions 使用固定提交，候选通过后创建 tag，已有 tag 不覆盖；镜像记录来源、版本与源码提交，alpha 不设置 `latest`。实际发布验收和远端产物仍待执行，见 [发布说明](docs/releases/v0.1.0-alpha.4.md)。
+远端 [37570726334](https://github.com/Mahoo12138/madoc/actions/runs/37570726334) 的前端 typecheck / build、Go test / race（`-count=1`）/ vet、414 项普通 Chromium、独立 MVP 1 项、真实重启 / 备份恢复 6 项及生产 Linux amd64 候选镜像持久卷检查全部通过，无测试重试。候选通过后创建 tag，再发布六个 Release 附件与 Linux amd64 / arm64 镜像；没有发布 `latest` 镜像标签。
+
+正式下载的六个附件大小及 API SHA256 全部一致，四归档的校验清单、架构、嵌入前端、源码 SHA 与 `vcs.modified=false` 均通过。实际 macOS arm64 二进制的首次初始化、资源 MIME、生产 Cookie / CSRF、优雅退出和重启持久性通过；最终公开镜像以空 Docker 配置匿名拉取，源码 / 版本 OCI 标签、Linux arm64 新卷初始化及容器重建持久性通过。发行镜像摘要为 `sha256:ec3255c02573cfe977fc7ab4864ff6ee09eb36d662d974db6947479346b36dd2`，与 Release 的 `IMAGE_DIGEST` 一致。验收进程、容器和测试卷均已清理；Safari / Firefox、真机和性能容量仍未完整验收，生产环境仍需 HTTPS。完整证据及网络诊断见 [发布检查](docs/RELEASE.md)，安装与边界见 [发布说明](docs/releases/v0.1.0-alpha.4.md)。本次后续文档提交仅记录结果，不改变已发布源码或 tag。
+
+## 发布准备与失败记录
 
 发布准备初检：`go test -count=1 ./...`、`go test -race -count=1 ./...`、`go vet ./...`、前端 typecheck / production build、`actionlint 1.7.12` 和 Docker 新卷初始化 / 容器重建持久性冒烟通过。主机 npm / actionlint 下载受限后分别通过授权网络与 Docker 工具环境完成。尚待固定提交的浏览器全套及远端发布验证；保留现有大 chunk 构建警告。
 

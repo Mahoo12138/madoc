@@ -1,8 +1,8 @@
 # Madoc
 
-**Madoc** 是一个面向个人、小团队和家庭的轻量级、自部署协同 Markdown 工作区。当前预发布目标为 **v0.1.0-alpha.4**，用于早期试用与反馈；发行物通过发布检查后提供，重要内容请保留独立备份。
+**Madoc** 是一个面向个人、小团队和家庭的轻量级、自部署协同 Markdown 工作区。首个预发布 **[v0.1.0-alpha.4](https://github.com/Mahoo12138/madoc/releases/tag/v0.1.0-alpha.4)** 已发布，用于早期试用与反馈；重要内容请保留独立备份。
 
-预构建镜像：`ghcr.io/mahoo12138/madoc:v0.1.0-alpha.4`。部署步骤、首次管理员与 HTTPS 配置前提见 [BUILD.md](./BUILD.md#docker)，功能及已知限制见 [发布说明](./docs/releases/v0.1.0-alpha.4.md)。
+预构建镜像：`ghcr.io/mahoo12138/madoc:v0.1.0-alpha.4`，可从公开的 [GitHub Package](https://github.com/Mahoo12138/madoc/pkgs/container/madoc) 获取。部署步骤、首次管理员与 HTTPS 配置前提见 [BUILD.md](./BUILD.md#docker)，功能及已知限制见 [发布说明](./docs/releases/v0.1.0-alpha.4.md)。
 
 项目仍处于 MVP 阶段，但 MVP 的实现路线不再以“将 AFFiNE 0.26.x 整体移植到 Go + SQLite”为目标。AFFiNE 仅作为产品体验和协同架构参考，不再作为前端代码基座、API 兼容目标或数据模型规范。
 

@@ -1,5 +1,25 @@
 # 固定提交发布检查
 
+## v0.1.0-alpha.4 已发布（2026-10-07）
+
+固定源码为 `265b3b37a5c87d569d1abab21f163cdbe1bd43f9`。[远端运行 37570726334](https://github.com/Mahoo12138/madoc/actions/runs/37570726334) 的 verify 与 publish 均成功；[Release](https://github.com/Mahoo12138/madoc/releases/tag/v0.1.0-alpha.4) 于 `2026-10-07T04:41:01Z` 发布，`draft=false`、`prerelease=true`。注解 tag 对象 `809322e4f3ba6d57d7cfa95e3641920c2cf3eba2` 的目标提交与上述源码一致，已同步到本地；没有覆盖旧 tag。
+
+本次固定提交的前端 typecheck / production build、Go test / race（`-count=1`）/ vet 全部通过；普通 Chromium **414 / 414**（12.9 分钟）、独立 MVP **1 / 1**（14.1 秒）、真实重启 / 备份恢复 **6 / 6**（24.8 秒）通过，无测试重试。发布前的生产 Linux amd64 候选镜像新卷初始化、容器重建、登录 / 工作区持久性及密钥权限 / 稳定性检查通过。成功日志保留于 `/tmp/madoc-alpha4-ci-verify-success.log` 和 `/tmp/madoc-alpha4-ci-publish-success.log`。
+
+发行提供 Linux / macOS 的 amd64 / arm64 四个压缩包、[SHA256SUMS](https://github.com/Mahoo12138/madoc/releases/download/v0.1.0-alpha.4/SHA256SUMS) 和 [IMAGE_DIGEST](https://github.com/Mahoo12138/madoc/releases/download/v0.1.0-alpha.4/IMAGE_DIGEST)，共六个附件。下载后六项大小与 GitHub API SHA256 全部一致；四归档的校验清单、安全成员路径、二进制架构、嵌入前端和随附文档通过检查。四个二进制均记录预期源码 SHA、`vcs.modified=false`、对应 `GOOS` / `GOARCH` 和 `CGO_ENABLED=0`。
+
+实际下载的 macOS arm64 二进制在独立空数据目录运行，健康检查、页面品牌、JS / CSS MIME、管理员初始化与重复初始化拒绝、Secure / HttpOnly Cookie、CSRF 工作区创建、密钥 `0600`、SIGTERM 零退出，以及真实重启后的新登录 / 工作区 / 密钥持久性全部通过。两次验收进程均退出，随机端口确认关闭。其他三个归档完成静态检查；没有声称在对应平台原生运行过。
+
+[GitHub Package](https://github.com/Mahoo12138/madoc/pkgs/container/madoc) 的浏览器页面显示 **Public**。使用空 Docker 配置、无凭据助手及无登录凭据的环境读取版本与摘要 manifest，二者一致，包含 `linux/amd64`、`linux/arm64`（另有构建证明的 `unknown/unknown` 条目）。正式发行的 immutable 镜像匿名拉取成功，Linux arm64 的 OCI 来源 / 版本 / 源码提交与 tag 一致；对该镜像执行源码中的 `scripts/docker-smoke.py`，新卷初始化、停止并重建容器后的登录 / 工作区持久性、密钥权限及稳定性通过。两次容器实例均使用以下正式摘要，测试容器 / 卷和诊断容器确认清理，匿名配置保持为空；没有以本地候选替代发行镜像。
+
+```text
+ghcr.io/mahoo12138/madoc@sha256:ec3255c02573cfe977fc7ab4864ff6ee09eb36d662d974db6947479346b36dd2
+```
+
+首次下载受沙箱 DNS 限制，授权网络后完成。首次 Docker daemon 拉取正式摘要收到 EOF；另一公共镜像的 CDN 请求也收到 EOF，而无显式代理的匿名 GHCR token、版本 HEAD 与摘要 HEAD 均为 200，摘要相同，证据指向 daemon 的代理 / 传输路径。保留失败与诊断日志后仅重试一次，正式拉取和运行验收通过；没有修改 Docker 配置或以登录凭据兜底。
+
+下载 / 归档 / 原生运行证据在 `/tmp/madoc-alpha4-release-validation-zcxptky5/`，原生数据和日志留于 `/private/tmp/madoc-release-artifact-khcfchy3/`；镜像 manifest、首次 EOF、诊断、拉取、OCI 标签、容器实例与清理证据在 `/tmp/madoc-alpha4-published-image-check/`。原生与 Docker 冒烟直接回放 Secure Cookie，不构成 HTTPS 部署验收；生产浏览器仍须通过 HTTPS。Safari / Firefox、真实设备及性能容量尚未完整验证，保留大 chunk 构建警告。后续文档提交只归档结果，不改变已发布提交或 tag。下方发布准备记录保留当时状态，不能替代本次固定提交结论。
+
 ## v0.1.0-alpha.4 发布准备（2026-10-07）
 
 Alpha.3 固定源码 `5d550d861fee703eb83f3d85d5e58ab86f98571c` 的远端 [37488738110](https://github.com/Mahoo12138/madoc/actions/runs/37488738110) 前端 typecheck / build、Go test / race / vet 通过，普通 Chromium 413 / 414 通过；独立 MVP、重启与 publish 按失败门槛未执行。副本截屏回归通过，唯一失败为大纲远端标题更名用例。完整日志 `/tmp/madoc-alpha3-ci-verify-failure.log`，官方 [失败产物 11424898311](https://github.com/Mahoo12138/madoc/actions/runs/37488738110/artifacts/11424898311) 下载摘要 `72ef43234370813a3e746714b2be784b322eb0d441e715f735765e9c4ca0883b` 已验证。
