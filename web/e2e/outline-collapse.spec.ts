@@ -107,9 +107,18 @@ test("folds follow remote heading shifts and renames while remaining local to ea
   await expect(
     outline.getByRole("button", { name: "展开 小节", exact: true }),
   ).toBeVisible();
-  await remote.locator(".ProseMirror h3").click();
-  await remote.keyboard.press("Home");
+  await remote.locator(".ProseMirror h3").evaluate((heading) => {
+    heading.closest<HTMLElement>(".ProseMirror")!.focus();
+    const range = document.createRange();
+    range.setStart(heading.firstChild!, 0);
+    range.collapse(true);
+    const selection = document.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.dispatchEvent(new Event("selectionchange"));
+  });
   await remote.keyboard.type("改名");
+  await expect(remote.locator(".ProseMirror h3")).toHaveText("改名小节");
   await expect(
     outline.getByRole("button", { name: "展开 改名小节", exact: true }),
   ).toBeVisible();
