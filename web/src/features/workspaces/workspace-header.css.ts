@@ -3,14 +3,14 @@ import { style } from "@vanilla-extract/css";
 import { touchControls } from "@/styles/interaction.css";
 
 export const header = style({
-  minHeight: 58,
+  minHeight: "var(--madoc-header-height)",
   position: "sticky",
   top: 0,
   zIndex: 10,
   display: "flex",
   alignItems: "center",
   gap: 12,
-  padding: "7px 24px",
+  padding: "7px var(--madoc-gutter-workspace)",
   borderBottom: "1px solid var(--mantine-color-gray-2)",
   background: "var(--mantine-color-body)",
   "@media": { [workspaceMedia.compact]: { gap: 4, paddingInline: 8 } },

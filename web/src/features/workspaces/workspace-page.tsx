@@ -41,6 +41,13 @@ import { WorkspaceNavigation } from "./workspace-navigation";
 import { WorkspaceHeader } from "./workspace-header";
 import { WorkspaceLoadNotice } from "./workspace-load-notice";
 import { touchAction } from "@/styles/interaction.css";
+import { shortcutModifier } from "@/features/shared/platform";
+import { PanelErrorBoundary } from "@/features/shared/panel-error-boundary";
+import {
+  TITLE_MAX,
+  titleLength,
+  titleProblem,
+} from "./item-title-rules";
 import type { MarkdownOutline } from "@/features/markdown/markdown-outline-model";
 import { MarkdownOutline as MarkdownOutlineView } from "@/features/markdown/markdown-outline";
 import { AccountMenu } from "@/features/account/account-menu";
@@ -48,6 +55,7 @@ import { useWorkspaceEvents } from "./use-workspace-events";
 import { WorkspaceSearch, useSearchShortcut } from "./workspace-search";
 import { WorkspaceTrash } from "./workspace-trash";
 import { ItemCommentsDrawer } from "@/features/comments/item-comments-drawer";
+import { roleLabels } from "./role-labels";
 import * as styles from "./workspace-shell.css";
 
 const MarkdownEditor = lazy(() =>
@@ -143,6 +151,18 @@ export function WorkspacePage() {
   const [moveOpened, moveModal] = useDisclosure(false);
   const [movingItem, setMovingItem] = useState<Item>();
   const [moveParent, setMoveParent] = useState("root");
+  // One in-flight guard for the whole dialog surface: rapid clicks, Enter and
+  // repeated taps must not open a second request for the same draft. Declared
+  // with the other hooks so the loading and signed-out early returns below do
+  // not skip them.
+  const [itemSaving, setItemSaving] = useState(false);
+  // Validation reads against the field it belongs to; a failed request is a
+  // different thing and needs its own announced region.
+  const [itemFailure, setItemFailure] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Item | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [moveError, setMoveError] = useState("");
   const [draft, setDraft] = useState<{
     mode: "create" | "rename";
     type: ItemType;
@@ -167,7 +187,10 @@ export function WorkspacePage() {
     return null;
   }
   const active = currentItem ?? retained.current;
+  const canWrite =
+    !unavailable && !!workspace.data && workspace.data.role !== "viewer";
   const openCreate = (type: ItemType, parentId: string | null = null) => {
+    if (!canWrite) return;
     if (type === "markdown") {
       setDocumentParent({ parentId });
       return;
@@ -176,6 +199,7 @@ export function WorkspacePage() {
     itemActions.open();
   };
   const openRename = (item: Item) => {
+    if (!canWrite) return;
     setDraft({
       mode: "rename",
       type: item.type,
@@ -186,51 +210,91 @@ export function WorkspacePage() {
     itemActions.open();
   };
   const saveItem = async () => {
-    if (draft.mode === "rename" && draft.item)
-      await mutations.renameItem.mutateAsync({
-        id: draft.item.id,
-        title: draft.title,
-      });
-    else {
-      const created = await mutations.createItem.mutateAsync({
-        type: draft.type,
-        title: draft.title,
-        parentId: draft.parentId,
-      });
-      if (created.type !== "folder")
-        await navigate({
-          to: "/workspace/$workspaceId/$itemId",
-          params: { workspaceId, itemId: created.id },
-        });
+    if (itemSaving) return;
+    const problem = titleProblem(draft.title);
+    if (problem) {
+      setItemFailure(problem);
+      return;
     }
-    itemActions.close();
+    setItemSaving(true);
+    setItemFailure("");
+    try {
+      if (draft.mode === "rename" && draft.item)
+        await mutations.renameItem.mutateAsync({
+          id: draft.item.id,
+          title: draft.title.trim(),
+        });
+      else {
+        const created = await mutations.createItem.mutateAsync({
+          type: draft.type,
+          title: draft.title.trim(),
+          parentId: draft.parentId,
+        });
+        if (created.type !== "folder")
+          await navigate({
+            to: "/workspace/$workspaceId/$itemId",
+            params: { workspaceId, itemId: created.id },
+          });
+      }
+      itemActions.close();
+    } catch {
+      // Keep the dialog and the draft open so the retry does not lose typing.
+      setItemFailure(
+        draft.mode === "rename"
+          ? "重命名未完成，请检查网络后重试。"
+          : "创建未完成，请检查网络后重试；若重试后出现同名条目，请先查看内容目录。",
+      );
+    } finally {
+      setItemSaving(false);
+    }
   };
-  const deleteItem = async (item: Item) => {
-    if (!confirm(`将“${item.title}”及其包含的内容移入回收站？`)) return;
-    await mutations.deleteItem.mutateAsync(item.id);
-    if (item.id === itemId)
-      await navigate({
-        to: "/workspace/$workspaceId",
-        params: { workspaceId },
-      });
+  const requestDelete = (item: Item) => {
+    if (!canWrite) return;
+    setDeleteTarget(item);
+    setDeleteError("");
+  };
+  const deleteItem = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await mutations.deleteItem.mutateAsync(deleteTarget.id);
+      setDeleteTarget(null);
+      if (deleteTarget.id === itemId)
+        await navigate({
+          to: "/workspace/$workspaceId",
+          params: { workspaceId },
+        });
+    } catch {
+      setDeleteError("移入回收站未完成，请检查网络后重试。");
+    } finally {
+      setDeleting(false);
+    }
   };
   const openMove = (item: Item) => {
+    if (!canWrite) return;
     setMovingItem(item);
     setMoveParent(item.parentId ?? "root");
+    setMoveError("");
     moveModal.open();
   };
   const moveItem = async () => {
-    if (!movingItem) return;
+    if (!movingItem || mutations.moveItem.isPending) return;
     const parentId = moveParent === "root" ? null : moveParent;
     const index = (items.data ?? []).filter(
       (item) => item.parentId === parentId && item.id !== movingItem.id,
     ).length;
-    await mutations.moveItem.mutateAsync({
-      id: movingItem.id,
-      parentId,
-      index,
-    });
-    moveModal.close();
+    setMoveError("");
+    try {
+      await mutations.moveItem.mutateAsync({
+        id: movingItem.id,
+        parentId,
+        index,
+      });
+      moveModal.close();
+    } catch {
+      setMoveError("移动未完成，内容位置未改变。请检查网络后重试。");
+    }
   };
   const isMoveTarget = (candidate: Item) => {
     if (candidate.type !== "folder" || candidate.id === movingItem?.id)
@@ -262,7 +326,7 @@ export function WorkspacePage() {
     onCreate: openCreate,
     onRename: openRename,
     onMove: openMove,
-    onDelete: deleteItem,
+    onDelete: requestDelete,
     collapsed: collapsedFolders,
     onCollapsedChange: setCollapsedFolders,
     panel: navigationPanel,
@@ -366,7 +430,7 @@ export function WorkspacePage() {
             disabled={unavailable}
             rightSection={
               <kbd className={styles.shortcutKey}>
-                {navigator.platform.includes("Mac") ? "⌘ K" : "Ctrl K"}
+                {shortcutModifier()} K
               </kbd>
             }
           >
@@ -462,56 +526,64 @@ export function WorkspacePage() {
                   <Text c="dimmed" mt="xs">
                     左侧内容树是这个工作区的唯一结构来源。
                   </Text>
-                  {!itemId &&
-                    !unavailable &&
-                    workspace.data &&
-                    workspace.data.role !== "viewer" && (
-                      <Group justify="center" mt="xl">
-                        <Button
-                          leftSection={<IconFileText size={16} />}
-                          onClick={() => openCreate("markdown")}
-                        >
-                          新建文档
-                        </Button>
-                        <Button
-                          variant="light"
-                          leftSection={<IconWhiteboard size={16} />}
-                          onClick={() => openCreate("whiteboard")}
-                        >
-                          新建白板
-                        </Button>
-                      </Group>
-                    )}
+                  {!itemId && canWrite && (
+                    <Group justify="center" mt="xl">
+                      <Button
+                        leftSection={<IconFileText size={16} />}
+                        onClick={() => openCreate("markdown")}
+                      >
+                        新建文档
+                      </Button>
+                      <Button
+                        variant="light"
+                        leftSection={<IconWhiteboard size={16} />}
+                        onClick={() => openCreate("whiteboard")}
+                      >
+                        新建白板
+                      </Button>
+                    </Group>
+                  )}
+                  {!itemId && !canWrite && workspace.data && (
+                    <Text c="dimmed" mt="md" size="sm">
+                      当前角色为{roleLabels[workspace.data.role]}，可浏览全部内容，
+                      但不能创建或修改条目。
+                    </Text>
+                  )}
                 </div>
               </div>
             )
           ) : (
-            <Suspense
-              fallback={
-                <Center mih="60vh">
-                  <Loader />
-                </Center>
-              }
-            >
-              {active.type === "markdown" ? (
-                <MarkdownEditor
-                  key={active.id}
-                  item={active}
-                  role={missing ? "viewer" : workspace.data!.role}
-                  user={session.data.user}
-                  onOutlineChange={setOutline}
-                  versionsRequest={versionsRequest?.sequence}
-                  versionsRequestItemId={versionsRequest?.itemId}
-                />
-              ) : active.type === "whiteboard" ? (
-                <WhiteboardEditor
-                  key={`${session.data.user.id}:${active.id}`}
-                  item={active}
-                  role={missing ? "viewer" : workspace.data!.role}
-                  user={session.data.user}
-                />
-              ) : null}
-            </Suspense>
+            <PanelErrorBoundary label="编辑器">
+              <Suspense
+                fallback={
+                  <Center mih="60vh">
+                    <Stack align="center" role="status">
+                      <Loader aria-hidden />
+                      <Text>正在加载内容…</Text>
+                    </Stack>
+                  </Center>
+                }
+              >
+                {active.type === "markdown" ? (
+                  <MarkdownEditor
+                    key={active.id}
+                    item={active}
+                    role={missing ? "viewer" : workspace.data!.role}
+                    user={session.data.user}
+                    onOutlineChange={setOutline}
+                    versionsRequest={versionsRequest?.sequence}
+                    versionsRequestItemId={versionsRequest?.itemId}
+                  />
+                ) : active.type === "whiteboard" ? (
+                  <WhiteboardEditor
+                    key={`${session.data.user.id}:${active.id}`}
+                    item={active}
+                    role={missing ? "viewer" : workspace.data!.role}
+                    user={session.data.user}
+                  />
+                ) : null}
+              </Suspense>
+            </PanelErrorBoundary>
           )}
         </section>
       </main>
@@ -608,21 +680,19 @@ export function WorkspacePage() {
           onClose={commentsDrawer.close}
         />
       )}
-      <Suspense fallback={null}>
-        {importPreviewOpened && (
-          <PortableImportDialog
-            key={`import:${workspaceId}`}
-            workspaceId={workspaceId}
-            canWrite={
-              !unavailable &&
-              !!workspace.data &&
-              workspace.data.role !== "viewer"
-            }
-            onClose={() => setImportPreviewOpened(false)}
-          />
-        )}
-      </Suspense>
-      {documentParent && !unavailable && workspace.data?.role !== "viewer" && (
+      <PanelErrorBoundary label="内容包导入">
+        <Suspense fallback={null}>
+          {importPreviewOpened && (
+            <PortableImportDialog
+              key={`import:${workspaceId}`}
+              workspaceId={workspaceId}
+              canWrite={canWrite}
+              onClose={() => setImportPreviewOpened(false)}
+            />
+          )}
+        </Suspense>
+      </PanelErrorBoundary>
+      {documentParent && canWrite && (
         <CreateDocument
           workspaceId={workspaceId}
           parentId={documentParent.parentId}
@@ -632,47 +702,126 @@ export function WorkspacePage() {
       )}
       <Modal
         opened={itemModal}
-        onClose={itemActions.close}
+        onClose={() => {
+          if (itemSaving) return;
+          itemActions.close();
+        }}
         title={
           draft.mode === "rename"
             ? "重命名"
             : `新建${draft.type === "markdown" ? "文档" : draft.type === "whiteboard" ? "白板" : "文件夹"}`
         }
+        closeOnClickOutside={!itemSaving}
+        closeOnEscape={!itemSaving}
+        withCloseButton={!itemSaving}
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void saveItem();
+          }}
+        >
+          <Stack>
+            <TextInput
+              autoFocus
+              label="名称"
+              value={draft.title}
+              onChange={(e) => {
+                const title = e.currentTarget.value;
+                setDraft((v) => ({ ...v, title }));
+                if (itemFailure && !titleProblem(title)) setItemFailure("");
+              }}
+              onKeyDown={(e) => {
+                // Enter confirms a candidate word while an IME is composing;
+                // submitting there would save a half-finished title.
+                if (e.key === "Enter" && !e.nativeEvent.isComposing)
+                  void saveItem();
+              }}
+              disabled={itemSaving}
+              error={titleProblem(draft.title) ?? undefined}
+              description={`最多 ${TITLE_MAX} 个字符，当前 ${titleLength(draft.title)} 个`}
+            />
+            {/* Validation rides the field; a failed request is announced here. */}
+            {itemFailure && !titleProblem(draft.title) && (
+              <Alert color="red" role="alert">
+                {itemFailure}
+              </Alert>
+            )}
+            <div>
+              <Button
+                type="submit"
+                loading={itemSaving}
+                disabled={itemSaving || !draft.title.trim()}
+              >
+                保存
+              </Button>
+            </div>
+          </Stack>
+        </form>
+      </Modal>
+      <Modal
+        opened={deleteTarget !== null}
+        onClose={() => {
+          if (deleting) return;
+          setDeleteTarget(null);
+          setDeleteError("");
+        }}
+        title="移入回收站"
+        centered
+        closeOnClickOutside={!deleting}
+        closeOnEscape={!deleting}
+        withCloseButton={!deleting}
       >
         <Stack>
-          <TextInput
-            autoFocus
-            label="名称"
-            value={draft.title}
-            onChange={(e) => {
-              const title = e.currentTarget.value;
-              setDraft((v) => ({ ...v, title }));
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && draft.title.trim()) void saveItem();
-            }}
-          />
-          <Button
-            onClick={saveItem}
-            loading={
-              mutations.createItem.isPending || mutations.renameItem.isPending
-            }
-            disabled={!draft.title.trim()}
-          >
-            保存
-          </Button>
+          <Text size="sm">
+            将“{deleteTarget?.title}”
+            {deleteTarget?.type === "folder"
+              ? "及其包含的全部内容"
+              : ""}
+            移入回收站？之后可以从侧栏的回收站恢复。
+          </Text>
+          {deleteError && (
+            <Alert color="red" role="alert">
+              {deleteError}
+            </Alert>
+          )}
+          <Group justify="flex-end">
+            <Button
+              variant="default"
+              disabled={deleting}
+              onClick={() => {
+                setDeleteTarget(null);
+                setDeleteError("");
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              color="red"
+              loading={deleting}
+              onClick={() => void deleteItem()}
+            >
+              移入回收站
+            </Button>
+          </Group>
         </Stack>
       </Modal>
       <Modal
         opened={moveOpened}
         onClose={moveModal.close}
         title={`移动“${movingItem?.title ?? ""}”`}
+        closeOnClickOutside={!mutations.moveItem.isPending}
+        closeOnEscape={!mutations.moveItem.isPending}
+        withCloseButton={!mutations.moveItem.isPending}
       >
         <Stack>
           <Select
             label="目标位置"
             value={moveParent}
-            onChange={(value) => setMoveParent(value ?? "root")}
+            onChange={(value) => {
+              setMoveParent(value ?? "root");
+              if (moveError) setMoveError("");
+            }}
             data={[
               { value: "root", label: "工作区根目录" },
               ...(items.data ?? [])
@@ -680,10 +829,20 @@ export function WorkspacePage() {
                 .map((item) => ({ value: item.id, label: item.title })),
             ]}
             searchable
+            disabled={mutations.moveItem.isPending}
+            error={moveError || undefined}
           />
-          <Button onClick={moveItem} loading={mutations.moveItem.isPending}>
-            移动
-          </Button>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={moveModal.close}>
+              取消
+            </Button>
+            <Button
+              onClick={() => void moveItem()}
+              loading={mutations.moveItem.isPending}
+            >
+              移动
+            </Button>
+          </Group>
         </Stack>
       </Modal>
     </div>

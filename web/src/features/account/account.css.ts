@@ -87,11 +87,16 @@ export const pageHeader = style({
   display: 'flex',
   alignItems: 'center',
   gap: 12,
-  minHeight: 58,
-  padding: '0 40px',
+  minHeight: 'var(--madoc-header-height)',
+  padding: '0 var(--madoc-gutter-page)',
   borderBottom: '1px solid var(--mantine-color-gray-2)',
   background: 'var(--mantine-color-body)',
-  '@media': { [workspaceMedia.mobile]: { padding: '0 20px', gap: 8 } },
+  '@media': {
+    [workspaceMedia.mobile]: {
+      padding: '0 var(--madoc-gutter-page-mobile)',
+      gap: 8,
+    },
+  },
 });
 export const pageTitle = style({
   minWidth: 0,
@@ -131,10 +136,10 @@ export const mobileBackButton = style({
   },
 });
 export const pageScroll = style({
-  minHeight: 'calc(100dvh - 58px)',
+  minHeight: 'var(--madoc-frame-height)',
 });
 export const content = style({
-  width: 'min(100%, 840px)',
+  width: 'min(100%, var(--madoc-content-width))',
   minWidth: 0,
   margin: '0 auto',
   padding: '44px 40px 72px',

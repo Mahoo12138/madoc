@@ -1,5 +1,7 @@
 import { globalStyle } from '@vanilla-extract/css';
 import { touchControls } from './interaction.css';
+// Registers the page-frame custom properties on :root.
+import './layout.css';
 
 globalStyle('html, body, #root', { minHeight: '100%', margin: 0 });
 globalStyle('body', {

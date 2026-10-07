@@ -1,5 +1,11 @@
 # Product
 
+<!-- impeccable:product-schema 1 -->
+
+## Platform
+
+web
+
 ## 1. 产品定义
 
 madoc 是一个轻量、自部署、多人协同的 Markdown Workspace。

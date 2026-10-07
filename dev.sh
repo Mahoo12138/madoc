@@ -77,7 +77,7 @@ case "$TARGET" in
         echo ""
         echo -e "${YELLOW}========================================${NC}"
         echo -e "${YELLOW}  madoc dev environment is running${NC}"
-        echo -e "${YELLOW}  Frontend:  http://localhost:8080${NC}"
+        echo -e "${YELLOW}  Frontend:  http://localhost:8000${NC}"
         echo -e "${YELLOW}  Backend:   http://localhost:3000${NC}"
         echo -e "${YELLOW}  Press Ctrl+C to stop${NC}"
         echo -e "${YELLOW}========================================${NC}"

@@ -274,10 +274,10 @@ export const main = style({
 });
 export const outlinePanel = style({
   minWidth: 0,
-  minHeight: "calc(100dvh - 58px)",
-  height: "calc(100dvh - 58px)",
+  minHeight: "var(--madoc-frame-height)",
+  height: "var(--madoc-frame-height)",
   position: "sticky",
-  top: 58,
+  top: "var(--madoc-header-height)",
   display: "flex",
   flexDirection: "column",
   padding: "14px 14px 20px",
@@ -287,17 +287,21 @@ export const outlinePanel = style({
   overscrollBehavior: "contain",
   "@media": { [workspaceMedia.compact]: { display: "none" } },
 });
-export const content = style({ minHeight: "calc(100dvh - 58px)" });
+export const content = style({ minHeight: "var(--madoc-frame-height)" });
 export const editorPage = style({
   vars: { "--madoc-editor-max-width": "760px" },
   width: "min(var(--madoc-editor-max-width), calc(100% - 48px))",
   margin: "0 auto",
   paddingTop: 46,
 });
+// `place-items: center` sizes this to the grid's single implicit track, so a
+// very long single-word workspace name can push the column wider than the
+// viewport. Cap the measure and keep the overflow inside the box.
 export const empty = style({
-  minHeight: "calc(100dvh - 58px)",
+  minHeight: "var(--madoc-frame-height)",
   display: "grid",
   placeItems: "center",
   padding: 30,
   textAlign: "center",
+  overflowWrap: "anywhere",
 });

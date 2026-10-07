@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   Alert,
   Avatar,
@@ -13,6 +13,10 @@ import {
 import { accountAPI } from '@/api/account';
 import type { User } from '@/api/types';
 import * as styles from './account.css';
+
+const NAME_MAX = 80;
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+const AVATAR_TYPES = ['image/png', 'image/jpeg'];
 
 export type ProfileHandle = { save: () => Promise<boolean> };
 
@@ -36,7 +40,17 @@ export const ProfilePanel = forwardRef<
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  // Without a reset the file input keeps its value, so choosing the same image
+  // twice in a row fires no change event and the second pick looks ignored.
+  const fileInput = useRef<() => void>(null);
   const dirty = name !== user.name || avatar !== undefined;
+  const nameLength = [...name].length;
+  const nameError =
+    name.length > 0 && !name.trim()
+      ? '显示名称不能只包含空格'
+      : nameLength > NAME_MAX
+        ? `显示名称不能超过 ${NAME_MAX} 个字符，当前 ${nameLength} 个`
+        : null;
 
   useEffect(() => {
     onDirty(dirty);
@@ -75,8 +89,8 @@ export const ProfilePanel = forwardRef<
   const save = async () => {
     if (busy) return false;
     const trimmed = name.trim();
-    if (!trimmed || [...trimmed].length > 80) {
-      setError('显示名称需为 1–80 个字符');
+    if (!trimmed || nameError) {
+      setError(nameError ?? '显示名称不能为空');
       return false;
     }
     setBusy(true);
@@ -115,12 +129,17 @@ export const ProfilePanel = forwardRef<
   useImperativeHandle(ref, () => ({ save }));
 
   const selectFile = (file: File | null) => {
+    // Reset first so re-picking the same file still reports a change.
+    fileInput.current?.();
     if (!file) return;
-    if (
-      !['image/png', 'image/jpeg'].includes(file.type) ||
-      file.size > 2 * 1024 * 1024
-    ) {
-      setError('请选择不超过 2MB 的 PNG 或 JPEG 图片');
+    if (!AVATAR_TYPES.includes(file.type)) {
+      setError('请选择 PNG 或 JPEG 图片');
+      return;
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      setError(
+        `图片大小为 ${(file.size / 1024 / 1024).toFixed(1)}MB，请选择不超过 2MB 的图片`,
+      );
       return;
     }
     setAvatar(file);
@@ -201,6 +220,7 @@ export const ProfilePanel = forwardRef<
                   <FileButton
                     onChange={selectFile}
                     accept="image/png,image/jpeg"
+                    resetRef={fileInput}
                   >
                     {(props) => (
                       <Button {...props} variant="default" disabled={busy}>
@@ -211,7 +231,10 @@ export const ProfilePanel = forwardRef<
                   <Button
                     variant="subtle"
                     disabled={busy || (!user.avatarUrl && !avatar)}
-                    onClick={() => setAvatar(null)}
+                    onClick={() => {
+                      setAvatar(null);
+                      setError('');
+                    }}
                   >
                     恢复默认
                   </Button>
@@ -225,15 +248,33 @@ export const ProfilePanel = forwardRef<
               label="显示名称"
               value={name}
               disabled={busy}
-              onChange={(event) => setName(event.currentTarget.value)}
-              description="用于成员列表和协作身份"
+              onChange={(event) => {
+                setName(event.currentTarget.value);
+                if (error) setError('');
+              }}
+              onKeyDown={(event) => {
+                // Enter confirms an IME candidate; submitting there would save
+                // a partially composed name.
+                if (
+                  event.key === 'Enter' &&
+                  !event.nativeEvent.isComposing &&
+                  dirty
+                )
+                  void save();
+              }}
+              error={nameError ?? undefined}
+              description={`用于成员列表和协作身份 · ${nameLength} / ${NAME_MAX} 字`}
               autoFocus
             />
             <div className={styles.actions}>
               <Button variant="default" disabled={busy} onClick={requestClose}>
                 取消
               </Button>
-              <Button type="submit" loading={busy} disabled={!dirty}>
+              <Button
+                type="submit"
+                loading={busy}
+                disabled={!dirty || !!nameError}
+              >
                 保存更改
               </Button>
             </div>

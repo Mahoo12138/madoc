@@ -22,6 +22,7 @@ const fontSizes = Array.from({ length: 9 }, (_, index) => {
 export function PreferencesPanel() {
   const { values, set, status, error, retry } = usePreferences();
   const [reset, setReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
   return (
     <Stack gap="lg">
       <div>
@@ -35,19 +36,23 @@ export function PreferencesPanel() {
         <Text size="xs" mt="xs" role="status" aria-label="偏好同步状态">
           {status === 'saving'
             ? '保存中'
-            : status === 'pending' || error
-              ? '待同步'
-              : '已同步'}
+            : error
+              ? '同步失败，设置已保留在此设备'
+              : status === 'pending'
+                ? '待同步'
+                : '已同步'}
         </Text>
       </div>
       {error && (
         <Alert color="orange" role="alert">
-          <Group justify="space-between">
+          <Stack gap="xs">
             <Text size="sm">{error}</Text>
-            <Button variant="subtle" onClick={retry}>
-              重试同步
-            </Button>
-          </Group>
+            <div>
+              <Button variant="subtle" size="compact-sm" onClick={retry}>
+                重试同步
+              </Button>
+            </div>
+          </Stack>
         </Alert>
       )}
       <Text fw={600}>阅读</Text>
@@ -166,21 +171,37 @@ export function PreferencesPanel() {
       </Group>
       <Modal
         opened={reset}
-        onClose={() => setReset(false)}
+        onClose={() => {
+          if (!resetting) setReset(false);
+        }}
         title="恢复默认设置？"
+        closeOnClickOutside={!resetting}
+        closeOnEscape={!resetting}
+        withCloseButton={!resetting}
       >
         <Stack>
           <Text size="sm">
             字号、行距、正文宽度和书写开关将恢复默认。个人资料与文档内容不受影响。
           </Text>
           <Group justify="flex-end">
-            <Button variant="default" onClick={() => setReset(false)}>
+            <Button
+              variant="default"
+              disabled={resetting}
+              onClick={() => setReset(false)}
+            >
               取消
             </Button>
             <Button
+              loading={resetting}
               onClick={() => {
-                set(defaultPreferences);
-                setReset(false);
+                if (resetting) return;
+                setResetting(true);
+                try {
+                  set(defaultPreferences);
+                  setReset(false);
+                } finally {
+                  setResetting(false);
+                }
               }}
             >
               确认恢复

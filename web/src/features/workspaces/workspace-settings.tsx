@@ -41,6 +41,7 @@ import * as shell from "./workspace-shell.css";
 import * as styles from "./workspace-management.css";
 
 type Section = "workspace" | "members" | "activity";
+const WORKSPACE_NAME_MAX = 80;
 const navigation: { id: Section; label: string; Icon: typeof FolderCog }[] = [
   { id: "workspace", label: "工作区信息", Icon: FolderCog },
   { id: "members", label: "成员管理", Icon: Users },
@@ -99,7 +100,14 @@ export function WorkspaceSettings({
     rename.isPending || describe.isPending || remove.isPending || memberBusy;
   const showingDeleteConfirmation = confirming && owner;
   const error = showingDeleteConfirmation ? errorMessage(remove.error) : null;
-  const canRename = name.trim() !== "" && name.trim() !== workspace.name;
+  const nameLength = Array.from(name).length;
+  const nameProblem = name.trim()
+    ? nameLength > WORKSPACE_NAME_MAX
+      ? `工作区名称不能超过 ${WORKSPACE_NAME_MAX} 个字符，当前 ${nameLength} 个`
+      : null
+    : "工作区名称不能为空";
+  const canRename =
+    !nameProblem && name.trim() !== workspace.name;
   const canDelete = owner && confirmation === workspace.name;
   const shouldGuardLeave =
     busy ||
@@ -351,8 +359,11 @@ export function WorkspaceSettings({
                 <>
                   <h2 className={styles.pageHeading}>删除工作区</h2>
                   <p className={styles.lead}>
-                    将永久删除“{workspace.name}
-                    ”及其全部文档、白板和成员关系。此操作无法撤销，请先确认已备份需要保留的内容。
+                    将永久删除{" "}
+                    <span className={styles.confirmTarget}>
+                      {workspace.name}
+                    </span>{" "}
+                    及其全部文档、白板和成员关系。此操作无法撤销，请先确认已备份需要保留的内容。
                   </p>
                   {error && (
                     <Alert color="red" role="alert" mt="lg">
@@ -380,13 +391,26 @@ export function WorkspaceSettings({
                     <TextInput
                       autoFocus
                       label="输入工作区名称以确认"
-                      description={workspace.name}
                       value={confirmation}
                       onChange={(event) =>
                         setConfirmation(event.currentTarget.value)
                       }
                       disabled={busy}
                       autoComplete="off"
+                      // The reference name is attacker-length free but user
+                      // controlled: show it in a wrapping block rather than as
+                      // input description so it cannot stretch the field.
+                      description={
+                        <span className={styles.confirmTarget}>
+                          {workspace.name}
+                        </span>
+                      }
+                      error={
+                        confirmation.length > 0 &&
+                        confirmation !== workspace.name
+                          ? "名称与上方不一致，请完整输入"
+                          : undefined
+                      }
                     />
                     <div className={styles.formActions}>
                       <Button
@@ -587,8 +611,18 @@ export function WorkspaceSettings({
             autoFocus
             label="工作区名称"
             value={name}
-            onChange={(event) => setName(event.currentTarget.value)}
+            onChange={(event) => {
+              setName(event.currentTarget.value);
+              if (rename.error) rename.reset();
+            }}
+            onKeyDown={(event) => {
+              // Enter confirms an IME candidate in Chinese input methods.
+              if (event.key === "Enter" && event.nativeEvent.isComposing)
+                event.preventDefault();
+            }}
             disabled={busy}
+            error={nameProblem ?? undefined}
+            description={`${nameLength} / ${WORKSPACE_NAME_MAX} 字`}
           />
           {rename.error && (
             <Alert color="red" role="alert" mt="md">

@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-07T08:35:06Z",
+  "title": "Design System: madoc",
+  "extensions": {
+    "colorMeta": {
+      "letter-blue": {
+        "role": "primary",
+        "displayName": "信纸蓝 Letter Blue",
+        "canonical": "#3869ad",
+        "tonalRamp": ["#23416b", "#294e82", "#305b98", "#3869ad", "#5c86c6", "#81a4d9", "#a8c2e9", "#c7d9f2", "#e2ecfa", "#f0f5fc"]
+      },
+      "letter-blue-deep": {
+        "role": "primary",
+        "displayName": "信纸蓝·深 Letter Blue Deep",
+        "canonical": "#305b98",
+        "tonalRamp": ["#23416b", "#294e82", "#305b98", "#3869ad", "#5c86c6", "#81a4d9", "#a8c2e9", "#c7d9f2", "#e2ecfa", "#f0f5fc"]
+      },
+      "letter-blue-wash": {
+        "role": "primary",
+        "displayName": "信纸蓝·洗 Letter Blue Wash",
+        "canonical": "#f0f5fc",
+        "tonalRamp": ["#23416b", "#294e82", "#305b98", "#3869ad", "#5c86c6", "#81a4d9", "#a8c2e9", "#c7d9f2", "#e2ecfa", "#f0f5fc"]
+      },
+      "cool-gray-paper": {
+        "role": "neutral",
+        "displayName": "冷灰·纸 Cool Gray Paper",
+        "canonical": "#f7f8fa",
+        "tonalRamp": ["#252e3b", "#394352", "#505a69", "#626d7d", "#8993a2", "#b2bac6", "#d4d9e1", "#e5e8ed", "#f0f2f5", "#f7f8fa"]
+      },
+      "cool-gray-hover": {
+        "role": "neutral",
+        "displayName": "冷灰·悬停 Cool Gray Hover",
+        "canonical": "#f0f2f5",
+        "tonalRamp": ["#252e3b", "#394352", "#505a69", "#626d7d", "#8993a2", "#b2bac6", "#d4d9e1", "#e5e8ed", "#f0f2f5", "#f7f8fa"]
+      },
+      "cool-gray-border": {
+        "role": "neutral",
+        "displayName": "冷灰·边 Cool Gray Border",
+        "canonical": "#e5e8ed",
+        "tonalRamp": ["#252e3b", "#394352", "#505a69", "#626d7d", "#8993a2", "#b2bac6", "#d4d9e1", "#e5e8ed", "#f0f2f5", "#f7f8fa"]
+      },
+      "cool-gray-dimmed": {
+        "role": "neutral",
+        "displayName": "冷灰·暗 Cool Gray Dimmed",
+        "canonical": "#626d7d",
+        "tonalRamp": ["#252e3b", "#394352", "#505a69", "#626d7d", "#8993a2", "#b2bac6", "#d4d9e1", "#e5e8ed", "#f0f2f5", "#f7f8fa"]
+      },
+      "cool-gray-ink": {
+        "role": "neutral",
+        "displayName": "冷灰·墨 Cool Gray Ink",
+        "canonical": "#252e3b",
+        "tonalRamp": ["#252e3b", "#394352", "#505a69", "#626d7d", "#8993a2", "#b2bac6", "#d4d9e1", "#e5e8ed", "#f0f2f5", "#f7f8fa"]
+      },
+      "surface-white": {
+        "role": "neutral",
+        "displayName": "白 Surface White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#252e3b", "#394352", "#505a69", "#626d7d", "#8993a2", "#b2bac6", "#d4d9e1", "#e5e8ed", "#f0f2f5", "#ffffff"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "文档大标题（无边框输入形态），移动端 28px。" },
+      "headline": { "displayName": "Headline", "purpose": "页面级标题（工作区列表、管理页），移动端 24px。" },
+      "title": { "displayName": "Title", "purpose": "卡片标题与条目名称。" },
+      "body": { "displayName": "Body", "purpose": "全部 UI 文字：侧栏、菜单、按钮、表单。" },
+      "reader": { "displayName": "Reader", "purpose": "编辑器正文 16px/1.75；编辑器标题按 2×/1.5×/1.25×/1.125×/1×/0.875× 倍数缩放。" },
+      "label": { "displayName": "Label", "purpose": "侧栏分组标题等结构性标签，600 字重，中文不使用大写变换。" },
+      "mono": { "displayName": "Mono", "purpose": "代码与等宽场景，SFMono-Regular / Consolas 栈。" }
+    },
+    "shadows": [
+      { "name": "overlay-float", "value": "0 4px 16px rgba(37, 46, 59, 0.08)", "purpose": "菜单、Popover 等浮层离开纸面。" },
+      { "name": "hover-lift", "value": "0 8px 24px rgba(37, 46, 59, 0.08)", "purpose": "可点卡片 hover 浮起，配合 translateY(-2px)。" },
+      { "name": "editor-toolbar", "value": "0 8px 24px rgba(15, 23, 42, 0.12)", "purpose": "编辑器浮动工具栏。" },
+      { "name": "editor-menu", "value": "0 12px 32px rgba(15, 23, 42, 0.14)", "purpose": "编辑器 slash 菜单，悬浮于纯白正文之上。" }
+    ],
+    "motion": [
+      { "name": "ease-micro", "value": "150ms ease", "purpose": "颜色/背景/边框等微反馈的全局过渡。" },
+      { "name": "ease-card", "value": "180ms ease", "purpose": "卡片 hover 浮起（transform + shadow）。" },
+      { "name": "ease-fade", "value": "120ms ease", "purpose": "行内操作图标的透明度浮现。" },
+      { "name": "reduced-motion", "value": "prefers-reduced-motion: reduce", "purpose": "全部过渡与骨架动画在该媒体查询下关闭。" }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "760px", "purpose": "侧栏隐藏、单列布局、正文栏收窄 padding。" },
+      { "name": "cards-2col", "value": "1023px", "purpose": "工作区卡片网格由三列降为两列。" },
+      { "name": "compact", "value": "1180px", "purpose": "隐藏右侧大纲栏。" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "唯一的主行动按钮，一屏至多一个；信纸蓝底白字，600 字重。",
+      "html": "<button class=\"ds-btn-primary\">保存</button>",
+      "css": ".ds-btn-primary { background: #3869ad; color: #ffffff; border: none; border-radius: 6px; height: 32px; padding: 0 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease; } .ds-btn-primary:hover { background: #305b98; } .ds-btn-primary:focus-visible { outline: 2px solid #3869ad; outline-offset: 2px; }"
+    },
+    {
+      "name": "Subtle Action Icon",
+      "kind": "button",
+      "refersTo": "action-icon-subtle",
+      "description": "工具性图标按钮：透明底、暗灰图标，hover 纸灰底；触屏扩展到 44px。",
+      "html": "<button class=\"ds-action-icon\" aria-label=\"更多操作\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"5\" cy=\"12\" r=\"1.6\"/><circle cx=\"12\" cy=\"12\" r=\"1.6\"/><circle cx=\"19\" cy=\"12\" r=\"1.6\"/></svg></button>",
+      "css": ".ds-action-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: transparent; color: #626d7d; border: none; border-radius: 6px; cursor: pointer; transition: background-color 150ms ease, color 150ms ease; } .ds-action-icon:hover { background: #f0f2f5; color: #394352; } .ds-action-icon:focus-visible { outline: 2px solid #3869ad; outline-offset: 2px; }"
+    },
+    {
+      "name": "Sidebar Tree Row",
+      "kind": "nav",
+      "refersTo": "tree-row",
+      "description": "侧栏文档树条目：32px 高、7px 圆角；激活 = 信纸蓝·洗底 + 深色文字 + 600 字重。",
+      "html": "<div class=\"ds-tree\"><button class=\"ds-tree-row\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z\"/><path d=\"M14 3v6h6\"/></svg><span>会议纪要</span></button><button class=\"ds-tree-row ds-tree-row--active\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z\"/><path d=\"M14 3v6h6\"/></svg><span>产品设计</span></button></div>",
+      "css": ".ds-tree { display: flex; flex-direction: column; gap: 2px; width: 240px; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif; } .ds-tree-row { display: flex; align-items: center; gap: 7px; width: 100%; height: 36px; padding: 0 8px; background: transparent; border: none; border-radius: 7px; color: #505a69; font-size: 14px; text-align: left; cursor: pointer; transition: background-color 150ms ease; } .ds-tree-row:hover { background: #f0f2f5; } .ds-tree-row:focus-visible { outline: 2px solid #3869ad; outline-offset: -2px; } .ds-tree-row--active, .ds-tree-row--active:hover { background: #f0f5fc; color: #305b98; font-weight: 600; }"
+    },
+    {
+      "name": "Workspace Card",
+      "kind": "card",
+      "refersTo": "workspace-card",
+      "description": "工作区入口卡片：白底置于纸灰页面，hover 浮起如拿起卡片。",
+      "html": "<a class=\"ds-ws-card\" href=\"#\"><span class=\"ds-ws-mark\"></span><span class=\"ds-ws-id\"><span class=\"ds-ws-name\">产品设计</span><span class=\"ds-ws-role\">所有者</span></span><svg class=\"ds-ws-arrow\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 6l6 6-6 6\"/></svg></a>",
+      "css": ".ds-ws-card { display: grid; grid-template-columns: 40px minmax(0, 1fr) 16px; align-items: start; gap: 16px; min-height: 104px; padding: 20px; background: #ffffff; border-radius: 8px; color: #252e3b; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif; transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; } .ds-ws-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37, 46, 59, 0.08); } .ds-ws-card:active { transform: translateY(1px); background: #f0f5fc; } .ds-ws-card:focus-visible { outline: 2px solid #3869ad; outline-offset: 3px; } .ds-ws-mark { width: 40px; height: 40px; margin-top: 4px; border-radius: 8px; background: #f0f5fc; } .ds-ws-id { display: grid; gap: 4px; } .ds-ws-name { font-size: 16px; font-weight: 600; line-height: 1.5; } .ds-ws-role { font-size: 13px; color: #626d7d; line-height: 1.5; } .ds-ws-arrow { margin-top: 4px; color: #626d7d; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "侧栏搜索：白底、1px 冷灰边框、40px 高，placeholder 用暗灰。",
+      "html": "<span class=\"ds-search\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/></svg><input class=\"ds-search-input\" type=\"text\" placeholder=\"搜索\" /></span>",
+      "css": ".ds-search { display: flex; align-items: center; gap: 8px; width: 240px; height: 40px; padding: 0 12px; background: #ffffff; border: 1px solid #e5e8ed; border-radius: 6px; color: #626d7d; transition: border-color 150ms ease; } .ds-search:focus-within { border-color: #3869ad; } .ds-search-input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-size: 14px; color: #252e3b; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif; } .ds-search-input::placeholder { color: #626d7d; }"
+    },
+    {
+      "name": "Menu Surface",
+      "kind": "custom",
+      "refersTo": "menu-surface",
+      "description": "菜单/Popover 浮层：白底细边框 + 浮层阴影，菜单项 hover 纸灰。",
+      "html": "<div class=\"ds-menu\"><button class=\"ds-menu-item\">重命名</button><button class=\"ds-menu-item\">导出为 Markdown</button><button class=\"ds-menu-item ds-menu-item--danger\">删除</button></div>",
+      "css": ".ds-menu { display: flex; flex-direction: column; gap: 1px; width: 200px; padding: 4px; background: #ffffff; border: 1px solid #e5e8ed; border-radius: 6px; box-shadow: 0 4px 16px rgba(37, 46, 59, 0.08); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif; } .ds-menu-item { display: flex; align-items: center; width: 100%; height: 32px; padding: 0 8px; background: transparent; border: none; border-radius: 4px; color: #252e3b; font-size: 14px; text-align: left; cursor: pointer; transition: background-color 150ms ease; } .ds-menu-item:hover { background: #f0f2f5; } .ds-menu-item:focus-visible { outline: 2px solid #3869ad; outline-offset: -2px; } .ds-menu-item--danger { color: #c92a2a; }"
+    },
+    {
+      "name": "Document Title Input",
+      "kind": "input",
+      "refersTo": "editor-title",
+      "description": "编辑器文档标题：无边框 Display 级输入，聚焦时以浅蓝下划线暗示可编辑。",
+      "html": "<input class=\"ds-doc-title\" type=\"text\" value=\"Q4 产品路线图\" placeholder=\"未命名文档\" />",
+      "css": ".ds-doc-title { width: 100%; max-width: 560px; padding: 0; border: none; outline: none; background: transparent; color: #252e3b; caret-color: #3869ad; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif; font-size: 34px; font-weight: 600; line-height: 1.3; } .ds-doc-title::placeholder { color: #626d7d; } .ds-doc-title:focus-visible { text-decoration: underline; text-decoration-color: #c7d9f2; text-underline-offset: 8px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "案头 The Quiet Desk",
+    "overview": "madoc 的界面是一张整洁的书桌：文档在灯下，工具退后。所有视觉决策服务于一个目标——让内容本身成为主角。实现手段是克制：单一系统中文字体栈、单一信纸蓝强调色、静态零阴影、冷灰纸面与白底的色调分层。组件手感轻盈透气——小圆角、细边框、快速的 150ms 微反馈。明确拒绝复杂后台式管理界面、仪表盘式信息密度与营销式视觉噪音。",
+    "keyCharacteristics": [
+      "内容即界面：编辑器正文占据视觉中心，chrome 退到边缘",
+      "单一字族、单一强调色、零静态阴影",
+      "冷灰纸面 + 白色内容面的色调分层",
+      "小圆角（默认 6px）、1px 细边框、150ms 微反馈",
+      "桌面优先、触屏可达（44px 命中区）"
+    ],
+    "rules": [
+      { "name": "The One Voice Rule（一种声音规则）", "body": "信纸蓝在任何屏幕上只服务于行动与状态：按钮、焦点、激活、光标。正文、标题、装饰元素永不使用蓝色。", "section": "colors" },
+      { "name": "The Paper Rule（纸面规则）", "body": "层级靠纸灰与白的色调分层表达，不靠阴影。侧栏是纸，内容是白纸，浮层才是唯一允许投影的场景。", "section": "colors" },
+      { "name": "The One Family Rule（单一字族规则）", "body": "全系统只有一个字体栈；表达个性靠留白、层级与克制，不靠新字体。", "section": "typography" },
+      { "name": "The Tabular Rule（等宽数字规则）", "body": "计数、日期、字数等数字信息使用 tabular-nums，防止列表因数字宽度抖动。", "section": "typography" },
+      { "name": "The Flat-by-Default Rule（扁平默认规则）", "body": "静态表面零阴影。阴影只允许作为状态响应（hover、浮层）出现。", "section": "elevation" }
+    ],
+    "dos": [
+      "Do 消费 Mantine CSS variables 作为唯一 token 来源；新样式进 Vanilla Extract，通用组件用 Mantine。",
+      "Do 让信纸蓝保持稀有：一屏一个 primary 行动，其余用 subtle。",
+      "Do 用纸灰与白的色调分层表达层级，而不是边框与阴影堆叠。",
+      "Do 数字信息使用 tabular-nums；触屏目标 ≥44px；所有过渡 150ms ease 并尊重 prefers-reduced-motion。",
+      "Do 编辑器、白板等第三方核心的主题变量映射回同一套 Mantine tokens。"
+    ],
+    "donts": [
+      "Don't 创建第二套平行 token（madocBlue500 之类）——这是项目级禁令。",
+      "Don't 给静态表面加常驻阴影，或给容器使用超过 10px 的圆角。",
+      "Don't 用蓝色铺大面积背景、做渐变、写正文或标题文字。",
+      "Don't 引入新的字体族、展示字体或图标字体。",
+      "Don't 把页面堆成仪表盘：信息密度服务于坐下来写字，不服务于一眼看全。"
+    ]
+  }
+}

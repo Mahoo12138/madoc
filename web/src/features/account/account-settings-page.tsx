@@ -31,6 +31,7 @@ import {
 import { keys, useSession } from '@/api/hooks';
 import { APIError, type Session, type User } from '@/api/types';
 import { MarkdownShortcuts } from '@/features/markdown/markdown-editor-controls';
+import { PanelErrorBoundary } from '@/features/shared/panel-error-boundary';
 import { AccountMenu } from './account-menu';
 import { PreferencesPanel } from './preferences-panel';
 import { usePreferences } from './preferences-provider';
@@ -60,6 +61,13 @@ const sections = [
 function sectionFromHash(hash: string): AccountSection {
   const value = hash.replace(/^#/, '');
   return sections.find((entry) => entry.value === value)?.value ?? 'profile';
+}
+
+/** The hash the page actually shows, so an unknown one can be corrected. */
+function canonicalHash(section: AccountSection): string {
+  return window.location.hash.replace(/^#/, '') === section
+    ? window.location.hash
+    : `#${section}`;
 }
 
 export function AccountSettingsPage() {
@@ -113,7 +121,7 @@ export function AccountSettingsPage() {
         window.history.replaceState(
           window.history.state,
           '',
-          `/settings#${section}`,
+          `/settings${canonicalHash(section)}`,
         );
       } else setSection(next);
     };
@@ -341,12 +349,30 @@ export function AccountSettingsPage() {
               />
             ) : section === 'recovery' ? (
               <Stack gap="xl" key={user.id}>
-                <Suspense fallback={<Loader size="sm" />}>
-                  <MarkdownRecoveryPanel userId={user.id} />
-                </Suspense>
-                <Suspense fallback={<Loader size="sm" />}>
-                  <WhiteboardRecoveryPanel userId={user.id} />
-                </Suspense>
+                <PanelErrorBoundary label="Markdown 本地恢复">
+                  <Suspense
+                    fallback={
+                      <Stack align="center" gap="xs" role="status">
+                        <Loader size="sm" aria-hidden />
+                        <Text size="sm">正在读取本地恢复记录…</Text>
+                      </Stack>
+                    }
+                  >
+                    <MarkdownRecoveryPanel userId={user.id} />
+                  </Suspense>
+                </PanelErrorBoundary>
+                <PanelErrorBoundary label="白板本地恢复">
+                  <Suspense
+                    fallback={
+                      <Stack align="center" gap="xs" role="status">
+                        <Loader size="sm" aria-hidden />
+                        <Text size="sm">正在读取本地恢复记录…</Text>
+                      </Stack>
+                    }
+                  >
+                    <WhiteboardRecoveryPanel userId={user.id} />
+                  </Suspense>
+                </PanelErrorBoundary>
               </Stack>
             ) : section === 'shortcuts' ? (
               <MarkdownShortcuts />

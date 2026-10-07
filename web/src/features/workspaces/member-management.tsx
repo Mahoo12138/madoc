@@ -23,7 +23,7 @@ import {
   useSession,
   useWorkspaceMutations,
 } from "@/api/hooks";
-import type { Role } from "@/api/types";
+import { APIError, type Role } from "@/api/types";
 import { inviteStatusLabel, roleDescriptions, roleLabels } from "./role-labels";
 import * as styles from "./workspace-management.css";
 
@@ -42,6 +42,44 @@ type PendingAction =
   | { kind: "role"; userId: string; name: string; role: Role }
   | { kind: "remove"; userId: string; name: string }
   | { kind: "revoke"; inviteId: string; email: string };
+
+/**
+ * `includes('@')` accepted "a@" and "@ " and let the server reject them. Parse
+ * the address instead so the dialog can explain the problem before submitting.
+ */
+function inviteEmailProblem(value: string): string | null {
+  const email = value.trim();
+  if (!email) return '请填写邀请邮箱';
+  if (/\s/.test(email)) return '邮箱不能包含空格';
+  const parts = email.split('@');
+  if (parts.length !== 2) return '请输入完整的邮箱地址，例如 name@example.com';
+  const [local, domain] = parts;
+  if (!local || !domain) return '请输入完整的邮箱地址，例如 name@example.com';
+  if (!domain.includes('.') || domain.startsWith('.') || domain.endsWith('.'))
+    return '域名部分需要包含点号，例如 example.com';
+  if (Array.from(email).length > 254) return '邮箱地址过长';
+  return null;
+}
+
+/** Server errors are English identifiers; the surface speaks product language. */
+function memberErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof APIError) {
+    if (error.status === 401) return '登录已失效，请重新登录后重试。';
+    if (error.status === 403)
+      return '你的管理权限已被移除，请联系工作区所有者。';
+    if (error.status === 404) return '此成员或邀请已不存在，请刷新后重试。';
+    if (error.status === 429) return '操作过于频繁，请稍后重试。';
+    if (error.code === 'CSRF_INVALID')
+      return '会话校验已失效，请刷新页面后重试。';
+    if (error.code === 'LAST_OWNER')
+      return '工作区需要至少保留一名所有者，请先调整其他成员。';
+    if (error.code === 'EMAIL_TAKEN' || error.code === 'ALREADY_MEMBER')
+      return '该邮箱已是工作区成员。';
+    if (error.code === 'INVITE_EXISTS')
+      return '该邮箱已有一条待接受邀请，可先撤销再重新创建。';
+  }
+  return fallback;
+}
 
 export function MemberManagement({
   workspaceId,
@@ -71,6 +109,7 @@ export function MemberManagement({
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null,
   );
+  const [actionError, setActionError] = useState("");
   const actionBusy =
     mutations.updateMember.isPending ||
     mutations.removeMember.isPending ||
@@ -90,8 +129,14 @@ export function MemberManagement({
       setEditingRole(null);
       setPendingAction(null);
       setInviteError("");
+      setActionError("");
     }
   }, [owner]);
+
+  const beginAction = (action: PendingAction) => {
+    setActionError("");
+    setPendingAction(action);
+  };
 
   const confirmAction = async () => {
     if (!owner || !pendingAction || actionBusy) return;
@@ -112,10 +157,15 @@ export function MemberManagement({
       }
       setPendingAction(null);
     } catch (error) {
-      notifications.show({
-        message: error instanceof Error ? error.message : "操作失败，请重试",
-        color: "red",
-      });
+      // The dialog stays open so the user can retry without re-picking.
+      setActionError(
+        memberErrorMessage(
+          error,
+          pendingAction.kind === "revoke"
+            ? "邀请未能撤销，请检查网络后重试。"
+            : "操作未完成，请检查网络后重试。",
+        ),
+      );
     } finally {
       onBusyChange(false);
     }
@@ -123,6 +173,11 @@ export function MemberManagement({
 
   const invite = async () => {
     if (!owner) return;
+    const problem = inviteEmailProblem(email);
+    if (problem) {
+      setInviteError(problem);
+      return;
+    }
     setInviteError("");
     onBusyChange(true);
     try {
@@ -136,7 +191,7 @@ export function MemberManagement({
       notifications.show({ message: "邀请链接已创建", color: "blue" });
     } catch (error) {
       setInviteError(
-        error instanceof Error ? error.message : "邀请未创建，请重试。",
+        memberErrorMessage(error, "邀请未创建，请检查网络后重试。"),
       );
     } finally {
       onBusyChange(false);
@@ -242,7 +297,7 @@ export function MemberManagement({
                             onChange={(value) => {
                               if (!value || value === member.role) return;
                               setEditingRole(null);
-                              setPendingAction({
+                              beginAction({
                                 kind: "role",
                                 userId: member.userId,
                                 name: member.name,
@@ -278,7 +333,7 @@ export function MemberManagement({
                             aria-label={`移除 ${member.name}`}
                             disabled={self || lastOwner}
                             onClick={() =>
-                              setPendingAction({
+                              beginAction({
                                 kind: "remove",
                                 userId: member.userId,
                                 name: member.name,
@@ -293,6 +348,13 @@ export function MemberManagement({
                     {owner && self && (
                       <Text size="xs" c="dimmed" mt="xs">
                         你不能更改或移除自己的角色。
+                      </Text>
+                    )}
+                    {owner && !self && lastOwner && (
+                      <Text size="xs" c="dimmed" mt="xs">
+                        {member.role === "owner"
+                          ? "这是工作区最后一名所有者，不能移除或降级。请先指定另一名所有者。"
+                          : "工作区需要至少保留一名所有者。"}
                       </Text>
                     )}
                   </Paper>
@@ -394,7 +456,7 @@ export function MemberManagement({
                             color="red"
                             variant="subtle"
                             onClick={() =>
-                              setPendingAction({
+                              beginAction({
                                 kind: "revoke",
                                 inviteId: item.id,
                                 email: item.email,
@@ -426,8 +488,7 @@ export function MemberManagement({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            if (email.includes("@") && !mutations.createInvite.isPending)
-              void invite();
+            if (!mutations.createInvite.isPending) void invite();
           }}
         >
           <div className={styles.inviteFields}>
@@ -436,9 +497,21 @@ export function MemberManagement({
               label="邀请邮箱"
               type="email"
               leftSection={<Mail size={16} />}
-              placeholder="member@example.com"
+              placeholder="name@example.com"
               value={email}
-              onChange={(event) => setEmail(event.currentTarget.value)}
+              disabled={mutations.createInvite.isPending}
+              onChange={(event) => {
+                setEmail(event.currentTarget.value);
+                if (inviteError) setInviteError("");
+              }}
+              onKeyDown={(event) => {
+                // Enter confirms an IME candidate in Chinese input methods.
+                if (event.key === "Enter" && event.nativeEvent.isComposing)
+                  event.preventDefault();
+              }}
+              error={
+                email.trim() ? (inviteEmailProblem(email) ?? undefined) : undefined
+              }
             />
             <Select
               label="邀请角色"
@@ -447,12 +520,13 @@ export function MemberManagement({
                 setRole((value ?? "editor") as "editor" | "viewer")
               }
               data={inviteRoleOptions}
+              disabled={mutations.createInvite.isPending}
             />
           </div>
           <Text size="xs" c="dimmed" mt="xs" aria-live="polite">
             {roleDescriptions[role]}
           </Text>
-          {inviteError && (
+          {inviteError && email.trim() && !inviteEmailProblem(email) && (
             <Alert color="red" role="alert" mt="sm">
               {inviteError}
             </Alert>
@@ -468,7 +542,7 @@ export function MemberManagement({
             <Button
               type="submit"
               loading={mutations.createInvite.isPending}
-              disabled={!email.includes("@")}
+              disabled={!!inviteEmailProblem(email)}
             >
               创建链接
             </Button>
@@ -512,6 +586,11 @@ export function MemberManagement({
             </>
           )}
         </Text>
+        {actionError && (
+          <Alert color="red" role="alert" mt="md">
+            {actionError}
+          </Alert>
+        )}
         <Group justify="flex-end" mt="lg">
           <Button
             variant="default"

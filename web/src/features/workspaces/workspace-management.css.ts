@@ -30,12 +30,17 @@ export const pageHeader = style({
   display: "flex",
   alignItems: "center",
   gap: 12,
-  minHeight: 58,
+  minHeight: "var(--madoc-header-height)",
   flexShrink: 0,
-  padding: "0 40px",
+  padding: "0 var(--madoc-gutter-page)",
   borderBottom: "1px solid var(--mantine-color-gray-2)",
   background: "var(--mantine-color-body)",
-  "@media": { [workspaceMedia.mobile]: { padding: "0 20px", gap: 8 } },
+  "@media": {
+    [workspaceMedia.mobile]: {
+      padding: "0 var(--madoc-gutter-page-mobile)",
+      gap: 8,
+    },
+  },
 });
 export const headerIdentity = style({
   display: "flex",
@@ -177,7 +182,7 @@ export const content = style({
   },
 });
 
-export const pane = style({ maxWidth: 760, margin: "0 auto" });
+export const pane = style({ maxWidth: "var(--madoc-content-width)", margin: "0 auto" });
 export const pageHeading = style({
   margin: 0,
   color: "var(--mantine-color-text)",
@@ -224,6 +229,13 @@ export const actionRow = style({
   },
 });
 export const actionText = style({ minWidth: 0 });
+// Destructive confirmation repeats the workspace name inside a TextInput
+// description; keep it wrapping instead of letting one long token widen the row.
+export const confirmTarget = style({
+  display: "block",
+  overflowWrap: "anywhere",
+  fontVariantNumeric: "tabular-nums",
+});
 export const workspaceDescription = style({
   whiteSpace: "pre-wrap",
   overflowWrap: "anywhere",

@@ -20,12 +20,18 @@ function eventDate(value: string) {
 
 function groupByDay(events: ActivityEvent[]) {
   const groups: { label: string; events: ActivityEvent[] }[] = [];
-  for (const event of events) {
+  // Pagination appends older pages, so the merged list is not guaranteed to be
+  // ordered. Sort newest first and group by label rather than only against the
+  // previous group, which would otherwise repeat a heading and duplicate keys.
+  const ordered = [...events].sort(
+    (a, b) => (eventDate(b.createdAt)?.getTime() ?? 0) - (eventDate(a.createdAt)?.getTime() ?? 0),
+  );
+  for (const event of ordered) {
     const label = eventDate(event.createdAt)
       ? dayFormat.format(new Date(event.createdAt))
       : '日期未知';
-    const latest = groups[groups.length - 1];
-    if (latest?.label === label) latest.events.push(event);
+    const existing = groups.find((group) => group.label === label);
+    if (existing) existing.events.push(event);
     else groups.push({ label, events: [event] });
   }
   return groups;
@@ -91,15 +97,15 @@ export function WorkspaceActivity({ workspaceId }: { workspaceId: string }) {
                       {date ? timeFormat.format(date) : '—'}
                     </time>
                     <div className={styles.activityMeta}>
-                      <Text size="sm" fw={600}>
+                      <Text size="sm" fw={600} lineClamp={2} title={event.summary}>
                         {event.summary}
                       </Text>
                       {event.itemTitle && (
-                        <Text size="sm" mt={3} lineClamp={2}>
+                        <Text size="sm" mt={3} lineClamp={2} title={event.itemTitle}>
                           {event.itemTitle}
                         </Text>
                       )}
-                      <Text size="xs" c="dimmed" mt={5}>
+                      <Text size="xs" c="dimmed" mt={5} truncate title={event.actorName}>
                         {event.actorName}
                       </Text>
                     </div>

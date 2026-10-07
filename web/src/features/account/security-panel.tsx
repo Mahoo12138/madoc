@@ -12,6 +12,12 @@ import { accountAPI } from '@/api/account';
 import { APIError } from '@/api/types';
 import * as styles from './account.css';
 
+const PASSWORD_MIN = 8;
+// bcrypt hashes at most 72 bytes; anything longer is silently truncated by the
+// server, so the limit has to be stated before the user picks a longer password.
+const PASSWORD_MAX_BYTES = 72;
+const passwordBytes = (value: string) => new TextEncoder().encode(value).length;
+
 export function SecurityPanel({
   onBusy,
   onEditingChange,
@@ -28,6 +34,18 @@ export function SecurityPanel({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [editing, setEditing] = useState(false);
+  // Only flag a mismatch once both fields have content, so the form does not
+  // shout at the user while they are still typing the first one.
+  const mismatch = confirmation.length > 0 && next !== confirmation;
+  const tooLong = passwordBytes(next) > PASSWORD_MAX_BYTES;
+  const tooShort = next.length > 0 && next.length < PASSWORD_MIN;
+  const nextError = tooLong
+    ? `新密码为 ${passwordBytes(next)} 字节，超过 ${PASSWORD_MAX_BYTES} 字节上限`
+    : tooShort
+      ? `新密码至少需要 ${PASSWORD_MIN} 个字符`
+      : mismatch
+        ? '两次输入的新密码不一致'
+        : null;
 
   useEffect(() => {
     onEditingChange(editing);
@@ -53,12 +71,12 @@ export function SecurityPanel({
     if (busy) return;
     setError('');
     setSuccess(false);
-    if (next.length < 8 || new TextEncoder().encode(next).length > 72) {
-      setError('新密码至少 8 个字符，且不超过 72 字节');
+    if (nextError) {
+      setError(nextError);
       return;
     }
-    if (next !== confirmation) {
-      setError('两次输入的新密码不一致');
+    if (!current) {
+      setError('请输入当前密码');
       return;
     }
     setBusy(true);
@@ -144,6 +162,8 @@ export function SecurityPanel({
               value={next}
               onChange={(event) => setNext(event.currentTarget.value)}
               disabled={busy}
+              error={nextError ?? undefined}
+              description={`至少 ${PASSWORD_MIN} 个字符，最多 ${PASSWORD_MAX_BYTES} 字节（中文与 emoji 按字节计）`}
             />
             <PasswordInput
               label="确认新密码"
@@ -151,6 +171,7 @@ export function SecurityPanel({
               value={confirmation}
               onChange={(event) => setConfirmation(event.currentTarget.value)}
               disabled={busy}
+              error={mismatch ? '两次输入的新密码不一致' : undefined}
             />
             <Group justify="flex-end">
               <Button variant="default" onClick={close} disabled={busy}>
@@ -159,7 +180,7 @@ export function SecurityPanel({
               <Button
                 type="submit"
                 loading={busy}
-                disabled={!current || !next || !confirmation}
+                disabled={!current || !next || !confirmation || !!nextError}
               >
                 保存密码
               </Button>
