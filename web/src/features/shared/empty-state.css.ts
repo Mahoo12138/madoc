@@ -19,12 +19,20 @@ const frame = style({
  * Page padding exists for a standalone empty page. When the empty state is
  * centred inside an already-framed shell — and may have a note stacked under
  * it — `flush` drops the padding so the shell owns the vertical rhythm.
+ *
+ * The horizontal padding consumes the page gutter tokens rather than
+ * repeating pixel values: DESIGN.md makes layout.css.ts the single source for
+ * gutters, and an empty page should align with the content around it.
  */
 const framePage = style([
   frame,
   {
-    padding: '72px 24px 80px',
-    '@media': { [workspaceMedia.mobile]: { padding: '40px 16px' } },
+    padding: '64px var(--madoc-gutter-page)',
+    '@media': {
+      [workspaceMedia.mobile]: {
+        padding: '32px var(--madoc-gutter-page-mobile)',
+      },
+    },
   },
 ]);
 
@@ -35,10 +43,11 @@ const frameSection = style([
   {
     alignItems: 'flex-start',
     textAlign: 'left',
-    padding: '28px 20px',
+    // 20px is the documented card interior; this variant is always the
+    // contents of a panel, so it should never invent its own padding.
+    padding: '20px',
     borderRadius: 'var(--mantine-radius-md)',
     background: 'var(--mantine-color-gray-0)',
-    '@media': { [workspaceMedia.mobile]: { padding: '20px 16px' } },
   },
 ]);
 
@@ -49,6 +58,7 @@ const frameInline = style([
     textAlign: 'left',
     // The sidebar rail is dense: an inline empty state reads as a caption
     // under its header, so it must not add the block padding a section gets.
+    // 8px keeps the text on the same left edge as the tree rows it follows.
     padding: '4px 8px',
   },
 ]);
@@ -69,7 +79,7 @@ const plate = style({
 const plateSection = style({
   width: 40,
   height: 40,
-  marginBottom: 14,
+  marginBottom: 12,
   borderRadius: 'var(--mantine-radius-sm)',
   color: 'var(--mantine-color-gray-5)',
   background: 'var(--mantine-color-gray-1)',
@@ -89,7 +99,8 @@ const titlePage = style({
 
 const titleSection = style({
   margin: 0,
-  fontSize: 15,
+  // Title step of the type scale, not a size invented for this component.
+  fontSize: 16,
   fontWeight: 600,
   lineHeight: 1.5,
 });
@@ -100,12 +111,14 @@ const description = style({
   color: 'var(--mantine-color-dimmed)',
   fontSize: 14,
   lineHeight: 1.75,
-  textWrap: 'pretty',
+  // Chinese has no hyphenation, so an unbalanced wrap strands a two-character
+  // tail on its own line. Balancing evens the lines instead.
+  textWrap: 'balance',
 });
 
 const descriptionSection = style({
-  margin: '6px 0 0',
-  fontSize: 13,
+  margin: '10px 0 0',
+  fontSize: 14,
   lineHeight: 1.65,
 });
 
@@ -114,27 +127,31 @@ const actions = style({
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
-  gap: 8,
-  marginTop: 22,
+  gap: 12,
+  marginTop: 20,
 });
 
 const actionsSection = style({
   marginTop: 16,
 });
 
-/** Inline variants have no plate; the heading simply carries the message. */
+/**
+ * Inline variants have no plate; the heading simply carries the message.
+ * 14px matches the nav rows this caption sits among, and keeps text off the
+ * sub-14px sizes that are only ever allowed for structural labels.
+ */
 const inlineTitle = style({
   margin: 0,
   color: 'var(--mantine-color-dimmed)',
-  fontSize: 13,
-  fontWeight: 400,
+  fontSize: 14,
+  fontWeight: 500,
   lineHeight: 1.6,
 });
 
 const inlineDescription = style({
-  margin: '4px 0 0',
+  margin: '10px 0 0',
   color: 'var(--mantine-color-dimmed)',
-  fontSize: 13,
+  fontSize: 14,
   lineHeight: 1.6,
 });
 
@@ -144,9 +161,9 @@ const inlineActions = style({
 
 /** Permission states must never look like an invitation to try again. */
 const restricted = style({
-  margin: 0,
+  margin: '10px 0 0',
   color: 'var(--mantine-color-dimmed)',
-  fontSize: 13,
+  fontSize: 14,
   lineHeight: 1.65,
 });
 
