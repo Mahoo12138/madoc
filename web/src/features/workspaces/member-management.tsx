@@ -368,13 +368,28 @@ export function MemberManagement({
         </Tabs.Panel>
         {owner && (
           <Tabs.Panel value="invites">
-            <div className={styles.inviteForm}>
-              <h3 className={styles.sectionHeading}>创建邀请链接</h3>
-              <Button variant="default" onClick={() => setCreatingInvite(true)}>
-                创建邀请
-              </Button>
+            <section
+              className={styles.inviteDesk}
+              aria-labelledby="invite-desk-heading"
+            >
+              <div className={styles.inviteDeskHead}>
+                <div>
+                  <h3 id="invite-desk-heading" className={styles.inviteHeadline}>
+                    邀请他人加入工作区
+                  </h3>
+                  <p className={styles.inviteLead}>
+                    链接创建后只显示一次，请及时复制发送。
+                  </p>
+                </div>
+                <Button
+                  className={styles.invitePrimary}
+                  onClick={() => setCreatingInvite(true)}
+                >
+                  创建邀请
+                </Button>
+              </div>
               {inviteLink && (
-                <>
+                <div className={styles.inviteResult}>
                   <div className={styles.inviteLink}>
                     <TextInput
                       aria-label="邀请链接"
@@ -399,86 +414,98 @@ export function MemberManagement({
                       )}
                     </CopyButton>
                   </div>
-                  <Text size="xs" c="dimmed" mt="xs">
-                    邀请链接只在创建后显示，请先复制保存。
-                  </Text>
-                </>
+                </div>
               )}
-            </div>
-            {invites.isPending && (
-              <Group justify="center" py="xl">
-                <Loader size="sm" aria-label="加载邀请" />
-              </Group>
-            )}
-            {invites.isError && (
-              <Alert color="red" mt="lg" title="邀请列表无法加载">
-                <Button
-                  variant="subtle"
-                  size="compact-sm"
-                  onClick={() => void invites.refetch()}
-                >
-                  重试
-                </Button>
-              </Alert>
-            )}
-            {!invites.isPending &&
-              !invites.isError &&
-              invites.data?.length === 0 && (
-                // No action here: the panel header directly above already owns
-                // "创建邀请", and two primaries on one screen would compete.
-                <EmptyState
-                  icon={MailPlus}
-                  title="还没有邀请"
-                  description="受邀者接受链接后，会按创建时选择的角色加入工作区。已接受的邀请会移入成员列表。"
-                />
+              <h4 className={styles.inviteLedgerHead}>
+                <span className={styles.inviteLedgerLabel}>待处理的邀请</span>
+                <span className={styles.inviteLedgerRule} aria-hidden />
+                {!!invites.data?.length && (
+                  <span className={styles.inviteLedgerCount}>
+                    {invites.data.length}
+                  </span>
+                )}
+              </h4>
+              {invites.isPending && (
+                <Group justify="center" py="xl">
+                  <Loader size="sm" aria-label="加载邀请" />
+                </Group>
               )}
-            {!invites.isError && !!invites.data?.length && (
-              <div className={styles.list}>
-                {invites.data.map((item) => (
-                  <Paper
-                    key={item.id}
-                    role="group"
-                    aria-label={`邀请：${item.email}`}
-                    className={styles.listCard}
+              {invites.isError && (
+                <Alert color="red" mt="lg" title="邀请列表无法加载">
+                  <Button
+                    variant="subtle"
+                    size="compact-sm"
+                    onClick={() => void invites.refetch()}
                   >
-                    <div className={styles.statusLine}>
-                      <div className={styles.memberMeta}>
-                        <Text size="sm" fw={600} truncate title={item.email}>
-                          {item.email}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          {roleLabels[item.role]}
-                        </Text>
-                      </div>
-                      <Group gap="xs" wrap="nowrap">
-                        <Badge
-                          variant="light"
-                          color={item.status === "pending" ? "blue" : "gray"}
-                        >
-                          {inviteStatusLabel(item.status)}
-                        </Badge>
-                        {item.status === "pending" && (
-                          <Button
-                            size="compact-sm"
-                            color="red"
-                            variant="subtle"
-                            onClick={() =>
-                              beginAction({
-                                kind: "revoke",
-                                inviteId: item.id,
-                                email: item.email,
-                              })
-                            }
+                    重试
+                  </Button>
+                </Alert>
+              )}
+              {!invites.isPending &&
+                !invites.isError &&
+                invites.data?.length === 0 && (
+                  // No action here: the sheet header directly above already owns
+                  // "创建邀请", and two primaries on one screen would compete.
+                  <EmptyState
+                    size="inline"
+                    className={styles.inviteEmpty}
+                    title={
+                      <span className={styles.inviteEmptyTitle}>
+                        <MailPlus size={15} aria-hidden />
+                        还没有邀请
+                      </span>
+                    }
+                    description="受邀者接受链接后，会按创建时选择的角色加入工作区。已接受的邀请会移入成员列表。"
+                  />
+                )}
+              {!invites.isError && !!invites.data?.length && (
+                <div className={styles.inviteLedger}>
+                  {invites.data.map((item) => (
+                    <Paper
+                      key={item.id}
+                      role="group"
+                      aria-label={`邀请：${item.email}`}
+                      className={styles.inviteRow}
+                    >
+                      <div className={styles.statusLine}>
+                        <div className={styles.memberMeta}>
+                          <Text size="sm" fw={600} truncate title={item.email}>
+                            {item.email}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {roleLabels[item.role]}
+                          </Text>
+                        </div>
+                        <Group gap="xs" wrap="nowrap">
+                          <Badge
+                            variant="light"
+                            color={item.status === "pending" ? "blue" : "gray"}
                           >
-                            撤销
-                          </Button>
-                        )}
-                      </Group>
-                    </div>
-                  </Paper>
-                ))}
-              </div>
-            )}
+                            {inviteStatusLabel(item.status)}
+                          </Badge>
+                          {item.status === "pending" && (
+                            <Button
+                              size="compact-sm"
+                              color="red"
+                              variant="subtle"
+                              onClick={() =>
+                                beginAction({
+                                  kind: "revoke",
+                                  inviteId: item.id,
+                                  email: item.email,
+                                })
+                              }
+                            >
+                              撤销
+                            </Button>
+                          )}
+                        </Group>
+                      </div>
+                    </Paper>
+                  ))}
+                </div>
+              )}
+            </section>
           </Tabs.Panel>
         )}
       </Tabs>

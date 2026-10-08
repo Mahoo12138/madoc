@@ -286,13 +286,16 @@ test('activity records from unordered pages keep one heading per day', async ({
     .getByRole('button', { name: '活动记录' })
     .click();
   const headings = page.getByRole('main', { name: '工作区管理' }).getByRole('heading');
-  await expect(headings.filter({ hasText: /月/ }).first()).toBeVisible();
+  // Day headings read "今天 / 昨天 / 2026年10月5日" — the near dates are relative,
+  // so the filter has to accept both vocabularies to still target day headings.
+  const dayHeading = /今天|昨天|\d+月/;
+  await expect(headings.filter({ hasText: dayHeading }).first()).toBeVisible();
   // Duplicate React keys and repeated day headings both come from merging an
   // unsorted list; assert no day label appears twice.
   await expect
     .poll(async () => {
       const labels = await headings
-        .filter({ hasText: /月/ })
+        .filter({ hasText: dayHeading })
         .allTextContents();
       return labels.length === new Set(labels).size;
     })
