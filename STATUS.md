@@ -334,6 +334,62 @@ Alpha.3 远端普通 Chromium 413 / 414 通过，唯一失败是大纲测试预�
 
 - [x] 将既有链接接入光标触发的原位 Markdown 源码编辑，移除悬停预览浮层，保留工具栏新建链接入口
 
+## 首次使用引导与空状态体系
+
+建立共享 `EmptyState`（`features/shared/empty-state.tsx`）作为唯一空态出口，支持三种尺寸（`page` / `section` / `inline`）与可选图标底座；文案一律回答「这里会出现什么— 为什么值得 — 下一步做什么」，只读角色改用 `note` 解释权限而非给出无效按钮。
+
+- 覆盖全部页面空态：工作区列表、Workspace Shell 内容区、内容树、个人导航（收藏 / 最近）、搜索无结果、回收站、成员与邀请、活动记录、评论、版本历史、分享管理、Markdown 大纲、Markdown / 白板本地恢复、公开分享不可用
+- 新增一次性引导卡 `WorkspaceFirstRun`：仅在工作区为空时出现，说明搜索快捷键、白板与导出三件事，可关闭，关闭状态记于 `localStorage`（`madoc.guide.v1.*`，命名空间 + 隐私模式容错，存储不可用时降级为再次显示而非抛错）
+- 对齐「案头」设计规则：静态表面零阴影、6px 圆角、信纸蓝仅用于图标底与行动、一屏一个主行动
+- 一屏一主行动的修正：工作区列表为空时顶部「新建工作区」降级为 default，邀请页签的空态不再重复页头的「创建邀请」
+- 降低空工作区侧栏噪音：条目为空时隐藏「最近」与「收藏」两个分组，避免三条空消息并列
+- Shell 内容区改为纵向 flex 居中，引导卡作为兄弟节点堆叠；`flush` 让 page 变体交出内边距由Shell 统一控制节奏
+- 验证：`pnpm typecheck`、`pnpm build` 通过；Playwright 走通注册 → 建工作区 → 空态全流程，桌面 1440px 与移动 390px 截图确认，引导卡关闭后刷新不再出现
+- 同步更新 10 个 e2e spec 的文案断言；`workspace-hardening` 的 WCAG AA 对比度断言（≥4.5:1）在新文案下通过
+
+### 已知既有失败（与本次改动无关）
+
+以纯净基线（`git diff` 备份 → `git checkout -- web/src web/e2e` → `pnpm build` →跑测试 → `git apply --include='web/*'` 恢复）逐条复跑确认，以下 3 项在 HEAD `264bcb4` 上即失败：
+
+- `e2e/mvp.spec.ts:3` first run, invite, collaborative Markdown, whiteboard and export —— 卡在邀请弹层 `member@example.com` 占位符
+- `e2e/outline.spec.ts:67` file tree state survives tab and document changes —— 重命名→移动→删除后条目仍留在文件树
+- `e2e/workspace-polish.spec.ts:129` search shortcut and long navigation labels remain clear on MacIntel
+
+本次未处理，仅记录。
+
+## 静态资源传输优化
+
+先测量再动手。用 Playwright 统计每页资源时，第一版脚本因未按 URL 去重而重复计数，
+得出「工作区列表比登录页多 882kB」的错误结论；去重后确认**所有页面加载的是同一批
+约 882kB 资源**。真实瓶颈在服务端 `spaHandler`：
+
+- 全站无压缩，`Accept-Encoding: gzip` 被无视
+- 带指纹的 `/assets/*` 没有任何 `Cache-Control`，也没有 `ETag` / `Last-Modified`，
+  每次访问都全量重新下载
+- `index.html` 同样没有缓存策略
+
+改动（`main.go`，约 10 行）：
+
+- 启用 `middleware.Compress(5)`；中间件按 Content-Type 表跳过图片与字体
+- `assets/` 设为 `public, max-age=31536000, immutable`（Vite 文件名带指纹，内容永不变化），
+  其余路径 `no-cache` 以保证发版能生效
+- 公开分享页 `/s/` 的 `no-store` 与 CSP 优先，不被上述默认策略覆盖
+
+效果（curl 实测）：
+
+| 页面 | 未压缩 | gzip | 节省 |
+|---|---:|---:|---:|
+| 工作区列表（空态） | 882kB | 254kB | 71% |
+| 登录页 | 882kB | 254kB | 71% |
+| 公开分享页（不可用） | 887kB | 257kB | 71% |
+
+经测量后确认**不需要动**的部分：257 个 woff2（13MB）随数学公式与白板懒加载，
+每页仅 7–9 个请求，未进入首屏；1.8MB 的 `subset-shared.chunk` 属 Excalidraw，
+已随白板路由懒加载。
+
+留待决策：二进制 43MB、`dist` 26MB，其中字体占 13MB 经 `//go:embed` 全量嵌入。
+字体为渲染必需品不可删，是否改为不嵌入、按需读盘会改变单二进制形态，属产品边界。
+
 ## 明确不进入当前 MVP
 
 AI、Calendar、Database/Kanban、Git、WebDAV、公开发布、插件系统以及 AFFiNE/BlockSuite 内容转换器均不在当前范围。
