@@ -185,7 +185,7 @@ for (const role of ['editor', 'viewer']) {
           dialog.getByRole('button', { name: '彻底删除' }),
         ).toHaveCount(0);
         await dialog.getByRole('button', { name: '恢复', exact: true }).click();
-        await expect(dialog.getByText('回收站为空')).toBeVisible();
+        await expect(dialog.getByText('还没有删除任何内容')).toBeVisible();
         expect(
           (await context.request.get(`${origin}/api/items/${doc}`)).ok(),
         ).toBeTruthy();

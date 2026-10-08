@@ -54,10 +54,9 @@ for (const width of [0, 320, 390]) {
         name: "文档空间",
         exact: true,
       });
-      const emptyFavorites = page.getByText(
-        "还没有收藏，可使用文件旁的星标添加。",
-        { exact: true },
-      );
+      const emptyFavorites = page.getByText("还没有收藏", {
+        exact: true,
+      });
       const emptyGroup = favoritesHeader.locator("xpath=../..");
       const emptyBox = await emptyGroup.boundingBox();
       const headerBox = await favoritesHeader.boundingBox();

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Center, Container, Loader, Paper, Stack, Text, Title } from '@mantine/core';
+import { Center, Container, Loader, Paper, Stack, Text, Title } from '@mantine/core';
+import { Unlink } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { api } from '@/api/client';
 import type { SharedItem } from '@/api/types';
+import { EmptyState } from '@/features/shared/empty-state';
 import { hardenSharedMarkdown, prepareSharedMarkdown } from './public-markdown';
 import { content, header, page } from './public-share-page.css';
 
@@ -75,7 +77,12 @@ export function PublicSharePage() {
     <main className={page}>
       <Container size="md" py="xl">
         {loading ? <Center mih={240}><Loader /></Center> : missing || !item ? (
-          <Center mih={240}><Alert color="gray" title="分享不可用">此链接已撤销、已过期或不存在。</Alert></Center>
+          <EmptyState
+            size="page"
+            icon={Unlink}
+            title="分享不可用"
+            description="此链接可能已被所有者撤销、已到期，或从未存在。请向所有者索取新的分享链接。"
+          />
         ) : (
           <Stack gap="lg">
             <header className={header}>

@@ -13,10 +13,12 @@ import {
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { Trash2 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { keys, useItems } from '@/api/hooks';
 import { trashAPI, trashKey, type TrashBatch } from '@/api/trash';
 import { APIError, type Item, type Workspace } from '@/api/types';
+import { EmptyState } from '@/features/shared/empty-state';
 
 function itemPath(item: Item, items: Item[]): string {
   const parts = [item.title];
@@ -263,7 +265,11 @@ export function WorkspaceTrash({
               </Alert>
             )}
             {!list.isPending && !list.error && list.data?.length === 0 && (
-              <Text c="dimmed">回收站为空</Text>
+              <EmptyState
+                icon={Trash2}
+                title="还没有删除任何内容"
+                description="文档、白板和文件夹被移入回收站后会出现在这里，可以原位恢复。"
+              />
             )}
             {list.data?.map((batch) => (
               <Paper

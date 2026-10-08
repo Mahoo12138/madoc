@@ -125,7 +125,9 @@ test('recovery list stays isolated when another account signs in on the same bro
   expect(accepted.ok()).toBeTruthy();
   await page.reload();
   await openAccount(page, '本地恢复');
-  await expect(page.getByText('此设备没有需要恢复的文档。', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('此设备没有需要恢复的文档', { exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole('button', { name: '查看本地副本' })).toHaveCount(0);
   const login = await page.request.post('/api/auth/sign-in', { data: { email: 'owner@example.test', password: 'password123' } });
   expect(login.ok()).toBeTruthy();

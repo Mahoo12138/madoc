@@ -19,10 +19,6 @@ export const documentTitle = style({
   minWidth: 0,
   flex: 1,
 });
-export const empty = style({
-  padding: '8px 10px',
-  color: 'var(--mantine-color-dark-3)',
-});
 export const list = style({ margin: 0, padding: 0, listStyle: 'none' });
 export const rootList = style({
   minWidth: 0,

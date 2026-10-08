@@ -297,10 +297,14 @@ export const editorPage = style({
 // `place-items: center` sizes this to the grid's single implicit track, so a
 // very long single-word workspace name can push the column wider than the
 // viewport. Cap the measure and keep the overflow inside the box.
+// A column flow is required: the first-run note stacks under the empty state
+// as a sibling, and a grid track would centre them as one block.
 export const empty = style({
   minHeight: "var(--madoc-frame-height)",
-  display: "grid",
-  placeItems: "center",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
   padding: 30,
   textAlign: "center",
   overflowWrap: "anywhere",

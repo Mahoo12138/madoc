@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Badge, Button, Group, Loader, Paper, Stack, Text, Title } from '@mantine/core';
+import { ShieldCheck } from 'lucide-react';
+import { EmptyState } from '@/features/shared/empty-state';
 import { listWhiteboardDrafts, type WhiteboardDraft } from './whiteboard-outbox';
 
 export default function WhiteboardRecoveryPanel({ userId }: { userId: string }) {
@@ -52,7 +54,11 @@ export default function WhiteboardRecoveryPanel({ userId }: { userId: string }) 
       </Text>
       {error && <Alert color="red">{error}</Alert>}
       {loading ? <Loader size="sm" aria-label="正在读取白板草稿" /> : !error && records.length === 0 ? (
-        <Text size="sm">此设备没有需要恢复的白板。</Text>
+        <EmptyState
+          icon={ShieldCheck}
+          title="此设备没有需要恢复的白板"
+          description="白板改动尚未确认同步时会留在这里。只要草稿存在，它就属于这台设备，与服务器状态无关。"
+        />
       ) : records.map((record, index) => (
         <Paper key={record.key} withBorder p="sm">
           <Stack gap="xs">

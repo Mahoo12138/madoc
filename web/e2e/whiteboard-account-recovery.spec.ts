@@ -94,7 +94,9 @@ test('whiteboard recovery isolates accounts in the same browser', async ({ page 
   expect((await page.request.post(`/api/invites/${invite.token}/accept`, { data: { name: 'Other board account', password: 'password123' } })).ok()).toBeTruthy();
   await page.reload();
   await openAccount(page, '本地恢复');
-  await expect(page.getByText('此设备没有需要恢复的白板。', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('此设备没有需要恢复的白板', { exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole('button', { name: '下载白板本地副本' })).toHaveCount(0);
   expect((await page.request.post('/api/auth/sign-in', { data: { email: 'owner@example.test', password: 'password123' } })).ok()).toBeTruthy();
   await page.reload();

@@ -1,6 +1,8 @@
 import { Alert, Button, Group, Loader, Text } from '@mantine/core';
+import { Activity } from 'lucide-react';
 import { useWorkspaceActivity } from '@/api/hooks';
 import { APIError, type ActivityEvent } from '@/api/types';
+import { EmptyState } from '@/features/shared/empty-state';
 import * as styles from './workspace-management.css';
 
 const dayFormat = new Intl.DateTimeFormat('zh-CN', {
@@ -74,12 +76,11 @@ export function WorkspaceActivity({ workspaceId }: { workspaceId: string }) {
         </Alert>
       )}
       {!activity.isPending && !activity.isError && events.length === 0 && (
-        <div className={styles.emptyState}>
-          <Text fw={600}>还没有活动记录</Text>
-          <Text size="sm" c="dimmed" mt={4}>
-            新建、编辑或管理内容后，相关操作会显示在这里。
-          </Text>
-        </div>
+        <EmptyState
+          icon={Activity}
+          title="还没有活动记录"
+          description="新建、编辑或管理内容后，相关操作会按日期显示在这里，便于回溯谁在什么时候改了什么。"
+        />
       )}
       {showEvents &&
         groupByDay(events).map((group) => (

@@ -165,38 +165,6 @@ export const cardArrow = style({
   marginTop: 4,
   color: 'var(--mantine-color-dimmed)',
 });
-export const empty = style({
-  padding: '72px 24px 80px',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  textAlign: 'center',
-  '@media': { [workspaceMedia.mobile]: { padding: '40px 0' } },
-});
-export const emptyMark = style({
-  display: 'grid',
-  placeItems: 'center',
-  width: 64,
-  height: 64,
-  borderRadius: 'var(--mantine-radius-md)',
-  background: 'var(--mantine-color-blue-0)',
-  color: 'var(--mantine-color-blue-6)',
-  marginBottom: 20,
-});
-export const emptyTitle = style({
-  margin: 0,
-  fontSize: 20,
-  fontWeight: 650,
-  lineHeight: 1.4,
-});
-export const emptyDescription = style({
-  maxWidth: 340,
-  margin: '10px 0 24px',
-  color: 'var(--mantine-color-dimmed)',
-  fontSize: 14,
-  lineHeight: 1.7,
-  textWrap: 'balance',
-});
 export const loadingCard = style([card]);
 export const loadingIdentity = style({
   display: 'grid',

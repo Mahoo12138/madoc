@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Alert, Button, Drawer, Group, Modal, Paper, Stack, Text, Textarea } from '@mantine/core';
-import { Trash2 as IconTrash } from 'lucide-react';
+import { MessageSquare, Trash2 as IconTrash } from 'lucide-react';
 import { api } from '@/api/client';
 import type { Item, ItemComment, Role } from '@/api/types';
+import { EmptyState } from '@/features/shared/empty-state';
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -75,7 +76,7 @@ export function ItemCommentsDrawer({ opened, onClose, item, role }: { opened: bo
           </Stack>
         ) : <Alert color="gray">查看者可以阅读评论，但不能新增或删除评论。</Alert>}
         <Stack style={{ overflowY: 'auto', flex: 1 }} gap="sm">
-          {loading ? <Text size="sm" c="dimmed">正在读取评论…</Text> : comments.length === 0 ? <Text size="sm" c="dimmed">还没有评论。</Text> : comments.map((comment) => (
+          {loading ? <Text size="sm" c="dimmed">正在读取评论…</Text> : comments.length === 0 ? <EmptyState icon={MessageSquare} title="还没有评论" description={writable ? '在上方写下需要异步讨论的内容，评论会按时间倒序保留在这篇内容里。' : '这篇内容暂时没有讨论记录。'} /> : comments.map((comment) => (
             <Paper key={comment.id} withBorder p="sm" radius="md">
               <Stack gap="xs">
                 <Group justify="space-between" wrap="nowrap">

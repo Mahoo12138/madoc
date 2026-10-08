@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/api/client';
 import type { ContentVersion, Item, ItemShare } from '@/api/types';
+import { EmptyState } from '@/features/shared/empty-state';
 import * as styles from './version-history-dialog.css';
 
 function date(value: string) {
@@ -218,9 +219,11 @@ export function ItemShareManager({
           正在读取分享…
         </Text>
       ) : shares.length === 0 ? (
-        <Text size="sm" c="dimmed">
-          还没有分享链接。
-        </Text>
+        <EmptyState
+          icon={IconLink}
+          title="还没有分享链接"
+          description="选择一个手动版本后新建分享，即可生成只读链接。链接可随时撤销，也可以设置到期时间。"
+        />
       ) : (
         shares.map((share) => (
           <div key={share.id} className={styles.shareRow}>

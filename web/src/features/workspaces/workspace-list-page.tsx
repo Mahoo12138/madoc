@@ -13,6 +13,7 @@ import { ArrowRight, FolderOpen, Plus } from 'lucide-react';
 import { useSession, useWorkspaces } from '@/api/hooks';
 import { APIError } from '@/api/types';
 import { AccountMenu } from '@/features/account/account-menu';
+import { EmptyState } from '@/features/shared/empty-state';
 import { touchRow } from '@/styles/interaction.css';
 import { CreateWorkspaceDialog } from './workspace-create-dialog';
 import { roleLabels } from './role-labels';
@@ -58,6 +59,9 @@ export function WorkspaceListPage() {
     workspaces.error instanceof APIError &&
     [401, 403].includes(workspaces.error.status);
   const list = denied ? [] : (workspaces.data ?? []);
+  // One primary action per screen: while the list is empty the empty state
+  // below owns it, so the header entry steps back to a default weight.
+  const emptyList = !!workspaces.data && !denied && list.length === 0;
   return (
     <main className={styles.page} aria-label="工作区">
       <header>
@@ -86,6 +90,7 @@ export function WorkspaceListPage() {
           </div>
           <Button
             className={styles.createButton}
+            variant={emptyList ? 'default' : undefined}
             leftSection={<Plus size={16} aria-hidden />}
             onClick={createDialog.open}
             disabled={denied}
@@ -172,22 +177,22 @@ export function WorkspaceListPage() {
           </ul>
         ) : (
           !workspaces.error && (
-            <section className={styles.empty} aria-label="暂无工作区">
-              <div className={styles.emptyMark}>
-                <FolderOpen size={30} strokeWidth={1.5} aria-hidden />
-              </div>
-              <h2 className={styles.emptyTitle}>你的第一个工作区</h2>
-              <p className={styles.emptyDescription}>
-                创建后，即可添加文档和白板，也可以邀请成员一起协作。
-              </p>
-              <Button
-                className={touchRow}
-                leftSection={<Plus size={16} aria-hidden />}
-                onClick={createDialog.open}
-              >
-                创建工作区
-              </Button>
-            </section>
+            <EmptyState
+              size="page"
+              icon={FolderOpen}
+              headingLevel={2}
+              title="你的第一个工作区"
+              description="工作区是文档与白板的容器，也是成员协作的边界。创建后即可开始写作，也可以邀请他人加入。"
+              actions={
+                <Button
+                  className={touchRow}
+                  leftSection={<Plus size={16} aria-hidden />}
+                  onClick={createDialog.open}
+                >
+                  创建工作区
+                </Button>
+              }
+            />
           )
         )}
       </div>

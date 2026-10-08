@@ -14,6 +14,7 @@ import { FileText, Folder, PenTool, X } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useFavorite, usePersonalItems } from "@/api/personal-items";
 import type { Item } from "@/api/types";
+import { EmptyState } from "@/features/shared/empty-state";
 import * as styles from "./personal-navigation.css";
 import { touchAction } from "@/styles/interaction.css";
 
@@ -25,6 +26,7 @@ export function PersonalNavigation({
   onSelect,
   section,
   onSectionChange,
+  hideWhenWorkspaceEmpty = false,
 }: {
   workspaceId: string;
   items: Item[];
@@ -32,6 +34,12 @@ export function PersonalNavigation({
   onSelect?: () => void;
   section: "favorites" | "recent";
   onSectionChange?: (section: "favorites" | "recent") => void;
+  /**
+   * When the workspace holds no items at all, "recent" and "favorites" cannot
+   * fill themselves. Their empty copy would just repeat the content tree's
+   * message three times over, so the caller hides them instead.
+   */
+  hideWhenWorkspaceEmpty?: boolean;
 }) {
   const personal = usePersonalItems(workspaceId);
   const favorite = useFavorite(workspaceId);
@@ -138,13 +146,20 @@ export function PersonalNavigation({
               </div>
             );
           })}
-          {!personal.isPending && entries?.length === 0 && (
-            <Text size="sm" c="dimmed">
-              {section === "favorites"
-                ? "还没有收藏，可使用文件旁的星标添加。"
-                : "打开文档或白板后，会出现在这里。"}
-            </Text>
-          )}
+          {!personal.isPending &&
+            entries?.length === 0 &&
+            !(hideWhenWorkspaceEmpty && !items.length) && (
+              // One line only. The sidebar rail is a dense index, not a reading
+              // surface; a second wrapped line breaks the rhythm the nav rows
+              // and section headers establish. The star affordance is already
+              // visible on tree rows, so naming it inline is enough.
+              <EmptyState
+                size="inline"
+                title={
+                  section === "favorites" ? "还没有收藏" : "还没有访问记录"
+                }
+              />
+            )}
         </nav>
       )}
     </Stack>

@@ -301,7 +301,7 @@ test('secondary text is readable on the actual workspace surfaces', async ({
   await openDocument(page, '# 对比度');
   for (const target of [
     page.getByLabel('文档统计'),
-    page.getByText('还没有收藏，可使用文件旁的星标添加。', { exact: true }),
+    page.getByText('还没有收藏', { exact: true }),
     page.getByRole('button', { name: /搜索文档、页面内容/ }).locator('kbd'),
   ]) {
     expect(await contrastRatio(target)).toBeGreaterThanOrEqual(4.5);

@@ -124,7 +124,7 @@ test("file tree state survives tab and document changes, with whiteboard fallbac
   await expect(
     page
       .getByRole("navigation", { name: "文档大纲" })
-      .getByText("暂无标题", { exact: true }),
+      .getByText("正文还没有标题", { exact: true }),
   ).toBeVisible();
   await showFiles(page);
   await expect(
@@ -180,7 +180,7 @@ test("heading removal and undo refresh the outline without changing the file tre
   await expect(
     page
       .getByRole("navigation", { name: "文档大纲" })
-      .getByText("暂无标题", { exact: true }),
+      .getByText("正文还没有标题", { exact: true }),
   ).toBeVisible();
   await page.keyboard.press(
     process.platform === "darwin" ? "Meta+z" : "Control+z",

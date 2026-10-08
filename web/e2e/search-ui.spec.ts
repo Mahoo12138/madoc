@@ -55,7 +55,7 @@ for (const mobile of [false, true]) {
     await input.fill('短词');
     await expect(dialog.getByRole('option')).toHaveCount(1);
     await page.request.delete(`/api/items/${first}`, { headers });
-    await expect(dialog.getByText('没有匹配结果')).toBeVisible();
+    await expect(dialog.getByText('没有匹配「短词」的内容')).toBeVisible();
     await input.press('Escape');
     await expect(dialog).toHaveCount(0);
   });

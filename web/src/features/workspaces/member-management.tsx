@@ -16,7 +16,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { Check, Copy, Mail, Trash2 } from "lucide-react";
+import { Check, Copy, Mail, MailPlus, Trash2, Users } from "lucide-react";
 import {
   useInvites,
   useMembers,
@@ -24,6 +24,7 @@ import {
   useWorkspaceMutations,
 } from "@/api/hooks";
 import { APIError, type Role } from "@/api/types";
+import { EmptyState } from "@/features/shared/empty-state";
 import { inviteStatusLabel, roleDescriptions, roleLabels } from "./role-labels";
 import * as styles from "./workspace-management.css";
 
@@ -239,9 +240,11 @@ export function MemberManagement({
           {!members.isPending &&
             !members.isError &&
             members.data?.length === 0 && (
-              <Text c="dimmed" className={styles.emptyState}>
-                当前没有成员。
-              </Text>
+              <EmptyState
+                icon={Users}
+                title="当前没有成员"
+                description="成员列表为空通常意味着数据尚未加载完成；如确认工作区确实没有其他成员，可直接创建邀请链接。"
+              />
             )}
           {!members.isError && !!members.data?.length && (
             <div className={styles.list}>
@@ -421,9 +424,13 @@ export function MemberManagement({
             {!invites.isPending &&
               !invites.isError &&
               invites.data?.length === 0 && (
-                <Text c="dimmed" className={styles.emptyState}>
-                  还没有邀请。填写邮箱以创建邀请链接。
-                </Text>
+                // No action here: the panel header directly above already owns
+                // "创建邀请", and two primaries on one screen would compete.
+                <EmptyState
+                  icon={MailPlus}
+                  title="还没有邀请"
+                  description="受邀者接受链接后，会按创建时选择的角色加入工作区。已接受的邀请会移入成员列表。"
+                />
               )}
             {!invites.isError && !!invites.data?.length && (
               <div className={styles.list}>

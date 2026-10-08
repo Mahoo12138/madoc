@@ -45,6 +45,6 @@ test('owner and editor comments are item-scoped, visible to viewers, and read-on
     await viewer.keyboard.press('Escape');
     await viewer.getByRole('button', { name: '文档评论' }).click();
     viewerDrawer = viewer.getByRole('dialog', { name: '评论 · Inline writing' });
-    await expect(viewerDrawer.getByText('还没有评论。')).toBeVisible();
+    await expect(viewerDrawer.getByText('还没有评论', { exact: true })).toBeVisible();
   } finally { await context.close(); }
 });

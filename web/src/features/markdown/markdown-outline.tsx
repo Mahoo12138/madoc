@@ -7,6 +7,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo } from "react";
+import { EmptyState } from "@/features/shared/empty-state";
 import {
   buildOutlineTree,
   outlineParentPositions,
@@ -185,12 +186,11 @@ export function MarkdownOutline({
           正在读取大纲…
         </Text>
       ) : outline.headings.length === 0 ? (
-        <div className={styles.empty}>
-          <Text size="sm">暂无标题</Text>
-          <Text size="xs" c="gray.7" mt={4}>
-            正文中的 H1–H6 标题会显示在这里。
-          </Text>
-        </div>
+        <EmptyState
+          size="inline"
+          title="正文还没有标题"
+          description="使用 H1–H6 标题组织内容后，会在这里生成可点击的大纲。"
+        />
       ) : (
         render(branches, true)
       )}

@@ -13,6 +13,7 @@ import { ItemActions } from './item-actions';
 import { useFavorite, usePersonalItems } from '@/api/personal-items';
 import { useNavigate } from '@tanstack/react-router';
 import type { Item, ItemType, Role } from '@/api/types';
+import { EmptyState } from '@/features/shared/empty-state';
 import * as styles from './workspace-shell.css';
 import { touchAction } from '@/styles/interaction.css';
 
@@ -54,6 +55,21 @@ export function ItemTree({
   const favorite = useFavorite(workspaceId);
   const favorites = new Set(personal.data?.favorites.map((item) => item.id));
   const children = useMemo(() => indexChildren(items), [items]);
+  if (!items.length) {
+    // A blank panel reads as "broken", not "empty". Say what belongs here and
+    // keep the action in the header, where the create menu already lives.
+    return (
+      <EmptyState
+        size="inline"
+        title={role === 'viewer' ? '此工作区还没有内容' : '内容树还是空的'}
+        description={
+          role === 'viewer'
+            ? '有权限的成员创建内容后，会显示在这里。'
+            : '新建的文档、白板与文件夹都会出现在这里。'
+        }
+      />
+    );
+  }
   const render = (parentId: string | null, depth: number): React.ReactNode =>
     (children.get(parentId) ?? []).map((item) => {
       const Icon = icons[item.type];

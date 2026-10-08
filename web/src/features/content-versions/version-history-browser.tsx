@@ -10,6 +10,7 @@ import {
 } from '@mantine/core';
 import { Copy } from 'lucide-react';
 import type { ContentVersion, ContentVersionDetail, Role } from '@/api/types';
+import { EmptyState } from '@/features/shared/empty-state';
 import type { DiffLine } from './version-diff';
 import * as styles from './version-history-dialog.css';
 
@@ -59,9 +60,11 @@ export function VersionHistoryBrowser({
         {loadingList ? (
           <Loader size="sm" aria-label="正在读取版本" />
         ) : !versions.length ? (
-          <Text size="sm" c="dimmed" p="sm">
-            还没有版本记录。
-          </Text>
+          <EmptyState
+            size="inline"
+            title="还没有版本记录"
+            description="自动保存会在正文改动累积到检查点时创建版本，也可以随时手动保存一个版本。"
+          />
         ) : (
           versions.map((version) => (
             <UnstyledButton

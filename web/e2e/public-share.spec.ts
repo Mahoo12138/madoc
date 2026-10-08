@@ -80,7 +80,11 @@ test('a public share stays fixed until explicit publish and stops after revoke',
   const revokeDialog = page.getByRole('dialog', { name: '撤销分享？' });
   await revokeDialog.getByRole('button', { name: '撤销分享' }).click();
   await anonymous.reload();
-  await expect(anonymous.getByText('此链接已撤销、已过期或不存在。')).toBeVisible();
+  await expect(
+    anonymous.getByText(
+      '此链接可能已被所有者撤销、已到期，或从未存在。请向所有者索取新的分享链接。',
+    ),
+  ).toBeVisible();
   const direct = await anonymous.request.get(`/api/public/shares/${new URL(shareURL).pathname.split('/').pop()}`);
   expect(direct.status()).toBe(404);
   await anonymous.close();

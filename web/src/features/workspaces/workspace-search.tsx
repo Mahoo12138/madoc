@@ -18,6 +18,7 @@ import { FileText, Folder, PenTool, Search } from 'lucide-react';
 import { useItems } from '@/api/hooks';
 import { APIError, type ItemType } from '@/api/types';
 import { searchKey, searchWorkspace } from '@/api/search';
+import { EmptyState } from '@/features/shared/empty-state';
 import * as styles from './workspace-search.css';
 
 const types = { markdown: '文档', whiteboard: '白板', folder: '文件夹' };
@@ -239,7 +240,19 @@ export function WorkspaceSearch({
             })}
             {!waiting && valid && !error && rows.length === 0 && (
               <Combobox.Empty>
-                {query ? '没有匹配结果' : '当前工作区还没有内容'}
+                {query ? (
+                  <EmptyState
+                    size="inline"
+                    title={`没有匹配「${query}」的内容`}
+                    description="检索范围是当前工作区的标题与已保存正文，试试更短的关键词。"
+                  />
+                ) : (
+                  <EmptyState
+                    size="inline"
+                    title="当前工作区还没有内容"
+                    description="新建文档或白板后，就可以在这里按标题与正文检索。"
+                  />
+                )}
               </Combobox.Empty>
             )}
           </Combobox.Options>

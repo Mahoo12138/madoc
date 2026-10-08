@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Badge, Button, Group, Loader, Modal, Paper, Stack, Text, Textarea, Title } from '@mantine/core';
+import { ShieldCheck } from 'lucide-react';
 import { api } from '@/api/client';
 import { APIError } from '@/api/types';
+import { EmptyState } from '@/features/shared/empty-state';
 import { archiveLocalRecovery, listLocalRecoveries, type LocalRecovery } from './markdown-outbox';
 
 export default function MarkdownRecoveryPanel({ userId }: { userId: string }) {
@@ -74,7 +76,11 @@ export default function MarkdownRecoveryPanel({ userId }: { userId: string }) {
       </Text>
       {error && <Alert color="red" role="alert">{error}</Alert>}
       {loading ? <Loader size="sm" /> : records.length === 0 ? (
-        <Text size="sm">此设备没有需要恢复的文档。</Text>
+        <EmptyState
+          icon={ShieldCheck}
+          title="此设备没有需要恢复的文档"
+          description="当网络中断导致正文未能提交时，未同步的内容会留在这里等待恢复。正常编辑不会产生记录。"
+        />
       ) : records.map(record => (
         <Paper key={record.scope} withBorder p="sm">
           <Stack gap="xs">

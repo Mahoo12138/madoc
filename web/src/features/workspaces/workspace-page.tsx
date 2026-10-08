@@ -15,7 +15,6 @@ import {
   Stack,
   Text,
   TextInput,
-  Title,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -43,6 +42,8 @@ import { WorkspaceLoadNotice } from "./workspace-load-notice";
 import { touchAction } from "@/styles/interaction.css";
 import { shortcutModifier } from "@/features/shared/platform";
 import { PanelErrorBoundary } from "@/features/shared/panel-error-boundary";
+import { EmptyState } from "@/features/shared/empty-state";
+import { WorkspaceFirstRun } from "@/features/shared/first-run-guide";
 import {
   TITLE_MAX,
   titleLength,
@@ -519,37 +520,65 @@ export function WorkspacePage() {
           {!active || !workspace.data ? (
             !readProblem && (
               <div className={styles.empty}>
-                <div>
-                  <Title order={2}>
-                    {itemId ? "内容暂不可用" : "从一个文档或白板开始"}
-                  </Title>
-                  <Text c="dimmed" mt="xs">
-                    左侧内容树是这个工作区的唯一结构来源。
-                  </Text>
-                  {!itemId && canWrite && (
-                    <Group justify="center" mt="xl">
+                {itemId ? (
+                  <EmptyState
+                    icon={IconFileText}
+                    title="内容暂不可用"
+                    description="此内容可能已被移入回收站，或当前账号没有访问权限。从内容目录选择其他条目即可继续。"
+                    actions={
                       <Button
+                        variant="default"
                         leftSection={<IconFileText size={16} />}
-                        onClick={() => openCreate("markdown")}
+                        onClick={() =>
+                          navigate({
+                            to: "/workspace/$workspaceId",
+                            params: { workspaceId },
+                          })
+                        }
                       >
-                        新建文档
+                        返回内容目录
                       </Button>
-                      <Button
-                        variant="light"
-                        leftSection={<IconWhiteboard size={16} />}
-                        onClick={() => openCreate("whiteboard")}
-                      >
-                        新建白板
-                      </Button>
-                    </Group>
-                  )}
-                  {!itemId && !canWrite && workspace.data && (
-                    <Text c="dimmed" mt="md" size="sm">
-                      当前角色为{roleLabels[workspace.data.role]}，可浏览全部内容，
-                      但不能创建或修改条目。
-                    </Text>
-                  )}
-                </div>
+                    }
+                  />
+                ) : canWrite ? (
+                  <>
+                    <EmptyState
+                      size="page"
+                      flush
+                      icon={IconFileText}
+                      title="从一个文档或白板开始"
+                      description="内容树是这个工作区的唯一结构来源，文档和白板都从它进入。文档适合记录与协作，白板适合推演与梳理。"
+                      actions={
+                        <Button
+                          leftSection={<IconFileText size={16} />}
+                          onClick={() => openCreate("markdown")}
+                        >
+                          新建文档
+                        </Button>
+                      }
+                      secondaryActions={
+                        <Button
+                          variant="default"
+                          leftSection={<IconWhiteboard size={16} />}
+                          onClick={() => openCreate("whiteboard")}
+                        >
+                          新建白板
+                        </Button>
+                      }
+                    />
+                    {/* Empty of items only: once something exists the note would
+                        just be noise beside real content. */}
+                    {items.data?.length === 0 && <WorkspaceFirstRun />}
+                  </>
+                ) : (
+                  <EmptyState
+                    icon={IconFileText}
+                    title="这个工作区还没有内容"
+                    note={`当前角色为${
+                      workspace.data ? roleLabels[workspace.data.role] : "访客"
+                    }，可浏览全部内容，但不能创建或修改条目。`}
+                  />
+                )}
               </div>
             )
           ) : (

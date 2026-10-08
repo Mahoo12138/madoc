@@ -82,7 +82,7 @@ for (const mobile of [false, true]) {
     );
     await page.unroute('**/trash/*');
     await purge.click();
-    await expect(dialog.getByText('回收站为空')).toBeVisible();
+    await expect(dialog.getByText('还没有删除任何内容')).toBeVisible();
     expect(
       (await page.request.get(`/api/items/${child.id}`)).ok(),
     ).toBeTruthy();

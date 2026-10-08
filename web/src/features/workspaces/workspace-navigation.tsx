@@ -135,30 +135,39 @@ export function WorkspaceNavigation({
   if (!compact)
     return (
       <div className={styles.desktopNavigation} aria-label="工作区导航">
-        <section className={styles.navSectionGroup}>
-          {sectionHeader("recent", "最近", Clock3)}
-          {!closed.recent && (
-            <PersonalNavigation
-              section="recent"
-              workspaceId={treeProps.workspaceId}
-              items={treeProps.items}
-              onFolder={onFolder}
-              onSelect={treeProps.onSelect}
-            />
-          )}
-        </section>
-        <section className={styles.navSectionGroup}>
-          {sectionHeader("favorites", "收藏", Star)}
-          {!closed.favorites && (
-            <PersonalNavigation
-              section="favorites"
-              workspaceId={treeProps.workspaceId}
-              items={treeProps.items}
-              onFolder={onFolder}
-              onSelect={treeProps.onSelect}
-            />
-          )}
-        </section>
+        {/*
+          An empty workspace has nothing for "recent" or "favorites" to hold.
+          Keeping two empty headings above an empty tree reads as three
+          failures, so they only appear once there is content to navigate.
+        */}
+        {!!treeProps.items.length && (
+          <>
+            <section className={styles.navSectionGroup}>
+              {sectionHeader("recent", "最近", Clock3)}
+              {!closed.recent && (
+                <PersonalNavigation
+                  section="recent"
+                  workspaceId={treeProps.workspaceId}
+                  items={treeProps.items}
+                  onFolder={onFolder}
+                  onSelect={treeProps.onSelect}
+                />
+              )}
+            </section>
+            <section className={styles.navSectionGroup}>
+              {sectionHeader("favorites", "收藏", Star)}
+              {!closed.favorites && (
+                <PersonalNavigation
+                  section="favorites"
+                  workspaceId={treeProps.workspaceId}
+                  items={treeProps.items}
+                  onFolder={onFolder}
+                  onSelect={treeProps.onSelect}
+                />
+              )}
+            </section>
+          </>
+        )}
         <section className={styles.navSectionGroup}>
           <div className={styles.navSectionHeader}>
             <UnstyledButton
@@ -237,6 +246,7 @@ export function WorkspaceNavigation({
             items={treeProps.items}
             onSelect={treeProps.onSelect}
             onFolder={onFolder}
+            hideWhenWorkspaceEmpty
           />
         )}
       </Tabs.Panel>
