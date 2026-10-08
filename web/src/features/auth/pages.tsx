@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Alert, Anchor, Button, Center, Loader, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Alert, Anchor, Button, Center, Loader, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { AlertCircle as IconAlertCircle, ArrowRight as IconArrowRight } from 'lucide-react';
@@ -10,11 +10,47 @@ import { APIError } from '@/api/types';
 import * as styles from './pages.css';
 
 function Brand() {
-  return <div className={styles.brand}><img src="/logo.svg" alt="" aria-hidden className={styles.mark} /><Text fw={700} size="lg">Madoc</Text></div>;
+  return (
+    <div className={styles.brand}>
+      <img src="/logo.svg" alt="" aria-hidden className={styles.mark} />
+      <Text className={styles.wordmark}>Madoc</Text>
+    </div>
+  );
 }
 
 function ErrorAlert({ error }: { error: string }) {
-  return error ? <Alert color="red" icon={<IconAlertCircle size={16} />}>{error}</Alert> : null;
+  return error ? (
+    <Alert color="red" variant="light" radius="sm" icon={<IconAlertCircle size={16} />}>
+      {error}
+    </Alert>
+  ) : null;
+}
+
+// Shared frame for every auth screen: drifting paper-blue backdrop, centered
+// brand and a white card whose header carries title + lead before the form.
+function AuthShell({ title, lead, children }: { title: string; lead?: ReactNode; children: ReactNode }) {
+  return (
+    <main className={styles.page}>
+      <div className={styles.decor} aria-hidden>
+        <div className={styles.glowA} />
+        <div className={styles.glowB} />
+      </div>
+      <section className={styles.panel}>
+        <Brand />
+        <div className={styles.card}>
+          <Stack gap="lg">
+            <div>
+              <Title order={1} className={styles.heading}>
+                {title}
+              </Title>
+              {lead ? <Text className={styles.lead}>{lead}</Text> : null}
+            </div>
+            {children}
+          </Stack>
+        </div>
+      </section>
+    </main>
+  );
 }
 
 export function StartPage() {
@@ -39,7 +75,19 @@ export function SetupPage() {
     catch (e) { setError(e instanceof Error ? e.message : '初始化失败'); }
     finally { setLoading(false); }
   });
-  return <main className={styles.page}><section className={styles.panel}><Brand /><Paper withBorder shadow="xs" radius="lg" p="xl"><Stack gap="lg"><div><Title order={2}>创建管理员</Title><Text c="dimmed" mt={6}>首次启动只需完成一次。数据会保存在当前 Madoc 实例中。</Text></div><ErrorAlert error={error} /><form onSubmit={submit}><Stack><TextInput label="姓名" placeholder="你的名字" {...form.getInputProps('name')} /><TextInput label="邮箱" placeholder="you@example.com" {...form.getInputProps('email')} /><PasswordInput label="密码" placeholder="至少 8 个字符" {...form.getInputProps('password')} /><Button type="submit" loading={loading} rightSection={<IconArrowRight size={16} />}>创建并进入</Button></Stack></form></Stack></Paper></section></main>;
+  return (
+    <AuthShell title="创建管理员" lead="首次启动只需完成一次。数据会保存在当前 Madoc 实例中。">
+      <ErrorAlert error={error} />
+      <form onSubmit={submit}>
+        <Stack gap="md">
+          <TextInput label="姓名" placeholder="你的名字" autoComplete="name" {...form.getInputProps('name')} />
+          <TextInput label="邮箱" placeholder="you@example.com" autoComplete="email" {...form.getInputProps('email')} />
+          <PasswordInput label="密码" placeholder="至少 8 个字符" autoComplete="new-password" {...form.getInputProps('password')} />
+          <Button type="submit" fullWidth size="md" loading={loading} rightSection={<IconArrowRight size={16} />}>创建并进入</Button>
+        </Stack>
+      </form>
+    </AuthShell>
+  );
 }
 
 export function SignInPage() {
@@ -53,7 +101,18 @@ export function SignInPage() {
     catch (e) { setError(e instanceof Error ? e.message : '登录失败'); }
     finally { setLoading(false); }
   });
-  return <main className={styles.page}><section className={styles.panel}><Brand /><Paper withBorder shadow="xs" radius="lg" p="xl"><Stack gap="lg"><div><Title order={2}>欢迎回来</Title><Text c="dimmed" mt={6}>登录你的 Madoc workspace。</Text></div><ErrorAlert error={error} /><form onSubmit={submit}><Stack><TextInput label="邮箱" autoComplete="email" {...form.getInputProps('email')} /><PasswordInput label="密码" autoComplete="current-password" {...form.getInputProps('password')} /><Button type="submit" loading={loading}>登录</Button></Stack></form></Stack></Paper></section></main>;
+  return (
+    <AuthShell title="欢迎回来" lead="登录你的 Madoc workspace。">
+      <ErrorAlert error={error} />
+      <form onSubmit={submit}>
+        <Stack gap="md">
+          <TextInput label="邮箱" autoComplete="email" {...form.getInputProps('email')} />
+          <PasswordInput label="密码" autoComplete="current-password" {...form.getInputProps('password')} />
+          <Button type="submit" fullWidth size="md" loading={loading}>登录</Button>
+        </Stack>
+      </form>
+    </AuthShell>
+  );
 }
 
 export function InvitePage() {
@@ -71,5 +130,28 @@ export function InvitePage() {
     catch (e) { setError(e instanceof APIError ? e.message : '无法接受邀请'); }
     finally { setLoading(false); }
   });
-  return <main className={styles.page}><section className={styles.panel}><Brand /><Paper withBorder radius="lg" p="xl"><Stack><Title order={2}>加入工作区</Title>{info ? <Text>你受邀以 <b>{info.email}</b> 加入「{info.workspaceName}」。</Text> : !error && <Loader size="sm" />}<ErrorAlert error={error} /><form onSubmit={accept}><Stack>{!session.data?.user && <><TextInput label="姓名" {...form.getInputProps('name')} /><PasswordInput label="设置密码" description="至少 8 个字符" {...form.getInputProps('password')} /></>}<Button type="submit" loading={loading} disabled={!info}>接受邀请</Button></Stack></form>{!session.data?.user && <Text size="sm" c="dimmed">已有账号？ <Anchor component={Link} to="/sign-in">先登录</Anchor></Text>}</Stack></Paper></section></main>;
+  return (
+    <AuthShell
+      title="加入工作区"
+      lead={info ? <>你受邀以 <b>{info.email}</b> 加入「{info.workspaceName}」。</> : !error ? <Loader size="sm" /> : null}
+    >
+      <ErrorAlert error={error} />
+      <form onSubmit={accept}>
+        <Stack gap="md">
+          {!session.data?.user && (
+            <>
+              <TextInput label="姓名" autoComplete="name" {...form.getInputProps('name')} />
+              <PasswordInput label="设置密码" description="至少 8 个字符" autoComplete="new-password" {...form.getInputProps('password')} />
+            </>
+          )}
+          <Button type="submit" fullWidth size="md" loading={loading} disabled={!info}>接受邀请</Button>
+        </Stack>
+      </form>
+      {!session.data?.user && (
+        <Text size="sm" c="dimmed" ta="center">
+          已有账号？ <Anchor component={Link} to="/sign-in">先登录</Anchor>
+        </Text>
+      )}
+    </AuthShell>
+  );
 }
