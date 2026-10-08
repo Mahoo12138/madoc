@@ -94,6 +94,11 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.RealIP, middleware.Logger, middleware.Recoverer, securityHeaders)
+	// The frontend is a hashed-asset SPA whose JS/CSS is highly compressible
+	// text. Without this every page ships its full ~880kB uncompressed on each
+	// cold load; gzip brings that to roughly a third. Images and fonts are
+	// skipped by the middleware's content-type table.
+	r.Use(middleware.Compress(5))
 	if cfg.Dev {
 		r.Use(devCORS)
 	}
@@ -140,6 +145,19 @@ func spaHandler(static fs.FS, fileServer http.Handler) http.HandlerFunc {
 		path := strings.TrimPrefix(r.URL.Path, "/")
 		if path == "" {
 			path = "index.html"
+		}
+		// Vite fingerprints every file under /assets, so their contents can
+		// never change under a given URL: cache them for a year and let the
+		// browser skip the download entirely on repeat visits. Everything else
+		// resolves to index.html and must be revalidated, otherwise a deploy
+		// would keep serving the previous bundle. An explicit policy set above
+		// (no-store for public shares) always wins.
+		if w.Header().Get("Cache-Control") == "" {
+			if strings.HasPrefix(path, "assets/") {
+				w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			} else {
+				w.Header().Set("Cache-Control", "no-cache")
+			}
 		}
 		if _, err := fs.Stat(static, path); err != nil {
 			index, readErr := fs.ReadFile(static, "index.html")
