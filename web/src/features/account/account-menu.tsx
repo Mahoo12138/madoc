@@ -1,5 +1,5 @@
 import { Avatar, Menu, Text, UnstyledButton } from '@mantine/core';
-import { ChevronUp, LogOut, Settings2 } from 'lucide-react';
+import { ChevronUp, LogOut, Settings2, ShieldCheck } from 'lucide-react';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import type { User } from '@/api/types';
 import { useAccount } from './account-provider';
@@ -38,6 +38,12 @@ export function AccountMenu({
             : undefined,
       }),
     });
+  };
+  // `isAdmin` is a session snapshot, so it only decides whether the entry is
+  // offered; /admin/settings itself re-checks on the server (403 ADMIN_REQUIRED).
+  const openSiteAdmin = () => {
+    if (window.location.pathname.startsWith('/admin')) return;
+    void navigate({ to: '/admin/settings' });
   };
   return (
     <Menu
@@ -101,6 +107,14 @@ export function AccountMenu({
           >
             设置
           </Menu.Item>
+          {user.isAdmin && (
+            <Menu.Item
+              leftSection={<ShieldCheck size={17} aria-hidden />}
+              onClick={() => run(openSiteAdmin)}
+            >
+              站点管理
+            </Menu.Item>
+          )}
           <Menu.Item
             color="red"
             leftSection={<LogOut size={17} aria-hidden />}

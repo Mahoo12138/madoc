@@ -1,4 +1,4 @@
-import type { ActivityEvent, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, User, WhiteboardState, Workspace } from './types';
+import type { ActivityEvent, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -62,5 +62,7 @@ export const api = {
   resetMarkdown: (id: string, snapshot: string, markdown: string) => request<void>(`/items/${id}/markdown`, { method: 'PUT', body: JSON.stringify({ snapshot, markdown }) }),
   whiteboard: (id: string) => request<WhiteboardState>(`/items/${id}/whiteboard`),
   updateWhiteboard: (id: string, baseRevision: number, scene: BoardScene) => request<WhiteboardState>(`/items/${id}/whiteboard`, { method: 'PUT', body: JSON.stringify({ baseRevision, scene }) }),
+  siteSettings: () => request<SiteSettings>('/admin/settings', { cache: 'no-store' }),
+  updateSiteSettings: (expectedRevision: number, changes: SiteSettingsChanges) => request<SiteSettings>('/admin/settings', { method: 'PATCH', body: JSON.stringify({ expectedRevision, changes }) }),
   uploadAsset: (workspaceId: string, file: File, itemId?: string) => { const body = new FormData(); body.append('file', file); if (itemId) body.append('itemId', itemId); return request<{ asset: { id: string }; url: string }>(`/workspaces/${workspaceId}/assets`, { method: 'POST', body }); },
 };

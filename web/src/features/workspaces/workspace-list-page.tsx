@@ -55,6 +55,9 @@ export function WorkspaceListPage() {
   if (!session.data?.user) return <Navigate to="/sign-in" replace />;
 
   const user = session.data.user;
+  // Capabilities are computed on the server and read only here; an instance
+  // that does not report them yet keeps the existing entry instead of hiding it.
+  const canCreateWorkspace = user.capabilities?.canCreateWorkspace ?? true;
   const denied =
     workspaces.error instanceof APIError &&
     [401, 403].includes(workspaces.error.status);
@@ -88,15 +91,21 @@ export function WorkspaceListPage() {
               <span className={styles.count}>{list.length} 个</span>
             )}
           </div>
-          <Button
-            className={styles.createButton}
-            variant={emptyList ? 'default' : undefined}
-            leftSection={<Plus size={16} aria-hidden />}
-            onClick={createDialog.open}
-            disabled={denied}
-          >
-            新建工作区
-          </Button>
+          {canCreateWorkspace ? (
+            <Button
+              className={styles.createButton}
+              variant={emptyList ? 'default' : undefined}
+              leftSection={<Plus size={16} aria-hidden />}
+              onClick={createDialog.open}
+              disabled={denied}
+            >
+              新建工作区
+            </Button>
+          ) : (
+            <Text size="sm" c="dimmed">
+              新建权限由站点管理员管理
+            </Text>
+          )}
         </div>
         <p className={styles.lead}>你的文档与白板，都在这里。</p>
         {workspaces.error && (
@@ -182,21 +191,32 @@ export function WorkspaceListPage() {
               icon={FolderOpen}
               headingLevel={2}
               title="你的第一个工作区"
-              description="工作区是文档与白板的容器，也是成员协作的边界。创建后即可开始写作，也可以邀请他人加入。"
-              actions={
-                <Button
-                  className={touchRow}
-                  leftSection={<Plus size={16} aria-hidden />}
-                  onClick={createDialog.open}
-                >
-                  创建工作区
-                </Button>
+              description={
+                canCreateWorkspace
+                  ? '工作区是文档与白板的容器，也是成员协作的边界。创建后即可开始写作，也可以邀请他人加入。'
+                  : '工作区是文档与白板的容器，也是成员协作的边界。你可以先加入他人邀请的工作区。'
               }
+              // No executable create action without the capability: the empty
+              // state explains the boundary instead of offering a doomed button.
+              actions={
+                canCreateWorkspace ? (
+                  <Button
+                    className={touchRow}
+                    leftSection={<Plus size={16} aria-hidden />}
+                    onClick={createDialog.open}
+                  >
+                    创建工作区
+                  </Button>
+                ) : undefined
+              }
+              note={canCreateWorkspace ? undefined : '新建权限由站点管理员管理'}
             />
           )
         )}
       </div>
-      <CreateWorkspaceDialog opened={creating} onClose={createDialog.close} />
+      {canCreateWorkspace && (
+        <CreateWorkspaceDialog opened={creating} onClose={createDialog.close} />
+      )}
     </main>
   );
 }

@@ -1,7 +1,10 @@
 export type Role = 'owner' | 'editor' | 'viewer';
 export type ItemType = 'folder' | 'markdown' | 'whiteboard';
 
-export interface User { avatarUrl?: string | null; id: string; name: string; email: string; isAdmin: boolean; disabled: boolean }
+/** 服务端计算的能力位（`/api/auth/session` 与 `/api/me` 同构）；前端只读，不根据 `isAdmin` 推导。 */
+export interface UserCapabilities { canManageSite: boolean; canCreateWorkspace: boolean }
+
+export interface User { avatarUrl?: string | null; id: string; name: string; email: string; isAdmin: boolean; disabled: boolean; capabilities: UserCapabilities }
 export interface Workspace { id: string; name: string; description: string; role: Role; createdAt: string; updatedAt: string }
 export interface Member { avatarUrl?: string | null; userId: string; name: string; email: string; role: Role; createdAt: string }
 export interface Invite { id: string; workspaceId: string; email: string; role: Exclude<Role, 'owner'>; status: string; expiresAt: string; createdAt: string }
@@ -44,6 +47,36 @@ export interface ActivityEvent {
   id: string; itemId?: string | null; itemTitle?: string; actorName: string;
   type: string; summary: string; createdAt: string;
 }
+
+export type RegistrationMode = 'closed' | 'invite_only' | 'open';
+/**
+ * 站点设置键。与后端 `internal/site` 的 `Key*` 常量一一对应，新增字段必须两侧同时改。
+ * 命名约定：DB 列 `snake_case`，JSON `camelCase`。
+ */
+export type SiteSettingKey =
+  | 'registrationMode'
+  | 'allowWorkspaceOwnerInviteNewUsers'
+  | 'inviteDefaultCanCreateWorkspace'
+  | 'publicSignupDefaultCanCreateWorkspace';
+export interface SiteSettings {
+  schemaVersion: number;
+  /** 乐观并发令牌：仅成功变更后 +1。 */
+  revision: number;
+  registrationMode: RegistrationMode;
+  allowWorkspaceOwnerInviteNewUsers: boolean;
+  inviteDefaultCanCreateWorkspace: boolean;
+  publicSignupDefaultCanCreateWorkspace: boolean;
+  /**
+   * 服务端事实来源：哪些设置已真正接入生效。前端不得硬编码这份映射。
+   * 为 true 的设置进入「已接入」区并提供控件；为 false 的进入「未接入」区且零交互控件。
+   */
+  implemented: Record<SiteSettingKey, boolean>;
+  /** 本次初始化时实例已有账号（迁移 `origin = "upgrade"`）。 */
+  upgradedInstance: boolean;
+  updatedAt: string;
+}
+/** PATCH 只接受业务字段；`schemaVersion` / `revision` / `implemented` 由服务端拒绝。 */
+export type SiteSettingsChanges = Partial<Pick<SiteSettings, SiteSettingKey>>;
 
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }

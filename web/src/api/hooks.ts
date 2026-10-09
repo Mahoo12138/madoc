@@ -1,11 +1,15 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
-import { APIError, type ItemType, type Role } from './types';
+import { APIError, type ItemType, type Role, type SiteSettings, type SiteSettingsChanges } from './types';
 
 const retryWorkspaceRead = (count: number, error: Error) =>
   !(error instanceof APIError && [401, 403, 404].includes(error.status)) && count < 3;
+// Retrying an auth decision cannot change it: 401 sends the page to /sign-in and
+// 403 renders the no-permission state, so both must fail on the first response.
+const retrySiteSettingsRead = (count: number, error: Error) =>
+  !(error instanceof APIError && (error.status === 401 || error.status === 403)) && count < 3;
 
-export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const };
+export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const, siteSettings: ['siteSettings'] as const };
 export const useSession = () => useQuery({ queryKey: keys.session, queryFn: api.session, staleTime: 60_000, retry: false, retryOnMount: false });
 export const useWorkspaces = () => useQuery({ queryKey: keys.workspaces, queryFn: api.workspaces });
 export const useWorkspace = (id: string) => useQuery({ queryKey: keys.workspace(id), queryFn: () => api.workspace(id), retry: retryWorkspaceRead, retryOnMount: false });
@@ -15,6 +19,16 @@ export const useInvites = (id: string, enabled = true) => useQuery({ queryKey: k
 export const useWorkspaceActivity = (id: string) => useInfiniteQuery({ queryKey: keys.activity(id), queryFn: ({ pageParam }) => api.workspaceActivity(id, pageParam), initialPageParam: '', getNextPageParam: (page) => page.nextBefore || undefined });
 export const useMarkdown = (id: string) => useQuery({ queryKey: keys.markdown(id), queryFn: () => api.markdown(id) });
 export const useWhiteboard = (id: string) => useQuery({ queryKey: keys.whiteboard(id), queryFn: () => api.whiteboard(id) });
+export const useSiteSettings = () => useQuery({ queryKey: keys.siteSettings, queryFn: api.siteSettings, retry: retrySiteSettingsRead, retryOnMount: false });
+export const useUpdateSiteSettings = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { expectedRevision: number; changes: SiteSettingsChanges }) => api.updateSiteSettings(input.expectedRevision, input.changes),
+    // The response is the complete DTO including the new revision: write it
+    // straight into the cache instead of paying for a second round trip.
+    onSuccess: (settings) => client.setQueryData<SiteSettings>(keys.siteSettings, settings),
+  });
+};
 
 export function useWorkspaceMutations(workspaceId?: string) {
   const client = useQueryClient();

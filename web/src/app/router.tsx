@@ -3,6 +3,7 @@ import {
   createRoute,
   createRouter,
   lazyRouteComponent,
+  Navigate,
   Outlet,
 } from '@tanstack/react-router';
 import {
@@ -24,6 +25,10 @@ const WorkspaceManagementPage = lazyRouteComponent(
 const PublicSharePage = lazyRouteComponent(
   () => import('@/features/sharing/public-share-page'),
   'PublicSharePage',
+);
+const AdminSettingsPage = lazyRouteComponent(
+  () => import('@/features/admin/admin-settings-page'),
+  'AdminSettingsPage',
 );
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
@@ -78,6 +83,19 @@ const publicShareRoute = createRoute({
   component: PublicSharePage,
 });
 
+// `/admin` has no page of its own while the only child is settings: send it
+// straight to the one route that can render, without leaving a dead entry.
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin',
+  component: () => <Navigate to="/admin/settings" replace />,
+});
+const adminSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/settings',
+  component: AdminSettingsPage,
+});
+
 const routeTree = rootRoute.addChildren([
   startRoute,
   setupRoute,
@@ -89,6 +107,8 @@ const routeTree = rootRoute.addChildren([
   workspaceManagementRoute,
   itemRoute,
   publicShareRoute,
+  adminRoute,
+  adminSettingsRoute,
 ]);
 export const router = createRouter({ routeTree, defaultPreload: 'intent' });
 
