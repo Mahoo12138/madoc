@@ -107,8 +107,8 @@ func (s *Service) AcceptInvite(ctx context.Context, token, name, password string
 		}
 		user = *current
 	} else {
-		var admin, disabled int
-		err := tx.QueryRowContext(ctx, `SELECT id,name,email,is_admin,disabled FROM users WHERE email=?`, invite.Email).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled)
+		var admin, disabled, canCreateWorkspace int
+		err := tx.QueryRowContext(ctx, `SELECT id,name,email,is_admin,disabled,can_create_workspace FROM users WHERE email=?`, invite.Email).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled, &canCreateWorkspace)
 		if errors.Is(err, sql.ErrNoRows) {
 			name = strings.TrimSpace(name)
 			if name == "" || len(password) < 8 {
@@ -118,8 +118,13 @@ func (s *Service) AcceptInvite(ctx context.Context, token, name, password string
 			if err != nil {
 				return auth.User{}, Workspace{}, err
 			}
-			user = auth.User{ID: uuid.NewString(), Name: name, Email: invite.Email}
-			if _, err := tx.ExecContext(ctx, `INSERT INTO users(id,name,email,password_hash,created_at,updated_at) VALUES(?,?,?,?,?,?)`, user.ID, user.Name, user.Email, hash, now, now); err != nil {
+			inviteDefault, err := s.site.InviteDefaultCanCreateWorkspace(ctx, tx)
+			if err != nil {
+				return auth.User{}, Workspace{}, err
+			}
+			user = auth.User{ID: uuid.NewString(), Name: name, Email: invite.Email, CanCreateWorkspace: inviteDefault}
+			user.ApplyCapabilities()
+			if _, err := tx.ExecContext(ctx, `INSERT INTO users(id,name,email,password_hash,signup_source,can_create_workspace,created_at,updated_at) VALUES(?,?,?,?,'workspace_invite',?,?,?)`, user.ID, user.Name, user.Email, hash, inviteDefault, now, now); err != nil {
 				return auth.User{}, Workspace{}, err
 			}
 		} else if err != nil {
@@ -132,7 +137,11 @@ func (s *Service) AcceptInvite(ctx context.Context, token, name, password string
 			return auth.User{}, Workspace{}, ErrForbidden
 		}
 	}
-	if _, err := tx.ExecContext(ctx, `INSERT INTO workspace_members(workspace_id,user_id,role,created_at) VALUES(?,?,?,?) ON CONFLICT(workspace_id,user_id) DO UPDATE SET role=excluded.role`, invite.WorkspaceID, user.ID, invite.Role, now); err != nil {
+	if _, err := tx.ExecContext(ctx, `INSERT INTO workspace_members(workspace_id,user_id,role,created_at) VALUES(?,?,?,?) ON CONFLICT(workspace_id,user_id) DO NOTHING`, invite.WorkspaceID, user.ID, invite.Role, now); err != nil {
+		return auth.User{}, Workspace{}, err
+	}
+	var actualRole string
+	if err := tx.QueryRowContext(ctx, `SELECT role FROM workspace_members WHERE workspace_id=? AND user_id=?`, invite.WorkspaceID, user.ID).Scan(&actualRole); err != nil {
 		return auth.User{}, Workspace{}, err
 	}
 	result, err := tx.ExecContext(ctx, `UPDATE workspace_invites SET status='accepted',updated_at=? WHERE id=? AND status='pending' AND expires_at>?`, now, invite.ID, now)
@@ -147,7 +156,8 @@ func (s *Service) AcceptInvite(ctx context.Context, token, name, password string
 	if err := tx.QueryRowContext(ctx, `SELECT id,name,description,created_at,updated_at FROM workspaces WHERE id=?`, invite.WorkspaceID).Scan(&workspace.ID, &workspace.Name, &workspace.Description, &workspace.CreatedAt, &workspace.UpdatedAt); err != nil {
 		return auth.User{}, Workspace{}, err
 	}
-	workspace.Role = invite.Role
+	workspace.Role = actualRole
+	user.ApplyCapabilities()
 	if err := tx.Commit(); err != nil {
 		return auth.User{}, Workspace{}, err
 	}

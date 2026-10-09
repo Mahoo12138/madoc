@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/google/uuid"
+	"madoc/internal/site"
 )
 
 func (s *Service) ListWorkspaces(ctx context.Context, userID string) ([]Workspace, error) {
@@ -40,6 +41,13 @@ func (s *Service) CreateWorkspace(ctx context.Context, userID, name string) (Wor
 		return Workspace{}, err
 	}
 	defer tx.Rollback()
+	actor, err := s.site.ActorFrom(ctx, tx, userID)
+	if err != nil {
+		return Workspace{}, err
+	}
+	if !site.CanCreateWorkspace(actor) {
+		return Workspace{}, site.ErrWorkspaceCreationDenied
+	}
 	if _, err := tx.ExecContext(ctx, `INSERT INTO workspaces(id,name,created_by,created_at,updated_at) VALUES(?,?,?,?,?)`, workspace.ID, name, userID, now, now); err != nil {
 		return Workspace{}, err
 	}

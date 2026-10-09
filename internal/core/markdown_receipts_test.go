@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"madoc/internal/db"
+	"madoc/internal/site"
 )
 
 func TestMarkdownRetryAfterCompactionAndRestart(t *testing.T) {
@@ -33,7 +34,7 @@ func TestMarkdownRetryAfterCompactionAndRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer conn.Close()
-	service := New(conn)
+	service := New(conn, site.New(conn))
 	retried, err := service.AppendMarkdownUpdate(f.ctx, f.owner.ID, doc.ID, "lost-ack", []byte{1}, 0)
 	if err != nil || retried != seq {
 		t.Fatalf("retry = %d, %v; want %d", retried, err, seq)

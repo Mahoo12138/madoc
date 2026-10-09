@@ -14,6 +14,7 @@ import (
 	"madoc/internal/auth"
 	"madoc/internal/core"
 	"madoc/internal/db"
+	"madoc/internal/site"
 )
 
 type workspaceEventRecorder struct{ workspaces []string }
@@ -35,7 +36,8 @@ func TestRestoreVersionCopyNotifiesWorkspaceOnlyAfterCommit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	domain := core.New(conn)
+	siteStore := site.New(conn)
+	domain := core.New(conn, siteStore)
 	workspace, err := domain.CreateWorkspace(ctx, owner.ID, "Restore event")
 	if err != nil {
 		t.Fatal(err)
@@ -54,7 +56,7 @@ func TestRestoreVersionCopyNotifiesWorkspaceOnlyAfterCommit(t *testing.T) {
 	rooms := &workspaceEventRecorder{}
 	assetRoot := t.TempDir()
 	csrf := auth.NewCSRF([]byte("test-secret"))
-	handler := New(identity, csrf, domain, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), rooms, false).Routes()
+	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), rooms, false).Routes()
 	session, err := identity.CreateSession(ctx, owner.ID)
 	if err != nil {
 		t.Fatal(err)

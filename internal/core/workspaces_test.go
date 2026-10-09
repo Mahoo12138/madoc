@@ -4,7 +4,29 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
+	"madoc/internal/site"
 )
+
+func TestCreateWorkspaceRequiresCurrentCapability(t *testing.T) {
+	f := newFixture(t)
+	user := f.addUser("creator@example.com", "")
+	if _, err := f.core.CreateWorkspace(f.ctx, user.ID, "Denied"); !errors.Is(err, site.ErrWorkspaceCreationDenied) {
+		t.Fatalf("ungranted workspace creation error = %v", err)
+	}
+	if _, err := f.db.Exec(`UPDATE users SET is_admin=1,can_create_workspace=0 WHERE id=?`, user.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.core.CreateWorkspace(f.ctx, user.ID, "Admin workspace"); err != nil {
+		t.Fatalf("admin override failed: %v", err)
+	}
+	if _, err := f.db.Exec(`UPDATE users SET disabled=1,can_create_workspace=1 WHERE id=?`, user.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.core.CreateWorkspace(f.ctx, user.ID, "Disabled"); !errors.Is(err, site.ErrWorkspaceCreationDenied) {
+		t.Fatalf("disabled workspace creation error = %v", err)
+	}
+}
 
 func TestWorkspaceSettingsOwnerOnly(t *testing.T) {
 	f := newFixture(t)

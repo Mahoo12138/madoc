@@ -20,6 +20,7 @@ import (
 	"madoc/internal/auth"
 	"madoc/internal/core"
 	"madoc/internal/db"
+	"madoc/internal/site"
 )
 
 type importTestFixture struct {
@@ -41,7 +42,7 @@ func newImportTestFixture(t *testing.T) importTestFixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	domain := core.New(conn)
+	domain := core.New(conn, site.New(conn))
 	workspace, err := domain.CreateWorkspace(context.Background(), owner.ID, "Imports")
 	if err != nil {
 		t.Fatal(err)
@@ -307,7 +308,7 @@ func TestImportRecoveryPreservesUnknownDataAndCleansUnreferencedJournal(t *testi
 		t.Fatal(err)
 	}
 	defer conn.Close()
-	service := New(conn, core.New(conn), f.service.root, 20)
+	service := New(conn, core.New(conn, site.New(conn)), f.service.root, 20)
 	unknown := filepath.Join(service.root, f.workspace, ".imports", uuid.NewString())
 	if err = os.MkdirAll(unknown, 0o750); err != nil {
 		t.Fatal(err)

@@ -19,6 +19,7 @@ import (
 	"madoc/internal/auth"
 	"madoc/internal/core"
 	"madoc/internal/db"
+	"madoc/internal/site"
 )
 
 func TestPublicShareHTTPUsesOpaqueTokenAndScopedAssets(t *testing.T) {
@@ -33,7 +34,8 @@ func TestPublicShareHTTPUsesOpaqueTokenAndScopedAssets(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	domain := core.New(conn)
+	siteStore := site.New(conn)
+	domain := core.New(conn, siteStore)
 	workspace, err := domain.CreateWorkspace(ctx, owner.ID, "Private workspace")
 	if err != nil {
 		t.Fatal(err)
@@ -76,7 +78,7 @@ func TestPublicShareHTTPUsesOpaqueTokenAndScopedAssets(t *testing.T) {
 	}
 	csrf := auth.NewCSRF([]byte("test-secret"))
 	assets := asset.New(conn, domain, assetRoot, 25)
-	handler := New(authService, csrf, domain, assets, account.New(conn, assetRoot), nil, false).Routes()
+	handler := New(authService, csrf, domain, siteStore, assets, account.New(conn, assetRoot), nil, false).Routes()
 	ownerSession, err := authService.CreateSession(ctx, owner.ID)
 	if err != nil {
 		t.Fatal(err)

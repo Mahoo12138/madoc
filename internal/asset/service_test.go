@@ -14,6 +14,7 @@ import (
 	"madoc/internal/auth"
 	"madoc/internal/core"
 	"madoc/internal/db"
+	"madoc/internal/site"
 )
 
 func uploadHeader(t *testing.T, name, mime string, content []byte) *multipart.FileHeader {
@@ -49,7 +50,7 @@ func TestVersionReferencePreventsAssetDeletion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	domain := core.New(conn)
+	domain := core.New(conn, site.New(conn))
 	space, err := domain.CreateWorkspace(ctx, owner.ID, "Assets")
 	if err != nil {
 		t.Fatal(err)
@@ -106,7 +107,7 @@ func TestAssetUploadInspectionAndPrivateDownload(t *testing.T) {
 	defer conn.Close()
 	authService := auth.New(conn)
 	owner, _, _ := authService.SetupAdmin(ctx, "Owner", "owner@example.com", "password123")
-	domain := core.New(conn)
+	domain := core.New(conn, site.New(conn))
 	space, _ := domain.CreateWorkspace(ctx, owner.ID, "Assets")
 	service := New(conn, domain, t.TempDir(), 20)
 	png := append([]byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}, bytes.Repeat([]byte{0}, 520)...)

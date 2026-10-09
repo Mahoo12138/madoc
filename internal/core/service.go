@@ -4,11 +4,19 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
+	"madoc/internal/site"
 )
 
-type Service struct{ db *sql.DB }
+type Service struct {
+	db   *sql.DB
+	site *site.Store
+}
 
-func New(db *sql.DB) *Service { return &Service{db: db} }
+// New wires the domain service. The site store is injected so transaction
+// holders can read site policy through their own *sql.Tx instead of a second
+// pool handle, which would self-lock under SetMaxOpenConns(1).
+func New(db *sql.DB, siteStore *site.Store) *Service { return &Service{db: db, site: siteStore} }
 
 func (s *Service) Role(ctx context.Context, userID, workspaceID string) (string, error) {
 	var role string

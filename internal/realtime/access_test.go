@@ -11,6 +11,7 @@ import (
 	"madoc/internal/auth"
 	"madoc/internal/core"
 	"madoc/internal/db"
+	"madoc/internal/site"
 )
 
 type accessFixture struct {
@@ -35,7 +36,7 @@ func newAccessFixture(t *testing.T, kind string) accessFixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	domain := core.New(conn)
+	domain := core.New(conn, site.New(conn))
 	space, err := domain.CreateWorkspace(ctx, owner.ID, "Room")
 	if err != nil {
 		t.Fatal(err)

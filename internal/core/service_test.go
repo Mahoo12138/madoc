@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"madoc/internal/auth"
 	"madoc/internal/db"
+	"madoc/internal/site"
 )
 
 type fixture struct {
@@ -36,7 +37,7 @@ func newFixture(t *testing.T) *fixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	domain := New(conn)
+	domain := New(conn, site.New(conn))
 	space, err := domain.CreateWorkspace(context.Background(), owner.ID, "Test")
 	if err != nil {
 		t.Fatal(err)
@@ -184,6 +185,11 @@ func TestWhiteboardRevisionConflict(t *testing.T) {
 func TestInviteAcceptanceTransactionAndExistingAccountAuth(t *testing.T) {
 	f := newFixture(t)
 	existing := f.addUser("existing@example.com", "")
+	var beforeSource, beforeHash string
+	var beforeCanCreate, beforeAdmin int
+	if err := f.db.QueryRow(`SELECT signup_source,can_create_workspace,is_admin,password_hash FROM users WHERE id=?`, existing.ID).Scan(&beforeSource, &beforeCanCreate, &beforeAdmin, &beforeHash); err != nil {
+		t.Fatal(err)
+	}
 	_, token, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, existing.Email, "editor")
 	if err != nil {
 		t.Fatal(err)
@@ -191,16 +197,102 @@ func TestInviteAcceptanceTransactionAndExistingAccountAuth(t *testing.T) {
 	if _, _, err := f.core.AcceptInvite(f.ctx, token, "", "", nil); !errors.Is(err, ErrForbidden) {
 		t.Fatalf("existing unauthenticated account accepted: %v", err)
 	}
-	if _, _, err := f.core.AcceptInvite(f.ctx, token, "", "", &existing); err != nil {
-		t.Fatalf("authenticated accept: %v", err)
+	if _, workspace, err := f.core.AcceptInvite(f.ctx, token, "", "", &existing); err != nil || workspace.Role != "editor" {
+		t.Fatalf("authenticated accept: workspace=%#v err=%v", workspace, err)
+	}
+	var afterSource, afterHash string
+	var afterCanCreate, afterAdmin int
+	if err := f.db.QueryRow(`SELECT signup_source,can_create_workspace,is_admin,password_hash FROM users WHERE id=?`, existing.ID).Scan(&afterSource, &afterCanCreate, &afterAdmin, &afterHash); err != nil {
+		t.Fatal(err)
+	}
+	if beforeSource != afterSource || beforeCanCreate != afterCanCreate || beforeAdmin != afterAdmin || beforeHash != afterHash {
+		t.Fatalf("existing account changed: before=%q/%d/%d/%q after=%q/%d/%d/%q", beforeSource, beforeCanCreate, beforeAdmin, beforeHash, afterSource, afterCanCreate, afterAdmin, afterHash)
 	}
 	if _, _, err := f.core.AcceptInvite(f.ctx, token, "", "", &existing); !errors.Is(err, ErrConflict) {
 		t.Fatalf("duplicate accept error = %v", err)
 	}
+
+	_, ownerToken, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, f.owner.Email, "viewer")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, ownerWorkspace, err := f.core.AcceptInvite(f.ctx, ownerToken, "", "", &f.owner)
+	if err != nil || ownerWorkspace.Role != "owner" {
+		t.Fatalf("existing owner role changed: workspace=%#v err=%v", ownerWorkspace, err)
+	}
+
 	_, newToken, _ := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, "new@example.com", "viewer")
 	created, workspace, err := f.core.AcceptInvite(f.ctx, newToken, "New User", "password123", nil)
 	if err != nil || created.Email != "new@example.com" || workspace.Role != "viewer" {
 		t.Fatalf("new account accept = %#v %#v %v", created, workspace, err)
+	}
+	var source string
+	var canCreate int
+	if err := f.db.QueryRow(`SELECT signup_source,can_create_workspace FROM users WHERE id=?`, created.ID).Scan(&source, &canCreate); err != nil {
+		t.Fatal(err)
+	}
+	if source != "workspace_invite" || canCreate != 0 || created.Capabilities.CanCreateWorkspace {
+		t.Fatalf("new invite account source=%q canCreate=%d capabilities=%#v", source, canCreate, created.Capabilities)
+	}
+}
+
+func TestInviteAcceptanceSnapshotsEnabledPolicyAndFailsClosed(t *testing.T) {
+	f := newFixture(t)
+	enabled := `{"schemaVersion":1,"revision":1,"registrationMode":"invite_only","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":true,"publicSignupDefaultCanCreateWorkspace":false,"origin":"new"}`
+	if _, err := f.db.Exec(`UPDATE server_config SET value=? WHERE key='site_settings'`, enabled); err != nil {
+		t.Fatal(err)
+	}
+	_, token, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, "enabled@example.com", "viewer")
+	if err != nil {
+		t.Fatal(err)
+	}
+	created, _, err := f.core.AcceptInvite(f.ctx, token, "Enabled", "password123", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var source string
+	var canCreate int
+	if err := f.db.QueryRow(`SELECT signup_source,can_create_workspace FROM users WHERE id=?`, created.ID).Scan(&source, &canCreate); err != nil {
+		t.Fatal(err)
+	}
+	if source != "workspace_invite" || canCreate != 1 || !created.Capabilities.CanCreateWorkspace {
+		t.Fatalf("enabled invite account source=%q canCreate=%d capabilities=%#v", source, canCreate, created.Capabilities)
+	}
+
+	if _, err := f.db.Exec(`UPDATE server_config SET value='{}' WHERE key='site_settings'`); err != nil {
+		t.Fatal(err)
+	}
+	_, corruptToken, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, "blocked@example.com", "viewer")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := f.core.AcceptInvite(f.ctx, corruptToken, "Blocked", "password123", nil); !errors.Is(err, site.ErrCorrupt) {
+		t.Fatalf("corrupt settings acceptance error = %v", err)
+	}
+	var count int
+	if err := f.db.QueryRow(`SELECT count(*) FROM users WHERE email='blocked@example.com'`).Scan(&count); err != nil || count != 0 {
+		t.Fatalf("corrupt settings created account: count=%d err=%v", count, err)
+	}
+
+	// A stored "open" mode is the same class of unusable document: acceptance
+	// must roll back instead of creating an account under a broken policy.
+	storedOpen := `{"schemaVersion":1,"revision":0,"registrationMode":"open","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":false,"publicSignupDefaultCanCreateWorkspace":false,"origin":"new"}`
+	if _, err := f.db.Exec(`UPDATE server_config SET value=? WHERE key='site_settings'`, storedOpen); err != nil {
+		t.Fatal(err)
+	}
+	_, openToken, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, "openblocked@example.com", "viewer")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := f.core.AcceptInvite(f.ctx, openToken, "Open Blocked", "password123", nil); !errors.Is(err, site.ErrCorrupt) {
+		t.Fatalf("stored open acceptance error = %v", err)
+	}
+	if err := f.db.QueryRow(`SELECT count(*) FROM users WHERE email='openblocked@example.com'`).Scan(&count); err != nil || count != 0 {
+		t.Fatalf("stored open settings created account: count=%d err=%v", count, err)
+	}
+	var raw string
+	if err := f.db.QueryRow(`SELECT value FROM server_config WHERE key='site_settings'`).Scan(&raw); err != nil || raw != storedOpen {
+		t.Fatalf("stored open settings rewritten: %q err=%v", raw, err)
 	}
 }
 

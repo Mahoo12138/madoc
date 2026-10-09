@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"madoc/internal/db"
+	"madoc/internal/site"
 )
 
 func importFixture() ContentImport {
@@ -95,7 +96,7 @@ func TestImportContentTreeStatesAndDurableReplay(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer conn.Close()
-	replay, err := New(conn).ImportContent(f.ctx, f.owner.ID, f.space.ID, plan)
+	replay, err := New(conn, site.New(conn)).ImportContent(f.ctx, f.owner.ID, f.space.ID, plan)
 	if err != nil || !replay.Replayed || replay.RootID != result.RootID {
 		t.Fatalf("replay: %+v %v", replay, err)
 	}

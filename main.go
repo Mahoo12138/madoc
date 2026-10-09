@@ -25,6 +25,7 @@ import (
 	"madoc/internal/db"
 	"madoc/internal/maintenance"
 	"madoc/internal/realtime"
+	"madoc/internal/site"
 )
 
 //go:embed all:web/dist
@@ -84,13 +85,14 @@ func main() {
 	}
 	defer conn.Close()
 	authService := auth.New(conn)
-	domain := core.New(conn)
+	siteStore := site.New(conn)
+	domain := core.New(conn, siteStore)
 	assetService := asset.New(conn, domain, cfg.AssetDir, cfg.MaxUploadMB)
 	if err := assetService.RecoverImports(context.Background()); err != nil {
 		log.Fatalf("recover incomplete content imports: %v", err)
 	}
 	hub := realtime.New(authService, domain, cfg.Dev)
-	apiHandler := api.New(authService, auth.NewCSRF(cfg.Secret), domain, assetService, account.New(conn, cfg.AssetDir), hub, !cfg.Dev)
+	apiHandler := api.New(authService, auth.NewCSRF(cfg.Secret), domain, siteStore, assetService, account.New(conn, cfg.AssetDir), hub, !cfg.Dev)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.RealIP, middleware.Logger, middleware.Recoverer, securityHeaders)
