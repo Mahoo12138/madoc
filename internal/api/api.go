@@ -16,6 +16,7 @@ import (
 	"madoc/internal/asset"
 	"madoc/internal/auth"
 	"madoc/internal/core"
+	"madoc/internal/site"
 )
 
 type RoomInspector interface{ Active(itemID string) bool }
@@ -24,14 +25,15 @@ type API struct {
 	auth          *auth.Service
 	csrf          *auth.CSRF
 	core          *core.Service
+	site          *site.Store
 	assets        *asset.Service
 	accounts      *account.Service
 	rooms         RoomInspector
 	secureCookies bool
 }
 
-func New(authService *auth.Service, csrf *auth.CSRF, domain *core.Service, assets *asset.Service, accounts *account.Service, rooms RoomInspector, secureCookies bool) *API {
-	return &API{auth: authService, csrf: csrf, core: domain, assets: assets, accounts: accounts, rooms: rooms, secureCookies: secureCookies}
+func New(authService *auth.Service, csrf *auth.CSRF, domain *core.Service, siteStore *site.Store, assets *asset.Service, accounts *account.Service, rooms RoomInspector, secureCookies bool) *API {
+	return &API{auth: authService, csrf: csrf, core: domain, site: siteStore, assets: assets, accounts: accounts, rooms: rooms, secureCookies: secureCookies}
 }
 
 func (a *API) Routes() http.Handler {
@@ -44,6 +46,8 @@ func (a *API) Routes() http.Handler {
 	r.Get("/public/shares/{token}", a.getPublicShare)
 	r.Get("/public/shares/{token}/assets/{assetId}", a.getPublicShareAsset)
 	r.With(a.auth.Require).Get("/me", a.me)
+	r.With(a.auth.Require).Get("/admin/settings", a.adminRequired(a.getSiteSettings))
+	r.With(a.auth.Require).Patch("/admin/settings", a.adminRequired(a.csrfRequired(a.patchSiteSettings)))
 	r.Get("/invites/{token}", a.inspectInvite)
 	r.With(a.auth.Optional).Post("/invites/{token}/accept", a.acceptInvite)
 	r.Group(func(r chi.Router) {
@@ -132,6 +136,14 @@ func writeError(w http.ResponseWriter, status int, code, message string) {
 
 func domainError(w http.ResponseWriter, err error) {
 	switch {
+	case errors.Is(err, site.ErrWorkspaceCreationDenied):
+		writeError(w, http.StatusForbidden, "WORKSPACE_CREATION_DENIED", "workspace creation is not allowed")
+	case errors.Is(err, site.ErrRevisionConflict):
+		writeError(w, http.StatusConflict, "REVISION_CONFLICT", "site settings were changed by another administrator")
+	case errors.Is(err, site.ErrInvalidChange):
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid request")
+	case errors.Is(err, site.ErrCorrupt):
+		writeError(w, http.StatusInternalServerError, "INTERNAL", "internal server error")
 	case errors.Is(err, core.ErrNotFound):
 		writeError(w, 404, "NOT_FOUND", "resource not found")
 	case errors.Is(err, core.ErrForbidden):
