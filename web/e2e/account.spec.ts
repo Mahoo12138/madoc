@@ -354,7 +354,13 @@ test('account entries are grouped under settings with a shortcuts navigation ite
 }) => {
   await accountFixture(page, baseURL!);
   await page.getByRole('button', { name: '账号菜单', exact: true }).click();
-  await expect(page.getByRole('menuitem')).toHaveText(['设置', '退出登录']);
+  // The fixture account is the site administrator, so it also carries the
+  // 站点管理 entry; accounts without the role never see it.
+  await expect(page.getByRole('menuitem')).toHaveText([
+    '设置',
+    '站点管理',
+    '退出登录',
+  ]);
   await page.getByRole('menuitem', { name: '设置', exact: true }).click();
   const nav = page.getByRole('navigation', { name: '个人设置分类' });
   await expect(nav.getByRole('button')).toHaveText([
