@@ -1,0 +1,146 @@
+classDiagram
+    class DBTX {
+        <<interface>>
+        +ExecContext(ctx, query, args) Result
+        +QueryRowContext(ctx, query, args) Row
+        +QueryContext(ctx, query, args) Rows
+    }
+
+    class Store {
+        -db *sql.DB
+        +New(db *sql.DB) *Store
+        +Load(ctx, q DBTX) Settings
+        +Ensure(ctx) Settings
+        +Update(ctx, actor Actor, expectedRevision int, changes map~string,json.RawMessage~) Settings
+        +InviteDefaultCanCreateWorkspace(ctx, q DBTX) bool
+        +ActorFrom(ctx, q DBTX, userID string) Actor
+    }
+
+    class Settings {
+        +SchemaVersion int
+        +Revision int
+        +RegistrationMode string
+        +AllowWorkspaceOwnerInviteNewUsers bool
+        +InviteDefaultCanCreateWorkspace bool
+        +PublicSignupDefaultCanCreateWorkspace bool
+        +Implemented map~string,bool~
+        +UpgradedInstance bool
+        +UpdatedAt string
+    }
+
+    class document {
+        -SchemaVersion int
+        -Revision int
+        -RegistrationMode string
+        -AllowWorkspaceOwnerInviteNewUsers bool
+        -InviteDefaultCanCreateWorkspace bool
+        -PublicSignupDefaultCanCreateWorkspace bool
+        -Origin string
+        +validate() error
+        +apply(changes) document
+    }
+
+    class Actor {
+        +ID string
+        +IsAdmin bool
+        +Disabled bool
+        +CanCreateWorkspace bool
+    }
+
+    class Errors {
+        <<sentinels>>
+        +ErrCorrupt
+        +ErrInvalidChange
+        +ErrRegistrationNotReady
+        +ErrRevisionConflict
+        +ErrAdminRequired
+        +ErrWorkspaceCreationDenied
+    }
+
+    class Audit {
+        <<helper>>
+        +record(ctx, q DBTX, actor Actor, changes map~string,any~) error
+    }
+
+    class APIStruct {
+        -auth *auth.Service
+        -core *core.Service
+        -site *site.Store
+        +Routes() Handler
+        +adminRequired(next) HandlerFunc
+        +getSiteSettings(w, r)
+        +patchSiteSettings(w, r)
+    }
+
+    class CoreService {
+        -db *sql.DB
+        +CreateWorkspace(ctx, userID, name) Workspace
+        +AcceptInvite(ctx, token, name, password, current) auth_User
+    }
+
+    class AuthService {
+        -db *sql.DB
+        +SetupAdmin(ctx, name, email, password) User
+        +Resolve(ctx, sessionID) User
+    }
+
+    class AuthUser {
+        +ID string
+        +Name string
+        +Email string
+        +IsAdmin bool
+        +Disabled bool
+        +CanCreateWorkspace bool
+        +Capabilities Capabilities
+        +ApplyCapabilities()
+    }
+
+    class Capabilities {
+        +CanManageSite bool
+        +CanCreateWorkspace bool
+    }
+
+    class server_config {
+        <<table>>
+        +key TEXT PK
+        +value TEXT
+        +updated_at DATETIME
+    }
+    class users {
+        <<table>>
+        +can_create_workspace INTEGER
+        +signup_source TEXT
+        +is_admin INTEGER
+        +disabled INTEGER
+    }
+    class admin_audit_events {
+        <<table>>
+        +id INTEGER PK
+        +actor_kind TEXT
+        +actor_user_id TEXT
+        +action TEXT
+        +target_type TEXT
+        +target_id TEXT
+        +changes_json TEXT
+        +request_id TEXT
+        +created_at DATETIME
+    }
+
+    Store ..> DBTX : 全部查询经由
+    Store --> Settings : 产出 DTO
+    Store --> document : 解析与持久化
+    Store --> Actor : 事务内读
+    Store --> Errors
+    Store --> Audit : 同事务写入
+    Audit --> admin_audit_events
+    Store --> server_config
+    Store --> users
+    APIStruct --> Store
+    CoreService --> Store : 传 tx
+    CoreService ..> Actor : 事务内能力判定
+    CoreService ..> Errors : ErrWorkspaceCreationDenied
+    AuthService --> Store : CanCreateWorkspace 纯函数
+    AuthService --> AuthUser
+    AuthUser --> Capabilities
+    APIStruct --> AuthService
+    APIStruct --> CoreService

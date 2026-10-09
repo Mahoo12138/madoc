@@ -54,14 +54,70 @@ Mermaid 仍为可裁剪增强，不阻塞阶段验收；不增加全篇源码双
 及提交见 `STATUS.md`。不得因此引入匿名写入、分享评论、段落锚点、@提醒、通知中心、目录公开或
 完整发布站点。分享边界见 `SHARING.md`。
 
+## 阶段 5：站点管理与受控注册（进行中）
+
+目标是把「谁能创建工作区」「谁能注册」从隐含行为变成站点级、可审计的显式事实。设计依据是仓库根目录的
+`madoc_站点管理与受控注册_设计与开发方案.md`，本次交付的系统设计与任务分解见
+[SITE_ADMIN_SETTINGS_DESIGN.md](SITE_ADMIN_SETTINGS_DESIGN.md)，产品裁决见
+[SITE_ADMIN_SETTINGS_PRD.md](SITE_ADMIN_SETTINGS_PRD.md)。本阶段按独立可验收的工作包推进，**尚未整体完成**。
+
+### 5.1 用户管理与工作区创建控制（部分交付）
+
+本阶段的第一包是**设置切片（已交付）**：类型化站点设置存储、读写 API 与管理页面，以及让设置真正生效的最小链路。
+
+- `site_settings` 存于 `server_config` 单键，含 `schemaVersion` / `revision` / 4 个业务字段，
+  结构损坏即失败关闭；读写契约见 [HTTP API](API.md)，存储结构见 [数据模型](DATA_MODEL.md)；
+- `GET` / `PATCH /api/admin/settings`，中间件顺序 `Require → adminRequired → csrfRequired`，
+  `revision` 乐观并发，无实际变化不递增；
+- `admin_audit_events` 建表并写入 `site.settings_changed`（只写不读，无查看页）；
+- 生效点接入：`users.can_create_workspace` / `signup_source` 迁移、`CreateWorkspace` 能力检查、
+  `AcceptInvite` 新账号写入来源与初始授权、`SetupAdmin` 写入 `setup` 来源；
+- `/admin` 与 `/admin/settings` 页面、账号菜单的「站点管理」入口、`capabilities` 能力位收敛
+  「新建工作区」入口。页面职责边界见 [个人设置](ACCOUNT.md)；
+- 顺带修复：接受邀请不再覆盖既有成员的 Workspace 角色，响应返回实际角色。
+
+页面只把「受邀新账号默认可创建工作区」做成可编辑控件，其余三项以「尚未接入」只读行展示，
+由服务端下发的 `implemented` 映射驱动，不做假开关。
+
+本次验证范围：Go 单元与 HTTP 集成测试、`go vet`、`gofmt`、前端类型检查与构建。
+**完整端到端套件未运行，Safari / Firefox 与真机未验证。**
+
+本阶段第二包是**用户管理切片（尚未开始）**：`/admin/users` 用户列表与详情、启停、管理员身份变更、
+撤销会话；`users.admin_revision` 与用户级并发控制；最后一个启用中管理员的保护。设置已预留
+`implemented` 与审计表，但这一包尚未动工。
+
+### 5.2 准入判定（尚未开始）
+
+把 `registrationMode` 的 `closed` / `invite_only` 变成真正的准入判定，
+`allowWorkspaceOwnerInviteNewUsers` 接入 owner 邀请新用户路径；新增 `GET /api/site`
+与 `INVITE_NEW_USER_DENIED`。当前 `registrationMode` 只入库和校验，不参与判定，
+`open` 由服务端预埋拒绝（422 `REGISTRATION_NOT_READY`）。
+
+### 5.3 公开注册（尚未开始，可选）
+
+邮箱验证、SMTP、限流、管理员显式建号、`account_enrollments`，以及
+`publicSignupDefaultCanCreateWorkspace` 的接入。
+
+### 5.4 审计查看、维护与发行验收（尚未开始）
+
+`/admin/audit` 查看页、审计保留策略与发行候选验收。审计事件从 5.1 起已在写入，但目前没有读取入口。
+
 ## 后续工作包（尚未排入阶段）
 
 原设计文档明确留作独立工作的范围包括完整离线工作区、历史版本原位覆盖恢复，以及规模化性能基准。
-这些工作会改变离线冲突处理、协作代际 / 恢复语义或容量承诺；目前没有已确认的阶段 5，也没有据此
-宣称这些能力已经实现。选择下一工作包前，先定义目标、数据安全边界与验收条件。
+这些工作会改变离线冲突处理、协作代际 / 恢复语义或容量承诺。选择下一工作包前，先定义目标、
+数据安全边界与验收条件。
+
+站点名称、公告、上传大小等与人员准入无关的设置，以及任意键值设置编辑器 / Feature Flag 系统，
+已明确排除在阶段 5 之外。实时连接的用户级撤权（Hub 改造）属于 5.1 的用户管理切片，
+本次**没有**实现，见 [协作说明](COLLABORATION.md) 的既有边界。
 
 ## 持续约束
 
 保持 Go 单二进制、SQLite、本地资产、现有 React / Mantine / Vanilla Extract 技术边界。
 不新增 AFFiNE compatibility、GraphQL、Redis、第三种编辑器类型或必需常驻服务。
 迁移保留已有内容；涉及不可逆删除、保留策略或权限模型的未决事项先明确再实施。
+
+站点设置与账号创建权限的存储、默认值与回滚边界分别见 [数据模型](DATA_MODEL.md) 与
+[构建与部署](../BUILD.md)。其中「回退旧二进制不会执行新规则」是权限相关变更的硬约束，
+新增权限字段时必须同步更新该说明。

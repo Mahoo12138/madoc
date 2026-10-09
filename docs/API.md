@@ -38,7 +38,7 @@ POST /api/auth/sign-out
 GET  /api/auth/session
 ```
 
-`setup/admin` 只允许未初始化实例调用一次。
+`setup/admin` 只允许未初始化实例调用一次。它创建的第一个管理员带 `signup_source = 'setup'` 与 `can_create_workspace = 1`。
 
 CSRF 采用 madoc 自己的命名，不保留 `x-affine-csrf-token`。
 
@@ -69,7 +69,125 @@ POST   /api/me/password
 
 密码 POST 接收 `{ currentPassword, newPassword }`，新密码 8–72 字节；当前密码错误返回 400 `INCORRECT_PASSWORD`，成功返回 204。事务内修改密码并撤销其他会话，关闭对应 WebSocket，保留当前会话。
 
-站点管理后续：
+### 3.1 User DTO 与 capabilities
+
+`GET /api/auth/session` 与 `GET /api/me` 返回同构的 User：
+
+```json
+{
+  "id": "…",
+  "avatarUrl": null,
+  "name": "…",
+  "email": "…",
+  "isAdmin": false,
+  "disabled": false,
+  "capabilities": { "canManageSite": false, "canCreateWorkspace": true }
+}
+```
+
+`capabilities` 由服务端根据数据库当前事实计算，**客户端只读**，不允许也不需要根据 `isAdmin` 推导：
+
+| 字段 | 语义 |
+| --- | --- |
+| `canManageSite` | 用户存在、未被禁用、且是启用中的站点管理员 |
+| `canCreateWorkspace` | 用户存在、未被禁用，且（是管理员 **或** `users.can_create_workspace = 1`） |
+
+列定义、回填与创建路径写入规则见 [数据模型](DATA_MODEL.md)；设置存储见 4. 站点管理设置。
+
+## 4. 站点管理设置
+
+```text
+GET   /api/admin/settings
+PATCH /api/admin/settings
+```
+
+中间件顺序固定为 `auth.Require → adminRequired → csrfRequired`（`csrfRequired` 只作用于 PATCH）。`adminRequired` 独立于中间件层再校验一次：未登录由 `Require` 返回 401 `UNAUTHORIZED`，已登录但不是启用中的管理员返回 403 `ADMIN_REQUIRED`。**不依靠隐藏菜单作为安全措施**，前端是否显示入口与服务端校验是两件事。
+
+读写站点设置：
+
+```json
+{
+  "schemaVersion": 1,
+  "revision": 3,
+  "registrationMode": "invite_only",
+  "allowWorkspaceOwnerInviteNewUsers": true,
+  "inviteDefaultCanCreateWorkspace": true,
+  "publicSignupDefaultCanCreateWorkspace": false,
+  "implemented": {
+    "registrationMode": false,
+    "allowWorkspaceOwnerInviteNewUsers": false,
+    "inviteDefaultCanCreateWorkspace": true,
+    "publicSignupDefaultCanCreateWorkspace": false
+  },
+  "upgradedInstance": true,
+  "updatedAt": "2026-10-09T00:00:00Z"
+}
+```
+
+上例是一个从旧版本升级来的实例：管理员尚未改过受邀默认授权，因此两个创建授权相关的值仍是升级默认的 `true`。新安装实例的初始值见 [构建与部署](../BUILD.md) 的默认值表。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `schemaVersion` | int | 配置结构版本，当前必须为 `1` |
+| `revision` | int | 乐观并发令牌，`>= 0`；仅成功变更后 +1，无实际变化不递增 |
+| `registrationMode` | enum | `closed` / `invite_only` / `open`；本次**入库但不参与判定**，`open` 会被拒绝 |
+| `allowWorkspaceOwnerInviteNewUsers` | bool | 本次**入库但不参与判定** |
+| `inviteDefaultCanCreateWorkspace` | bool | **已接入**：`AcceptInvite` 创建新账号时写入 `users.can_create_workspace` |
+| `publicSignupDefaultCanCreateWorkspace` | bool | 本次**入库但不参与判定** |
+| `implemented` | object | 服务端事实来源：该设置是否已真正接入生效。客户端只读，不得硬编码这份映射 |
+| `upgradedInstance` | bool | 本次初始化时实例已有账号（迁移写入的 `origin = "upgrade"`），页面据此提示「已按旧版本行为保留」 |
+| `updatedAt` | string | `server_config.updated_at`，UTC RFC 3339 |
+
+两个接口的响应都带 `Cache-Control: no-store`。
+
+### 4.1 PATCH 请求体
+
+```json
+{
+  "expectedRevision": 2,
+  "changes": { "inviteDefaultCanCreateWorkspace": false }
+}
+```
+
+- `expectedRevision` 必须存在且为整数（缺失或非整数 → 400）；
+- `changes` 必须存在且至少 1 个字段（空对象 → 400）；
+- `changes` 只接受上表 4 个业务字段。`schemaVersion` / `revision` / `implemented` 一律 400；
+- 布尔字段必须是严格 JSON 布尔，`null`、`"true"`、`0` / `1` 都拒绝；
+- `registrationMode` 必须是三个枚举值之一。
+
+响应是**完整 DTO**（与 GET 同构，含新的 `revision`）。`changes` 与当前值完全相同时原样返回：不递增 `revision`、不写审计。
+
+### 4.2 错误码
+
+| 状态 | code | 触发 |
+| --- | --- | --- |
+| 400 | `INVALID_REQUEST` | 解码失败、`expectedRevision` / `changes` 不合法、字段不在白名单、布尔类型不严格 |
+| 401 | `UNAUTHORIZED` | 未登录（沿用既有 code） |
+| 403 | `CSRF_INVALID` | 写请求 CSRF 校验失败 |
+| 403 | `ADMIN_REQUIRED` | 非启用中的管理员；也包括事务内复检时操作者已不再是启用中管理员 |
+| 409 | `REVISION_CONFLICT` | `expectedRevision` 与当前 `revision` 不一致（其他管理员已修改） |
+| 422 | `REGISTRATION_NOT_READY` | 请求把 `registrationMode` 设为 `open`（公开注册尚未接入，服务端预埋拒绝） |
+| 500 | `INTERNAL` | `site_settings` 结构损坏、缺失关键字段或读取失败（含存量 `registrationMode: "open"`）；服务端记录可诊断日志 |
+
+校验在单个数据库事务内按固定顺序执行：读取并校验结构（结构损坏直接 500 短路，不做任何写入）→ 合并白名单变更 → 拒绝 `open` → 比对 `revision` → 事务内复检操作者 → 写回 `server_config` → 写 `admin_audit_events`。业务错误的优先级为 **400 → 422 → 409 → 403**。审计与设置写入同事务提交，任一步失败整体回滚；被拒绝的请求不留下审计记录。
+
+首次由管理员访问时若 `site_settings` 不存在，会在该事务内**惰性初始化并持久化**（`revision = 0`）。非管理员请求不触发初始化。结构损坏时不会退回「允许所有人」，依赖该策略的操作失败关闭。
+
+判定结构损坏时，**存量 `registrationMode: "open"` 也算损坏**：写侧对 `open` 的请求一律返回 422，因此服务自身没有任何写入路径能存下该值，读到它就说明文档被服务之外的来源改写过（例如手工改库）。这条闸门在读取阶段生效，读侧（GET）与写侧（PATCH）因此给出同一个结论——GET 不会返回一个任何修改都无法生效的值，而是与 PATCH 一样返回 500 `INTERNAL`；依赖该策略的敏感操作（`POST /api/invites/:token/accept` 建号、`inviteDefaultCanCreateWorkspace` 读取）同样失败关闭。
+
+### 4.3 生效点（同一批交付的其他既有接口）
+
+这些接口的路由未改变，只是接入了新的能力事实：
+
+| 接口 | 变化 |
+| --- | --- |
+| `POST /api/workspaces` | 事务内判定创建能力；不满足返回 **403 `WORKSPACE_CREATION_DENIED`**。管理员即使 `can_create_workspace = 0` 仍可创建；已禁用账号一律拒绝 |
+| `POST /api/invites/:token/accept` | 仅**新建账号**分支写入 `signup_source = 'workspace_invite'`，`can_create_workspace` 取**接受那一刻**的 `inviteDefaultCanCreateWorkspace`；已有账号的来源、授权、管理员身份与密码都不被改写。接受邀请不再覆盖既有成员角色，响应的 `workspace.role` 是实际角色 |
+| `POST /api/setup/admin` | 首个管理员写入 `signup_source = 'setup'`、`can_create_workspace = 1` |
+
+设置损坏时，`POST /api/workspaces` 与 `POST /api/invites/:token/accept` 失败关闭（不建号、不放行）。
+
+站点管理后续（尚未交付）：
 
 ```text
 GET    /api/admin/users
@@ -79,7 +197,7 @@ PATCH  /api/admin/users/:id
 
 不是编辑器 MVP 阻塞项。
 
-## 4. Workspace
+## 5. Workspace
 
 ```text
 GET    /api/workspaces
@@ -97,7 +215,7 @@ DELETE /api/workspaces/:workspaceId
 }
 ```
 
-创建者自动成为 owner。
+创建者自动成为 owner。创建前服务端在事务内判定创建能力（管理员，或账号的 `users.can_create_workspace = 1`，且未被禁用），不满足返回 403 `WORKSPACE_CREATION_DENIED`；完整语义见 4.3。
 
 Workspace 列表、详情、创建和接受邀请的响应包含 `description` 字符串，新工作区默认为空。
 `PATCH /api/workspaces/:workspaceId` 仅 owner 可调用，支持可选 `name` 和 `description`：
@@ -108,7 +226,7 @@ Workspace 列表、详情、创建和接受邀请的响应包含 `description` �
 
 只更新提供的字段，省略的字段保持不变；至少提供一个字段。名称 trim 后不能为空，介绍 trim 后最多 500 个 Unicode 字符，可传 `""` 清除。整次请求验证通过后才写入，失败不部分保存；成功返回 204 并发送既有工作区变更通知。
 
-## 5. Members
+## 6. Members
 
 ```text
 GET    /api/workspaces/:workspaceId/members
@@ -126,7 +244,9 @@ POST /api/invites/:token/accept
 DELETE /api/workspaces/:workspaceId/invites/:inviteId
 ```
 
-## 5.1 Workspace activity
+接受邀请时的账号与角色语义见 4.3；接受邀请不会覆盖既有成员角色，响应 `workspace.role` 是账号在该工作区的实际角色。
+
+## 6.1 Workspace activity
 
 ```text
 GET /api/workspaces/{workspaceId}/activity?before={eventId}&limit=30
@@ -136,7 +256,7 @@ Every current Workspace member may read the newest-first activity feed. `limit` 
 `before` is the previous page's last event ID. The response is `{ "events": [...], "nextBefore": "..." }`.
 Activity summaries are server-authored and do not include document or comment contents. See [ACTIVITY.md](ACTIVITY.md).
 
-## 6. Items
+## 7. Items
 
 ```text
 GET    /api/workspaces/:workspaceId/items
@@ -159,7 +279,7 @@ POST   /api/items/:itemId/move
 
 Folder / Markdown / Whiteboard 共用 metadata API。
 
-## 7. Markdown
+## 8. Markdown
 
 首次加载主要走 WebSocket init。
 
@@ -190,7 +310,7 @@ GET /api/items/:itemId/export.md
 
 因此 MVP 实现时，如果整篇替换语义尚未设计完善，可以先只提供 export 与 import UI，不开放通用 `PUT`。
 
-## 8. Assets
+## 9. Assets
 
 ```text
 POST /api/workspaces/:workspaceId/assets
@@ -216,7 +336,7 @@ Asset download 的公开/私有行为必须跟 Workspace 权限一致。MVP 默�
 
 Markdown 图片如果直接 `<img src="/api/assets/id">`，浏览器自然携带同域 cookie。
 
-## 9. Whiteboard Export
+## 10. Whiteboard Export
 
 白板 PNG / SVG / JSON 优先在浏览器生成。
 
@@ -231,7 +351,7 @@ PUT /api/items/:itemId/whiteboard
 
 主要编辑同步仍走 WebSocket。
 
-## 10. Realtime
+## 11. Realtime
 
 ```text
 GET /ws
@@ -239,7 +359,7 @@ GET /ws
 
 详见 `COLLABORATION.md`。
 
-## 11. Health
+## 12. Health
 
 ```text
 GET /healthz
@@ -255,7 +375,7 @@ GET /healthz
 
 可选 `/readyz` 做 DB check，但单实例 MVP 不必过度设计。
 
-## 12. Pagination
+## 13. Pagination
 
 Items tree 通常整棵 Workspace 加载，不必强制 pagination。
 
@@ -302,7 +422,7 @@ DELETE /api/items/{itemId}/comments/{commentId}
 列表按创建时间倒序分页，默认 50 条、最多 100 条，响应包含 `comments` 与 `nextBefore`；写请求要求 CSRF。
 评论记录作者显示名称快照，用户被删除后评论正文与显示名称仍保留。
 
-## 13. Versioning
+## 14. Versioning
 
 MVP 不需要 URL `/v1`。
 

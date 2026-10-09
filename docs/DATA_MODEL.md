@@ -23,6 +23,44 @@ CREATE TABLE users (
 );
 ```
 
+### 2.1 站点准入字段
+
+增量迁移 `0017_site_settings_and_user_capabilities.sql` 增加两列：
+
+```sql
+ALTER TABLE users ADD COLUMN can_create_workspace INTEGER NOT NULL DEFAULT 0
+  CHECK (can_create_workspace IN (0, 1));
+ALTER TABLE users ADD COLUMN signup_source TEXT NOT NULL DEFAULT 'legacy'
+  CHECK (signup_source IN ('setup', 'workspace_invite', 'public_signup', 'admin_created', 'legacy'));
+```
+
+| 列 | 含义 |
+| --- | --- |
+| `can_create_workspace` | 该账号是否可以创建工作区。`1` 允许，`0` 不允许 |
+| `signup_source` | 账号的创建来源，用于追溯与后续策略；`legacy` 表示本次迁移之前就存在的账号 |
+
+**回填语义**：迁移在加列后统一执行 `UPDATE users SET can_create_workspace = 1`。因此升级前已存在的账号全部保留「可以创建工作区」的旧行为，`signup_source` 由列默认值自动成为 `'legacy'`。这是**保留旧行为，不是收紧权限**——收紧要由站点管理员在站点设置里主动关闭「受邀新账号默认可创建工作区」，且只影响之后创建的账号。
+
+创建路径显式写入这两列，不依赖列默认值：
+
+| 创建路径 | `can_create_workspace` | `signup_source` |
+| --- | --- | --- |
+| `POST /api/setup/admin`（首个管理员） | `1` | `setup` |
+| `POST /api/invites/:token/accept`（新账号分支） | 接受那一刻的 `inviteDefaultCanCreateWorkspace` | `workspace_invite` |
+| 既有账号再次接受邀请 | 不变 | 不变 |
+
+`public_signup` 与 `admin_created` 目前没有写入方：公开注册与管理员显式建号属于后续工作包，枚举值先入库以固定结构。
+
+**创建能力判定**在服务端执行时读取数据库当前事实，不是会话缓存快照：
+
+```text
+CanCreateWorkspace(user):
+    if user 不存在 or user.disabled: return false
+    return user.is_admin or user.can_create_workspace
+```
+
+同一条判定在事务内用于 `POST /api/workspaces`（不满足返回 403 `WORKSPACE_CREATION_DENIED`），并由 `/api/auth/session`、`/api/me` 的 `capabilities.canCreateWorkspace` 暴露给前端收敛入口。判定规则只有这一处实现，见 `internal/site`。
+
 ## 3. sessions
 
 MVP 简化为一个 session 对应一个 user：
@@ -204,7 +242,77 @@ CREATE TABLE server_config (
 
 只用于真正的 server config / generated secrets，不用于模拟 AFFiNE feature system。
 
-## 13. 不进入 MVP 核心 schema
+### 12.1 site_settings（站点设置）
+
+`site_settings` 是 `server_config` 里的**单个业务设置键**，存库、可在线修改，与 `internal/config` 那套启动期环境配置是两回事。当前只有这一个键。
+
+```json
+{
+  "schemaVersion": 1,
+  "revision": 0,
+  "registrationMode": "invite_only",
+  "allowWorkspaceOwnerInviteNewUsers": false,
+  "inviteDefaultCanCreateWorkspace": false,
+  "publicSignupDefaultCanCreateWorkspace": false,
+  "origin": "new"
+}
+```
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `schemaVersion` | int | 配置结构版本，当前必须为 `1`；不匹配视为结构不兼容 |
+| `revision` | int | 乐观并发令牌，`>= 0`，仅成功变更后 +1 |
+| `registrationMode` | enum | `closed` / `invite_only` / `open` |
+| `allowWorkspaceOwnerInviteNewUsers` | bool | 普通 owner 是否可邀请尚无账号的人 |
+| `inviteDefaultCanCreateWorkspace` | bool | 受邀新账号的默认创建授权（**本次唯一已接入生效的设置**） |
+| `publicSignupDefaultCanCreateWorkspace` | bool | 公开注册新账号的默认创建授权 |
+| `origin` | enum | `new` / `upgrade`，**只持久化、不出现在 API 响应里** |
+
+`origin` 是元字段：迁移时用它区分该实例该用哪一套默认值（`upgrade` = 升级时实例已有账号，采用保留旧行为的默认值）。API 响应里对应的是只读的 `upgradedInstance` 布尔，由 `origin == "upgrade"` 推导。设置一旦持久化就不再按用户数切换。
+
+四个业务字段中只有 `inviteDefaultCanCreateWorkspace` 已接入生效路径；其余三项入库并校验，但**不参与任何判定**，因此对外只作为「尚未接入」的只读事实展示。
+
+**结构损坏即失败关闭**：`site_settings` 行缺失、JSON 非法、`schemaVersion != 1`、必需键缺失、字段类型不符，以及**存量 `registrationMode` 为 `open`** 时，依赖该策略的操作（创建工作区、邀请创建账号）一律拒绝，并记录可诊断日志；不退回「允许所有人」。未知附加键被忽略，结构闸门是 `schemaVersion`。
+
+`registrationMode = "open"` 列入损坏判定，是因为写侧对 `open` 的请求一律返回 422 `REGISTRATION_NOT_READY`，服务自身没有任何写入路径能存下该值；读到它即说明文档被服务之外的来源改写过。它在读取阶段就被判为损坏，因此读侧（`GET /api/admin/settings`）与写侧（`PATCH`）返回同一个结论——GET 不会返回一个任何修改都无法生效的值，两者都是 500 `INTERNAL`。
+
+新安装与升级实例采用不同默认值，理由与回滚影响见 [构建与部署](../BUILD.md)。
+
+## 13. admin_audit_events
+
+```sql
+CREATE TABLE admin_audit_events (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    actor_kind    TEXT NOT NULL CHECK (actor_kind IN ('user', 'system', 'maintenance')),
+    actor_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    action        TEXT NOT NULL,
+    target_type   TEXT NOT NULL,
+    target_id     TEXT,
+    changes_json  TEXT NOT NULL DEFAULT '{}',
+    request_id    TEXT,
+    created_at    DATETIME NOT NULL
+);
+
+CREATE INDEX idx_admin_audit_target
+ON admin_audit_events(target_type, target_id, id);
+```
+
+管理操作用于追溯，**独立于工作区活动流**——工作区成员都能看活动流，但管理变更不应混入其中。当前状态：
+
+- **只写不读**。本次只写入 `site.settings_changed`，没有查看页面，也没有修改 / 删除接口；
+- 记录与被它描述的设置变更在**同一个数据库事务**内提交，审计写入失败则设置变更整体回滚；被拒绝的请求不写审计；
+- `actor_kind` / `actor_user_id` / `target_*` / `created_at` 由服务端决定，不信任客户端提交的操作者信息；`request_id` 当前写 `NULL`；
+- `action` 使用服务端白名单。
+
+`changes_json` **只保存白名单业务字段的前后值**，形如：
+
+```json
+{ "inviteDefaultCanCreateWorkspace": { "from": true, "to": false } }
+```
+
+禁止写入密码、密码哈希、Cookie、CSRF token、完整邀请 / 激活令牌、文档内容或任意请求体。当前不自动清理审计记录；保留策略以后单独设计。该表定位是应用内可追溯记录，不宣称能抵抗服务器管理员直接篡改数据库。
+
+## 14. 不进入 MVP 核心 schema
 
 删除或 legacy-only：
 
@@ -218,7 +326,7 @@ CREATE TABLE server_config (
 
 `user_access_tokens` 是否保留取决于是否当前已有实际需求；API token 不是 MVP 必需，可后置。
 
-## 14. Migration Version
+## 15. Migration Version
 
 必须增加 schema version：
 
@@ -269,3 +377,17 @@ migration 必须事务化（SQLite 不允许事务处理的 pragma 除外）。
 创建用户、请求摘要、根 Item ID 与时间。与整组新内容和附件元数据同事务提交，重复请求
 返回既有结果而不重复创建。根 Item ID 刻意不设删除级联，防止彻底删除后旧请求重新创建；
 Workspace 删除时清理其回执。暂不自动过期，权限与生命周期详见 `CONTENT_IMPORT.md`。
+
+## 站点设置与用户能力
+
+`0017_site_settings_and_user_capabilities.sql` 一次性完成三件事，细节见上文 2.1 / 12.1 / 13：
+
+- `users` 增加 `can_create_workspace` 与 `signup_source`，并把升级前已存在的账号
+  `can_create_workspace` 统一置为 `1`、`signup_source` 置为 `'legacy'`；
+- 新建 `admin_audit_events`，当前只写入 `site.settings_changed`；
+- 按「迁移执行时是否已有账号」写入 `server_config` 的 `site_settings` 键：新安装写入
+  保守默认（`origin = "new"`），升级实例写入保留旧行为的默认（`origin = "upgrade"`）。
+
+两条写入互斥且都带 `NOT EXISTS (… WHERE key = 'site_settings')` 守卫，因此重复启动或重开
+数据库不会覆盖管理员已经保存过的值。该迁移只加列、加表、插默认值，不删除或重写任何
+既有内容；迁移与回滚注意事项见 [构建与部署](../BUILD.md)。

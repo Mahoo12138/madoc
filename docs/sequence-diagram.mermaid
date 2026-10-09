@@ -1,0 +1,45 @@
+sequenceDiagram
+    participant B as 浏览器
+    participant R as chi auth.Require
+    participant H as api.patchSiteSettings
+    participant C as csrfRequired
+    participant S as site.Store
+    participant DB as SQLite 单连接
+
+    B->>R: PATCH /api/admin/settings {expectedRevision, changes}
+    R->>R: Resolve session 失败则 401 UNAUTHORIZED
+    R->>H: adminRequired 非管理员则 403 ADMIN_REQUIRED
+    H->>C: csrfRequired 失败则 403 CSRF_INVALID
+    C->>H: decode 失败或缺少字段则 400 INVALID_REQUEST
+    H->>S: Update(ctx, actor, expectedRevision, changes)
+    S->>DB: BEGIN
+    S->>DB: SELECT value, updated_at FROM server_config WHERE key='site_settings'
+    alt 行不存在
+        S->>DB: 兜底判定 signup_source='legacy' 后 INSERT 默认文档
+    end
+    S->>S: Load 校验结构 schemaVersion 类型 枚举
+    alt 结构损坏
+        S-->>H: ErrCorrupt ROLLBACK 500 INTERNAL 并记录日志
+    end
+    S->>S: normalizeChanges 白名单 严格布尔 枚举
+    alt 非法
+        S-->>H: ErrInvalidChange ROLLBACK 400 INVALID_REQUEST
+    end
+    alt registrationMode 等于 open
+        S-->>H: ErrRegistrationNotReady ROLLBACK 422 REGISTRATION_NOT_READY
+    end
+    alt expectedRevision 不等于当前 revision
+        S-->>H: ErrRevisionConflict ROLLBACK 409 REVISION_CONFLICT
+    end
+    S->>DB: SELECT is_admin, disabled FROM users WHERE id=actor 事务内复检
+    alt 非启用中管理员
+        S-->>H: ErrAdminRequired ROLLBACK 403 ADMIN_REQUIRED
+    end
+    alt 四个字段与当前值完全相同
+        S-->>H: 原样 Settings 不递增 不写入 不审计 200
+    end
+    S->>DB: revision+1 后 UPSERT server_config value updated_at
+    S->>DB: INSERT admin_audit_events site.settings_changed
+    S->>DB: COMMIT
+    S-->>H: Settings 新 revision
+    H-->>B: 200 完整 DTO Cache-Control no-store

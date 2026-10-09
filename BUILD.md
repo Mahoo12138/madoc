@@ -94,6 +94,25 @@ $MADOC_DATA/
 
 首次启动会生成 `$MADOC_DATA/server.secret`，权限为 `0600`。该文件与数据库、Asset 一起构成可恢复备份，不能单独丢弃。
 
+## 站点设置与环境配置的区别
+
+本文上面的 `MADOC_*` 环境变量是**启动期环境配置**：监听地址、数据目录、数据库路径、上传上限、服务密钥。它们在进程启动时读取，改动需要改环境变量并重启服务。
+
+站点设置（`site_settings`）是**存库的业务设置**：写在数据库 `server_config` 表的一个键里，由管理员在 `/admin/settings` 在线修改，改动立即对后续请求生效，不需要重启。两者互不代表，不要把业务开关做成环境变量，也不要把环境变量写进 `server_config`。
+
+新安装与既有实例升级采用**不同的默认值**，由迁移在写入 `site_settings` 时一次性决定：
+
+| 设置 | 新安装 | 既有实例升级 | 理由 |
+| --- | --- | --- | --- |
+| `registrationMode` | `invite_only` | `invite_only` | 两者都还没有公开注册入口 |
+| `allowWorkspaceOwnerInviteNewUsers` | `false` | `true` | 升级保留旧版本行为，不静默改变既有站点的可用性 |
+| `inviteDefaultCanCreateWorkspace` | `false` | `true` | 同上：新装更保守，升级不悄悄收紧 |
+| `publicSignupDefaultCanCreateWorkspace` | `false` | `false` | 公开注册尚未提供 |
+
+同时，升级实例的既有账号全部保持「可以创建工作区」（迁移回填 `can_create_workspace = 1`），新账号是否获得该权限由上表的 `inviteDefaultCanCreateWorkspace` 决定。升级实例的管理员页面会额外提示当前默认值是按旧版本行为保留的，可随时手动收紧。
+
+设置一旦持久化就不再按用户数切换：判定只在迁移（或首次惰性初始化）时发生一次，之后以库里的值为准。
+
 ## SQLite
 
 启动必须设置：
@@ -191,6 +210,16 @@ madoc maintenance restore /path/to/backup-directory --confirm
 4. 启动服务，检查 `/healthz`、登录、原工作区、文档图片和白板；重新打开页面，不继续使用旧标签页写入。
 
 增量迁移在启动时执行。回退不能只把旧二进制连接到已升级的数据库，应停服并恢复升级前完整备份，再使用对应旧版本。旧 AFFiNE / BlockSuite 原型数据不会自动转换，服务会拒绝 legacy schema；不要为了启动而删除原数据，处理边界见 [迁移说明](docs/MIGRATION.md)。
+
+### 站点准入规则的回退警告
+
+包含迁移 `0017` 的版本引入了账号级创建权限（`users.can_create_workspace`、`users.signup_source`）与站点设置 `site_settings`。这两者都是**数据库里的数据，而不是旧二进制能理解的代码逻辑**：
+
+- 迁移只加列、加表、插默认值，不删除或重写既有内容，旧二进制连上升级后的数据库仍能启动；
+- 但**旧二进制不认识新规则**：它不会读 `can_create_workspace`，因此对所有登录用户照旧放行创建工作区；也不会读 `site_settings`，管理员在页面上关闭的开关对它无效。把二进制回退到 `0017` 之前的版本，等于**静默放宽**了收紧后的站点权限；
+- 列有 `CHECK` 约束但没有回滚迁移，`NOT NULL DEFAULT` 只在插入时生效，旧二进制写入的账号会落到 `can_create_workspace = 0` 与 `signup_source = 'legacy'`——旧版本创建的账号在回到新二进制后会缺少创建权限。
+
+因此权限相关回退一律按「停服 → 恢复升级前完整备份 → 用对应旧版本启动」处理，不要只替换二进制。升级前应先执行 `madoc maintenance backup` 并把备份复制到数据卷之外。
 
 ## Alpha 支持范围
 
