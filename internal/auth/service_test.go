@@ -22,6 +22,14 @@ func TestDisabledAndExpiredSessionsAreRejected(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	var source string
+	var canCreate int
+	if err := conn.QueryRow(`SELECT signup_source,can_create_workspace FROM users WHERE id=?`, user.ID).Scan(&source, &canCreate); err != nil {
+		t.Fatal(err)
+	}
+	if source != "setup" || canCreate != 1 || !user.Capabilities.CanManageSite || !user.Capabilities.CanCreateWorkspace {
+		t.Fatalf("setup account fields source=%q canCreate=%d capabilities=%#v", source, canCreate, user.Capabilities)
+	}
 	if _, err := service.Resolve(ctx, session); err != nil {
 		t.Fatal(err)
 	}
@@ -46,5 +54,18 @@ func TestDisabledAndExpiredSessionsAreRejected(t *testing.T) {
 	}
 	if _, err := service.Resolve(ctx, expired); !errors.Is(err, ErrUnauthorized) {
 		t.Fatalf("expired session error = %v", err)
+	}
+}
+
+func TestApplyCapabilitiesUsesAdminOverrideAndDisabledGuard(t *testing.T) {
+	user := User{ID: "user", IsAdmin: true, CanCreateWorkspace: false}
+	user.ApplyCapabilities()
+	if !user.Capabilities.CanManageSite || !user.Capabilities.CanCreateWorkspace {
+		t.Fatalf("admin capabilities = %#v", user.Capabilities)
+	}
+	user.Disabled = true
+	user.ApplyCapabilities()
+	if user.Capabilities.CanManageSite || user.Capabilities.CanCreateWorkspace {
+		t.Fatalf("disabled capabilities = %#v", user.Capabilities)
 	}
 }

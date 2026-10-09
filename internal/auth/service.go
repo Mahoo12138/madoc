@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"madoc/internal/site"
 )
 
 var (
@@ -18,13 +19,34 @@ var (
 	ErrDisabled           = errors.New("user disabled")
 )
 
+type Capabilities struct {
+	CanManageSite      bool `json:"canManageSite"`
+	CanCreateWorkspace bool `json:"canCreateWorkspace"`
+}
+
 type User struct {
-	ID        string  `json:"id"`
-	AvatarURL *string `json:"avatarUrl"`
-	Name      string  `json:"name"`
-	Email     string  `json:"email"`
-	IsAdmin   bool    `json:"isAdmin"`
-	Disabled  bool    `json:"disabled"`
+	ID                 string       `json:"id"`
+	AvatarURL          *string      `json:"avatarUrl"`
+	Name               string       `json:"name"`
+	Email              string       `json:"email"`
+	IsAdmin            bool         `json:"isAdmin"`
+	Disabled           bool         `json:"disabled"`
+	CanCreateWorkspace bool         `json:"-"`
+	Capabilities       Capabilities `json:"capabilities"`
+}
+
+// ApplyCapabilities derives public capabilities from the user's current facts.
+func (u *User) ApplyCapabilities() {
+	actor := site.Actor{
+		ID:                 u.ID,
+		IsAdmin:            u.IsAdmin,
+		Disabled:           u.Disabled,
+		CanCreateWorkspace: u.CanCreateWorkspace,
+	}
+	u.Capabilities = Capabilities{
+		CanManageSite:      site.CanManageSite(actor),
+		CanCreateWorkspace: site.CanCreateWorkspace(actor),
+	}
 }
 
 type Service struct{ db *sql.DB }
@@ -38,6 +60,7 @@ func (s *Service) SetupStatus(ctx context.Context) (bool, error) {
 }
 
 func (s *Service) SetupAdmin(ctx context.Context, name, email, password string) (User, string, error) {
+	// P2: setup status and first-admin creation remain separate transactions.
 	initialized, err := s.SetupStatus(ctx)
 	if err != nil {
 		return User{}, "", err
@@ -55,13 +78,14 @@ func (s *Service) SetupAdmin(ctx context.Context, name, email, password string) 
 		return User{}, "", err
 	}
 	now := time.Now().UTC()
-	user := User{ID: uuid.NewString(), Name: name, Email: email, IsAdmin: true}
+	user := User{ID: uuid.NewString(), Name: name, Email: email, IsAdmin: true, CanCreateWorkspace: true}
+	user.ApplyCapabilities()
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return User{}, "", err
 	}
 	defer tx.Rollback()
-	if _, err := tx.ExecContext(ctx, `INSERT INTO users(id,name,email,password_hash,is_admin,created_at,updated_at) VALUES(?,?,?,?,1,?,?)`, user.ID, user.Name, user.Email, hash, now, now); err != nil {
+	if _, err := tx.ExecContext(ctx, `INSERT INTO users(id,name,email,password_hash,is_admin,can_create_workspace,signup_source,created_at,updated_at) VALUES(?,?,?,?,1,1,'setup',?,?)`, user.ID, user.Name, user.Email, hash, now, now); err != nil {
 		return User{}, "", err
 	}
 	session, err := createSession(ctx, tx, user.ID)
@@ -77,8 +101,8 @@ func (s *Service) SetupAdmin(ctx context.Context, name, email, password string) 
 func (s *Service) SignIn(ctx context.Context, email, password string) (User, string, error) {
 	var user User
 	var hash string
-	var admin, disabled int
-	err := s.db.QueryRowContext(ctx, `SELECT id,name,email,password_hash,is_admin,disabled,(SELECT '/api/users/'||users.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=users.id) FROM users WHERE email=?`, strings.ToLower(strings.TrimSpace(email))).Scan(&user.ID, &user.Name, &user.Email, &hash, &admin, &disabled, &user.AvatarURL)
+	var admin, disabled, canCreateWorkspace int
+	err := s.db.QueryRowContext(ctx, `SELECT id,name,email,password_hash,is_admin,disabled,can_create_workspace,(SELECT '/api/users/'||users.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=users.id) FROM users WHERE email=?`, strings.ToLower(strings.TrimSpace(email))).Scan(&user.ID, &user.Name, &user.Email, &hash, &admin, &disabled, &canCreateWorkspace, &user.AvatarURL)
 	if err != nil || !CheckPassword(hash, password) {
 		return User{}, "", ErrUnauthorized
 	}
@@ -86,6 +110,8 @@ func (s *Service) SignIn(ctx context.Context, email, password string) (User, str
 		return User{}, "", ErrDisabled
 	}
 	user.IsAdmin, user.Disabled = admin != 0, disabled != 0
+	user.CanCreateWorkspace = canCreateWorkspace != 0
+	user.ApplyCapabilities()
 	// Password verification is expensive and runs outside a transaction. Recheck
 	// the hash before issuing a session so an in-flight old-password sign-in
 	// cannot create a new session after a password change revoked the others.
@@ -125,8 +151,8 @@ func (s *Service) Resolve(ctx context.Context, sessionID string) (*User, error) 
 		return nil, ErrUnauthorized
 	}
 	var user User
-	var admin, disabled int
-	err := s.db.QueryRowContext(ctx, `SELECT u.id,u.name,u.email,u.is_admin,u.disabled,(SELECT '/api/users/'||u.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=u.id) FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=? AND s.expires_at>?`, sessionID, time.Now().UTC()).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled, &user.AvatarURL)
+	var admin, disabled, canCreateWorkspace int
+	err := s.db.QueryRowContext(ctx, `SELECT u.id,u.name,u.email,u.is_admin,u.disabled,u.can_create_workspace,(SELECT '/api/users/'||u.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=u.id) FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=? AND s.expires_at>?`, sessionID, time.Now().UTC()).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled, &canCreateWorkspace, &user.AvatarURL)
 	if err != nil {
 		return nil, ErrUnauthorized
 	}
@@ -134,6 +160,8 @@ func (s *Service) Resolve(ctx context.Context, sessionID string) (*User, error) 
 		return nil, ErrDisabled
 	}
 	user.IsAdmin, user.Disabled = admin != 0, disabled != 0
+	user.CanCreateWorkspace = canCreateWorkspace != 0
+	user.ApplyCapabilities()
 	return &user, nil
 }
 
@@ -148,11 +176,13 @@ func (s *Service) CreateSession(ctx context.Context, userID string) (string, err
 
 func (s *Service) GetByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
-	var admin, disabled int
-	err := s.db.QueryRowContext(ctx, `SELECT id,name,email,is_admin,disabled,(SELECT '/api/users/'||users.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=users.id) FROM users WHERE email=?`, strings.ToLower(strings.TrimSpace(email))).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled, &user.AvatarURL)
+	var admin, disabled, canCreateWorkspace int
+	err := s.db.QueryRowContext(ctx, `SELECT id,name,email,is_admin,disabled,can_create_workspace,(SELECT '/api/users/'||users.id||'/avatar?v='||storage_key FROM user_avatars WHERE user_id=users.id) FROM users WHERE email=?`, strings.ToLower(strings.TrimSpace(email))).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled, &canCreateWorkspace, &user.AvatarURL)
 	if err != nil {
 		return nil, err
 	}
 	user.IsAdmin, user.Disabled = admin != 0, disabled != 0
+	user.CanCreateWorkspace = canCreateWorkspace != 0
+	user.ApplyCapabilities()
 	return &user, nil
 }
