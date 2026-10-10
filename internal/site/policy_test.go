@@ -2,6 +2,37 @@ package site
 
 import "testing"
 
+func TestRegistrationPolicies(t *testing.T) {
+	tests := []struct {
+		name          string
+		mode          string
+		admin         bool
+		ownerInvites  bool
+		wantModeOpen  bool
+		wantCanInvite bool
+	}{
+		{name: "closed owner", mode: "closed", ownerInvites: true},
+		{name: "closed administrator", mode: "closed", admin: true, ownerInvites: true},
+		{name: "invite only regular owner without switch", mode: "invite_only", wantModeOpen: true},
+		{name: "invite only administrator without switch", mode: "invite_only", admin: true, wantModeOpen: true, wantCanInvite: true},
+		{name: "invite only regular owner with switch", mode: "invite_only", ownerInvites: true, wantModeOpen: true, wantCanInvite: true},
+		{name: "open regular owner without switch", mode: "open", wantModeOpen: true},
+		{name: "unknown mode fails closed", mode: ""},
+		{name: "zero settings fail closed"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			settings := Settings{RegistrationMode: test.mode, AllowWorkspaceOwnerInviteNewUsers: test.ownerInvites}
+			if got := RegistrationAllowsNewAccount(settings); got != test.wantModeOpen {
+				t.Fatalf("RegistrationAllowsNewAccount() = %v, want %v", got, test.wantModeOpen)
+			}
+			if got := CanInviteNewUser(settings, test.admin); got != test.wantCanInvite {
+				t.Fatalf("CanInviteNewUser() = %v, want %v", got, test.wantCanInvite)
+			}
+		})
+	}
+}
+
 func TestCapabilityPolicies(t *testing.T) {
 	tests := []struct {
 		name   string

@@ -118,6 +118,12 @@ func (s *Store) Ensure(ctx context.Context) (Settings, error) {
 	return doc.settings(now), nil
 }
 
+// LoadPublic reads settings for request paths that must not write, such as the
+// anonymous site information endpoint. Unlike Ensure it never inserts a default
+// document: an unauthenticated request must not be able to change stored state,
+// and a missing document has to surface as ErrCorrupt so callers fail closed.
+func (s *Store) LoadPublic(ctx context.Context) (Settings, error) { return s.Load(ctx, s.db) }
+
 // Update validates, authorizes, persists, and audits an optimistic settings change.
 func (s *Store) Update(ctx context.Context, actor Actor, expectedRevision int, changes map[string]json.RawMessage) (Settings, error) {
 	tx, err := s.db.BeginTx(ctx, nil)

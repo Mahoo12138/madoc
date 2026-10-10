@@ -9,6 +9,8 @@ var (
 	ErrRevisionConflict        = errors.New("site settings revision conflict")
 	ErrAdminRequired           = errors.New("site administrator required")
 	ErrWorkspaceCreationDenied = errors.New("workspace creation is not allowed")
+	ErrRegistrationClosed      = errors.New("registration is closed")
+	ErrInviteNewUserDenied     = errors.New("the invite cannot introduce a new site user")
 )
 
 // IsCorrupt reports whether err represents invalid or missing site settings.

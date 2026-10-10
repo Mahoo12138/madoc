@@ -14,8 +14,8 @@ const (
 )
 
 var implemented = map[string]bool{
-	KeyRegistrationMode:                      false,
-	KeyAllowWorkspaceOwnerInviteNewUsers:     false,
+	KeyRegistrationMode:                      true,
+	KeyAllowWorkspaceOwnerInviteNewUsers:     true,
 	KeyInviteDefaultCanCreateWorkspace:       true,
 	KeyPublicSignupDefaultCanCreateWorkspace: false,
 }
@@ -53,6 +53,30 @@ func (s *Store) ActorFrom(ctx context.Context, q DBTX, userID string) (Actor, er
 	actor.Disabled = disabled != 0
 	actor.CanCreateWorkspace = canCreate != 0
 	return actor, nil
+}
+
+// RegistrationAllowsNewAccount reports whether the current mode lets an invite
+// create a brand-new account. Only invite_only and open may; an unknown mode
+// (including the zero Settings value) fails closed so a caller that skipped a
+// Load error can never end up creating accounts.
+func RegistrationAllowsNewAccount(s Settings) bool {
+	return s.RegistrationMode == "invite_only" || s.RegistrationMode == "open"
+}
+
+// CanInviteNewUser reports whether an inviter may invite someone who has no
+// account yet. Site administrators are exempt from the owner switch because the
+// mode already expresses the site-wide decision; every other owner needs
+// AllowWorkspaceOwnerInviteNewUsers. A closed site stays closed for everyone:
+// creating an account from an invite is a registration path, which the explicit
+// account creation flow of a later stage does not widen.
+func CanInviteNewUser(s Settings, inviterIsAdmin bool) bool {
+	if !RegistrationAllowsNewAccount(s) {
+		return false
+	}
+	if inviterIsAdmin {
+		return true
+	}
+	return s.AllowWorkspaceOwnerInviteNewUsers
 }
 
 // InviteDefaultCanCreateWorkspace returns the validated invite default using q.
