@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -12,6 +13,11 @@ var (
 	ErrConflict              = errors.New("conflict")
 	ErrAssetVersionProtected = errors.New("asset is retained by a content version")
 	ErrInvalid               = errors.New("invalid request")
+
+	// ErrInviteTargetDisabled keeps the core verdict a plain ErrForbidden so
+	// existing callers stay correct, while letting the HTTP layer explain that
+	// only an administrator can unblock the account.
+	ErrInviteTargetDisabled = fmt.Errorf("%w: invite target is disabled", ErrForbidden)
 )
 
 type Workspace struct {
@@ -45,6 +51,7 @@ type Invite struct {
 	Status      string    `json:"status"`
 	ExpiresAt   time.Time `json:"expiresAt"`
 	CreatedAt   time.Time `json:"createdAt"`
+	InviterID   string    `json:"inviterId"`
 }
 
 type Item struct {

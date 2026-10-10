@@ -259,29 +259,40 @@ func TestInviteAcceptanceSnapshotsEnabledPolicyAndFailsClosed(t *testing.T) {
 		t.Fatalf("enabled invite account source=%q canCreate=%d capabilities=%#v", source, canCreate, created.Capabilities)
 	}
 
-	if _, err := f.db.Exec(`UPDATE server_config SET value='{}' WHERE key='site_settings'`); err != nil {
-		t.Fatal(err)
-	}
-	_, corruptToken, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, "blocked@example.com", "viewer")
+	// The stored "open" half of the check also has to be invitable while the
+	// document still parses, so both tokens exist before anything breaks.
+	_, blockedToken, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, "blocked@example.com", "viewer")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := f.core.AcceptInvite(f.ctx, corruptToken, "Blocked", "password123", nil); !errors.Is(err, site.ErrCorrupt) {
+	_, openToken, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, "openblocked@example.com", "viewer")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := f.db.Exec(`UPDATE server_config SET value='{}' WHERE key='site_settings'`); err != nil {
+		t.Fatal(err)
+	}
+	// Corrupt settings fail closed in both directions: no new invite may be
+	// issued to a mailbox without an account, and an invite issued while the
+	// document was readable can no longer create one.
+	if _, _, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, "later@example.com", "viewer"); !errors.Is(err, site.ErrCorrupt) {
+		t.Fatalf("corrupt settings invite creation error = %v", err)
+	}
+	if _, _, err := f.core.AcceptInvite(f.ctx, blockedToken, "Blocked", "password123", nil); !errors.Is(err, site.ErrCorrupt) {
 		t.Fatalf("corrupt settings acceptance error = %v", err)
 	}
 	var count int
-	if err := f.db.QueryRow(`SELECT count(*) FROM users WHERE email='blocked@example.com'`).Scan(&count); err != nil || count != 0 {
-		t.Fatalf("corrupt settings created account: count=%d err=%v", count, err)
+	for _, email := range []string{"blocked@example.com", "later@example.com"} {
+		if err := f.db.QueryRow(`SELECT count(*) FROM users WHERE email=?`, email).Scan(&count); err != nil || count != 0 {
+			t.Fatalf("corrupt settings created account %s: count=%d err=%v", email, count, err)
+		}
 	}
 
 	// A stored "open" mode is the same class of unusable document: acceptance
 	// must roll back instead of creating an account under a broken policy.
 	storedOpen := `{"schemaVersion":1,"revision":0,"registrationMode":"open","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":false,"publicSignupDefaultCanCreateWorkspace":false,"origin":"new"}`
 	if _, err := f.db.Exec(`UPDATE server_config SET value=? WHERE key='site_settings'`, storedOpen); err != nil {
-		t.Fatal(err)
-	}
-	_, openToken, err := f.core.CreateInvite(f.ctx, f.owner.ID, f.space.ID, "openblocked@example.com", "viewer")
-	if err != nil {
 		t.Fatal(err)
 	}
 	if _, _, err := f.core.AcceptInvite(f.ctx, openToken, "Open Blocked", "password123", nil); !errors.Is(err, site.ErrCorrupt) {

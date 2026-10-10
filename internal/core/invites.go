@@ -8,18 +8,20 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"madoc/internal/auth"
+	"madoc/internal/site"
 )
 
 func (s *Service) ListInvites(ctx context.Context, userID, workspaceID string) ([]Invite, error) {
 	if err := s.requireOwner(ctx, userID, workspaceID); err != nil {
 		return nil, err
 	}
-	rows, err := s.db.QueryContext(ctx, `SELECT id,workspace_id,email,role,status,expires_at,created_at FROM workspace_invites WHERE workspace_id=? ORDER BY created_at DESC`, workspaceID)
+	rows, err := s.db.QueryContext(ctx, `SELECT id,workspace_id,email,role,status,expires_at,created_at,inviter_id FROM workspace_invites WHERE workspace_id=? ORDER BY created_at DESC`, workspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +29,7 @@ func (s *Service) ListInvites(ctx context.Context, userID, workspaceID string) (
 	result := []Invite{}
 	for rows.Next() {
 		var invite Invite
-		if err := rows.Scan(&invite.ID, &invite.WorkspaceID, &invite.Email, &invite.Role, &invite.Status, &invite.ExpiresAt, &invite.CreatedAt); err != nil {
+		if err := rows.Scan(&invite.ID, &invite.WorkspaceID, &invite.Email, &invite.Role, &invite.Status, &invite.ExpiresAt, &invite.CreatedAt, &invite.InviterID); err != nil {
 			return nil, err
 		}
 		result = append(result, invite)
@@ -42,6 +44,9 @@ func (s *Service) CreateInvite(ctx context.Context, userID, workspaceID, email, 
 	email = strings.ToLower(strings.TrimSpace(email))
 	if !strings.Contains(email, "@") || (role != "editor" && role != "viewer") {
 		return Invite{}, "", ErrInvalid
+	}
+	if err := s.authorizeInviteTarget(ctx, email, userID); err != nil {
+		return Invite{}, "", err
 	}
 	secret := make([]byte, 32)
 	if _, err := rand.Read(secret); err != nil {
@@ -72,11 +77,49 @@ func (s *Service) RevokeInvite(ctx context.Context, userID, workspaceID, inviteI
 	return nil
 }
 
+// authorizeInviteTarget decides whether an invite may be addressed to email at
+// all. Creating an account from an invite is a registration path, so it obeys
+// the current registration matrix; inviting an account that already exists only
+// has to clear its own disabled state. This path holds no transaction and is
+// therefore free to read through s.db.
+func (s *Service) authorizeInviteTarget(ctx context.Context, email, inviterID string) error {
+	var targetID string
+	var targetDisabled int
+	err := s.db.QueryRowContext(ctx, `SELECT id,disabled FROM users WHERE email=?`, email).Scan(&targetID, &targetDisabled)
+	switch {
+	case err == nil:
+		if targetDisabled != 0 {
+			return ErrInviteTargetDisabled
+		}
+		return nil
+	case errors.Is(err, sql.ErrNoRows):
+	default:
+		return err
+	}
+	settings, err := s.site.Load(ctx, s.db)
+	if err != nil {
+		return err
+	}
+	if !site.RegistrationAllowsNewAccount(settings) {
+		return site.ErrRegistrationClosed
+	}
+	inviter, err := s.site.ActorFrom(ctx, s.db, inviterID)
+	if err != nil {
+		return err
+	}
+	if !site.CanInviteNewUser(settings, inviterIsAdmin(inviter)) {
+		return site.ErrInviteNewUserDenied
+	}
+	return nil
+}
+
+func inviterIsAdmin(actor site.Actor) bool { return actor.IsAdmin && !actor.Disabled }
+
 func (s *Service) InspectInvite(ctx context.Context, token string) (Invite, string, error) {
 	hash := sha256.Sum256([]byte(token))
 	var invite Invite
 	var workspaceName string
-	err := s.db.QueryRowContext(ctx, `SELECT i.id,i.workspace_id,i.email,i.role,i.status,i.expires_at,i.created_at,w.name FROM workspace_invites i JOIN workspaces w ON w.id=i.workspace_id WHERE i.token_hash=?`, hex.EncodeToString(hash[:])).Scan(&invite.ID, &invite.WorkspaceID, &invite.Email, &invite.Role, &invite.Status, &invite.ExpiresAt, &invite.CreatedAt, &workspaceName)
+	err := s.db.QueryRowContext(ctx, `SELECT i.id,i.workspace_id,i.email,i.role,i.status,i.expires_at,i.created_at,i.inviter_id,w.name FROM workspace_invites i JOIN workspaces w ON w.id=i.workspace_id WHERE i.token_hash=?`, hex.EncodeToString(hash[:])).Scan(&invite.ID, &invite.WorkspaceID, &invite.Email, &invite.Role, &invite.Status, &invite.ExpiresAt, &invite.CreatedAt, &invite.InviterID, &workspaceName)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Invite{}, "", ErrNotFound
 	}
@@ -89,6 +132,51 @@ func (s *Service) InspectInvite(ctx context.Context, token string) (Invite, stri
 	return invite, workspaceName, nil
 }
 
+// InviteAdmission answers what the holder of a valid token may do next: the
+// invite details, the workspace name, and whether that token can still create a
+// brand-new account. The caller already knows the token, so the flag reveals no
+// account existence beyond what the invite itself states.
+func (s *Service) InviteAdmission(ctx context.Context, token string) (Invite, string, bool, error) {
+	invite, workspaceName, err := s.InspectInvite(ctx, token)
+	if err != nil {
+		return Invite{}, "", false, err
+	}
+	settings, err := s.site.Load(ctx, s.db)
+	if err != nil {
+		return Invite{}, "", false, err
+	}
+	inviter, err := s.site.ActorFrom(ctx, s.db, invite.InviterID)
+	if err != nil {
+		return Invite{}, "", false, err
+	}
+	canCreate := site.RegistrationAllowsNewAccount(settings) && site.CanInviteNewUser(settings, inviterIsAdmin(inviter))
+	return invite, workspaceName, canCreate, nil
+}
+
+// inviterStillAuthorized re-checks inside the acceptance transaction that the
+// inviter account is still active and still owns the workspace. The owner role
+// captured when the invite was created says nothing about the present.
+func (s *Service) inviterStillAuthorized(ctx context.Context, tx *sql.Tx, invite Invite) (site.Actor, error) {
+	inviter, err := s.site.ActorFrom(ctx, tx, invite.InviterID)
+	if err != nil {
+		return site.Actor{}, err
+	}
+	if inviter.ID == "" || inviter.Disabled {
+		return site.Actor{}, fmt.Errorf("%w: inviter is disabled", ErrForbidden)
+	}
+	var role string
+	if err := tx.QueryRowContext(ctx, `SELECT role FROM workspace_members WHERE workspace_id=? AND user_id=?`, invite.WorkspaceID, invite.InviterID).Scan(&role); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return site.Actor{}, fmt.Errorf("%w: inviter is no longer a member", ErrForbidden)
+		}
+		return site.Actor{}, err
+	}
+	if role != "owner" {
+		return site.Actor{}, fmt.Errorf("%w: inviter is no longer the workspace owner", ErrForbidden)
+	}
+	return inviter, nil
+}
+
 func (s *Service) AcceptInvite(ctx context.Context, token, name, password string, current *auth.User) (auth.User, Workspace, error) {
 	invite, _, err := s.InspectInvite(ctx, token)
 	if err != nil {
@@ -99,6 +187,10 @@ func (s *Service) AcceptInvite(ctx context.Context, token, name, password string
 		return auth.User{}, Workspace{}, err
 	}
 	defer tx.Rollback()
+	inviter, err := s.inviterStillAuthorized(ctx, tx, invite)
+	if err != nil {
+		return auth.User{}, Workspace{}, err
+	}
 	now := time.Now().UTC()
 	var user auth.User
 	if current != nil {
@@ -110,6 +202,20 @@ func (s *Service) AcceptInvite(ctx context.Context, token, name, password string
 		var admin, disabled, canCreateWorkspace int
 		err := tx.QueryRowContext(ctx, `SELECT id,name,email,is_admin,disabled,can_create_workspace FROM users WHERE email=?`, invite.Email).Scan(&user.ID, &user.Name, &user.Email, &admin, &disabled, &canCreateWorkspace)
 		if errors.Is(err, sql.ErrNoRows) {
+			// A new account is a registration: it must clear the policy that is
+			// in force at acceptance time, not the one that was in force when
+			// the invite was created. Reads use tx because the transaction owns
+			// the single pooled connection.
+			settings, err := s.site.Load(ctx, tx)
+			if err != nil {
+				return auth.User{}, Workspace{}, err
+			}
+			if !site.RegistrationAllowsNewAccount(settings) {
+				return auth.User{}, Workspace{}, site.ErrRegistrationClosed
+			}
+			if !site.CanInviteNewUser(settings, inviterIsAdmin(inviter)) {
+				return auth.User{}, Workspace{}, site.ErrInviteNewUserDenied
+			}
 			name = strings.TrimSpace(name)
 			if name == "" || len(password) < 8 {
 				return auth.User{}, Workspace{}, ErrInvalid
