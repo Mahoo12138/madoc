@@ -205,6 +205,8 @@ type adminSettingsFixture struct {
 	handler      http.Handler
 	identity     *auth.Service
 	csrf         *auth.CSRF
+	domain       *core.Service
+	site         *site.Store
 	adminSession string
 	csrfCookie   *http.Cookie
 	csrfToken    string
@@ -240,7 +242,7 @@ func newAdminSettingsFixture(t *testing.T) *adminSettingsFixture {
 	}
 	assetRoot := t.TempDir()
 	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), nil, false).Routes()
-	return &adminSettingsFixture{t: t, db: conn, handler: handler, identity: identity, csrf: csrf, adminSession: session, csrfCookie: cookies[0], csrfToken: csrfToken}
+	return &adminSettingsFixture{t: t, db: conn, handler: handler, identity: identity, csrf: csrf, domain: domain, site: siteStore, adminSession: session, csrfCookie: cookies[0], csrfToken: csrfToken}
 }
 
 func (fixture *adminSettingsFixture) addUserSession(t *testing.T, admin bool) string {

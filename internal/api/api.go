@@ -38,6 +38,7 @@ func New(authService *auth.Service, csrf *auth.CSRF, domain *core.Service, siteS
 
 func (a *API) Routes() http.Handler {
 	r := chi.NewRouter()
+	r.Get("/site", a.siteInfo)
 	r.Get("/setup/status", a.setupStatus)
 	r.Post("/setup/admin", a.setupAdmin)
 	r.Post("/auth/sign-in", a.signIn)
@@ -146,6 +147,14 @@ func domainError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusInternalServerError, "INTERNAL", "internal server error")
 	case errors.Is(err, core.ErrNotFound):
 		writeError(w, 404, "NOT_FOUND", "resource not found")
+	// Must precede ErrForbidden: this sentinel wraps it so that callers keep
+	// recognizing the generic verdict while the page can say who can help.
+	case errors.Is(err, core.ErrInviteTargetDisabled):
+		writeError(w, 403, "FORBIDDEN", "该账号已被禁用，请先由站点管理员启用")
+	case errors.Is(err, site.ErrRegistrationClosed):
+		writeError(w, http.StatusForbidden, "REGISTRATION_CLOSED", "当前策略不允许通过该邀请创建新账号")
+	case errors.Is(err, site.ErrInviteNewUserDenied):
+		writeError(w, http.StatusForbidden, "INVITE_NEW_USER_DENIED", "当前策略不允许以邀请方式引入新的站点用户")
 	case errors.Is(err, core.ErrForbidden):
 		writeError(w, 403, "FORBIDDEN", "operation is not allowed")
 	case errors.Is(err, core.ErrRestoreDestination):
@@ -365,12 +374,13 @@ func (a *API) revokeInvite(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
 }
 func (a *API) inspectInvite(w http.ResponseWriter, r *http.Request) {
-	v, name, e := a.core.InspectInvite(r.Context(), chi.URLParam(r, "token"))
+	w.Header().Set("Cache-Control", "no-store")
+	v, name, canCreateAccount, e := a.core.InviteAdmission(r.Context(), chi.URLParam(r, "token"))
 	if e != nil {
 		domainError(w, e)
 		return
 	}
-	writeJSON(w, 200, map[string]any{"invite": v, "workspaceName": name})
+	writeJSON(w, 200, map[string]any{"invite": v, "workspaceName": name, "canCreateAccount": canCreateAccount})
 }
 func (a *API) acceptInvite(w http.ResponseWriter, r *http.Request) {
 	var b struct{ Name, Password string }
