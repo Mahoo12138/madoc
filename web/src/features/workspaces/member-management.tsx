@@ -62,6 +62,28 @@ function inviteEmailProblem(value: string): string | null {
   return null;
 }
 
+/**
+ * §5.2：注册关闭、不允许引入新用户、账号被禁用三种原因统一成一句话——
+ * 区分它们等于向 owner 提供账号枚举接口。
+ */
+const INVITE_DENIED_CODES = [
+  "REGISTRATION_CLOSED",
+  "INVITE_NEW_USER_DENIED",
+  "FORBIDDEN",
+];
+const INVITE_DENIED_MESSAGE = "无法邀请该账号；可能需要管理员先创建或启用账号。";
+
+/** 邀请专用映射：准入类拒绝先于通用 403 判定，避免被误读成"你的权限被移除"。 */
+function inviteErrorMessage(error: unknown): string {
+  if (
+    error instanceof APIError &&
+    INVITE_DENIED_CODES.includes(error.code)
+  ) {
+    return INVITE_DENIED_MESSAGE;
+  }
+  return memberErrorMessage(error, "邀请未创建，请检查网络后重试。");
+}
+
 /** Server errors are English identifiers; the surface speaks product language. */
 function memberErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof APIError) {
@@ -191,9 +213,8 @@ export function MemberManagement({
       setCreatingInvite(false);
       notifications.show({ message: "邀请链接已创建", color: "blue" });
     } catch (error) {
-      setInviteError(
-        memberErrorMessage(error, "邀请未创建，请检查网络后重试。"),
-      );
+      // 草稿保留：邮箱与角色仍在表单里，管理员可以直接改而不用重填。
+      setInviteError(inviteErrorMessage(error));
     } finally {
       onBusyChange(false);
     }

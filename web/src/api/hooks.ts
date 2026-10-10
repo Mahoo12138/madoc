@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
-import { APIError, type ItemType, type Role, type SiteSettings, type SiteSettingsChanges } from './types';
+import { APIError, type ItemType, type Role, type SiteInfo, type SiteSettings, type SiteSettingsChanges } from './types';
 
 const retryWorkspaceRead = (count: number, error: Error) =>
   !(error instanceof APIError && [401, 403, 404].includes(error.status)) && count < 3;
@@ -9,7 +9,7 @@ const retryWorkspaceRead = (count: number, error: Error) =>
 const retrySiteSettingsRead = (count: number, error: Error) =>
   !(error instanceof APIError && (error.status === 401 || error.status === 403)) && count < 3;
 
-export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const, siteSettings: ['siteSettings'] as const };
+export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const, siteSettings: ['siteSettings'] as const, siteInfo: ['siteInfo'] as const };
 export const useSession = () => useQuery({ queryKey: keys.session, queryFn: api.session, staleTime: 60_000, retry: false, retryOnMount: false });
 export const useWorkspaces = () => useQuery({ queryKey: keys.workspaces, queryFn: api.workspaces });
 export const useWorkspace = (id: string) => useQuery({ queryKey: keys.workspace(id), queryFn: () => api.workspace(id), retry: retryWorkspaceRead, retryOnMount: false });
@@ -20,6 +20,8 @@ export const useWorkspaceActivity = (id: string) => useInfiniteQuery({ queryKey:
 export const useMarkdown = (id: string) => useQuery({ queryKey: keys.markdown(id), queryFn: () => api.markdown(id) });
 export const useWhiteboard = (id: string) => useQuery({ queryKey: keys.whiteboard(id), queryFn: () => api.whiteboard(id) });
 export const useSiteSettings = () => useQuery({ queryKey: keys.siteSettings, queryFn: api.siteSettings, retry: retrySiteSettingsRead, retryOnMount: false });
+// 匿名可读的公开站点信息：失败只是少一句说明文案，登录页与邀请页都要静默降级。
+export const useSiteInfo = () => useQuery<SiteInfo>({ queryKey: keys.siteInfo, queryFn: api.siteInfo, retry: false, retryOnMount: false, staleTime: 60_000 });
 export const useUpdateSiteSettings = () => {
   const client = useQueryClient();
   return useMutation({

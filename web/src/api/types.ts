@@ -8,6 +8,8 @@ export interface User { avatarUrl?: string | null; id: string; name: string; ema
 export interface Workspace { id: string; name: string; description: string; role: Role; createdAt: string; updatedAt: string }
 export interface Member { avatarUrl?: string | null; userId: string; name: string; email: string; role: Role; createdAt: string }
 export interface Invite { id: string; workspaceId: string; email: string; role: Exclude<Role, 'owner'>; status: string; expiresAt: string; createdAt: string }
+/** 邀请预览（`GET /api/invites/{token}`）。`canCreateAccount` 由服务端按当前站点策略实时判定。 */
+export interface InvitePreview { invite: Invite; workspaceName: string; canCreateAccount: boolean }
 export interface Item { id: string; workspaceId: string; parentId: string | null; type: ItemType; title: string; sortKey: number; createdBy: string; createdAt: string; updatedAt: string }
 export interface Session { user: User | null; csrfToken?: string }
 export interface MarkdownState { markdown: string; cacheSeq: number; generation: number }
@@ -49,6 +51,12 @@ export interface ActivityEvent {
 }
 
 export type RegistrationMode = 'closed' | 'invite_only' | 'open';
+/** 最小公开站点信息（`GET /api/site`，不需要登录）。 */
+export interface SiteInfo {
+  registrationMode: RegistrationMode;
+  /** 综合判定结果，不等于 `registrationMode === 'open'`。 */
+  publicRegistrationAvailable: boolean;
+}
 /**
  * 站点设置键。与后端 `internal/site` 的 `Key*` 常量一一对应，新增字段必须两侧同时改。
  * 命名约定：DB 列 `snake_case`，JSON `camelCase`。

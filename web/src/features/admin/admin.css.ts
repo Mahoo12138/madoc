@@ -192,6 +192,13 @@ export const control = style({
   flexWrap: 'wrap',
   justifyContent: 'flex-end',
 });
+// 枚举控件（注册模式）：Mantine 的类名是哈希值，触屏命中区只能靠 classNames 传入。
+export const modeControl = style({
+  '@media': { [touchControls]: { minHeight: 44 } },
+});
+export const modeLabel = style({
+  '@media': { [touchControls]: { minHeight: 44 } },
+});
 export const statusText = style({
   color: 'var(--mantine-color-dimmed)',
   fontSize: 12,

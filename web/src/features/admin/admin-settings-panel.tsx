@@ -6,10 +6,12 @@ import {
   Group,
   Loader,
   Modal,
+  SegmentedControl,
   Stack,
   Switch,
   Text,
 } from '@mantine/core';
+import { useReducedMotion } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useSiteSettings, useUpdateSiteSettings } from '@/api/hooks';
 import {
@@ -22,8 +24,22 @@ import {
 import { EmptyState } from '@/features/shared/empty-state';
 import * as styles from './admin.css';
 
-/** 只有布尔设置能由开关直接承载；`registrationMode` 是枚举，前端不提供选择器。 */
+/** 只有布尔设置能由开关直接承载；`registrationMode` 是枚举，由 SegmentedControl 承载。 */
 type BooleanSiteSettingKey = Exclude<SiteSettingKey, 'registrationMode'>;
+
+/** 待保存草稿。展示值 = `draft ?? 服务端值`，保存成功后清空。 */
+type Draft =
+  | { kind: 'boolean'; key: BooleanSiteSettingKey; value: boolean }
+  | { kind: 'mode'; key: 'registrationMode'; value: RegistrationMode };
+
+/**
+ * 阶段 5.2 只完整支持 `closed / invite_only`；`open` 会被服务端以 422
+ * `REGISTRATION_NOT_READY` 拒绝，因此不提供为可选项（§13 阶段 5.2）。
+ */
+const MODE_OPTIONS: { value: RegistrationMode; label: string }[] = [
+  { value: 'closed', label: '已关闭' },
+  { value: 'invite_only', label: '仅邀请' },
+];
 
 /** 展示顺序：先本次已接入的一项，再按 PRD §7.3 的表格顺序。 */
 const SETTING_ORDER: SiteSettingKey[] = [
@@ -51,7 +67,8 @@ const COPY: Record<SiteSettingKey, SettingCopy> = {
   },
   registrationMode: {
     title: '注册模式',
-    description: '控制站点是否接受公开自助注册。',
+    description:
+      '控制能否通过工作区邀请创建新账号：仅邀请（invite_only）允许受邀者建号加入，已关闭（closed）只接受已有账号登录与加入。',
     pendingNote:
       '尚无公开自助注册入口。该设置将在后续版本接入，当前不影响站点行为；所有新账号仍通过工作区邀请创建。',
   },
@@ -111,6 +128,24 @@ function booleanChange(
   return { publicSignupDefaultCanCreateWorkspace: value };
 }
 
+function settingChange(draft: Draft): SiteSettingsChanges {
+  return draft.kind === 'mode'
+    ? { registrationMode: draft.value }
+    : booleanChange(draft.key, draft.value);
+}
+
+function draftText(draft: Draft): string {
+  return draft.kind === 'mode'
+    ? registrationModeText(draft.value)
+    : booleanText(draft.value);
+}
+
+function draftMatchesSettings(draft: Draft, settings: SiteSettings): boolean {
+  return draft.kind === 'mode'
+    ? draft.value === settings.registrationMode
+    : draft.value === settings[draft.key];
+}
+
 /**
  * 区一（已接入）+ 区二（未接入）+ 保存交互 + 409 冲突弹层。
  *
@@ -120,16 +155,12 @@ function booleanChange(
 export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
   const query = useSiteSettings();
   const update = useUpdateSiteSettings();
+  // 指示器是内联 transition-duration，样式表覆盖不了，只能在 JS 侧关掉。
+  const reduceMotion = useReducedMotion();
   // 请求序号：乱序到达的旧响应一律丢弃，不覆盖新状态（PRD P1-6）。
   const seq = useRef(0);
-  const [draft, setDraft] = useState<{
-    key: BooleanSiteSettingKey;
-    value: boolean;
-  } | null>(null);
-  const [conflict, setConflict] = useState<{
-    key: BooleanSiteSettingKey;
-    value: boolean;
-  } | null>(null);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [conflict, setConflict] = useState<Draft | null>(null);
 
   const implementedKeys = SETTING_ORDER.filter(
     (key) => settings.implemented?.[key] === true,
@@ -138,16 +169,16 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
     (key) => settings.implemented?.[key] !== true,
   );
 
-  const save = (key: BooleanSiteSettingKey, value: boolean) => {
+  const save = (next: Draft) => {
     if (update.isPending) return;
     const id = (seq.current += 1);
-    setDraft({ key, value });
+    setDraft(next);
     setConflict(null);
     update.reset();
     update.mutate(
       {
         expectedRevision: settings.revision,
-        changes: booleanChange(key, value),
+        changes: settingChange(next),
       },
       {
         onSuccess: () => {
@@ -160,7 +191,7 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
           if (id !== seq.current) return;
           if (error instanceof APIError && error.code === 'REVISION_CONFLICT') {
             // 冲突不自动重试、不自动覆盖：把双方取值交给管理员决定。
-            setConflict({ key, value });
+            setConflict(next);
             void query.refetch();
           }
         },
@@ -170,7 +201,7 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
 
   const retry = () => {
     if (!draft || update.isPending) return;
-    save(draft.key, draft.value);
+    save(draft);
   };
   const useServerValue = () => {
     setDraft(null);
@@ -178,14 +209,14 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
     update.reset();
   };
 
-  const renderEditableRow = (key: BooleanSiteSettingKey) => {
+  const renderEditableRow = (key: SiteSettingKey) => {
     const copy = COPY[key];
-    const serverValue = settings[key];
-    const isDraftRow = draft?.key === key;
-    const shown = isDraftRow ? draft.value : serverValue;
-    const busy = update.isPending && isDraftRow;
-    const notEffective = isDraftRow && draft.value !== serverValue;
-    const failed = isDraftRow && !!update.error;
+    const rowDraft = draft?.key === key ? draft : null;
+    const busy = update.isPending && !!rowDraft;
+    const notEffective = !!rowDraft && !draftMatchesSettings(rowDraft, settings);
+    const failed = !!rowDraft && !!update.error;
+    const modeDraft = rowDraft && rowDraft.kind === 'mode' ? rowDraft.value : null;
+    const boolDraft = rowDraft && rowDraft.kind === 'boolean' ? rowDraft.value : null;
     return (
       <div key={key}>
         <div className={styles.actionRow}>
@@ -203,22 +234,49 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
                 <span className={styles.statusText}>保存中…</span>
               </>
             )}
-            <Switch
-              checked={shown}
-              disabled={update.isPending}
-              aria-label={copy.title}
-              onChange={(event) => save(key, event.currentTarget.checked)}
-            />
+            {key === 'registrationMode' ? (
+              <SegmentedControl
+                aria-label={copy.title}
+                value={modeDraft ?? settings.registrationMode}
+                data={MODE_OPTIONS}
+                disabled={update.isPending}
+                transitionDuration={reduceMotion ? 0 : 150}
+                classNames={{ root: styles.modeControl, label: styles.modeLabel }}
+                onChange={(value) =>
+                  save({
+                    kind: 'mode',
+                    key,
+                    value: value as RegistrationMode,
+                  })
+                }
+              />
+            ) : (
+              <Switch
+                checked={boolDraft ?? settings[key]}
+                disabled={update.isPending}
+                aria-label={copy.title}
+                onChange={(event) =>
+                  save({
+                    kind: 'boolean',
+                    key,
+                    value: event.currentTarget.checked,
+                  })
+                }
+              />
+            )}
             {notEffective && <span className={styles.statusText}>尚未生效</span>}
           </div>
         </div>
+        {key === 'registrationMode' && (
+          <p className={styles.pendingNote}>公开注册尚未提供，暂不能启用。</p>
+        )}
         {failed && (
           <Alert color="red" role="alert" className={styles.rowAlert}>
             <Text size="sm" fw={600} className={styles.alertText}>
               {errorMessage(update.error)}
             </Text>
             <Text size="xs" c="dimmed">
-              服务端当前值：{booleanText(serverValue)}
+              服务端当前值：{valueText(settings, key)}
             </Text>
             <div className={styles.alertActions}>
               <Button
@@ -279,11 +337,8 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
       {implementedKeys.length > 0 && (
         <section className={styles.section} aria-label="新建账号的默认授权">
           <h2 className={styles.sectionTitle}>新建账号的默认授权</h2>
-          {implementedKeys.map((key) =>
-            key === 'registrationMode'
-              ? renderReadOnlyRow(key, false, true)
-              : renderEditableRow(key),
-          )}
+          {/* 分区与控件都由 `implemented` 驱动：服务端置为已接入的项自动升到区一。 */}
+          {implementedKeys.map((key) => renderEditableRow(key))}
           {settings.upgradedInstance && (
             <p className={styles.upgradeNote}>
               此实例由旧版本升级，已保留旧行为（受邀新账号默认可创建工作区）。如需收紧，请手动关闭。
@@ -323,9 +378,7 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
                   你的修改
                 </Text>
                 <Text size="sm">{COPY[conflict.key].title}</Text>
-                <p className={styles.conflictValue}>
-                  {booleanText(conflict.value)}
-                </p>
+                <p className={styles.conflictValue}>{draftText(conflict)}</p>
               </div>
               <div className={styles.conflictColumn}>
                 <Text size="xs" fw={600} c="dimmed">
@@ -336,7 +389,7 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
                   <p className={styles.conflictValue}>正在读取…</p>
                 ) : (
                   <p className={styles.conflictValue}>
-                    {booleanText(query.data[conflict.key])}
+                    {valueText(query.data, conflict.key)}
                   </p>
                 )}
               </div>

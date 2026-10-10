@@ -1,4 +1,4 @@
-import type { ActivityEvent, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
+import type { ActivityEvent, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, InvitePreview, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteInfo, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -36,7 +36,9 @@ export const api = {
   invites: (workspaceId: string) => request<Invite[]>(`/workspaces/${workspaceId}/invites`),
   createInvite: (workspaceId: string, email: string, role: 'editor' | 'viewer') => request<{ invite: Invite; token: string; url: string }>(`/workspaces/${workspaceId}/invites`, { method: 'POST', body: JSON.stringify({ email, role }) }),
   revokeInvite: (workspaceId: string, inviteId: string) => request<void>(`/workspaces/${workspaceId}/invites/${inviteId}`, { method: 'DELETE' }),
-  inspectInvite: (token: string) => request<{ invite: Invite; workspaceName: string }>(`/invites/${encodeURIComponent(token)}`),
+  inspectInvite: (token: string) => request<InvitePreview>(`/invites/${encodeURIComponent(token)}`),
+  // 公开接口：登录页与邀请页在匿名状态下也需要读取，失败必须静默降级。
+  siteInfo: () => request<SiteInfo>('/site', { cache: 'no-store' }),
   acceptInvite: async (token: string, body: { name: string; password: string }) => { const result = await request<{ user: User; workspace: Workspace; csrfToken: string }>(`/invites/${encodeURIComponent(token)}/accept`, { method: 'POST', body: JSON.stringify(body) }); setCSRFToken(result.csrfToken); return result; },
   items: (workspaceId: string) => request<Item[]>(`/workspaces/${workspaceId}/items`),
   item: (id: string) => request<Item>(`/items/${id}`),

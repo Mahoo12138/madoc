@@ -121,6 +121,17 @@ export const lead = style({
   textWrap: 'balance',
 });
 
+// 准入说明：lead 之下的 12px 次级陈述（`GET /api/site` 的注册模式）。
+// 以 span + display:block 承载，避免受 lead 的宿主标签影响嵌套合法性。
+export const hint = style({
+  display: 'block',
+  margin: '10px 0 0',
+  fontSize: 12,
+  lineHeight: 1.6,
+  color: 'var(--mantine-color-dimmed)',
+  textWrap: 'balance',
+});
+
 // Input state vocabulary, scoped to the auth card: Mantine already covers
 // focus / disabled / error natively; these rules add hover affordance, a
 // soft focus ring and a calmer disabled surface.
