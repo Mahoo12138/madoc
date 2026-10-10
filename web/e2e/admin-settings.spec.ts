@@ -36,23 +36,33 @@ test('settings that are not wired up render no interactive control', async ({
   page,
 }) => {
   await openSiteSettings(page);
+  const pending = page.getByRole('region', { name: '尚未接入的设置' });
+  await expect(pending).toBeVisible();
+  // The pending section is definitionally inert: whatever the server stops
+  // implementing has to stop offering a control here, so the assertion is scoped
+  // to the section rather than to a count of rows.
   await expect(
-    page.getByRole('region', { name: '尚未接入的设置' }),
+    pending.locator(
+      '[role=switch],[role=combobox],[role=radiogroup],input,select',
+    ),
+  ).toHaveCount(0);
+  // Stage 5.2 wired up registration mode and the owner-invite switch, so those
+  // rows graduated to section one and exactly one row is still pending. The
+  // count below is a guard on that graduation, not on the layout.
+  await expect(page.getByText('未接入', { exact: true })).toHaveCount(1);
+  await expect(
+    pending.getByRole('heading', { name: '公开注册新账号默认创建授权' }),
   ).toBeVisible();
-  // One switch on the whole page: the single implemented setting. Anything
-  // more would be a control that cannot take effect.
-  await expect(page.locator('[role=switch],input[type=checkbox]')).toHaveCount(1);
-  // No select/combobox anywhere: registration mode has no editable control.
+  // Registration mode is an enum, not a switch: no dropdown may offer it either,
+  // because a picker would have nowhere honest to put `open`.
   await expect(
     page.locator('[role=combobox],[role=listbox],select'),
   ).toHaveCount(0);
-  // The unavailable state is carried by words, not by greying things out.
-  await expect(page.getByText('未接入', { exact: true })).toHaveCount(3);
-  for (const name of ['注册模式', '普通 owner 邀请新用户', '公开注册新账号默认创建授权']) {
-    await expect(
-      page.getByRole('region', { name: '尚未接入的设置' }).getByRole('heading', { name }),
-    ).toBeVisible();
-  }
+  // Everything interactive on this page now belongs to an implemented setting:
+  // two switches (the invite default and the owner-invite policy) and one radio
+  // group (registration mode).
+  await expect(page.locator('[role=switch],input[type=checkbox]')).toHaveCount(2);
+  await expect(page.locator('[role=radiogroup]')).toHaveCount(1);
 });
 
 test('toggling a setting saves it and survives a reload', async ({ page }) => {
