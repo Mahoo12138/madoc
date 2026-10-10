@@ -86,12 +86,24 @@ Mermaid 仍为可裁剪增强，不阻塞阶段验收；不增加全篇源码双
 撤销会话；`users.admin_revision` 与用户级并发控制；最后一个启用中管理员的保护。设置已预留
 `implemented` 与审计表，但这一包尚未动工。
 
-### 5.2 准入判定（尚未开始）
+### 5.2 准入判定（已交付）
 
-把 `registrationMode` 的 `closed` / `invite_only` 变成真正的准入判定，
-`allowWorkspaceOwnerInviteNewUsers` 接入 owner 邀请新用户路径；新增 `GET /api/site`
-与 `INVITE_NEW_USER_DENIED`。当前 `registrationMode` 只入库和校验，不参与判定，
-`open` 由服务端预埋拒绝（422 `REGISTRATION_NOT_READY`）。
+`registrationMode` 的 `closed` / `invite_only` 已成为真正的准入判定，
+`allowWorkspaceOwnerInviteNewUsers` 已接入 owner 邀请新用户路径；新增公开接口
+`GET /api/site` 与错误码 `REGISTRATION_CLOSED`、`INVITE_NEW_USER_DENIED`。
+
+判定发生在**两个时刻**：创建邀请时按当时策略判定，接受邀请时在事务内按**接受时刻**
+的策略再判一次，因此邀请发出后收紧策略会阻止尚未完成的接受。接受路径还会复检邀请者
+是否仍存在、未禁用且仍是该工作区 owner。
+
+一个容易误解的边界必须记住：**`closed` 只禁止新建账号**。它不禁止邀请已有账号，
+不禁止已有账号接受邀请，不禁用已有用户，也不撤销只读分享。
+
+公开接口 `GET /api/site` 不要求登录，只返回 `registrationMode` 与
+`publicRegistrationAvailable` 两个字段，且走 `Store.LoadPublic`——**公开路径永不写入
+默认文档**，与管理端 `GET /api/admin/settings` 的惰性初始化语义相反。
+
+`open` 仍由服务端预埋拒绝（422 `REGISTRATION_NOT_READY`）。依赖它的公开注册属 5.3。
 
 ### 5.3 公开注册（尚未开始，可选）
 

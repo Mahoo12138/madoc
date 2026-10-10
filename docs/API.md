@@ -114,8 +114,8 @@ PATCH /api/admin/settings
   "inviteDefaultCanCreateWorkspace": true,
   "publicSignupDefaultCanCreateWorkspace": false,
   "implemented": {
-    "registrationMode": false,
-    "allowWorkspaceOwnerInviteNewUsers": false,
+    "registrationMode": true,
+    "allowWorkspaceOwnerInviteNewUsers": true,
     "inviteDefaultCanCreateWorkspace": true,
     "publicSignupDefaultCanCreateWorkspace": false
   },
@@ -130,10 +130,10 @@ PATCH /api/admin/settings
 | --- | --- | --- |
 | `schemaVersion` | int | 配置结构版本，当前必须为 `1` |
 | `revision` | int | 乐观并发令牌，`>= 0`；仅成功变更后 +1，无实际变化不递增 |
-| `registrationMode` | enum | `closed` / `invite_only` / `open`；本次**入库但不参与判定**，`open` 会被拒绝 |
-| `allowWorkspaceOwnerInviteNewUsers` | bool | 本次**入库但不参与判定** |
+| `registrationMode` | enum | **已接入**：`closed` / `invite_only` / `open`；决定是否允许通过工作区邀请**创建新账号**（`closed` 一律禁止，管理员也不例外）。请求设为 `open` 仍被 422 拒绝 |
+| `allowWorkspaceOwnerInviteNewUsers` | bool | **已接入**：非管理员的 workspace owner 是否可以邀请尚无账号的人；站点管理员豁免该项限制 |
 | `inviteDefaultCanCreateWorkspace` | bool | **已接入**：`AcceptInvite` 创建新账号时写入 `users.can_create_workspace` |
-| `publicSignupDefaultCanCreateWorkspace` | bool | 本次**入库但不参与判定** |
+| `publicSignupDefaultCanCreateWorkspace` | bool | 本次**入库但不参与判定**（公开注册属后续阶段） |
 | `implemented` | object | 服务端事实来源：该设置是否已真正接入生效。客户端只读，不得硬编码这份映射 |
 | `upgradedInstance` | bool | 本次初始化时实例已有账号（迁移写入的 `origin = "upgrade"`），页面据此提示「已按旧版本行为保留」 |
 | `updatedAt` | string | `server_config.updated_at`，UTC RFC 3339 |
@@ -185,7 +185,41 @@ PATCH /api/admin/settings
 | `POST /api/invites/:token/accept` | 仅**新建账号**分支写入 `signup_source = 'workspace_invite'`，`can_create_workspace` 取**接受那一刻**的 `inviteDefaultCanCreateWorkspace`；已有账号的来源、授权、管理员身份与密码都不被改写。接受邀请不再覆盖既有成员角色，响应的 `workspace.role` 是实际角色 |
 | `POST /api/setup/admin` | 首个管理员写入 `signup_source = 'setup'`、`can_create_workspace = 1` |
 
-设置损坏时，`POST /api/workspaces` 与 `POST /api/invites/:token/accept` 失败关闭（不建号、不放行）。
+设置损坏时，`POST /api/workspaces`、工作区邀请的创建与 `POST /api/invites/:token/accept` 失败关闭（不建号、不放行、不写入邀请）。
+
+### 4.4 公开站点信息
+
+```text
+GET /api/site
+```
+
+**不要求登录**，供登录页与邀请页读取最小注册状态。响应体**只有两个键**，不因调用者身份而变化：
+
+```json
+{
+  "registrationMode": "invite_only",
+  "publicRegistrationAvailable": false
+}
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `registrationMode` | enum | 与 4. 的设置同名同枚举；这里只读出当前生效值 |
+| `publicRegistrationAvailable` | bool | 综合注册模式与「公开注册能力是否就绪」给出的结论 |
+
+- 响应带 `Cache-Control: no-store`。
+- `publicRegistrationAvailable` **不等于** `registrationMode === "open"` 的判断结果。公开注册属后续阶段，当前恒为 `false`；客户端不得由模式自行推导它。
+- 该接口不返回 owner 邀请策略、用户列表、数据目录、SMTP 凭证、服务器密钥或完整 `server_config`。这是唯一一个不需要会话就能读到的配置出口；不要为了调试便利往这个响应里加字段。
+- 服务自身没有任何写入路径能存下 `registrationMode: "open"`，因此读到 `open` 与其他损坏形式同样对待。
+
+| 状态 | code | 触发 |
+| --- | --- | --- |
+| 200 | — | 读取成功 |
+| 500 | `INTERNAL` | `site_settings` 行缺失、结构损坏，或存量 `registrationMode: "open"` |
+
+失败时**不返回默认值、不自愈、不降级成「公开注册可用」**。这句文案是纯说明性内容、不承载任何能力，`auth` 本身完全不读 `server_config`，所以登录页把它静默省略不会影响任何流程；真正需要看到该 500 的是管理员，他们会在 `/api/admin/settings` 遇到同一个错误并去修数据。
+
+**读取路径必须不写入**：该接口走 `Store.LoadPublic`（`Load` 经 `*sql.DB` 执行只读查询，**不会** INSERT 默认文档），与管理端 `GET /api/admin/settings` 的惰性初始化（`Ensure`，读到缺失会在事务内 `INSERT`）是**相反语义**。**公开路径不得改用 `Ensure`**，否则未登录请求就获得了写库能力。反过来，持有事务的代码（如 `core.AcceptInvite`）必须让自己的设置读取走同一个 `*sql.Tx`：连接池是 `SetMaxOpenConns(1)`，事务内误用全局句柄表现为死锁而不是报错。
 
 站点管理后续（尚未交付）：
 
@@ -245,6 +279,53 @@ DELETE /api/workspaces/:workspaceId/invites/:inviteId
 ```
 
 接受邀请时的账号与角色语义见 4.3；接受邀请不会覆盖既有成员角色，响应 `workspace.role` 是账号在该工作区的实际角色。
+
+### 邀请：创建 `POST /api/workspaces/:workspaceId/invites`
+
+请求 `{ email, role }`，`role` 只接受 `editor` / `viewer`（不接收 `isAdmin` 或 `canCreateWorkspace`，站点级能力由站点策略或用户管理决定）。**调用者必须是目标工作区的 owner**，站点管理员不是该工作区 owner 时同样 403。
+
+邮箱统一小写去空格后，按目标账号状态判定准入：
+
+| 目标账号状态 | 判定 |
+| --- | --- |
+| 存在且未禁用 | **允许，且不受注册模式限制**（`closed` 模式下仍然可以邀请已有账号） |
+| 存在但已被禁用 | 403 `FORBIDDEN`「该账号已被禁用，请先由站点管理员启用」 |
+| 不存在（将通过邀请创建账号） | 按注册模式矩阵判定，见下 |
+
+「不存在」这一格才受站点策略约束，按顺序返回：
+
+| 状态 | code | 触发 |
+| --- | --- | --- |
+| 403 | `REGISTRATION_CLOSED` | `registrationMode === "closed"` 且目标尚无账号。**管理员在此没有豁免**：通过邀请创建新账号本身就是一种注册路径 |
+| 403 | `INVITE_NEW_USER_DENIED` | 模式允许，但邀请者不是站点管理员且 `allowWorkspaceOwnerInviteNewUsers = false` |
+| 500 | `INTERNAL` | 设置读取失败，失败关闭 |
+
+被拒绝时**不写入** `workspace_invites`，也不会顺带创建任何账号。这条边界与 `GET /api/site` 一致：关闭注册不禁用已有用户、不取消已有成员身份、不关闭只读分享、不禁止创建已获授权的工作区。
+
+### 邀请：查看 `GET /api/invites/:token`
+
+```json
+{
+  "invite": { "id": "…", "workspaceId": "…", "email": "…", "role": "viewer", "inviterId": "…", "status": "pending", "expiresAt": "…", "createdAt": "…" },
+  "workspaceName": "Project",
+  "canCreateAccount": false
+}
+```
+
+- 令牌无效一律 404；邀请已消费、已撤销或已过期返回 409 `CONFLICT`。两者都不透露该邮箱是否存在，也不泄漏持有令牌之外的详情。
+- `canCreateAccount` 是**策略声明**，语义是「当前注册模式下，这位邀请者现在是否可以引入一个尚无账号的人」= `registrationMode !== "closed"` 且（邀请者是管理员 **或** `allowWorkspaceOwnerInviteNewUsers`）。
+- **它不是「这个邮箱现在能否注册」的意思**：对这个 Token 所属的邮箱已有账号的情况，它仍可能为 `true`，但那个人应当走「先登录再接受」而不是注册。邀请页用它区分「注册并加入」与「当前不允许创建新账号」两种形态，**不要**用它反推账号是否存在。
+- 该字段是 JSON 布尔，只会是 `true` / `false`；读取设置失败时整个请求 500，不会静默给 `false`。
+
+### 邀请：接受 `POST /api/invites/:token/accept`
+
+成功时的账号与角色语义见 4.3。除原有校验（邮箱不匹配 403、已消费/过期 409、已有账号未登录 403）之外，**整个接受过程在单个事务内按接受时刻的事实重新校验两件事**：
+
+1. **邀请者身份**：邀请仍在有效期内不代表发出者的状态没变。服务端复检该邀请的发出者账号仍存在、未被禁用，且**仍是该工作区的 owner**；任一不满足返回 403 `FORBIDDEN` 并整体回滚（不得留下新账号、成员关系或会话）。
+2. **新账号路径的策略**：只有当目标邮箱尚无账号、本次需要新建账号时，才再按上面「创建邀请」的同一张表判定一次。因此接受接口同样可能返回 403 `REGISTRATION_CLOSED` / `INVITE_NEW_USER_DENIED` / 配置损坏的 500。
+   **已有账号路径不受注册模式限制**：带上有效会话接受邀请的人，即使站点处于 `closed` 也能加入；他的 `signup_source`、创建授权、管理员身份与密码都不会被改写。
+
+这条「发出时允许、接受前收紧」的规则是有意的：策略在**接受那一刻**生效，不信任发出邀请时的快照。
 
 ## 6.1 Workspace activity
 

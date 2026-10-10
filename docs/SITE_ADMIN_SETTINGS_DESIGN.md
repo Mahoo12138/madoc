@@ -74,7 +74,8 @@ type DBTX interface {
 
 1. 任何函数只要签名里出现 `q DBTX`，内部**只能**用 `q`，不得触碰 `*sql.DB`；
 2. 持有 `*sql.Tx` 的代码段内，**禁止**调用任何 `s.db.*`、`db.BeginTx`、以及未接受 `DBTX` 的服务方法；
-3. `Store` 里只有 `Ensure` 与 `Update` 允许 `s.db.BeginTx`，且必须在返回前 `defer tx.Rollback()`。
+3. `Store` 里只有 `Ensure` 与 `Update` 允许 `s.db.BeginTx`，且必须在返回前 `defer tx.Rollback()`；
+4. **公开读取路径禁止写入**：`GET /api/site` 必须走 `Store.LoadPublic`（只读 `Load`，永不 INSERT 默认文档），**不得**复用管理端 `Ensure` 的惰性初始化。把两者统一会让未登录请求获得写库能力，这条约束必须落在 `Store` 上，而不是靠调用方自觉——因此新增的是一个独立的 `LoadPublic` 方法，而不是"调用 `Load(ctx, s.db)` 的那处代码记得别写"。
 
 ### 1.4 设置文档结构与校验
 
@@ -776,7 +777,7 @@ graph LR
 ## 7. 共享知识（跨文件约定）
 
 1. **事务铁律**：`conn.SetMaxOpenConns(1)`。持有 `*sql.Tx` 时禁止任何 `*sql.DB` 查询；`site` 包内所有 SQL 必须通过传入的 `DBTX`。只有 `Store.Ensure` / `Store.Update` 允许 `BeginTx`，且必须 `defer tx.Rollback()`。
-2. **错误结构**：统一 `{"error":{"code","message"}}`，走既有 `writeError(w, status, code, message)`。新增 code 只有 4 个：`ADMIN_REQUIRED`(403)、`WORKSPACE_CREATION_DENIED`(403)、`REVISION_CONFLICT`(409)、`REGISTRATION_NOT_READY`(422)；401 沿用 `UNAUTHORIZED`，不新造。
+2. **错误结构**：统一 `{"error":{"code","message"}}`，走既有 `writeError(w, status, code, message)`。管理面新增 code：`ADMIN_REQUIRED`(403)、`WORKSPACE_CREATION_DENIED`(403)、`REVISION_CONFLICT`(409)、`REGISTRATION_NOT_READY`(422)；阶段 5.2 的邀请准入再增 `REGISTRATION_CLOSED`(403) 与 `INVITE_NEW_USER_DENIED`(403)，两者 message 写成中文用户可读文案。401 沿用 `UNAUTHORIZED`，不新造。已有的通用 `403 FORBIDDEN`（`core.ErrForbidden`）保持英文 `operation is not allowed`，不为命名整齐而破坏既有响应。
 3. **解码**：请求体一律走 `decode()`（`DisallowUnknownFields` + 2MB）。`changes` 用 `map[string]json.RawMessage`，键白名单与类型由 `site` 二次校验，不在 handler 里散落。
 4. **管理写请求**：`r.With(a.auth.Require).Patch(..., a.adminRequired(a.csrfRequired(handler)))`，顺序固定为 `Require → adminRequired → csrfRequired`。
 5. **命名**：DB 列 `snake_case`，Go 字段 `PascalCase`，JSON `camelCase`。设置键常量集中在 `site`（`Key*`），前端 `SiteSettingKey` 与之一一对应，新增字段必须两侧同时改。
@@ -814,8 +815,9 @@ graph LR
 
 - 改动前：`ON CONFLICT … DO UPDATE SET role=excluded.role`（会**降级**已有 owner）。
 - 改动后：`DO NOTHING` + 回读实际角色，`workspace.Role` 反映真实角色。
-- 回归面：`internal/core/service_test.go:184` `TestInviteAcceptanceTransactionAndExistingAccountAuth`（断言 `workspace.Role != "viewer"`）、`:207` `TestInviteEmailExpiryRevocationAndRollback`、以及 `/api/invites/{token}/accept` 响应消费方（前端邀请页按 `workspace.role` 决定跳转后的可用操作）。
+- 回归面：`internal/core/service_test.go:185` `TestInviteAcceptanceTransactionAndExistingAccountAuth`（断言已有账号接受后的 `workspace.Role` 是邀请角色）、`:310` `TestInviteEmailExpiryRevocationAndRollback`、以及 `/api/invites/{token}/accept` 响应消费方（前端邀请页按 `workspace.role` 决定跳转后的可用操作）。
 - 注意 `DO NOTHING` 后 `RowsAffected` 为 0，**不要**把它当成失败；角色必须通过随后的 `SELECT` 获取。
+- 行号会随测试文件改动漂移，以上为阶段 5.2 交付时的实际位置；找不到时按函数名搜索。
 
 ### 8.4 待明确（需要产品/团队拍板，工程师按下列默认实现）
 
@@ -829,11 +831,22 @@ graph LR
 | U6 | P2-2（首个管理员并发原子性） | **本次不做**。现有 `SetupStatus` 在 `BeginTx` 之前判断的窗口保留，代码注释标注 P2 |
 | U7 | 前端是否拆分 `admin-settings-panel.tsx` | **建议拆**（page 只做 composition，符合 `AGENTS.md` §6）；若实现后面板很短，可在 T09 内合并回 page，但不得把样式塞进 tsx |
 
+### 8.5 已知且当前不可达的加固点（非缺陷）
+
+`core.AcceptInvite` 分为两条路径，它们的账号状态校验深度**不一致**：
+
+- 匿名路径（`current == nil`）：先按邀请邮箱查 `users`，命中且 `disabled` 的行会被明确拒绝，不会借邀请重新启用。
+- 已登录路径（`current != nil`）：只校验 `current.Email` 与邀请邮箱一致，**没有**复检 `current.Disabled`。
+
+这条差异是**记录在案的纵深防御缺口，不是已知 bug**：`auth.Service.Resolve` 在解析会话时就拒绝禁用账号，因此禁用用户无法持有有效会话，`current != nil && current.Disabled` 在现在的调用链（HTTP → `auth.Optional/Require` → core）里**构造不出来**。把它列在这里的原因是：一旦将来出现绕过 `auth` 的调用方（内部任务、命令行或新增入口），这条路径就会静默放行。
+
+**建议处置**：后续阶段一句话加固即可（在 `current != nil` 分支补 `current.Disabled` 判断并返回 `core.ErrForbidden`），不必现在改。验证方式是在 `disabled` 为真时构造 `AcceptInvite(ctx, token, "", "", &disabledUser)` 断言拒绝——当前这条用例写不出来，因为认证层先把它挡掉了。
+
 ---
 
 ## 9. Anything UNCLEAR（汇总）
 
-1. **`implemented` 为 true 时是否要把该项从区二移到区一**：本次三项恒为 false，未定义"变 true 后"的交互。当前实现是"仍渲染在区二，只是不显示 Badge"，确保前端永远不提供一个自己没实现的控件。若产品希望未来自动升级为可编辑，需要额外设计（区一的控件类型由服务端下发）——建议留到该设置真正接入时再定。
+1. **`implemented` 为 true 时是否要把该项从区二移到区一**：设计时三项恒为 false，未定义"变 true 后"的交互。当前实现是"仍渲染在区二，只是不显示 Badge"，确保前端永远不提供一个自己没实现的控件。阶段 5.2 已把 `registrationMode` 与 `allowWorkspaceOwnerInviteNewUsers` 置为 true，`publicSignupDefaultCanCreateWorkspace` 仍为 false；上述"不清零99朵999玫瑰"的表述依然成立。若产品希望未来自动升级为可编辑，需要额外设计（区一的控件类型由服务端下发）——建议留到该设置真正接入时再定。
 2. **`upgradedInstance` 的长期语义**：本次由迁移写入的 `origin` 决定，永不随用户数变化。若管理员清空了所有 `legacy` 账号，兜底路径会判定为 `new` —— 但兜底只在 `server_config` 无行时触发，正常升级实例不受影响。
 3. **多进程/多实例部署**：本设计依赖 `SetMaxOpenConns(1)` 做进程内串行化 + SQLite 写锁做进程间互斥。若未来支持多实例，`revision` 乐观并发仍然成立，但 `Ensure` 的"读不到就插"需要改成 `INSERT OR IGNORE` 后回读（当前单实例下无竞态）。
 4. **审计保留策略**：本次只写不读、不清理、不开放删除接口（PRD §9）。
