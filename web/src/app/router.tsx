@@ -34,6 +34,10 @@ const AdminUsersPage = lazyRouteComponent(
   () => import('@/features/admin/admin-users-page'),
   'AdminUsersPage',
 );
+const AdminAuditPage = lazyRouteComponent(
+  () => import('@/features/admin/admin-audit-page'),
+  'AdminAuditPage',
+);
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 const startRoute = createRoute({
@@ -104,6 +108,11 @@ const adminUsersRoute = createRoute({
   path: '/admin/users',
   component: AdminUsersPage,
 });
+const adminAuditRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/audit',
+  component: AdminAuditPage,
+});
 
 const routeTree = rootRoute.addChildren([
   startRoute,
@@ -119,6 +128,7 @@ const routeTree = rootRoute.addChildren([
   adminRoute,
   adminSettingsRoute,
   adminUsersRoute,
+  adminAuditRoute,
 ]);
 export const router = createRouter({ routeTree, defaultPreload: 'intent' });
 

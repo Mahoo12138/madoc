@@ -1,4 +1,4 @@
-import { globalStyle, style } from '@vanilla-extract/css';
+import { globalStyle, keyframes, style } from '@vanilla-extract/css';
 import { touchControls } from '@/styles/interaction.css';
 import { workspaceMedia } from '@/features/workspaces/workspace-layout';
 
@@ -628,3 +628,188 @@ export const drawerDangerNote = style({
 });
 export const drawerDangerAction = style({ marginTop: 12 });
 export const drawerError = style({ marginTop: 16 });
+
+// ── 操作记录 ────────────────────────────────────────────────────────────────
+// 沿用工作区活动记录的时间轴语言：日期横线分组 + 竖脊把同一天串起来 + 逐条
+// 事件标记。刻度与 `workspace-management.css.ts` 保持一致（14/12 字号，
+// 10/12/16 间距，Mantine CSS 变量取色，静态零阴影，150ms 过渡）。
+const auditMarkerSize = 22;
+const auditRailWidth = 68;
+const auditRailWidthMobile = 52;
+// 竖脊起止于首个/末个标记的圆心。
+const auditSpineInset = 12 + auditMarkerSize / 2;
+
+const auditEnter = keyframes({
+  from: { opacity: 0, transform: 'translateY(4px)' },
+  to: { opacity: 1, transform: 'translateY(0)' },
+});
+
+export const auditFilterInput = style({
+  '@media': { [touchControls]: { minHeight: 44 } },
+});
+
+export const auditDayGroup = style({ margin: 0 });
+export const auditDayDivider = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  margin: '32px 0 12px',
+});
+export const auditDayLabel = style({
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  fontWeight: 600,
+  lineHeight: 1.4,
+  fontVariantNumeric: 'tabular-nums',
+  whiteSpace: 'nowrap',
+});
+export const auditDayRule = style({
+  flex: 1,
+  height: 1,
+  background: 'var(--mantine-color-gray-2)',
+});
+export const auditDayCount = style({
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+  fontVariantNumeric: 'tabular-nums',
+  whiteSpace: 'nowrap',
+});
+
+export const auditList = style({
+  position: 'relative',
+  display: 'grid',
+  // 这是一条时间轴：列表语义只用于让读屏软件按条播报，视觉由竖脊承担。
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
+  '::before': {
+    content: '""',
+    position: 'absolute',
+    top: auditSpineInset,
+    bottom: auditSpineInset,
+    left: auditRailWidth / 2,
+    width: 1,
+    background: 'var(--mantine-color-gray-2)',
+  },
+  // 一天只有一条记录时，露在标记上方/下方的线头没有意义。
+  selectors: {
+    '&:has(> :only-child)::before': { display: 'none' },
+  },
+  '@media': {
+    [workspaceMedia.mobile]: {
+      '::before': { left: auditRailWidthMobile / 2 },
+    },
+  },
+});
+
+export const auditRow = style({
+  display: 'grid',
+  gridTemplateColumns: `${auditRailWidth}px minmax(0, 1fr)`,
+  gap: 16,
+  padding: '12px 12px 12px 0',
+  borderRadius: 6,
+  animation: `${auditEnter} 200ms ease both`,
+  animationDelay: 'calc(var(--madoc-audit-index, 0) * 35ms)',
+  transition: 'background-color 150ms ease',
+  ':hover': { background: 'var(--mantine-color-gray-0)' },
+  '@media': {
+    [workspaceMedia.mobile]: {
+      gridTemplateColumns: `${auditRailWidthMobile}px minmax(0, 1fr)`,
+      gap: 12,
+    },
+    '(prefers-reduced-motion: reduce)': { animation: 'none' },
+  },
+});
+
+export const auditRail = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: 6,
+});
+export const auditMarker = style({
+  display: 'grid',
+  placeItems: 'center',
+  width: auditMarkerSize,
+  height: auditMarkerSize,
+  flexShrink: 0,
+  borderRadius: '50%',
+  background: 'var(--mantine-color-white)',
+  border: '1px solid var(--mantine-color-gray-3)',
+  color: 'var(--mantine-color-dimmed)',
+});
+export const auditTime = style({
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+  fontVariantNumeric: 'tabular-nums',
+});
+export const auditMeta = style({
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+});
+/** 动作中文名是每行的主识别内容，字号与用户列表的身份名一致。 */
+export const auditSummary = style({
+  margin: 0,
+  color: 'var(--mantine-color-text)',
+  fontSize: 14,
+  fontWeight: 600,
+  lineHeight: 1.5,
+});
+export const auditActor = style({
+  margin: '2px 0 0',
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+});
+export const auditTargetNote = style({
+  display: 'block',
+  marginTop: 10,
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+});
+// 展开入口：文字按钮而不是图标方块，触屏命中区由 minHeight 保证。
+export const auditToggle = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 10,
+  marginTop: 10,
+  padding: 0,
+  border: 0,
+  background: 'transparent',
+  color: 'var(--mantine-color-blue-7)',
+  font: 'inherit',
+  fontSize: 12,
+  fontWeight: 600,
+  lineHeight: 1.4,
+  cursor: 'pointer',
+  transition: 'color 150ms ease',
+  selectors: {
+    '&:hover': { color: 'var(--mantine-color-blue-9)' },
+    '&:focus-visible': {
+      outline: '2px solid var(--mantine-primary-color-filled)',
+      outlineOffset: 2,
+    },
+  },
+  '@media': {
+    [touchControls]: { minHeight: 44 },
+    '(prefers-reduced-motion: reduce)': { transition: 'none' },
+  },
+});
+export const auditChanges = style({
+  margin: '12px 0 0',
+  padding: 0,
+  listStyle: 'none',
+  display: 'grid',
+  gap: 10,
+});
+export const auditChangeRow = style({
+  margin: 0,
+  paddingLeft: 12,
+  borderLeft: '2px solid var(--mantine-color-gray-2)',
+  color: 'var(--mantine-color-text)',
+  fontSize: 14,
+  lineHeight: 1.6,
+});

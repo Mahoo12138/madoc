@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { Burger, Button, Drawer, Stack } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Home, Settings2, ShieldAlert, Users } from 'lucide-react';
+import { ArrowLeft, Home, ScrollText, Settings2, ShieldAlert, Users } from 'lucide-react';
 import type { User } from '@/api/types';
 import { AccountMenu } from '@/features/account/account-menu';
 import { EmptyState } from '@/features/shared/empty-state';
@@ -10,7 +10,7 @@ import { workspaceMedia } from '@/features/workspaces/workspace-layout';
 import * as shell from '@/features/workspaces/workspace-shell.css';
 import * as styles from './admin.css';
 
-/** §10.1：用户管理在前，站点设置紧随其后；审计查看交付后再追加。 */
+/** §10.1：用户管理在前，站点设置紧随其后，操作记录（审计查看）殿后。 */
 const navigation = [
   { id: 'users', label: '用户管理', to: '/admin/users' as const, Icon: Users },
   {
@@ -18,6 +18,12 @@ const navigation = [
     label: '站点设置',
     to: '/admin/settings' as const,
     Icon: Settings2,
+  },
+  {
+    id: 'audit',
+    label: '操作记录',
+    to: '/admin/audit' as const,
+    Icon: ScrollText,
   },
 ];
 

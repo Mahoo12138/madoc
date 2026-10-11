@@ -1,4 +1,4 @@
-import type { ActivityEvent, AdminUser, AdminUserChanges, AdminUserDetail, AdminUserList, AdminUserListParams, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, InvitePreview, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteInfo, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
+import type { ActivityEvent, AdminUser, AdminUserChanges, AdminUserDetail, AdminUserList, AdminUserListParams, AuditEventList, AuditEventListParams, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, InvitePreview, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteInfo, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -80,5 +80,15 @@ export const api = {
   adminUser: (userId: string) => request<AdminUserDetail>(`/admin/users/${encodeURIComponent(userId)}`, { cache: 'no-store' }),
   updateAdminUser: (userId: string, expectedRevision: number, changes: AdminUserChanges) => request<AdminUser>(`/admin/users/${encodeURIComponent(userId)}`, { method: 'PATCH', body: JSON.stringify({ expectedRevision, changes }) }),
   revokeUserSessions: (userId: string) => request<void>(`/admin/users/${encodeURIComponent(userId)}/sessions`, { method: 'DELETE' }),
+  // 'all' 与空字符串都不进查询串：省略即不筛选，服务端不解析我们没发的条件。
+  auditEvents: (params: AuditEventListParams = {}) => {
+    const query = new URLSearchParams();
+    if (params.action && params.action !== 'all') query.set('action', params.action);
+    if (params.targetType && params.targetType !== 'all') query.set('targetType', params.targetType);
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.before) query.set('before', params.before);
+    const search = query.toString();
+    return request<AuditEventList>(`/admin/audit-events${search ? `?${search}` : ''}`, { cache: 'no-store' });
+  },
   uploadAsset: (workspaceId: string, file: File, itemId?: string) => { const body = new FormData(); body.append('file', file); if (itemId) body.append('itemId', itemId); return request<{ asset: { id: string }; url: string }>(`/workspaces/${workspaceId}/assets`, { method: 'POST', body }); },
 };

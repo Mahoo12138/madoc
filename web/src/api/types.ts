@@ -135,6 +135,46 @@ export type AdminUserChanges = Partial<
   Pick<AdminUser, 'isAdmin' | 'disabled' | 'canCreateWorkspace'>
 >;
 
+/**
+ * 管理审计事件（`GET /api/admin/audit-events`）。与后端 `internal/site` 的
+ * `AuditEvent` 一一对应：`action` / `targetType` 是服务端白名单里的机器值，
+ * `changes` 只含白名单业务字段的 `from` / `to`，不含密码、哈希、Cookie、
+ * CSRF、令牌、请求体或 IP。页面负责把它们翻译成中文。
+ */
+export interface AuditEvent {
+  id: number;
+  actorKind: string;
+  /** 操作者账号已删除时为 null（外键 `ON DELETE SET NULL`）。 */
+  actorId: string | null;
+  /** 操作者账号已删除时为空字符串，不是错误。 */
+  actorName: string;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  /** 业务字段前后值，例如 `{ disabled: { from: false, to: true } }`。 */
+  changes: Record<string, unknown>;
+  createdAt: string;
+}
+export interface AuditEventList { events: AuditEvent[]; nextBefore: string | null }
+
+/** `action` 只接受服务端已登记的动作；`targetType` 只接受已登记的目标类型；省略代表不筛选。 */
+export type AuditActionFilter =
+  | 'all'
+  | 'site.settings_changed'
+  | 'user.disabled'
+  | 'user.enabled'
+  | 'user.admin_role_changed'
+  | 'user.workspace_creation_changed'
+  | 'user.sessions_revoked';
+export type AuditTargetTypeFilter = 'all' | 'site_settings' | 'user';
+export interface AuditEventListParams {
+  action?: AuditActionFilter;
+  targetType?: AuditTargetTypeFilter;
+  limit?: number;
+  /** keyset 游标：上一页最小的 `id`，不是偏移量。 */
+  before?: string | null;
+}
+
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }
 }

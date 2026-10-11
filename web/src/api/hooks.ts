@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
-import { APIError, type AdminUser, type AdminUserChanges, type AdminUserDetail, type AdminUserList, type AdminUserListParams, type ItemType, type Role, type SiteInfo, type SiteSettings, type SiteSettingsChanges } from './types';
+import { APIError, type AdminUser, type AdminUserChanges, type AdminUserDetail, type AdminUserList, type AdminUserListParams, type AuditEventList, type AuditEventListParams, type ItemType, type Role, type SiteInfo, type SiteSettings, type SiteSettingsChanges } from './types';
 
 const retryWorkspaceRead = (count: number, error: Error) =>
   !(error instanceof APIError && [401, 403, 404].includes(error.status)) && count < 3;
@@ -12,8 +12,11 @@ const retrySiteSettingsRead = (count: number, error: Error) =>
 // write (409) are both final answers, so retrying only hides them.
 const retryAdminUsersRead = (count: number, error: Error) =>
   !(error instanceof APIError && [401, 403, 404, 409].includes(error.status)) && count < 3;
+// 审计列表同理由：401/403 是授权结论，400 是被白名单拒绝的筛选，重试都不会变。
+const retryAdminAuditRead = (count: number, error: Error) =>
+  !(error instanceof APIError && [400, 401, 403].includes(error.status)) && count < 3;
 
-export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const, siteSettings: ['siteSettings'] as const, siteInfo: ['siteInfo'] as const, /** 前缀根：失效后所有筛选与分页重新读取。 */ adminUsers: ['adminUsers'] as const, adminUserList: (params: AdminUserListParams) => ['adminUsers', 'list', params] as const, adminUser: (id: string) => ['adminUsers', 'detail', id] as const };
+export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const, siteSettings: ['siteSettings'] as const, siteInfo: ['siteInfo'] as const, /** 前缀根：失效后所有筛选与分页重新读取。 */ adminUsers: ['adminUsers'] as const, adminUserList: (params: AdminUserListParams) => ['adminUsers', 'list', params] as const, adminUser: (id: string) => ['adminUsers', 'detail', id] as const, /** 前缀根：设置或账号变更后让操作记录重新读取。 */ adminAudit: ['adminAudit'] as const, auditEventList: (params: AuditEventListParams) => ['adminAudit', 'list', params] as const };
 export const useSession = () => useQuery({ queryKey: keys.session, queryFn: api.session, staleTime: 60_000, retry: false, retryOnMount: false });
 export const useWorkspaces = () => useQuery({ queryKey: keys.workspaces, queryFn: api.workspaces });
 export const useWorkspace = (id: string) => useQuery({ queryKey: keys.workspace(id), queryFn: () => api.workspace(id), retry: retryWorkspaceRead, retryOnMount: false });
@@ -60,6 +63,21 @@ export const useRevokeUserSessions = () => {
     onSuccess: () => void client.invalidateQueries({ queryKey: keys.adminUsers }),
   });
 };
+
+/**
+ * 操作记录按 keyset 游标分页（`before` = 上一页最小的 `id`），不是偏移量：
+ * 翻页期间新写入的记录不会让已读的页错位或重复。游标由 `pageParam` 驱动，
+ * 因此筛选参数里刻意不含 `before`，查询键只跟随筛选变化。
+ */
+export const useAuditEvents = (params: Omit<AuditEventListParams, 'before'>) =>
+  useInfiniteQuery({
+    queryKey: keys.auditEventList(params),
+    queryFn: ({ pageParam }) => api.auditEvents({ ...params, before: pageParam || undefined }),
+    initialPageParam: '',
+    getNextPageParam: (page: AuditEventList) => page.nextBefore ?? undefined,
+    retry: retryAdminAuditRead,
+    retryOnMount: false,
+  });
 
 export function useWorkspaceMutations(workspaceId?: string) {
   const client = useQueryClient();
