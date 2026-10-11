@@ -266,7 +266,7 @@ GET /api/admin/audit-events?action=&targetType=&targetId=&limit=&before=
 
 中间件顺序与前两个端点一致（`auth.Require` → `adminRequired`，只读无 CSRF），响应 `Cache-Control: no-store`。
 
-**列表**：`action` 只接受服务端已登记的动作（`site.settings_changed`、`user.disabled`、`user.enabled`、`user.admin_role_changed`、`user.workspace_creation_changed`、`user.sessions_revoked`），`targetType` 只接受 `site_settings` / `user`，省略即不筛选。默认每页 20、最多 100，`targetId` 超过 200 字符、`before` 超过 32 字符同样返回 400，**任何非法值一律 400 而不是被忽略**——被忽略的筛选会让一次拼写错误悄悄变成一份未筛选的全量页面。`before` 是 keyset 游标（上一页最小的 `id`）而非偏移量，`limit+1` 行探测是否还有下一页。
+**列表**：`action` 只接受服务端已登记的动作（`site.settings_changed`、`user.disabled`、`user.enabled`、`user.admin_role_changed`、`user.workspace_creation_changed`、`user.sessions_revoked`、`enrollment.created`、`enrollment.revoked`、`account.enrolled`），`targetType` 只接受 `site_settings` / `user` / `account_enrollment`，省略即不筛选。默认每页 20、最多 100，`targetId` 超过 200 字符、`before` 超过 32 字符同样返回 400，**任何非法值一律 400 而不是被忽略**——被忽略的筛选会让一次拼写错误悄悄变成一份未筛选的全量页面。`before` 是 keyset 游标（上一页最小的 `id`）而非偏移量，`limit+1` 行探测是否还有下一页。
 
 一处例外值得知道：查询串里含**原始分号**时，Go 的 `net/url` 会把整条 query 丢弃（1.17 的安全加固），结果是所有筛选被静默丢弃、退化为一个无筛选的 200，而不是 400。行为是安全的——无解释、无注入——但它不是「非法输入必 400」。
 
@@ -274,7 +274,7 @@ GET /api/admin/audit-events?action=&targetType=&targetId=&limit=&before=
 
 **事件对象**：`{id, actorKind, actorId, actorName, action, targetType, targetId, changes, createdAt}`。`actorName` 通过 `users` 左连接取得；`actor_user_id` 是 `ON DELETE SET NULL`，因此**操作者账号被删除后 `actorId` 为 `null`、`actorName` 为空字符串，这不是错误**，整条记录照常列出。
 
-`changes` 是白名单业务字段的前后值——设置四项（`registrationMode`、`allowWorkspaceOwnerInviteNewUsers`、`inviteDefaultCanCreateWorkspace`、`publicSignupDefaultCanCreateWorkspace`）与用户四项（`isAdmin`、`disabled`、`canCreateWorkspace`、`sessionsRevoked`）——例如 `{"disabled":{"from":false,"to":true}}`。写入侧已保证其中不含密码、哈希、Cookie、CSRF、令牌、请求体或 IP，因此读路径无需再脱敏。**单行 `changes_json` 解析失败时降级为空对象并在服务端记录可诊断日志，而不是让整个页面 500**——这是只读页面，一条脏数据不该让它打不开。
+`changes` 是白名单业务字段的前后值——设置四项（`registrationMode`、`allowWorkspaceOwnerInviteNewUsers`、`inviteDefaultCanCreateWorkspace`、`publicSignupDefaultCanCreateWorkspace`）、用户四项（`isAdmin`、`disabled`、`canCreateWorkspace`、`sessionsRevoked`）与建号三项（`email`、`canCreateWorkspace`、`revokedExisting`，以及 `account.enrolled` 的 `signupSource` / `enrollmentId`）——例如 `{"disabled":{"from":false,"to":true}}`。写入侧已保证其中不含密码、哈希、Cookie、CSRF、令牌、请求体或 IP，因此读路径无需再脱敏。**单行 `changes_json` 解析失败时降级为空对象并在服务端记录可诊断日志，而不是让整个页面 500**——这是只读页面，一条脏数据不该让它打不开。
 
 **失败关闭的边界**：审计查询**不读 `site_settings`**，与用户管理同一条边界。设置文档损坏时列表照常可用，因为「谁停用了这个账号」正是实例不健康时最需要看到的信息。
 
@@ -285,6 +285,63 @@ GET /api/admin/audit-events?action=&targetType=&targetId=&limit=&before=
 | 403 | `ADMIN_REQUIRED` | 已登录但不是启用中的管理员 |
 
 首版**不提供**修改或删除审计的接口，也不自动清理；它是应用内可追溯记录，不宣称能抵抗直接改库。保留策略以后单独设计。
+
+### 4.7 管理员显式建号（待激活记录）
+
+```text
+POST   /api/admin/account-enrollments                  {"email":"…","canCreateWorkspace":true}
+GET    /api/admin/account-enrollments
+DELETE /api/admin/account-enrollments/:enrollmentId
+POST   /api/auth/account-enrollments/complete          {"token":"…","name":"…","password":"…"}
+```
+
+三个管理端点的中间件顺序与 4.5 一致（`auth.Require` → `adminRequired`，写请求再加 `csrfRequired`），响应均带 `Cache-Control: no-store`。
+
+**这条路径不受 `registrationMode` 限制。** 它是管理员对一个人的显式授权，不属于任何自助注册过程：`closed` 模式下仍然可以由管理员发出链接并由对方完成建号。反过来，**切换注册模式不会替代撤销**：已经发出的记录在到期或显式撤销之前一直有效，来回切换 Mode 也不能让它们失效。**不要把这条路径并入注册模式判定**——把邀请之外的入口一并收紧看起来像加固，实际会让管理员在关闭自助注册后失去批准一个人的能力。
+
+**创建**：`email` 按全站统一规则规范化（去空格 + 小写；**不**处理 `+tag` 或点号），`canCreateWorkspace` 是管理员**逐次显式选定**的初始创建授权，绑定在这条记录上，不从设置默认值推导。同一邮箱存在 pending 记录时，旧记录被**撤销**后生成新的：一次授权不允许有两个入口，而旧令牌只存在于创建那一次的响应里，无法重现。成功 `201`：
+
+```json
+{ "enrollment": { "id": "…", "kind": "admin_created", "email": "…", "status": "pending",
+  "expiresAt": "…", "createdAt": "…", "consumedAt": null, "createdBy": "…", "canCreateWorkspace": true },
+  "token": "…", "url": "/enroll/…" }
+```
+
+记录默认 24 小时到期；`kind` 只可能是 `admin_created`（结构同时容纳后续包预留的 `public_signup`，服务端在任何入口都会再校验 kind，公开注册的令牌不能当管理员激活令牌用）。
+
+**列表**：返回全部记录，按创建时间倒序，**不含令牌或 `token_hash`**——原始令牌只在创建响应里出现这一次，服务端只保存 `sha256` 摘要，列表端因此没有任何东西可以回显。
+
+**撤销**：只作用于 `id` 指定的那一条。同一邮箱的其他记录是另一次决定，不会被顺手失效；已完成和已撤销的记录没有东西可撤。
+
+**完成建号**（`POST /api/auth/account-enrollments/complete`）：**不要求登录，也不校验 session CSRF**——这个请求本来就没有会话，照搬依赖已登录会话的 CSRF 会把唯一的合法路径堵死；令牌本身就是凭证（在请求体里，第三方站点读不到），因此这里做的是明确的**同源校验**（`Origin` / `Sec-Fetch-Site`，核对失败 403 `CSRF_INVALID`），而不是「什么都不校验」。服务端顺序为：实例总量限流 → 按摘要查找记录 → 按规范化邮箱限流 → 名字与密码校验（沿用既有账号规则，密码 8–72 字节）→ **事务外**计算 bcrypt → 事务内重新校验状态、未过期、邮箱仍无账号、以及**发起者仍是启用中的管理员** → 建账号（`signup_source='admin_created'`，`can_create_workspace` 取记录上显式绑定的值，`email_verified_at` 保持 `NULL`）→ 置为 `consumed` → 写审计 → 提交，成功后建立会话并下发 CSRF。
+
+```json
+{ "user": { "id": "…", "name": "…", "email": "…", "isAdmin": false, "disabled": false,
+  "capabilities": { "canManageSite": false, "canCreateWorkspace": true } }, "csrfToken": "…" }
+```
+
+邮箱验证时间留空是有意的：管理员担保的是人，不是邮箱可达性；只有真正的邮箱验证流程才写 `users.email_verified_at`，不按账号来源推断。目标邮箱若已有账号，一律不借这条流程改写密码、权限或会话，改由用户管理处理。
+
+| 状态 | code | 触发 |
+| --- | --- | --- |
+| 200 | — | 建号成功；响应同时下发 session Cookie |
+| 201 | — | （创建）记录已生成，令牌只此一次出现 |
+| 204 | — | （撤销）记录已失效 |
+| 400 | `INVALID_REQUEST` | 请求体不合法、含未知字段，或姓名/密码不满足既有规则 |
+| 401 | `UNAUTHORIZED` | 管理端点未登录或会话已撤销 |
+| 403 | `ADMIN_REQUIRED` | 非启用中的管理员；也覆盖**激活时发起者已不再是启用中管理员**的情形 |
+| 403 | `CSRF_INVALID` | 管理写请求 CSRF 失败，或激活请求不是同源发起 |
+| 404 | `NOT_FOUND` | （列表以外）记录不存在，或令牌未知 / 已撤销 / 已消费 / 已过期——**四种情形响应完全一致**，不提供可区分的原因，避免令牌枚举 |
+| 409 | `EMAIL_ALREADY_REGISTERED` | 目标邮箱已有账号（含激活期间另一入口抢先建号的情形） |
+| 429 | `RATE_LIMITED` | 超出单实例保护；响应带以秒为单位的 `Retry-After` |
+
+匿名端点的负载保护按**规范化邮箱**与**实例总量**两个维度计数（固定窗口），前者防止单一邮箱反复触发哈希计算，后者防止不断更换邮箱绕过前者；默认窗口为 15 分钟，实际取值需按目标负载复核，不是性能承诺。与既有约定一致，只有配置了受信任反向代理时才会使用转发的客户端 IP。
+
+**失败关闭的边界**：建号完成时会读取站点设置吗？不会。它只依赖记录本身与发起者的当前状态，因此 `site_settings` 损坏不影响已发出的授权被兑现——这条路径本来就不读注册策略。审计写入 `enrollment.created` / `enrollment.revoked` / `account.enrolled`，与业务写入同事务提交；`changes_json` 只记邮箱、显式授权、被替代记录数量与 `signupSource`/`enrollmentId`，不含密码、令牌、Cookie、请求体或 IP。
+
+**`account.enrolled` 的 actor 是完成激活的那个新账号自己**，不是签发管理员：审计的 actor 表示「谁执行了这个动作」，而激活这一步是用户自己完成的。谁批准了这个账号并没有因此丢失——审批人保存在 `account_enrollments.created_by`，`changes_json` 里的 `enrollmentId` 可回指那条授权记录。
+
+**状态只有三种，过期不是状态**：`pending` / `consumed` / `revoked`。是否过期由 `expiresAt` 在每次请求时判定，**不落库**——与既有邀请的做法一致，避免一条状态更新任务才能让过期记录"看起来"过期。因此列表里一条 `pending` 但 `expiresAt` 已过的记录**必须**按到期时间展示为已过期，而不是仍然显示"待激活"；未消费即可撤销，过期记录同样可以撤销，只是已经无法完成。
 
 ## 5. Workspace
 

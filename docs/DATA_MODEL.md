@@ -74,6 +74,42 @@ ALTER TABLE users ADD COLUMN admin_revision INTEGER NOT NULL DEFAULT 0
 
 它是**这个作用域**的版本号，不要把它当成整个用户对象的全局版本——用一次头像上传去撞另一位管理员的授权表单是没有意义的。
 
+### 2.3 邮箱验证时间
+
+```sql
+ALTER TABLE users ADD COLUMN email_verified_at DATETIME;
+```
+
+可空，**当前没有任何写入方**。管理员显式建号会把邮箱留在 `NULL` 上：管理员担保的是人，不是邮箱可达性。只有真正的邮箱验证流程（取回一次性链接并完成验证）才写入时间，**不按 `signup_source` 推断邮箱已验证**。公开注册尚未交付，所以这一列至今为空——看到它为空不要以为是缺陷，也不要因为某个流程「看起来验证过邮箱」就顺手写入。
+
+### 2.4 建号授权记录（account_enrollments）
+
+管理员显式建号的一条授权记录：
+
+```sql
+CREATE TABLE account_enrollments (
+    id                   TEXT PRIMARY KEY,
+    kind                 TEXT NOT NULL CHECK (kind IN ('public_signup', 'admin_created')),
+    email                TEXT NOT NULL,
+    token_hash           TEXT NOT NULL UNIQUE,
+    status               TEXT NOT NULL DEFAULT 'pending'
+                         CHECK (status IN ('pending', 'consumed', 'revoked')),
+    expires_at           DATETIME NOT NULL,
+    created_at           DATETIME NOT NULL,
+    consumed_at          DATETIME,
+    created_by           TEXT REFERENCES users(id) ON DELETE SET NULL,
+    can_create_workspace INTEGER CHECK (can_create_workspace IN (0, 1))
+);
+```
+
+- **明文令牌不落库**：`token_hash` 是 `id.secret` 中 `secret` 部分的 `sha256` 摘要，原始令牌只在创建响应里出现一次，因此数据库泄漏不可重放
+- `email` 是**规范化后**的目标邮箱（小写 + 去首尾空格）；不套用任何邮箱服务商的 `+tag` 与点号规则，所有入口一致
+- `created_by` 与 `can_create_workspace` 只服务于 `admin_created`：公开注册记录没有审批人，其初始创建授权必须在完成注册时读取当时的设置默认值，**不能冻结进记录**（否则就绕过了后来收紧的默认值）
+- `created_by` 是 `ON DELETE SET NULL`：审批账号被删除后记录仍在，审计链不丢
+- `status` **只有三态**。是否过期由 `expires_at` 在每次请求时判定、不落库——后台任务没跑也不影响过期记录被拒绝；因此界面上的「已过期」由 `expires_at` 推出，不要指望 `status` 里有一个 `expired`
+- 同一邮箱重复签发时**撤销旧记录再插入新行**：一次授权不能有两个入口，而旧令牌只有摘要、无法复现
+- 索引：`(email, status)` 用于查重与替代判定，`(created_by, id DESC)` 用于回答「这位管理员批准过哪些账号」
+
 ## 3. sessions
 
 MVP 简化为一个 session 对应一个 user：
