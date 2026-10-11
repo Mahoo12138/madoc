@@ -258,6 +258,34 @@ DELETE /api/admin/users/:userId/sessions
 
 **失败关闭的边界**：用户管理**不读 `site_settings`**。禁用账号只依据用户自身的列，因此设置文档损坏时列表、详情、修改与撤销会话**照常可用**；失败关闭只适用于真正依赖注册策略的操作（创建工作区、邀请建号、`GET /api/site`）。把封禁账号这条应急通道绑在一份无关的配置上，会让实例不健康时恰好无法停用恶意账号。
 
+### 4.6 操作记录（审计查询）
+
+```text
+GET /api/admin/audit-events?action=&targetType=&targetId=&limit=&before=
+```
+
+中间件顺序与前两个端点一致（`auth.Require` → `adminRequired`，只读无 CSRF），响应 `Cache-Control: no-store`。
+
+**列表**：`action` 只接受服务端已登记的动作（`site.settings_changed`、`user.disabled`、`user.enabled`、`user.admin_role_changed`、`user.workspace_creation_changed`、`user.sessions_revoked`），`targetType` 只接受 `site_settings` / `user`，省略即不筛选。默认每页 20、最多 100，`targetId` 超过 200 字符、`before` 超过 32 字符同样返回 400，**任何非法值一律 400 而不是被忽略**——被忽略的筛选会让一次拼写错误悄悄变成一份未筛选的全量页面。`before` 是 keyset 游标（上一页最小的 `id`）而非偏移量，`limit+1` 行探测是否还有下一页。
+
+一处例外值得知道：查询串里含**原始分号**时，Go 的 `net/url` 会把整条 query 丢弃（1.17 的安全加固），结果是所有筛选被静默丢弃、退化为一个无筛选的 200，而不是 400。行为是安全的——无解释、无注入——但它不是「非法输入必 400」。
+
+排序固定 `id DESC`。`id` 是 `INTEGER PRIMARY KEY AUTOINCREMENT`，与写入顺序同序，因此单列游标即可稳定翻页；首版数据量小，全表倒序扫描可接受，**为此新增索引属于过早优化**。响应 `{events, nextBefore}`，末页 `nextBefore` 为 `null`，空表返回 `events: []` 而非 `null`。
+
+**事件对象**：`{id, actorKind, actorId, actorName, action, targetType, targetId, changes, createdAt}`。`actorName` 通过 `users` 左连接取得；`actor_user_id` 是 `ON DELETE SET NULL`，因此**操作者账号被删除后 `actorId` 为 `null`、`actorName` 为空字符串，这不是错误**，整条记录照常列出。
+
+`changes` 是白名单业务字段的前后值——设置四项（`registrationMode`、`allowWorkspaceOwnerInviteNewUsers`、`inviteDefaultCanCreateWorkspace`、`publicSignupDefaultCanCreateWorkspace`）与用户四项（`isAdmin`、`disabled`、`canCreateWorkspace`、`sessionsRevoked`）——例如 `{"disabled":{"from":false,"to":true}}`。写入侧已保证其中不含密码、哈希、Cookie、CSRF、令牌、请求体或 IP，因此读路径无需再脱敏。**单行 `changes_json` 解析失败时降级为空对象并在服务端记录可诊断日志，而不是让整个页面 500**——这是只读页面，一条脏数据不该让它打不开。
+
+**失败关闭的边界**：审计查询**不读 `site_settings`**，与用户管理同一条边界。设置文档损坏时列表照常可用，因为「谁停用了这个账号」正是实例不健康时最需要看到的信息。
+
+| 状态 | code | 触发 |
+| --- | --- | --- |
+| 400 | `INVALID_REQUEST` | `action` / `targetType` 不在白名单，或 `limit` / `before` 不合法 |
+| 401 | `UNAUTHORIZED` | 未登录，或会话已被撤销 / 账号已禁用 |
+| 403 | `ADMIN_REQUIRED` | 已登录但不是启用中的管理员 |
+
+首版**不提供**修改或删除审计的接口，也不自动清理；它是应用内可追溯记录，不宣称能抵抗直接改库。保留策略以后单独设计。
+
 ## 5. Workspace
 
 ```text
@@ -488,6 +516,9 @@ GET /healthz
 Items tree 通常整棵 Workspace 加载，不必强制 pagination。
 
 Admin user list / future history list 再做 cursor / limit。
+
+- 管理审计列表见 4.6：`GET /api/admin/audit-events?limit=&before={id}`，`before` 是上一页最小的
+  `id`（keyset，非偏移量），返回 `nextBefore`。
 
 ### 内容版本历史
 
