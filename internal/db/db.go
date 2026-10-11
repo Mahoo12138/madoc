@@ -106,6 +106,23 @@ func applyMigrations(conn *sql.DB) error {
 	return nil
 }
 
+// MigrationFileCount reports how many migration files this build embeds.
+// Tests compare the applied count against it instead of a hardcoded number
+// that would have to be edited every time a migration is added.
+func MigrationFileCount() int {
+	entries, err := fs.ReadDir(migrationFS, "migrations")
+	if err != nil {
+		return 0
+	}
+	count := 0
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".sql") {
+			count++
+		}
+	}
+	return count
+}
+
 func IsLegacy(path string) (bool, error) {
 	conn, err := sql.Open("sqlite", "file:"+path+"?_pragma=foreign_keys(off)")
 	if err != nil {
