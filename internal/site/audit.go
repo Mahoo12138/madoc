@@ -51,6 +51,25 @@ func recordUser(ctx context.Context, q DBTX, actor Actor, action, targetID strin
 	return insertAudit(ctx, q, actor, action, targetTypeUser, targetID, allowed)
 }
 
+// recordEnrollment stores a management audit row for the enrollment lifecycle.
+// Its whitelist is the only thing standing between a caller and a token-bearing
+// audit row, so it accepts business fields and counts and nothing else.
+func recordEnrollment(ctx context.Context, q DBTX, actor Actor, action, targetType, targetID string, changes map[string]any) error {
+	allowed := make(map[string]any, len(changes))
+	for _, key := range []string{
+		KeyEnrollmentEmail,
+		KeyEnrollmentCanCreateWorkspace,
+		KeyEnrollmentRevokedExisting,
+		KeyEnrollmentID,
+		KeyEnrollmentSignupSource,
+	} {
+		if change, ok := changes[key]; ok {
+			allowed[key] = change
+		}
+	}
+	return insertAudit(ctx, q, actor, action, targetType, targetID, allowed)
+}
+
 func insertAudit(ctx context.Context, q DBTX, actor Actor, action, targetType, targetID string, changes map[string]any) error {
 	body, err := json.Marshal(changes)
 	if err != nil {

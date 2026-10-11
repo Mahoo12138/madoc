@@ -36,12 +36,16 @@ var auditActions = map[string]bool{
 	ActionUserAdminRoleChanged:         true,
 	ActionUserWorkspaceCreationChanged: true,
 	ActionUserSessionsRevoked:          true,
+	ActionEnrollmentCreated:            true,
+	ActionEnrollmentRevoked:            true,
+	ActionAccountEnrolled:              true,
 }
 
 // auditTargetTypes is the server-owned whitelist of queryable target types.
 var auditTargetTypes = map[string]bool{
 	auditTargetTypeSiteSettings: true,
 	targetTypeUser:              true,
+	targetTypeEnrollment:        true,
 }
 
 // AuditEvent is one management audit row. `changes` only ever carries the

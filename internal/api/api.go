@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -54,6 +55,12 @@ func (a *API) Routes() http.Handler {
 	r.With(a.auth.Require).Patch("/admin/users/{userId}", a.adminRequired(a.csrfRequired(a.patchAdminUser)))
 	r.With(a.auth.Require).Delete("/admin/users/{userId}/sessions", a.adminRequired(a.csrfRequired(a.revokeAdminUserSessions)))
 	r.With(a.auth.Require).Get("/admin/audit-events", a.adminRequired(a.listAuditEvents))
+	r.With(a.auth.Require).Get("/admin/account-enrollments", a.adminRequired(a.listAccountEnrollments))
+	r.With(a.auth.Require).Post("/admin/account-enrollments", a.adminRequired(a.csrfRequired(a.createAccountEnrollment)))
+	r.With(a.auth.Require).Delete("/admin/account-enrollments/{enrollmentId}", a.adminRequired(a.csrfRequired(a.revokeAccountEnrollment)))
+	// Anonymous by design: the single-use token is the credential, so this route
+	// gets the origin check instead of the session-bound CSRF middleware.
+	r.Post("/auth/account-enrollments/complete", a.sameOriginRequired(a.completeAccountEnrollment))
 	r.Get("/invites/{token}", a.inspectInvite)
 	r.With(a.auth.Optional).Post("/invites/{token}/accept", a.acceptInvite)
 	r.Group(func(r chi.Router) {
@@ -123,6 +130,46 @@ func (a *API) csrfRequired(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// sameOriginRequired guards anonymous state changes that have no session to
+// anchor a CSRF token to. The difference from csrfRequired is deliberate: the
+// latter compares a cookie against a header and therefore always fails for a
+// person who is not signed in yet, while refusing to check anything at all would
+// let any page on the internet drive this endpoint with the victim's browser.
+//
+// The check follows the browser's own signals, never a forwarded-looking header:
+// Origin when present, Sec-Fetch-Site next. A client that sends neither (an API
+// client, not a browser) is allowed through because it cannot be tricked into
+// acting by a third-party page in the first place.
+func (a *API) sameOriginRequired(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !sameOrigin(r) {
+			writeError(w, http.StatusForbidden, "CSRF_INVALID", "invalid CSRF token")
+			return
+		}
+		next(w, r)
+	}
+}
+
+func sameOrigin(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		switch r.Header.Get("Sec-Fetch-Site") {
+		case "", "same-origin", "none":
+			return true
+		default:
+			return false
+		}
+	}
+	parsed, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	// Compare against the request's own authority rather than a configured public
+	// address: this answers "was this request made from a page I served", which is
+	// exactly what a cross-site request must fail.
+	return strings.EqualFold(parsed.Host, r.Host)
+}
+
 func decode(r *http.Request, target any) error {
 	defer r.Body.Close()
 	decoder := json.NewDecoder(io.LimitReader(r.Body, 2<<20))
@@ -150,8 +197,10 @@ func domainError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid request")
 	case errors.Is(err, site.ErrLastActiveAdmin):
 		writeError(w, http.StatusConflict, "LAST_ACTIVE_ADMIN", "the site must keep at least one enabled administrator")
-	case errors.Is(err, site.ErrUserNotFound):
+	case errors.Is(err, site.ErrUserNotFound), errors.Is(err, site.ErrEnrollmentNotFound):
 		writeError(w, 404, "NOT_FOUND", "resource not found")
+	case errors.Is(err, site.ErrEmailAlreadyRegistered):
+		writeError(w, http.StatusConflict, "EMAIL_ALREADY_REGISTERED", "该邮箱已有账号，请到「用户管理」中调整，建号流程不会修改已有账号")
 	case errors.Is(err, site.ErrCorrupt):
 		writeError(w, http.StatusInternalServerError, "INTERNAL", "internal server error")
 	case errors.Is(err, core.ErrNotFound):
@@ -176,6 +225,8 @@ func domainError(w http.ResponseWriter, err error) {
 		writeError(w, 409, "CONFLICT", "resource changed or invariant would be violated")
 	case errors.Is(err, core.ErrInvalid):
 		writeError(w, 400, "INVALID_REQUEST", "invalid request")
+	case errors.Is(err, site.ErrRateLimited):
+		writeError(w, http.StatusTooManyRequests, "RATE_LIMITED", "操作过于频繁，请稍后重试")
 	default:
 		writeError(w, 500, "INTERNAL", "internal server error")
 	}

@@ -95,7 +95,7 @@ func main() {
 	apiHandler := api.New(authService, auth.NewCSRF(cfg.Secret), domain, siteStore, assetService, account.New(conn, cfg.AssetDir), hub, !cfg.Dev)
 
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID, middleware.RealIP, middleware.Logger, middleware.Recoverer, securityHeaders)
+	r.Use(middleware.RequestID, middleware.RealIP, requestLogger, middleware.Recoverer, securityHeaders)
 	// The frontend is a hashed-asset SPA whose JS/CSS is highly compressible
 	// text. Without this every page ships its full ~880kB uncompressed on each
 	// cold load; gzip brings that to roughly a third. Images and fonts are
@@ -136,6 +136,52 @@ func main() {
 		log.Printf("checkpoint database during shutdown: %v", err)
 	}
 }
+
+// tokenPathPrefixes list the routes whose next path segment is a secret rather
+// than an identifier: an invite token, a share token or an activation token.
+var tokenPathPrefixes = []string{"/api/invites/", "/api/public/shares/", "/enroll/"}
+
+// redactPath replaces the secret segment of those routes with a placeholder.
+// The token travels in the path because that is how it reaches a person's mail
+// client, but it is the credential for reading the resource, so it must never
+// reach a log line: logs are copied into diagnostics tickets in plain text.
+func redactPath(path string) string {
+	for _, prefix := range tokenPathPrefixes {
+		if !strings.HasPrefix(path, prefix) {
+			continue
+		}
+		rest := path[len(prefix):]
+		if index := strings.Index(rest, "/"); index >= 0 {
+			return prefix + "<token>" + rest[index:]
+		}
+		return prefix + "<token>"
+	}
+	return path
+}
+
+// redactingLogFormatter keeps everything the default chi formatter reports -
+// request id, caller, method, path, status and elapsed time - except that it
+// never writes a token-bearing path.
+type redactingLogFormatter struct{}
+
+type redactingLogEntry struct {
+	request *http.Request
+	id      string
+}
+
+func (redactingLogFormatter) NewLogEntry(r *http.Request) middleware.LogEntry {
+	return redactingLogEntry{request: r, id: middleware.GetReqID(r.Context())}
+}
+
+func (e redactingLogEntry) Write(status, written int, _ http.Header, elapsed time.Duration, _ any) {
+	log.Printf("%s %s %s -> %d %dB in %s", e.id, e.request.Method, redactPath(e.request.URL.Path), status, written, elapsed)
+}
+
+func (redactingLogEntry) Panic(value any, stack []byte) {
+	log.Printf("panic serving request: %v\n%s", value, stack)
+}
+
+var requestLogger = middleware.RequestLogger(redactingLogFormatter{})
 
 func spaHandler(static fs.FS, fileServer http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

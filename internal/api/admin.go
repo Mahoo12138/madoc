@@ -189,6 +189,159 @@ func (a *API) listAuditEvents(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, response)
 }
 
+type createAccountEnrollmentRequest struct {
+	Email              string `json:"email"`
+	CanCreateWorkspace bool   `json:"canCreateWorkspace"`
+}
+
+type completeAccountEnrollmentRequest struct {
+	Token    string `json:"token"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
+type enrollmentListResponse struct {
+	Enrollments []site.Enrollment `json:"enrollments"`
+}
+
+type createEnrollmentResponse struct {
+	Enrollment site.Enrollment `json:"enrollment"`
+	Token      string          `json:"token"`
+	URL        string          `json:"url"`
+}
+
+// enrollmentActivatePath is the public page where the recipient sets their name
+// and password; it has to match the frontend route, because the create response
+// is the only thing that ever hands the recipient their link. Route-level log
+// redaction applies here: never log the path with its argument.
+const enrollmentActivatePath = "/enroll/"
+
+// listAccountEnrollments renders the pending and historical activation records.
+// The response can only contain what the token digests allow, so there is no
+// token to redact here.
+func (a *API) listAccountEnrollments(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store, private")
+	result, err := a.site.ListEnrollments(r.Context())
+	if err != nil {
+		writeEnrollmentError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, enrollmentListResponse{Enrollments: result.Enrollments})
+}
+
+// createAccountEnrollment issues one activation record. The plain token is
+// returned here and nowhere else: later reads can only revoke or supersede it.
+func (a *API) createAccountEnrollment(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store, private")
+	var body createAccountEnrollmentRequest
+	if err := decode(r, &body); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid request")
+		return
+	}
+	operator := auth.UserFromContext(r.Context())
+	enrollment, token, err := a.site.CreateEnrollment(r.Context(), site.Actor{
+		ID:                 operator.ID,
+		IsAdmin:            operator.IsAdmin,
+		Disabled:           operator.Disabled,
+		CanCreateWorkspace: operator.CanCreateWorkspace,
+	}, body.Email, body.CanCreateWorkspace)
+	if err != nil {
+		writeEnrollmentError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, createEnrollmentResponse{Enrollment: enrollment, Token: token, URL: enrollmentActivatePath + token})
+}
+
+// revokeAccountEnrollment withdraws exactly one approval. Other records for the
+// same mailbox are separate decisions and stay untouched.
+func (a *API) revokeAccountEnrollment(w http.ResponseWriter, r *http.Request) {
+	operator := auth.UserFromContext(r.Context())
+	if err := a.site.RevokeEnrollment(r.Context(), site.Actor{
+		ID:                 operator.ID,
+		IsAdmin:            operator.IsAdmin,
+		Disabled:           operator.Disabled,
+		CanCreateWorkspace: operator.CanCreateWorkspace,
+	}, chi.URLParam(r, "enrollmentId")); err != nil {
+		writeEnrollmentError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// completeAccountEnrollment turns an administrator's approval into an account.
+//
+// The caller is anonymous by definition, so the request cannot be protected by
+// the CSRF middleware: that check reads a cookie bound to a session this person
+// does not have yet, and requiring it would close the only path a legitimate
+// invitee has. The flow is still bound to this origin - see sameOriginRequired -
+// and the credential itself is the single-use token in the body, which an
+// attacker cannot read from another site. Dropping origin checking entirely is
+// the opposite mistake and would make this an open cross-site endpoint.
+func (a *API) completeAccountEnrollment(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store, private")
+	var body completeAccountEnrollmentRequest
+	if err := decode(r, &body); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid request")
+		return
+	}
+	account, err := a.site.CompleteEnrollment(r.Context(), site.CompleteEnrollmentRequest{
+		Token:    body.Token,
+		Name:     body.Name,
+		Password: body.Password,
+		// bcrypt runs outside every transaction; see the request type comment.
+		HashPassword: auth.HashPassword,
+	})
+	if err != nil {
+		writeEnrollmentError(w, err)
+		return
+	}
+	user := auth.User{
+		ID:                 account.ID,
+		Name:               account.Name,
+		Email:              account.Email,
+		IsAdmin:            account.IsAdmin,
+		Disabled:           account.Disabled,
+		CanCreateWorkspace: account.CanCreateWorkspace,
+	}
+	user.ApplyCapabilities()
+	session, err := a.auth.CreateSession(r.Context(), user.ID)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+	setSessionCookie(w, session, a.secureCookies)
+	token, err := a.csrf.Issue(w, a.secureCookies)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"user": user, "csrfToken": token})
+}
+
+// writeEnrollmentError maps the enrollment verdicts. Missing records collapse
+// into one indistinguishable NOT_FOUND so an attacker cannot tell an unknown
+// token from a revoked, consumed or expired one.
+func writeEnrollmentError(w http.ResponseWriter, err error) {
+	var limited *site.RateLimitError
+	switch {
+	case errors.As(err, &limited):
+		seconds := int(limited.RetryAfter.Seconds())
+		if seconds < 1 {
+			seconds = 1
+		}
+		w.Header().Set("Retry-After", strconv.Itoa(seconds))
+		writeError(w, http.StatusTooManyRequests, "RATE_LIMITED", "操作过于频繁，请稍后重试")
+	case errors.Is(err, site.ErrEmailAlreadyRegistered):
+		writeError(w, http.StatusConflict, "EMAIL_ALREADY_REGISTERED", "该邮箱已有账号，请到「用户管理」中调整，建号流程不会修改已有账号")
+	case errors.Is(err, site.ErrEnrollmentIssuerRevoked):
+		writeError(w, http.StatusForbidden, "ADMIN_REQUIRED", "批准此次建号的管理员已无站点管理权限，请联系站点管理员重新发起邀请")
+	case errors.Is(err, site.ErrEnrollmentNotFound):
+		writeError(w, http.StatusNotFound, "NOT_FOUND", "resource not found")
+	default:
+		writeSiteError(w, err)
+	}
+}
+
 func (a *API) revokeAccountSessions(userID string) {
 	if rooms, ok := a.rooms.(AccountRooms); ok && rooms != nil {
 		rooms.RevokeOtherSessions(userID, "")

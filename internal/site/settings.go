@@ -23,6 +23,11 @@ type DBTX interface {
 // Store persists validated site settings.
 type Store struct {
 	db *sql.DB
+	// enrollmentLimiter protects the anonymous activation endpoint. It lives in
+	// the store rather than in the HTTP layer because the budget has to be spent
+	// at the exact point where expensive work (password hashing) is about to
+	// start, which only this package knows.
+	enrollmentLimiter *activationLimiter
 }
 
 // Settings is the public response representation of the site settings document.
@@ -55,9 +60,15 @@ type normalizedChanges struct {
 	publicSignupDefaultCanCreateWorkspace *bool
 }
 
-// New constructs a site settings store.
-func New(db *sql.DB) *Store {
-	return &Store{db: db}
+// New constructs a site settings store. Activation requests are guarded by
+// DefaultEnrollmentLimits so every deployment gets one known set of values.
+func New(db *sql.DB) *Store { return NewWithEnrollmentLimits(db, DefaultEnrollmentLimits()) }
+
+// NewWithEnrollmentLimits builds a store with caller-chosen activation limits.
+// It exists so tests can drive the 429 path inside one window instead of waiting
+// out a production budget; wiring always uses New.
+func NewWithEnrollmentLimits(db *sql.DB, limits EnrollmentLimits) *Store {
+	return &Store{db: db, enrollmentLimiter: newActivationLimiter(limits)}
 }
 
 // Load reads and validates settings using q. It never falls back to Store.db.
