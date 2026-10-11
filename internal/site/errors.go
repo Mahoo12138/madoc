@@ -11,6 +11,9 @@ var (
 	ErrWorkspaceCreationDenied = errors.New("workspace creation is not allowed")
 	ErrRegistrationClosed      = errors.New("registration is closed")
 	ErrInviteNewUserDenied     = errors.New("the invite cannot introduce a new site user")
+	ErrUserNotFound            = errors.New("user not found")
+	ErrSelfDisableForbidden    = errors.New("an administrator cannot disable their own account")
+	ErrLastActiveAdmin         = errors.New("the site must keep at least one enabled administrator")
 )
 
 // IsCorrupt reports whether err represents invalid or missing site settings.

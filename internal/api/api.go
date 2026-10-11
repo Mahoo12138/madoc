@@ -49,6 +49,10 @@ func (a *API) Routes() http.Handler {
 	r.With(a.auth.Require).Get("/me", a.me)
 	r.With(a.auth.Require).Get("/admin/settings", a.adminRequired(a.getSiteSettings))
 	r.With(a.auth.Require).Patch("/admin/settings", a.adminRequired(a.csrfRequired(a.patchSiteSettings)))
+	r.With(a.auth.Require).Get("/admin/users", a.adminRequired(a.listAdminUsers))
+	r.With(a.auth.Require).Get("/admin/users/{userId}", a.adminRequired(a.getAdminUser))
+	r.With(a.auth.Require).Patch("/admin/users/{userId}", a.adminRequired(a.csrfRequired(a.patchAdminUser)))
+	r.With(a.auth.Require).Delete("/admin/users/{userId}/sessions", a.adminRequired(a.csrfRequired(a.revokeAdminUserSessions)))
 	r.Get("/invites/{token}", a.inspectInvite)
 	r.With(a.auth.Optional).Post("/invites/{token}/accept", a.acceptInvite)
 	r.Group(func(r chi.Router) {
@@ -143,6 +147,10 @@ func domainError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusConflict, "REVISION_CONFLICT", "site settings were changed by another administrator")
 	case errors.Is(err, site.ErrInvalidChange):
 		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid request")
+	case errors.Is(err, site.ErrLastActiveAdmin):
+		writeError(w, http.StatusConflict, "LAST_ACTIVE_ADMIN", "the site must keep at least one enabled administrator")
+	case errors.Is(err, site.ErrUserNotFound):
+		writeError(w, 404, "NOT_FOUND", "resource not found")
 	case errors.Is(err, site.ErrCorrupt):
 		writeError(w, http.StatusInternalServerError, "INTERNAL", "internal server error")
 	case errors.Is(err, core.ErrNotFound):

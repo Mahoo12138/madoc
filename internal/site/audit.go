@@ -6,7 +6,12 @@ import (
 	"time"
 )
 
-const ActionSettingsChanged = "site.settings_changed"
+const (
+	ActionSettingsChanged = "site.settings_changed"
+	// Audit rows for the user lifecycle share one target type so a future audit
+	// page can list everything that happened to an account by id.
+	targetTypeUser = "user"
+)
 
 type auditValueChange struct {
 	From any `json:"from"`
@@ -25,10 +30,33 @@ func record(ctx context.Context, q DBTX, actor Actor, changes map[string]any) er
 			allowed[key] = change
 		}
 	}
-	body, err := json.Marshal(allowed)
+	return insertAudit(ctx, q, actor, ActionSettingsChanged, "site_settings", "site_settings", allowed)
+}
+
+// recordUser stores a management audit row for a user lifecycle action. Only
+// whitelisted business fields survive: passwords, hashes, cookies, tokens and
+// raw request bodies are never written, and the IP is not collected.
+func recordUser(ctx context.Context, q DBTX, actor Actor, action, targetID string, changes map[string]any) error {
+	allowed := make(map[string]any, len(changes))
+	for _, key := range []string{
+		KeyUserIsAdmin,
+		KeyUserDisabled,
+		KeyUserCanCreateWorkspace,
+		KeySessionsRevoked,
+	} {
+		if change, ok := changes[key]; ok {
+			allowed[key] = change
+		}
+	}
+	return insertAudit(ctx, q, actor, action, targetTypeUser, targetID, allowed)
+}
+
+func insertAudit(ctx context.Context, q DBTX, actor Actor, action, targetType, targetID string, changes map[string]any) error {
+	body, err := json.Marshal(changes)
 	if err != nil {
 		return err
 	}
-	_, err = q.ExecContext(ctx, `INSERT INTO admin_audit_events(actor_kind,actor_user_id,action,target_type,target_id,changes_json,request_id,created_at) VALUES('user',?,?, 'site_settings','site_settings',?,NULL,?)`, actor.ID, ActionSettingsChanged, string(body), time.Now().UTC())
+	_, err = q.ExecContext(ctx, `INSERT INTO admin_audit_events(actor_kind,actor_user_id,action,target_type,target_id,changes_json,request_id,created_at) VALUES('user',?,?,?,?,?,NULL,?)`,
+		actor.ID, action, targetType, targetID, string(body), time.Now().UTC())
 	return err
 }
