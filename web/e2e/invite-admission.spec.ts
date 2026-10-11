@@ -281,7 +281,7 @@ test.describe('the invite page renders the state it can honour', () => {
 test.describe('the admin panel exposes only what the server implements', () => {
   async function openSiteSettings(page: Page) {
     await openDocument(page);
-    await page.goto('/admin');
+    await page.goto('/admin/settings');
   }
 
   test('registration mode offers the two supported values and no open one', async ({

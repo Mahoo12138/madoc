@@ -13,7 +13,7 @@ const SETTINGS_API = '**/api/admin/settings';
 
 async function openSiteSettings(page: Page) {
   await openDocument(page);
-  await page.goto('/admin');
+  await page.goto('/admin/settings');
 }
 
 function settingsRow(page: Page) {
