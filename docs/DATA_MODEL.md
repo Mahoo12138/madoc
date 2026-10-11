@@ -61,6 +61,19 @@ CanCreateWorkspace(user):
 
 同一条判定在事务内用于 `POST /api/workspaces`（不满足返回 403 `WORKSPACE_CREATION_DENIED`），并由 `/api/auth/session`、`/api/me` 的 `capabilities.canCreateWorkspace` 暴露给前端收敛入口。判定规则只有这一处实现，见 `internal/site`。
 
+### 2.2 管理员管理字段的并发版本
+
+```sql
+ALTER TABLE users ADD COLUMN admin_revision INTEGER NOT NULL DEFAULT 0
+  CHECK (admin_revision >= 0);
+```
+
+`admin_revision` 只跟踪 `is_admin`、`disabled`、`can_create_workspace` 三个由管理员在用户管理页修改的字段，**不跟踪**头像、姓名、邮箱或编辑器偏好。个人资料接口不修改这三个字段，管理员修改它们必须走 `PATCH /api/admin/users/:userId`。
+
+管理界面用它做乐观并发：一个管理员调整授权时，另一个管理员改了同一个账号的启用状态，前者会拿到 409 `REVISION_CONFLICT` 而不是静默覆盖。成功变更后递增；无实际变化时原样返回，不递增。
+
+它是**这个作用域**的版本号，不要把它当成整个用户对象的全局版本——用一次头像上传去撞另一位管理员的授权表单是没有意义的。
+
 ## 3. sessions
 
 MVP 简化为一个 session 对应一个 user：

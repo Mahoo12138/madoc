@@ -159,6 +159,8 @@ PATCH /api/admin/settings
 
 ### 4.2 错误码
 
+下表覆盖设置端点；用户管理端点的错误码见 4.5。
+
 | 状态 | code | 触发 |
 | --- | --- | --- |
 | 400 | `INVALID_REQUEST` | 解码失败、`expectedRevision` / `changes` 不合法、字段不在白名单、布尔类型不严格 |
@@ -221,15 +223,40 @@ GET /api/site
 
 **读取路径必须不写入**：该接口走 `Store.LoadPublic`（`Load` 经 `*sql.DB` 执行只读查询，**不会** INSERT 默认文档），与管理端 `GET /api/admin/settings` 的惰性初始化（`Ensure`，读到缺失会在事务内 `INSERT`）是**相反语义**。**公开路径不得改用 `Ensure`**，否则未登录请求就获得了写库能力。反过来，持有事务的代码（如 `core.AcceptInvite`）必须让自己的设置读取走同一个 `*sql.Tx`：连接池是 `SetMaxOpenConns(1)`，事务内误用全局句柄表现为死锁而不是报错。
 
-站点管理后续（尚未交付）：
+### 4.5 用户管理
 
 ```text
-GET    /api/admin/users
-POST   /api/admin/users
-PATCH  /api/admin/users/:id
+GET    /api/admin/users?q=&status=&role=&limit=&cursor=
+GET    /api/admin/users/:userId
+PATCH  /api/admin/users/:userId        {"expectedRevision":3,"changes":{"disabled":true}}
+DELETE /api/admin/users/:userId/sessions
 ```
 
-不是编辑器 MVP 阻塞项。
+中间件顺序与设置端点一致（`auth.Require` → `adminRequired` → `csrfRequired`），响应 `Cache-Control: no-store`。
+
+**列表**：`q` 匹配姓名或邮箱，`status` 只接受 `enabled`/`disabled`，`role` 只接受 `admin`/`user`，省略即不筛选。默认每页 20、最多 100，非法值返回 400。排序固定为 `created_at DESC, id DESC`，**不拼接任何客户端文本**；`cursor` 由服务端签发并解析验证（keyset 而非裸偏移量），指向已不存在的用户时同样 400。响应 `{users, nextCursor}`，末页 `nextCursor` 为 `null`。**列表不一次加载全部用户。**
+
+**用户对象**：`{id, avatarUrl, name, email, isAdmin, disabled, canCreateWorkspace, effectiveCanCreateWorkspace, signupSource, createdAt, revision}`。`canCreateWorkspace` 是管理员维护的原始授权字段，`effectiveCanCreateWorkspace` 是最终能力。管理员的原始字段可以保留原值——他的创建能力来自身份，但界面必须展示**最终生效权限**，撤销管理员身份后按该字段判断。
+
+**详情**额外返回 `stats`：`memberWorkspaces`（加入的工作区数）、`ownedWorkspaces`（创建的工作区数）、`soleOwnerRisk`（是否存在仅剩该账号**可用**的工作区）。判定排除已被禁用的 owner：另一个 owner 无法登录时，那个工作区同样没人能管理，正是这个提示要暴露的情况。`soleOwnerRisk` 只是提示，**不阻止封禁，也不自动转移内容所有权**。**详情不返回任何工作区标题或内容**，避免用户详情成为读取私人内容的旁路。
+
+**PATCH**：`changes` 只接受 `isAdmin`、`disabled`、`canCreateWorkspace`，至少一个；布尔必须是严格 JSON 布尔。`expectedRevision` 对应 `admin_revision`，不匹配返回 409。事务内顺序：读取目标 → 规范化变更 → 比对 `revision` → 事务内复检操作者 → 禁止禁用自己 → 最后管理员不变量 → 无变化则原样返回 → 写库并递增 `admin_revision` → 条件删除 session → 写审计 → 提交。**组合修改作为整体检查不变量**，一部分非法则整体不落库。
+
+| 状态 | code | 触发 |
+| --- | --- | --- |
+| 404 | `NOT_FOUND` | 用户不存在 |
+| 400 | `INVALID_REQUEST` | 变更字段不在白名单，或布尔类型不严格 |
+| 403 | `SELF_DISABLE_FORBIDDEN` | 管理员试图禁用自己 |
+| 409 | `LAST_ACTIVE_ADMIN` | 操作会使站点没有 `is_admin=1 且 disabled=0` 的账号 |
+| 409 | `REVISION_CONFLICT` | `admin_revision` 与 `expectedRevision` 不一致 |
+
+**两条不变量在同一个事务内成立**：任何操作后站点至少保留一个启用中的管理员；禁止管理员禁用自己。允许把自己降为普通用户，但必须另有启用中的管理员。两个管理员同时互相降级时按事务顺序的最终状态判定，不依据过时的读取结果。
+
+**连带撤权**：禁用账号或变更其管理员身份时，在同一事务内删除该用户全部 session，提交后通知 Hub 关闭其实时连接，使旧的身份快照失效。**仅修改创建能力不撤销 session**——成员权限没有变化，不该打断正在编辑的人。Hub 不可用时记录可诊断错误，但已提交的数据库状态不回滚；进程重启后仍从数据库读到禁用状态。
+
+`DELETE .../sessions` 只撤销现有会话并关闭连接，**不禁用账号、不改密码、不撤销创建权限**，用户凭有效凭据仍可重新登录。客户端**不得对该动作自动重试**，以免稍后误撤销用户刚建立的会话。
+
+**失败关闭的边界**：用户管理**不读 `site_settings`**。禁用账号只依据用户自身的列，因此设置文档损坏时列表、详情、修改与撤销会话**照常可用**；失败关闭只适用于真正依赖注册策略的操作（创建工作区、邀请建号、`GET /api/site`）。把封禁账号这条应急通道绑在一份无关的配置上，会让实例不健康时恰好无法停用恶意账号。
 
 ## 5. Workspace
 
