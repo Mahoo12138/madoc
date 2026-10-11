@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"madoc/internal/auth"
@@ -156,6 +157,36 @@ func (a *API) revokeAdminUserSessions(w http.ResponseWriter, r *http.Request) {
 	}
 	a.revokeAccountSessions(targetID)
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// auditEventsResponse is the list payload. `nextBefore` is the cursor for the
+// next, older page and is null on the last page.
+type auditEventsResponse struct {
+	Events     []site.AuditEvent `json:"events"`
+	NextBefore *string           `json:"nextBefore"`
+}
+
+// listAuditEvents reads the management audit trail. Filters are validated
+// against a server-owned whitelist before the query is built, so client text is
+// never interpolated into SQL.
+func (a *API) listAuditEvents(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store")
+	query, err := site.ParseAuditQuery(r.URL.Query())
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid request")
+		return
+	}
+	events, nextBefore, err := a.site.ListAuditEvents(r.Context(), query)
+	if err != nil {
+		writeSiteError(w, err)
+		return
+	}
+	response := auditEventsResponse{Events: events}
+	if nextBefore != nil {
+		cursor := strconv.FormatInt(*nextBefore, 10)
+		response.NextBefore = &cursor
+	}
+	writeJSON(w, http.StatusOK, response)
 }
 
 func (a *API) revokeAccountSessions(userID string) {

@@ -53,6 +53,7 @@ func (a *API) Routes() http.Handler {
 	r.With(a.auth.Require).Get("/admin/users/{userId}", a.adminRequired(a.getAdminUser))
 	r.With(a.auth.Require).Patch("/admin/users/{userId}", a.adminRequired(a.csrfRequired(a.patchAdminUser)))
 	r.With(a.auth.Require).Delete("/admin/users/{userId}/sessions", a.adminRequired(a.csrfRequired(a.revokeAdminUserSessions)))
+	r.With(a.auth.Require).Get("/admin/audit-events", a.adminRequired(a.listAuditEvents))
 	r.Get("/invites/{token}", a.inspectInvite)
 	r.With(a.auth.Optional).Post("/invites/{token}/accept", a.acceptInvite)
 	r.Group(func(r chi.Router) {
