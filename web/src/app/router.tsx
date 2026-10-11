@@ -7,6 +7,7 @@ import {
   Outlet,
 } from '@tanstack/react-router';
 import {
+  EnrollPage,
   InvitePage,
   SetupPage,
   SignInPage,
@@ -59,6 +60,12 @@ const inviteRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/invite/$token',
   component: InvitePage,
+});
+// 激活链接直达，不出现在任何导航里：它没有入口，只有这一条 URL（§11.3）。
+const enrollRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/enroll/$token',
+  component: EnrollPage,
 });
 const workspacesRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -119,6 +126,7 @@ const routeTree = rootRoute.addChildren([
   setupRoute,
   signInRoute,
   inviteRoute,
+  enrollRoute,
   workspacesRoute,
   accountSettingsRoute,
   workspaceRoute,

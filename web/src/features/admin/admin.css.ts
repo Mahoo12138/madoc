@@ -519,6 +519,25 @@ export const loadState = style({
   padding: '32px 0',
 });
 
+// ── 待激活（管理员显式建号）────────────────────────────────────────────────
+// 列表行直接复用上面的 infoCard / infoGrid / infoLabel / infoValue / infoActions，
+// 不新增第二套卡片语言。这里只补两块：一次性激活链接的结果容器与其中的输入框。
+
+export const enrollmentLink = style({
+  display: 'flex',
+  gap: 10,
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  marginTop: 16,
+  padding: 16,
+  border: '1px solid var(--mantine-color-gray-2)',
+  borderRadius: 'var(--mantine-radius-sm)',
+  // 一次性结果用纸灰面与常驻列表（白面）区分：层级靠色调，不靠阴影。
+  background: 'var(--mantine-color-gray-0)',
+  '@media': { [workspaceMedia.mobile]: { flexDirection: 'column', alignItems: 'stretch' } },
+});
+export const enrollmentLinkField = style({ flex: 1, minWidth: 0, maxWidth: '100%' });
+
 // ── 详情抽屉 ────────────────────────────────────────────────────────────────
 export const drawerBody = style({});
 globalStyle(

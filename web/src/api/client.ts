@@ -1,4 +1,4 @@
-import type { ActivityEvent, AdminUser, AdminUserChanges, AdminUserDetail, AdminUserList, AdminUserListParams, AuditEventList, AuditEventListParams, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, InvitePreview, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteInfo, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
+import type { AccountEnrollment, ActivityEvent, AdminUser, AdminUserChanges, AdminUserDetail, AdminUserList, AdminUserListParams, AuditEventList, AuditEventListParams, BoardScene, CompletedEnrollment, ContentVersion, ContentVersionDetail, ContentVersionUsage, CreatedEnrollment, EnrollmentList, Invite, InvitePreview, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteInfo, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -90,5 +90,12 @@ export const api = {
     const search = query.toString();
     return request<AuditEventList>(`/admin/audit-events${search ? `?${search}` : ''}`, { cache: 'no-store' });
   },
+  // 管理员显式建号（§11.3）：不受注册模式限制。原始令牌只在 POST 响应里出现一次，
+  // GET 列表拿不到，服务端也只保存摘要——关闭弹窗后链接无法再找回，只能重建。
+  accountEnrollments: () => request<EnrollmentList>('/admin/account-enrollments', { cache: 'no-store' }),
+  createAccountEnrollment: (email: string, canCreateWorkspace: boolean) => request<CreatedEnrollment>('/admin/account-enrollments', { method: 'POST', body: JSON.stringify({ email, canCreateWorkspace }) }),
+  revokeAccountEnrollment: (id: string) => request<void>(`/admin/account-enrollments/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  // 匿名可用：令牌本身就是凭据，不需要会话。完成后服务端直接建立会话并下发新 CSRF。
+  completeAccountEnrollment: async (token: string, body: { name: string; password: string }) => { const result = await request<CompletedEnrollment>('/auth/account-enrollments/complete', { method: 'POST', body: JSON.stringify({ ...body, token }) }); setCSRFToken(result.csrfToken); return result; },
   uploadAsset: (workspaceId: string, file: File, itemId?: string) => { const body = new FormData(); body.append('file', file); if (itemId) body.append('itemId', itemId); return request<{ asset: { id: string }; url: string }>(`/workspaces/${workspaceId}/assets`, { method: 'POST', body }); },
 };

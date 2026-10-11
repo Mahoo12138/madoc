@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
-import { APIError, type AdminUser, type AdminUserChanges, type AdminUserDetail, type AdminUserList, type AdminUserListParams, type AuditEventList, type AuditEventListParams, type ItemType, type Role, type SiteInfo, type SiteSettings, type SiteSettingsChanges } from './types';
+import { APIError, type AdminUser, type AdminUserChanges, type AdminUserDetail, type AdminUserList, type AdminUserListParams, type AuditEventList, type AuditEventListParams, type EnrollmentList, type ItemType, type Role, type SiteInfo, type SiteSettings, type SiteSettingsChanges } from './types';
 
 const retryWorkspaceRead = (count: number, error: Error) =>
   !(error instanceof APIError && [401, 403, 404].includes(error.status)) && count < 3;
@@ -16,7 +16,12 @@ const retryAdminUsersRead = (count: number, error: Error) =>
 const retryAdminAuditRead = (count: number, error: Error) =>
   !(error instanceof APIError && [400, 401, 403].includes(error.status)) && count < 3;
 
-export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const, siteSettings: ['siteSettings'] as const, siteInfo: ['siteInfo'] as const, /** 前缀根：失效后所有筛选与分页重新读取。 */ adminUsers: ['adminUsers'] as const, adminUserList: (params: AdminUserListParams) => ['adminUsers', 'list', params] as const, adminUser: (id: string) => ['adminUsers', 'detail', id] as const, /** 前缀根：设置或账号变更后让操作记录重新读取。 */ adminAudit: ['adminAudit'] as const, auditEventList: (params: AuditEventListParams) => ['adminAudit', 'list', params] as const };
+// Same reasoning for the enrollment list: 401/403 are authorization decisions
+// and 404/409 are final answers about this record.
+const retryEnrollmentRead = (count: number, error: Error) =>
+  !(error instanceof APIError && [401, 403, 404, 409].includes(error.status)) && count < 3;
+
+export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const, siteSettings: ['siteSettings'] as const, siteInfo: ['siteInfo'] as const, /** 前缀根：失效后所有筛选与分页重新读取。 */ adminUsers: ['adminUsers'] as const, adminUserList: (params: AdminUserListParams) => ['adminUsers', 'list', params] as const, adminUser: (id: string) => ['adminUsers', 'detail', id] as const, /** 前缀根：撤销或新建后重新读取待激活列表。 */ accountEnrollments: ['accountEnrollments'] as const, /** 前缀根：设置或账号变更后让操作记录重新读取。 */ adminAudit: ['adminAudit'] as const, auditEventList: (params: AuditEventListParams) => ['adminAudit', 'list', params] as const };
 export const useSession = () => useQuery({ queryKey: keys.session, queryFn: api.session, staleTime: 60_000, retry: false, retryOnMount: false });
 export const useWorkspaces = () => useQuery({ queryKey: keys.workspaces, queryFn: api.workspaces });
 export const useWorkspace = (id: string) => useQuery({ queryKey: keys.workspace(id), queryFn: () => api.workspace(id), retry: retryWorkspaceRead, retryOnMount: false });
@@ -63,6 +68,37 @@ export const useRevokeUserSessions = () => {
     onSuccess: () => void client.invalidateQueries({ queryKey: keys.adminUsers }),
   });
 };
+
+/**
+ * 待激活的激活记录列表（§11.3）。这不是用户列表的一部分：它是「已批准但还没有账号」
+ * 的授权记录，只有服务端能给出它的状态。
+ */
+export const useAccountEnrollments = () => useQuery<EnrollmentList>({ queryKey: keys.accountEnrollments, queryFn: api.accountEnrollments, retry: retryEnrollmentRead, retryOnMount: false });
+export const useCreateAccountEnrollment = () => {
+  const client = useQueryClient();
+  return useMutation({
+    // 不做乐观更新（§10.3）：列表行只能来自服务端确认，激活链接更是只能用服务端的那一次返回。
+    mutationFn: (input: { email: string; canCreateWorkspace: boolean }) => api.createAccountEnrollment(input.email, input.canCreateWorkspace),
+    // 写失败不重试：重复 POST 会白白发掉一条新的建号授权，而失败原因多半不会自行消失。
+    retry: false,
+    onSuccess: () => void client.invalidateQueries({ queryKey: keys.accountEnrollments }),
+  });
+};
+export const useRevokeAccountEnrollment = () => {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (enrollmentId: string) => api.revokeAccountEnrollment(enrollmentId),
+    // 危险动作失败不自动重试：一次误撤销等于收回管理员明确给出的准入授权。
+    retry: false,
+    onSuccess: () => void client.invalidateQueries({ queryKey: keys.accountEnrollments }),
+  });
+};
+export const useCompleteAccountEnrollment = () =>
+  useMutation({
+    // 令牌只能被消费一次：失败不重试，否则第二次请求会把「响应丢失」变成一次真实建号。
+    mutationFn: (input: { token: string; name: string; password: string }) => api.completeAccountEnrollment(input.token, { name: input.name, password: input.password }),
+    retry: false,
+  });
 
 /**
  * 操作记录按 keyset 游标分页（`before` = 上一页最小的 `id`），不是偏移量：

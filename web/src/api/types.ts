@@ -175,6 +175,32 @@ export interface AuditEventListParams {
   before?: string | null;
 }
 
+/**
+ * 管理员显式建号的激活记录（§11.3）。它是**一条建号授权**，不是已存在的用户：
+ * 账号要到对方自行设置姓名与密码后才产生。
+ *
+ * `status` 是服务端状态机值（pending / consumed / revoked / expired），未登记的值按原样展示；
+ * 列表接口不返回任何令牌——原始令牌只在创建响应里出现一次。
+ */
+export interface AccountEnrollment {
+  id: string;
+  kind: string;
+  email: string;
+  status: string;
+  expiresAt: string;
+  createdAt: string;
+  consumedAt: string | null;
+  /** 签发管理员的 ID；账号已删除时为 null。 */
+  createdBy: string | null;
+  /** 管理员显式选定的初始创建授权（§11.3），不是站点默认值。 */
+  canCreateWorkspace: boolean;
+}
+export interface EnrollmentList { enrollments: AccountEnrollment[] }
+/** 创建响应：`token` / `url` 是原始令牌唯一一次出现的地方，列表无法再次取得。 */
+export interface CreatedEnrollment { enrollment: AccountEnrollment; token: string; url: string }
+/** 完成激活响应：服务端直接建立会话，`email_verified_at` 不会被写入（§11.4）。 */
+export interface CompletedEnrollment { user: User; csrfToken: string }
+
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }
 }

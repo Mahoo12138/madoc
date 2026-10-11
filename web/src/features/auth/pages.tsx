@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { AlertCircle as IconAlertCircle, ArrowRight as IconArrowRight } from 'lucide-react';
 import { api } from '@/api/client';
 import { queryClient } from '@/api/query-client';
-import { useSession, useSiteInfo } from '@/api/hooks';
+import { useCompleteAccountEnrollment, useSession, useSiteInfo } from '@/api/hooks';
 import { APIError, type InvitePreview, type SiteInfo } from '@/api/types';
 import * as styles from './pages.css';
 
@@ -133,6 +133,88 @@ export function SignInPage() {
           <Button type="submit" fullWidth size="md" loading={loading}>登录</Button>
         </Stack>
       </form>
+    </AuthShell>
+  );
+}
+
+/**
+ * 激活令牌无效/已消费/已过期时服务端统一返回 404（不可区分，防止令牌枚举），
+ * 前端也不替它区分原因。 §11.5：注册与激活表单不得把哈希长度限制之类的内部
+ * 错误原文泄漏给用户，所以这里只输出固定的产品语言。
+ */
+function enrollErrorMessage(error: unknown): string {
+  if (error instanceof APIError) {
+    if (error.code === 'EMAIL_ALREADY_REGISTERED' || error.status === 409)
+      // §11.3：不能借激活流程改动已有账号，也不引导用户以为这里可以重置它。
+      return '该邮箱已有账号，请直接使用已有账号登录，或联系站点管理员调整。';
+    if (error.status === 404)
+      return '这个激活链接无效或已失效；它可能已被撤销、已经使用过，或者已经过期。请联系站点管理员索取新的激活链接。';
+    if (error.code === 'RATE_LIMITED' || error.status === 429)
+      return '尝试过于频繁，已被限流。请稍后重试，不要反复提交。';
+    if (error.code === 'CSRF_INVALID')
+      return '会话校验已失效，请刷新页面后重试。';
+    if (error.code === 'INVALID_REQUEST' || error.status === 400)
+      return '姓名或密码不符合要求：姓名不能为空，密码至少 8 个字符。';
+  }
+  return '账号未能创建，请稍后重试。';
+}
+
+export function EnrollPage() {
+  const { token } = useParams({ from: '/enroll/$token' });
+  const navigate = useNavigate();
+  const complete = useCompleteAccountEnrollment();
+  const [error, setError] = useState('');
+  // 内存中持有表单值：失败时保留姓名草稿，密码不落 localStorage（§10.5）。
+  const form = useForm({
+    initialValues: { name: '', password: '' },
+    validate: {
+      name: (v) => (v.trim() ? null : '请输入姓名'),
+      password: (v) => (v.length >= 8 ? null : '至少 8 个字符'),
+    },
+  });
+  const submit = form.onSubmit(async (values) => {
+    setError('');
+    try {
+      await complete.mutateAsync({
+        token,
+        name: values.name.trim(),
+        password: values.password,
+      });
+      await queryClient.invalidateQueries();
+      await navigate({ to: '/workspaces' });
+    } catch (e) {
+      setError(enrollErrorMessage(e));
+    }
+  });
+  return (
+    <AuthShell
+      title="创建账号"
+      lead="你已被站点管理员批准加入，请设置姓名与密码完成账号创建。"
+    >
+      <ErrorAlert error={error} />
+      <form onSubmit={submit}>
+        <Stack gap="md">
+          <TextInput label="姓名" autoComplete="name" {...form.getInputProps('name')} />
+          <PasswordInput
+            label="设置密码"
+            description="至少 8 个字符"
+            autoComplete="new-password"
+            {...form.getInputProps('password')}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            size="md"
+            loading={complete.isPending}
+            rightSection={<IconArrowRight size={16} />}
+          >
+            创建账号
+          </Button>
+        </Stack>
+      </form>
+      <Text size="sm" c="dimmed" ta="center">
+        已经有账号？ <Anchor component={Link} to="/sign-in">直接登录</Anchor>
+      </Text>
     </AuthShell>
   );
 }

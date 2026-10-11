@@ -28,29 +28,40 @@ const navigation = [
 ];
 
 /**
+ * The refusal itself. It is split out of `AdminUnauthorized` so a single section
+ * inside an otherwise permitted page can show the same words — a section that
+ * loses permission must not invent a second, softer refusal.
+ */
+export function AdminUnauthorizedNotice() {
+  const navigate = useNavigate();
+  return (
+    <EmptyState
+      size="page"
+      icon={ShieldAlert}
+      title="没有站点管理权限"
+      description="此页面仅站点管理员可访问。"
+      note="如果你认为应该有权限，请联系站点管理员在用户管理中授予。"
+      actions={
+        <Button
+          variant="default"
+          onClick={() => void navigate({ to: '/workspaces' })}
+        >
+          返回工作区
+        </Button>
+      }
+    />
+  );
+}
+
+/**
  * `ADMIN_REQUIRED`: a refusal, not an error to recover from. It renders without
  * the Admin Shell so a non-admin sees no management chrome at all, and without
  * a retry — retrying cannot change an authorization decision.
  */
 export function AdminUnauthorized() {
-  const navigate = useNavigate();
   return (
     <Stack justify="center" className={styles.standalone}>
-      <EmptyState
-        size="page"
-        icon={ShieldAlert}
-        title="没有站点管理权限"
-        description="此页面仅站点管理员可访问。"
-        note="如果你认为应该有权限，请联系站点管理员在用户管理中授予。"
-        actions={
-          <Button
-            variant="default"
-            onClick={() => void navigate({ to: '/workspaces' })}
-          >
-            返回工作区
-          </Button>
-        }
-      />
+      <AdminUnauthorizedNotice />
     </Stack>
   );
 }

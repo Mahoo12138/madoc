@@ -20,6 +20,7 @@ import {
   type AdminUserStatusFilter,
 } from '@/api/types';
 import { EmptyState } from '@/features/shared/empty-state';
+import { AccountEnrollmentPanel } from './admin-enrollment-panel';
 import { AdminUserDetailDrawer } from './admin-user-detail-drawer';
 import {
   canCreateText,
@@ -401,6 +402,10 @@ export function AdminUsersPanel({ currentUserId }: { currentUserId: string }) {
         currentUserId={currentUserId}
         onClose={() => setSelectedId(null)}
       />
+
+      {/* 待激活与用户管理同页：它是同一件事的两半——还没成为账号的授权，和已经是账号的记录。
+          放在 403 早返回之后：失去管理权限时不该因为另一条查询而露出半张管理界面。 */}
+      <AccountEnrollmentPanel />
     </>
   );
 }
