@@ -86,6 +86,55 @@ export interface SiteSettings {
 /** PATCH 只接受业务字段；`schemaVersion` / `revision` / `implemented` 由服务端拒绝。 */
 export type SiteSettingsChanges = Partial<Pick<SiteSettings, SiteSettingKey>>;
 
+/** 账号创建来源（§3.1）：只由可信的服务端流程写入，前端只做展示。 */
+export type SignupSource =
+  | 'setup'
+  | 'workspace_invite'
+  | 'public_signup'
+  | 'admin_created'
+  | 'legacy';
+
+/** 站点级账号管理视图（`GET /api/admin/users`）。 */
+export interface AdminUser {
+  id: string;
+  avatarUrl: string | null;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  disabled: boolean;
+  /** 管理员维护的原始授权字段，不是最终能力。 */
+  canCreateWorkspace: boolean;
+  /** 服务端按身份计算的最终能力：`isAdmin || canCreateWorkspace`（且账号启用）。 */
+  effectiveCanCreateWorkspace: boolean;
+  signupSource: string;
+  createdAt: string;
+  revision: number;
+}
+/** 详情附带的风险统计（`GET /api/admin/users/{userId}`）。 */
+export interface AdminUserStats {
+  memberWorkspaces: number;
+  ownedWorkspaces: number;
+  /** 该账号可能是某些工作区唯一的可用 owner。是提示，不是禁止操作的理由（§6.6）。 */
+  soleOwnerRisk: boolean;
+}
+export interface AdminUserDetail extends AdminUser { stats: AdminUserStats }
+export interface AdminUserList { users: AdminUser[]; nextCursor: string | null }
+
+/** `status` 只接受 `enabled / disabled`；`role` 只接受 `admin / user`；省略代表不筛选。 */
+export type AdminUserStatusFilter = 'all' | 'enabled' | 'disabled';
+export type AdminUserRoleFilter = 'all' | 'admin' | 'user';
+export interface AdminUserListParams {
+  q?: string;
+  status?: AdminUserStatusFilter;
+  role?: AdminUserRoleFilter;
+  limit?: number;
+  cursor?: string | null;
+}
+/** `changes` 只允许这三项，至少 1 个；布尔必须保留明确的 false。 */
+export type AdminUserChanges = Partial<
+  Pick<AdminUser, 'isAdmin' | 'disabled' | 'canCreateWorkspace'>
+>;
+
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }
 }

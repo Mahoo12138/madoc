@@ -338,3 +338,293 @@ export const standaloneStack = style({
   width: 'min(100%, 420px)',
   margin: '0 auto',
 });
+
+// ── 用户管理 ────────────────────────────────────────────────────────────────
+// 同一套刻度：10/12/16/20/32 间距，16/14/12 字号，Mantine CSS 变量取色。
+
+export const pageLead = style({
+  margin: '12px 0 0',
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 14,
+  lineHeight: 1.7,
+  maxWidth: '65ch',
+  textWrap: 'balance',
+});
+
+export const filterBar = style({
+  display: 'flex',
+  alignItems: 'flex-end',
+  flexWrap: 'wrap',
+  gap: 12,
+  marginTop: 20,
+});
+export const searchField = style({
+  flex: '1 1 240px',
+  minWidth: 0,
+  maxWidth: 320,
+});
+export const filterGroup = style({ minWidth: 0 });
+export const filterLabel = style({
+  display: 'block',
+  marginBottom: 10,
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  fontWeight: 600,
+  lineHeight: 1.4,
+});
+// 枚举筛选：Mantine 的类名是哈希值，触屏命中区只能靠 classNames 传入。
+export const filterControl = style({
+  '@media': { [touchControls]: { minHeight: 44 } },
+});
+export const filterOption = style({
+  '@media': { [touchControls]: { minHeight: 44 } },
+});
+
+export const listStatus = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  padding: '12px 0 0',
+  minHeight: 32,
+});
+export const listCount = style({
+  margin: 0,
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const tableWrap = style({
+  marginTop: 12,
+  overflowX: 'auto',
+  border: '1px solid var(--mantine-color-gray-2)',
+  borderRadius: 'var(--mantine-radius-sm)',
+  background: 'var(--mantine-color-body)',
+});
+export const table = style({ minWidth: 720 });
+export const identityCell = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  minWidth: 0,
+});
+export const identityText = style({ minWidth: 0 });
+export const identityName = style({
+  margin: 0,
+  color: 'var(--mantine-color-text)',
+  fontSize: 14,
+  fontWeight: 600,
+  lineHeight: 1.5,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+export const identityEmail = style({
+  margin: 0,
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+/** 状态一律以文字承载，颜色只是辅助（DESIGN.md：不能只靠颜色）。 */
+export const cellText = style({
+  margin: 0,
+  color: 'var(--mantine-color-text)',
+  fontSize: 14,
+  lineHeight: 1.5,
+  whiteSpace: 'nowrap',
+});
+export const cellNote = style({
+  margin: 0,
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+});
+export const cellDate = style({
+  margin: 0,
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+  fontVariantNumeric: 'tabular-nums',
+  whiteSpace: 'nowrap',
+});
+export const selfMark = style({ color: 'var(--mantine-color-dimmed)' });
+
+// 窄屏（≤760px）信息行：表格让位给一栏一值，避免横向滚动。
+export const infoList = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  marginTop: 12,
+});
+export const infoCard = style({
+  padding: 16,
+  border: '1px solid var(--mantine-color-gray-2)',
+  borderRadius: 'var(--mantine-radius-sm)',
+  background: 'var(--mantine-color-body)',
+});
+export const infoHead = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  flexWrap: 'wrap',
+});
+export const infoGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'auto minmax(0, 1fr)',
+  gap: '10px 16px',
+  marginTop: 12,
+});
+export const infoLabel = style({
+  margin: 0,
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  fontWeight: 600,
+  lineHeight: 1.4,
+  whiteSpace: 'nowrap',
+});
+export const infoValue = style({
+  margin: 0,
+  color: 'var(--mantine-color-text)',
+  fontSize: 14,
+  lineHeight: 1.5,
+});
+export const infoActions = style({ display: 'flex', marginTop: 16 });
+
+export const pagination = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12,
+  flexWrap: 'wrap',
+  marginTop: 20,
+});
+export const paginationText = style({
+  margin: 0,
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+  fontVariantNumeric: 'tabular-nums',
+});
+export const paginationActions = style({ display: 'flex', gap: 10 });
+
+export const loadState = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  justifyContent: 'center',
+  padding: '32px 0',
+});
+
+// ── 详情抽屉 ────────────────────────────────────────────────────────────────
+export const drawerBody = style({});
+globalStyle(
+  `${drawerBody} .mantine-Button-root, ${drawerBody} .mantine-Switch-root`,
+  { '@media': { [touchControls]: { minHeight: 44 } } },
+);
+globalStyle(`${drawerBody} .mantine-ActionIcon-root`, {
+  '@media': { [touchControls]: { minWidth: 44, minHeight: 44 } },
+});
+
+export const drawerIdentity = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  minWidth: 0,
+});
+export const drawerName = style({
+  margin: 0,
+  color: 'var(--mantine-color-text)',
+  fontSize: 16,
+  fontWeight: 600,
+  lineHeight: 1.5,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+});
+export const drawerEmail = style({
+  margin: 0,
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.4,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+});
+export const drawerSectionTitle = style({
+  margin: '20px 0 0',
+  color: 'var(--mantine-color-text)',
+  fontSize: 16,
+  fontWeight: 600,
+  lineHeight: 1.5,
+});
+export const drawerRow = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: 20,
+  marginTop: 16,
+  paddingTop: 16,
+  borderTop: '1px solid var(--mantine-color-gray-2)',
+  '@media': { [workspaceMedia.mobile]: { flexDirection: 'column', gap: 12 } },
+});
+export const drawerRowText = style({ minWidth: 0, flex: 1 });
+export const drawerRowTitle = style({
+  margin: 0,
+  color: 'var(--mantine-color-text)',
+  fontSize: 14,
+  fontWeight: 600,
+  lineHeight: 1.5,
+});
+export const drawerRowValue = style({
+  margin: '10px 0 0',
+  color: 'var(--mantine-color-text)',
+  fontSize: 14,
+  lineHeight: 1.5,
+});
+export const drawerRowNote = style({
+  margin: '10px 0 0',
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.6,
+  maxWidth: '52ch',
+  textWrap: 'balance',
+});
+export const drawerRowControl = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  flexShrink: 0,
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+});
+export const drawerMeta = style({
+  margin: '20px 0 0',
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.6,
+  fontVariantNumeric: 'tabular-nums',
+});
+export const drawerDangerZone = style({
+  marginTop: 20,
+  paddingTop: 20,
+  borderTop: '1px solid var(--mantine-color-gray-2)',
+});
+export const drawerDangerTitle = style({
+  margin: 0,
+  color: 'var(--mantine-color-text)',
+  fontSize: 14,
+  fontWeight: 600,
+  lineHeight: 1.5,
+});
+export const drawerDangerNote = style({
+  margin: '10px 0 0',
+  color: 'var(--mantine-color-dimmed)',
+  fontSize: 12,
+  lineHeight: 1.6,
+  maxWidth: '52ch',
+  textWrap: 'balance',
+});
+export const drawerDangerAction = style({ marginTop: 12 });
+export const drawerError = style({ marginTop: 16 });

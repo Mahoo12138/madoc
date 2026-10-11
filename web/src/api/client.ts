@@ -1,4 +1,4 @@
-import type { ActivityEvent, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, InvitePreview, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteInfo, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
+import type { ActivityEvent, AdminUser, AdminUserChanges, AdminUserDetail, AdminUserList, AdminUserListParams, BoardScene, ContentVersion, ContentVersionDetail, ContentVersionUsage, Invite, InvitePreview, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteInfo, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -66,5 +66,19 @@ export const api = {
   updateWhiteboard: (id: string, baseRevision: number, scene: BoardScene) => request<WhiteboardState>(`/items/${id}/whiteboard`, { method: 'PUT', body: JSON.stringify({ baseRevision, scene }) }),
   siteSettings: () => request<SiteSettings>('/admin/settings', { cache: 'no-store' }),
   updateSiteSettings: (expectedRevision: number, changes: SiteSettingsChanges) => request<SiteSettings>('/admin/settings', { method: 'PATCH', body: JSON.stringify({ expectedRevision, changes }) }),
+  // 空字符串与 'all' 都不进查询串：省略即不筛选，服务端不解析我们没发的条件。
+  adminUsers: (params: AdminUserListParams = {}) => {
+    const query = new URLSearchParams();
+    if (params.q?.trim()) query.set('q', params.q.trim());
+    if (params.status && params.status !== 'all') query.set('status', params.status);
+    if (params.role && params.role !== 'all') query.set('role', params.role);
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.cursor) query.set('cursor', params.cursor);
+    const search = query.toString();
+    return request<AdminUserList>(`/admin/users${search ? `?${search}` : ''}`, { cache: 'no-store' });
+  },
+  adminUser: (userId: string) => request<AdminUserDetail>(`/admin/users/${encodeURIComponent(userId)}`, { cache: 'no-store' }),
+  updateAdminUser: (userId: string, expectedRevision: number, changes: AdminUserChanges) => request<AdminUser>(`/admin/users/${encodeURIComponent(userId)}`, { method: 'PATCH', body: JSON.stringify({ expectedRevision, changes }) }),
+  revokeUserSessions: (userId: string) => request<void>(`/admin/users/${encodeURIComponent(userId)}/sessions`, { method: 'DELETE' }),
   uploadAsset: (workspaceId: string, file: File, itemId?: string) => { const body = new FormData(); body.append('file', file); if (itemId) body.append('itemId', itemId); return request<{ asset: { id: string }; url: string }>(`/workspaces/${workspaceId}/assets`, { method: 'POST', body }); },
 };
