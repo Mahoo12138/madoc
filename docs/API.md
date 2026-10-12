@@ -343,6 +343,26 @@ POST   /api/auth/account-enrollments/complete          {"token":"…","name":"�
 
 **状态只有三种，过期不是状态**：`pending` / `consumed` / `revoked`。是否过期由 `expiresAt` 在每次请求时判定，**不落库**——与既有邀请的做法一致，避免一条状态更新任务才能让过期记录"看起来"过期。因此列表里一条 `pending` 但 `expiresAt` 已过的记录**必须**按到期时间展示为已过期，而不是仍然显示"待激活"；未消费即可撤销，过期记录同样可以撤销，只是已经无法完成。
 
+### 4.8 公开注册
+
+```text
+POST /api/auth/sign-up/request    {"email":"..."}
+POST /api/auth/sign-up/complete   {"token":"...","name":"...","password":"..."}
+GET  /api/admin/mail
+```
+
+**发信配置来自部署侧环境变量，不入库**：`MADOC_SMTP_HOST` / `MADOC_SMTP_PORT` / `MADOC_SMTP_USERNAME` / `MADOC_SMTP_PASSWORD` / `MADOC_SMTP_FROM` / `MADOC_SMTP_TLS`，以及决定激活链接地址的 `MADOC_PUBLIC_URL`。完整说明与就绪判定见 [BUILD](../BUILD.md)。密码只在进程内存中，不写库、不进日志、不出现在任何接口响应里。**不配置这些变量时实例照常运行**，只是 `registrationMode` 无法设为 `open`（422 `REGISTRATION_NOT_READY`），且 `GET /api/site` 的 `publicRegistrationAvailable` 为 `false`。
+
+**申请**：只提交邮箱，创建 30 分钟到期的验证记录并发信，**不插入 `users`、不预存密码**。响应是**统一的 202 受理响应**——邮箱可以注册、已经注册、已经申请过这三种情况**逐字节一致**，这是防账号枚举的硬要求，客户端（含本站前端）都不应、也无从据此分叉文案。发信失败时返回 500 并撤销刚创建的记录，不留下一个永远发不出去的"待验证"状态。限流按**网络来源 + 规范化邮箱**两个维度计数，另有实例总量保护；只接受可信反向代理转发的 IP，否则使用连接来源。
+
+**完成**：`GET` 不消费令牌（邮件客户端的链接预取不得把验证机会提前用掉），只有这个 POST 才消费。事务内重新校验：令牌仍 `pending` 且未过期、**当前仍允许公开注册**（管理员中途关闭后，已发出的链接也不能继续建号）、邮箱仍无账号。建账号时 `signup_source='public_signup'`、`can_create_workspace` 读取**完成那一刻**的 `publicSignupDefaultCanCreateWorkspace`（不冻结进记录、不追溯旧账号），并且**写入 `users.email_verified_at`**——这是全项目唯一写它的地方。成功后建立会话并下发 CSRF。令牌无效 / 已撤销 / 已消费 / 已过期一律返回**统一的 404**，不可区分。
+
+两个匿名端点都**不要求登录、不照搬依赖会话的 CSRF**（那会把唯一合法路径堵死），改用与 4.7 相同的 `Origin` / `Sec-Fetch-Site` 同源校验。邮箱规范化在全部入口一致，不套用邮箱服务商的 `+tag` 与点号规则。
+
+`GET /api/admin/mail` 返回**脱敏诊断** `{configured, host, port, from, tls, authConfigured}`，供 `/admin/settings` 说明发信能力是否就绪，**没有任何密码字段**。
+
+审计写入 `signup.requested` / `signup.completed`，`changes_json` 只记邮箱、初始授权与 `signupSource`，不含令牌或密码。
+
 ## 5. Workspace
 
 ```text

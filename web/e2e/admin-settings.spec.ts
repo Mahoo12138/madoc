@@ -29,39 +29,28 @@ test('the admin entry redirects to the settings route', async ({ page }) => {
   await expect(
     page.getByRole('region', { name: '新建账号的默认授权' }),
   ).toBeVisible();
-  await expect(page.getByRole('region', { name: '尚未接入的设置' })).toBeVisible();
+  // Nothing is pending any more, so the settings page is a single section.
+  await expect(page.getByRole('region', { name: '尚未接入的设置' })).toHaveCount(0);
 });
 
-test('settings that are not wired up render no interactive control', async ({
+test('every control on the page belongs to a setting the server implements', async ({
   page,
 }) => {
   await openSiteSettings(page);
-  const pending = page.getByRole('region', { name: '尚未接入的设置' });
-  await expect(pending).toBeVisible();
-  // The pending section is definitionally inert: whatever the server stops
-  // implementing has to stop offering a control here, so the assertion is scoped
-  // to the section rather than to a count of rows.
-  await expect(
-    pending.locator(
-      '[role=switch],[role=combobox],[role=radiogroup],input,select',
-    ),
-  ).toHaveCount(0);
-  // Stage 5.2 wired up registration mode and the owner-invite switch, so those
-  // rows graduated to section one and exactly one row is still pending. The
-  // count below is a guard on that graduation, not on the layout.
-  await expect(page.getByText('未接入', { exact: true })).toHaveCount(1);
-  await expect(
-    pending.getByRole('heading', { name: '公开注册新账号默认创建授权' }),
-  ).toBeVisible();
+  // All four settings are wired up now, so there is no pending section left to
+  // keep inert. The count is still a guard on that graduation rather than on the
+  // layout: a setting that stops being implemented must reappear here, read-only.
+  await expect(page.getByRole('region', { name: '尚未接入的设置' })).toHaveCount(0);
+  await expect(page.getByText('未接入', { exact: true })).toHaveCount(0);
   // Registration mode is an enum, not a switch: no dropdown may offer it either,
-  // because a picker would have nowhere honest to put `open`.
+  // because a picker would have nowhere honest to put `open` while public
+  // sign-up is still unavailable.
   await expect(
     page.locator('[role=combobox],[role=listbox],select'),
   ).toHaveCount(0);
-  // Everything interactive on this page now belongs to an implemented setting:
-  // two switches (the invite default and the owner-invite policy) and one radio
-  // group (registration mode).
-  await expect(page.locator('[role=switch],input[type=checkbox]')).toHaveCount(2);
+  // Three switches and one radio group: exactly one control per implemented
+  // setting, and nothing interactive that the server would not honour.
+  await expect(page.locator('[role=switch],input[type=checkbox]')).toHaveCount(3);
   await expect(page.locator('[role=radiogroup]')).toHaveCount(1);
 });
 

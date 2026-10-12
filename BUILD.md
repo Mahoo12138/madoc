@@ -107,7 +107,32 @@ $MADOC_DATA/
 | `registrationMode` | `invite_only` | `invite_only` | 两者都还没有公开注册入口 |
 | `allowWorkspaceOwnerInviteNewUsers` | `false` | `true` | 升级保留旧版本行为，不静默改变既有站点的可用性 |
 | `inviteDefaultCanCreateWorkspace` | `false` | `true` | 同上：新装更保守，升级不悄悄收紧 |
-| `publicSignupDefaultCanCreateWorkspace` | `false` | `false` | 公开注册尚未提供 |
+| `publicSignupDefaultCanCreateWorkspace` | `false` | `false` | 新装不给陌生人创建工作区的能力 |
+
+## 公开注册的发信配置
+
+公开自助注册（`registrationMode` 设为 `open`）需要向外发送验证邮件，因此需要一组**启动期环境变量**：
+
+| 变量 | 含义 | 默认 |
+| --- | --- | --- |
+| `MADOC_SMTP_HOST` | 发信服务器地址 | 空 |
+| `MADOC_SMTP_PORT` | 端口 | `587` |
+| `MADOC_SMTP_USERNAME` | 认证用户名；留空表示服务器不需要认证 | 空 |
+| `MADOC_SMTP_PASSWORD` | 认证密码 | 空 |
+| `MADOC_SMTP_FROM` | 发件人地址 | 空 |
+| `MADOC_SMTP_TLS` | `none` / `starttls` / `implicit` | `starttls` |
+| `MADOC_PUBLIC_URL` | 部署者对外的站点地址，用于生成验证链接 | 空 |
+
+**这些变量不配，实例照常运行**——初始化、工作区邀请、管理员建号、已有账号登录都不受影响，只是不能启用公开注册：把 `registrationMode` 改成 `open` 会返回 `REGISTRATION_NOT_READY`，管理页也会把「公开注册」这一项显示为不可选并说明原因。
+
+就绪判定：`MADOC_SMTP_HOST`、`MADOC_SMTP_FROM`、`MADOC_PUBLIC_URL` 三者齐备才算就绪，认证用户名与密码可选。密码只在进程内存中存在，**不写数据库、不进日志、不出现在任何管理接口的响应里**。
+
+两点需要留意：
+
+- `MADOC_PUBLIC_URL` 是硬要求，验证链接只按它生成。**不要**让程序从 `Host` 头或 `X-Forwarded-*` 拼地址——那会让别人把链接指向自己的域名。必须是 `https`（`http` 仅允许本地回环），否则公开注册保持不可用，服务在启动日志里说明原因。
+- `MADOC_SMTP_TLS` 取值非法会让**进程启动失败**，因为它属于拼错的配置而不是可以退化的功能；其余变量缺失只是功能不可用。
+
+这些是环境配置，改动需要重启；是否开放公开注册本身仍是站点设置，在 `/admin/settings` 在线切换。
 
 同时，升级实例的既有账号全部保持「可以创建工作区」（迁移回填 `can_create_workspace = 1`），新账号是否获得该权限由上表的 `inviteDefaultCanCreateWorkspace` 决定。升级实例的管理员页面会额外提示当前默认值是按旧版本行为保留的，可随时手动收紧。
 

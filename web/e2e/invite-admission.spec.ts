@@ -284,24 +284,26 @@ test.describe('the admin panel exposes only what the server implements', () => {
     await page.goto('/admin/settings');
   }
 
-  test('registration mode offers the two supported values and no open one', async ({
+  test('registration mode offers open only when mail can be sent', async ({
     page,
   }) => {
     await openSiteSettings(page);
     const mode = page.getByRole('radiogroup', { name: '注册模式' });
     await expect(mode).toBeVisible();
-    // Registration mode is implemented now, but only the two modes this build
-    // registration mode: offering `open` would be a click the server answers
-    // with 422. The radio inputs themselves are visually hidden behind their
-    // labels, so the options are asserted by name and the labels by sight.
-    await expect(mode.getByRole('radio')).toHaveCount(2);
-    await expect(mode.getByRole('radio', { name: '已关闭' })).toHaveCount(1);
-    await expect(mode.getByRole('radio', { name: '仅邀请' })).toHaveCount(1);
-    await expect(mode.getByRole('radio', { name: '公开注册' })).toHaveCount(0);
-    await expect(mode.getByText('已关闭', { exact: true })).toBeVisible();
-    await expect(mode.getByText('仅邀请', { exact: true })).toBeVisible();
+    // All three values exist now. The first two are always selectable; `open`
+    // is present but disabled because this build has no SMTP configured, and a
+    // choice the server would answer with 422 is worse than a greyed one. The
+    // radio inputs are visually hidden behind their labels.
+    await expect(mode.getByRole('radio')).toHaveCount(3);
+    await expect(mode.getByRole('radio', { name: '已关闭' })).toBeEnabled();
+    await expect(mode.getByRole('radio', { name: '仅邀请' })).toBeEnabled();
+    await expect(mode.getByRole('radio', { name: '公开注册' })).toBeDisabled();
+    // The page names the deployment action that would unlock it, and does not
+    // promise that editing anything here would take effect immediately.
     await expect(
-      page.getByRole('region', { name: '新建账号的默认授权' }).getByText('公开注册尚未提供，暂不能启用。'),
+      page
+        .getByRole('region', { name: '新建账号的默认授权' })
+        .getByText('发送验证邮件所需的 SMTP 尚未配置，部署者需设置环境变量后重启服务才能启用公开注册。'),
     ).toBeVisible();
   });
 
@@ -324,20 +326,19 @@ test.describe('the admin panel exposes only what the server implements', () => {
     ).toBeChecked({ checked: !before });
   });
 
-  test('only the public signup default is still labelled not wired up', async ({
-    page,
-  }) => {
+  test('nothing is labelled as not wired up any more', async ({ page }) => {
     await openSiteSettings(page);
-    const pending = page.getByRole('region', { name: '尚未接入的设置' });
-    await expect(pending).toBeVisible();
-    // Registration mode and the owner-invite switch moved into section one when
-    // the server started implementing them, leaving exactly one pending row.
-    await expect(pending.getByRole('heading', { name: '公开注册新账号默认创建授权' })).toBeVisible();
-    await expect(pending.getByRole('heading', { name: '注册模式' })).toHaveCount(0);
+    // Every setting now has a live path, so the pending section is gone rather
+    // than present and empty: a heading that announced a gap which no longer
+    // exists would be worse than no heading.
+    await expect(page.getByRole('region', { name: '尚未接入的设置' })).toHaveCount(0);
+    await expect(page.getByText('未接入', { exact: true })).toHaveCount(0);
+    // The public signup grant graduated into section one as an ordinary switch.
     await expect(
-      pending.getByRole('heading', { name: '普通 owner 邀请新用户' }),
-    ).toHaveCount(0);
-    await expect(page.getByText('未接入', { exact: true })).toHaveCount(1);
+      page
+        .getByRole('region', { name: '新建账号的默认授权' })
+        .getByRole('switch', { name: '公开注册新账号默认创建授权' }),
+    ).toBeVisible();
   });
 
   test('turning off the owner-invite switch keeps invitation available', async ({

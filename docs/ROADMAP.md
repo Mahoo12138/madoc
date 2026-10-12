@@ -111,10 +111,15 @@ Mermaid 仍为可裁剪增强，不阻塞阶段验收；不增加全篇源码双
 
 `open` 仍由服务端预埋拒绝（422 `REGISTRATION_NOT_READY`）。依赖它的公开注册属 5.3。
 
-### 5.3 公开注册（尚未开始，可选）
+### 5.3 公开注册与建号授权（已交付）
 
-邮箱验证、SMTP、限流、管理员显式建号、`account_enrollments`，以及
-`publicSignupDefaultCanCreateWorkspace` 的接入。
+分为两包交付，因为前置条件不同：
+
+**管理员显式建号**：管理员指定邮箱、显式选定初始创建授权并生成一次性链接，对方自设姓名密码后账号才成立。**不依赖邮件服务**，链接由管理员通过可信渠道手动发送。这条路径**不受 `registrationMode` 限制**——它是管理员的独立授权，`closed` 下依然可用；反过来切换注册模式也不会让已发出的链接失效，停用必须显式撤销。
+
+**公开注册**：`registrationMode` 可设为 `open`，经邮箱验证完成自助注册。发信配置全部走部署侧环境变量（含决定链接地址的 `MADOC_PUBLIC_URL`），**不配置时实例照常运行**、只是无法启用。`publicSignupDefaultCanCreateWorkspace` 随之接入，在注册完成的那一刻生效。
+
+两条路径共用 `account_enrollments`（`kind` 区分 `admin_created` / `public_signup`），共用令牌摘要、同源校验、双维度限流与审计机制。完整契约见 [HTTP API](API.md)，部署变量见 [BUILD](../BUILD.md)。
 
 ### 5.4 审计查看、维护与发行验收（尚未开始）
 
