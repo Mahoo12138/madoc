@@ -101,7 +101,6 @@ func TestLoadStrictValidationAndUnknownKeys(t *testing.T) {
 		{name: "number boolean", raw: `{"schemaVersion":1,"revision":0,"registrationMode":"invite_only","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":1,"publicSignupDefaultCanCreateWorkspace":false}`, want: ErrCorrupt},
 		{name: "null boolean", raw: `{"schemaVersion":1,"revision":0,"registrationMode":"invite_only","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":false,"publicSignupDefaultCanCreateWorkspace":null}`, want: ErrCorrupt},
 		{name: "invalid mode", raw: `{"schemaVersion":1,"revision":0,"registrationMode":"public","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":false,"publicSignupDefaultCanCreateWorkspace":false}`, want: ErrCorrupt},
-		{name: "stored open mode", raw: `{"schemaVersion":1,"revision":0,"registrationMode":"open","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":false,"publicSignupDefaultCanCreateWorkspace":false}`, want: ErrCorrupt},
 		{name: "invalid origin type", raw: `{"schemaVersion":1,"revision":0,"registrationMode":"invite_only","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":false,"publicSignupDefaultCanCreateWorkspace":false,"origin":null}`, want: ErrCorrupt},
 	}
 	for _, test := range tests {
@@ -127,7 +126,7 @@ func TestUpdateOrderingRevisionAuditAndNoOp(t *testing.T) {
 
 	openChange := rawChanges(KeyRegistrationMode, `"open"`)
 	if _, err := store.Update(ctx, actor, 99, openChange); !errors.Is(err, ErrRegistrationNotReady) {
-		t.Fatalf("open must precede revision and admin checks: %v", err)
+		t.Fatalf("an unusable open must precede revision and admin checks: %v", err)
 	}
 	if _, err := store.Update(ctx, Actor{ID: "missing"}, 99, rawChanges(KeyInviteDefaultCanCreateWorkspace, `true`)); !errors.Is(err, ErrRevisionConflict) {
 		t.Fatalf("revision must precede admin check: %v", err)
@@ -171,59 +170,82 @@ func TestUpdateOrderingRevisionAuditAndNoOp(t *testing.T) {
 	}
 }
 
-func TestStoredOpenRegistrationIsCorruptOnEveryReadPath(t *testing.T) {
-	// Each read path is asserted on its own so a regression names the exact
-	// entry point that started accepting the stored mode again.
-	t.Run("load", func(t *testing.T) {
+// TestOpenRegistrationRequiresAReadyCapability covers both halves of the new
+// contract: "open" is a storable mode, but only on a deployment that can
+// actually complete a registration.
+func TestOpenRegistrationRequiresAReadyCapability(t *testing.T) {
+	t.Run("stored open mode is a valid document", func(t *testing.T) {
+		// It used to be treated as corruption on the grounds that no write path
+		// could produce it. That is no longer true, and keeping the old rule
+		// would make every read of a legitimately open instance fail closed.
 		store := New(openSiteTestDBWithOpenMode(t))
-		if _, err := store.Load(context.Background(), store.db); !errors.Is(err, ErrCorrupt) {
-			t.Fatalf("Load() error = %v, want ErrCorrupt", err)
+		settings, err := store.Load(context.Background(), store.db)
+		if err != nil {
+			t.Fatalf("Load() error = %v, want the stored open mode to be accepted", err)
+		}
+		if settings.RegistrationMode != "open" {
+			t.Fatalf("registrationMode = %q", settings.RegistrationMode)
 		}
 	})
-	t.Run("ensure", func(t *testing.T) {
+	t.Run("stored open survives Ensure and unrelated changes", func(t *testing.T) {
 		conn := openSiteTestDBWithOpenMode(t)
-		if _, err := New(conn).Ensure(context.Background()); !errors.Is(err, ErrCorrupt) {
-			t.Fatalf("Ensure() error = %v, want ErrCorrupt", err)
+		store := New(conn).EnablePublicRegistration(readyPublicRegistration())
+		if _, err := store.Ensure(context.Background()); err != nil {
+			t.Fatalf("Ensure() error = %v", err)
 		}
-		assertStoredOpenUnchanged(t, conn)
+		// An unrelated change must be applied to the stored document, not
+		// rejected because of a mode that is now legitimate.
+		updated, err := store.Update(context.Background(), Actor{ID: "admin"}, 0, rawChanges(KeyInviteDefaultCanCreateWorkspace, `true`))
+		if err != nil {
+			t.Fatalf("Update() error = %v", err)
+		}
+		if !updated.InviteDefaultCanCreateWorkspace || updated.RegistrationMode != "open" {
+			t.Fatalf("updated settings = %#v", updated)
+		}
 	})
-	t.Run("invite policy", func(t *testing.T) {
+	t.Run("invite policy still reads under open mode", func(t *testing.T) {
 		conn := openSiteTestDBWithOpenMode(t)
-		if _, err := New(conn).InviteDefaultCanCreateWorkspace(context.Background(), conn); !errors.Is(err, ErrCorrupt) {
-			t.Fatalf("InviteDefaultCanCreateWorkspace() error = %v, want ErrCorrupt", err)
+		if _, err := New(conn).InviteDefaultCanCreateWorkspace(context.Background(), conn); err != nil {
+			t.Fatalf("InviteDefaultCanCreateWorkspace() error = %v", err)
 		}
 	})
-	t.Run("update unrelated change", func(t *testing.T) {
-		conn := openSiteTestDBWithOpenMode(t)
-		store := New(conn)
-		// An unrelated change must not be reported as a request to enable public
-		// registration.
-		if _, err := store.Update(context.Background(), Actor{ID: "admin"}, 0, rawChanges(KeyInviteDefaultCanCreateWorkspace, `true`)); !errors.Is(err, ErrCorrupt) {
-			t.Fatalf("Update() error = %v, want ErrCorrupt", err)
-		}
-		assertStoredOpenUnchanged(t, conn)
-	})
-	t.Run("update mode back to invite_only", func(t *testing.T) {
-		conn := openSiteTestDBWithOpenMode(t)
-		store := New(conn)
-		if _, err := store.Update(context.Background(), Actor{ID: "admin"}, 0, rawChanges(KeyRegistrationMode, `"invite_only"`)); !errors.Is(err, ErrCorrupt) {
-			t.Fatalf("Update() error = %v, want ErrCorrupt", err)
-		}
-		assertStoredOpenUnchanged(t, conn)
-	})
-	t.Run("requested open on healthy settings", func(t *testing.T) {
+	t.Run("requested open is refused without mail", func(t *testing.T) {
 		ctx := context.Background()
 		conn := openSiteTestDB(t)
 		insertSiteUser(t, conn, "admin", true, false, false)
 		store := New(conn)
-		// A change that requests open on healthy settings stays a 422 candidate.
+		// Without the capability the request is still refused — storing a mode
+		// this deployment cannot execute would be worse than refusing it.
 		if _, err := store.Update(ctx, Actor{ID: "admin"}, 0, rawChanges(KeyRegistrationMode, `"open"`)); !errors.Is(err, ErrRegistrationNotReady) {
-			t.Fatalf("requested open error = %v", err)
+			t.Fatalf("requested open error = %v, want ErrRegistrationNotReady", err)
 		}
 		var count int
 		if err := conn.QueryRow(`SELECT count(*) FROM admin_audit_events`).Scan(&count); err != nil || count != 0 {
 			t.Fatalf("rejected update wrote audit rows: count=%d err=%v", count, err)
 		}
+	})
+	t.Run("requested open is accepted with mail", func(t *testing.T) {
+		ctx := context.Background()
+		conn := openSiteTestDB(t)
+		insertSiteUser(t, conn, "admin", true, false, false)
+		store := New(conn).EnablePublicRegistration(readyPublicRegistration())
+		updated, err := store.Update(ctx, Actor{ID: "admin"}, 0, rawChanges(KeyRegistrationMode, `"open"`))
+		if err != nil {
+			t.Fatalf("Update() error = %v", err)
+		}
+		if updated.RegistrationMode != "open" {
+			t.Fatalf("registrationMode = %q", updated.RegistrationMode)
+		}
+	})
+	t.Run("an unrelated change under open without mail is refused", func(t *testing.T) {
+		// The document already says open and the deployment cannot run it, so
+		// nothing may be written on top of that state.
+		conn := openSiteTestDBWithOpenMode(t)
+		store := New(conn)
+		if _, err := store.Update(context.Background(), Actor{ID: "admin"}, 0, rawChanges(KeyInviteDefaultCanCreateWorkspace, `true`)); !errors.Is(err, ErrRegistrationNotReady) {
+			t.Fatalf("Update() error = %v, want ErrRegistrationNotReady", err)
+		}
+		assertStoredOpenUnchanged(t, conn)
 	})
 }
 

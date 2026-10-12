@@ -17,6 +17,7 @@ import (
 	"madoc/internal/account"
 	"madoc/internal/asset"
 	"madoc/internal/auth"
+	"madoc/internal/config"
 	"madoc/internal/core"
 	"madoc/internal/db"
 	"madoc/internal/site"
@@ -104,28 +105,35 @@ func TestAdminSettingsHTTPValidationConflictAndReadiness(t *testing.T) {
 
 const storedOpenSiteSettings = `{"schemaVersion":1,"revision":0,"registrationMode":"open","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":false,"publicSignupDefaultCanCreateWorkspace":false,"origin":"new"}`
 
-func TestAdminSettingsHTTPStoredOpenRegistrationIsInternalError(t *testing.T) {
+// TestAdminSettingsHTTPStoredOpenIsRefusedWithoutMailCapability pins the
+// current rule on the write side: `open` is a storable mode, but only where the
+// deployment can complete a registration. On an instance without mail — which is
+// every instance this fixture builds — the mode is refused rather than stored,
+// so an administrator is never shown a setting nothing can act on.
+func TestAdminSettingsHTTPStoredOpenIsRefusedWithoutMailCapability(t *testing.T) {
 	fixture := newAdminSettingsFixture(t)
 	if _, err := fixture.db.Exec(`UPDATE server_config SET value=? WHERE key='site_settings'`, storedOpenSiteSettings); err != nil {
 		t.Fatal(err)
 	}
-	// GET must not render a stored mode that no write path can produce: doing so
-	// would show the page a value whose "retry" can never succeed.
+	// The stored document is readable: refusing to render it would leave the
+	// management page unable to explain why registration is not taking effect.
 	read := fixture.request(http.MethodGet, "/admin/settings", "", fixture.adminSession, false)
-	assertAPIError(t, read, http.StatusInternalServerError, "INTERNAL")
-	if strings.Contains(read.Body.String(), "open") {
-		t.Fatalf("GET leaked the stored open mode: %s", read.Body.String())
+	if read.Code != http.StatusOK {
+		t.Fatalf("GET status=%d body=%s", read.Code, read.Body.String())
 	}
-	// An unrelated change must surface as a corrupt-document failure, not as the
-	// 422 that only a requested switch to "open" is allowed to produce, and the
-	// stored document must survive untouched.
-	for _, body := range []string{
-		`{"expectedRevision":0,"changes":{"inviteDefaultCanCreateWorkspace":true}}`,
-		`{"expectedRevision":0,"changes":{"registrationMode":"invite_only"}}`,
-	} {
-		response := fixture.request(http.MethodPatch, "/admin/settings", body, fixture.adminSession, true)
-		assertAPIError(t, response, http.StatusInternalServerError, "INTERNAL")
+	var settings site.Settings
+	if err := json.Unmarshal(read.Body.Bytes(), &settings); err != nil {
+		t.Fatal(err)
 	}
+	if settings.RegistrationMode != "open" {
+		t.Fatalf("GET registrationMode = %q", settings.RegistrationMode)
+	}
+	// A change that leaves the document at `open` is refused while the
+	// deployment cannot execute it. That refusal must not extend to unrelated
+	// changes, or the operator would be unable to adjust anything until they
+	// happened to switch the mode.
+	response := fixture.request(http.MethodPatch, "/admin/settings", `{"expectedRevision":0,"changes":{"inviteDefaultCanCreateWorkspace":true}}`, fixture.adminSession, true)
+	assertAPIError(t, response, http.StatusUnprocessableEntity, "REGISTRATION_NOT_READY")
 	var raw string
 	if err := fixture.db.QueryRow(`SELECT value FROM server_config WHERE key='site_settings'`).Scan(&raw); err != nil {
 		t.Fatal(err)
@@ -133,9 +141,20 @@ func TestAdminSettingsHTTPStoredOpenRegistrationIsInternalError(t *testing.T) {
 	if raw != storedOpenSiteSettings {
 		t.Fatalf("stored document was rewritten: %s", raw)
 	}
-	var count int
-	if err := fixture.db.QueryRow(`SELECT count(*) FROM admin_audit_events`).Scan(&count); err != nil || count != 0 {
-		t.Fatalf("rejected update wrote audit rows: count=%d err=%v", count, err)
+
+	// Moving *away* from `open` has to stay possible: it is the remediation for
+	// exactly this situation, and refusing it would leave an administrator
+	// unable to shut a mode the deployment cannot run.
+	closed := fixture.request(http.MethodPatch, "/admin/settings", `{"expectedRevision":0,"changes":{"registrationMode":"invite_only"}}`, fixture.adminSession, true)
+	if closed.Code != http.StatusOK {
+		t.Fatalf("closing public registration status=%d body=%s", closed.Code, closed.Body.String())
+	}
+	var closedSettings site.Settings
+	if err := json.Unmarshal(closed.Body.Bytes(), &closedSettings); err != nil {
+		t.Fatal(err)
+	}
+	if closedSettings.RegistrationMode != "invite_only" {
+		t.Fatalf("registrationMode after closing = %q", closedSettings.RegistrationMode)
 	}
 }
 
@@ -241,7 +260,7 @@ func newAdminSettingsFixture(t *testing.T) *adminSettingsFixture {
 		t.Fatalf("CSRF cookies = %d", len(cookies))
 	}
 	assetRoot := t.TempDir()
-	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), nil, false).Routes()
+	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), nil, false, config.MailDiagnosis{}).Routes()
 	return &adminSettingsFixture{t: t, db: conn, handler: handler, identity: identity, csrf: csrf, domain: domain, site: siteStore, adminSession: session, csrfCookie: cookies[0], csrfToken: csrfToken}
 }
 

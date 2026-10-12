@@ -24,9 +24,10 @@ func (a *API) siteInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, siteInfoResponse{
 		RegistrationMode: settings.RegistrationMode,
-		// Public registration ships in a later stage, so no mode can make it
-		// available yet. Keeping the field out of the settings document means
-		// the day it flips cannot be a silent change to this contract.
-		PublicRegistrationAvailable: false,
+		// Two conditions, not one: the mode has to be open *and* the mail
+		// capability behind it has to work. A page that offers a signup form
+		// whose link can never be delivered is worse than a page that says
+		// registration is closed, so this never collapses to the mode alone.
+		PublicRegistrationAvailable: a.site.PublicRegistrationAvailable(settings),
 	})
 }

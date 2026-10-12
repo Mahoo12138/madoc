@@ -18,6 +18,7 @@ import (
 	"madoc/internal/account"
 	"madoc/internal/asset"
 	"madoc/internal/auth"
+	"madoc/internal/config"
 	"madoc/internal/core"
 	"madoc/internal/db"
 	"madoc/internal/site"
@@ -68,7 +69,7 @@ func newEnrollmentFixtureWithLimits(t *testing.T, limits site.EnrollmentLimits) 
 	siteStore := site.NewWithEnrollmentLimits(conn, limits)
 	domain := core.New(conn, siteStore)
 	assetRoot := t.TempDir()
-	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), nil, false).Routes()
+	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), nil, false, config.MailDiagnosis{}).Routes()
 	fixture := &enrollmentFixture{
 		t: t, db: conn, handler: handler, identity: identity, site: siteStore,
 		adminID: admin.ID, adminSession: session, csrfCookie: cookies[0], csrfToken: csrfToken,

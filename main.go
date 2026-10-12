@@ -23,6 +23,7 @@ import (
 	"madoc/internal/config"
 	"madoc/internal/core"
 	"madoc/internal/db"
+	"madoc/internal/mailer"
 	"madoc/internal/maintenance"
 	"madoc/internal/realtime"
 	"madoc/internal/site"
@@ -85,17 +86,37 @@ func main() {
 	}
 	defer conn.Close()
 	authService := auth.New(conn)
-	siteStore := site.New(conn)
+	// Public registration is attached only when the deployment can actually run
+	// it. A store built without it can never complete a registration, so an
+	// SMTP-less instance behaves exactly as before instead of half-enabling a
+	// flow whose links never arrive.
+	mailSender := mailer.NewSMTP(cfg.SMTP)
+	var publicBaseURL string
+	if cfg.PublicURL != nil {
+		publicBaseURL = cfg.PublicURL.String()
+	}
+	var signupSender site.SignupMailer
+	if cfg.PublicRegistrationReady() && mailSender != nil {
+		signupSender = mailer.SignupSender{Sender: mailSender}
+	}
+	siteStore := site.New(conn).EnablePublicRegistration(site.PublicRegistration{
+		Mailer:  signupSender,
+		BaseURL: publicBaseURL,
+		Ready:   cfg.PublicRegistrationReady,
+	})
 	domain := core.New(conn, siteStore)
 	assetService := asset.New(conn, domain, cfg.AssetDir, cfg.MaxUploadMB)
 	if err := assetService.RecoverImports(context.Background()); err != nil {
 		log.Fatalf("recover incomplete content imports: %v", err)
 	}
 	hub := realtime.New(authService, domain, cfg.Dev)
-	apiHandler := api.New(authService, auth.NewCSRF(cfg.Secret), domain, siteStore, assetService, account.New(conn, cfg.AssetDir), hub, !cfg.Dev)
+	apiHandler := api.New(authService, auth.NewCSRF(cfg.Secret), domain, siteStore, assetService, account.New(conn, cfg.AssetDir), hub, !cfg.Dev, cfg.MailDiagnosis())
 
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID, middleware.RealIP, requestLogger, middleware.Recoverer, securityHeaders)
+	// CapturePeerAddress must precede RealIP: RealIP replaces RemoteAddr with a
+	// client-controlled X-Forwarded-For, which is fine for logs but would let a
+	// rate limiter be reset on every request.
+	r.Use(middleware.RequestID, api.CapturePeerAddress, middleware.RealIP, requestLogger, middleware.Recoverer, securityHeaders)
 	// The frontend is a hashed-asset SPA whose JS/CSS is highly compressible
 	// text. Without this every page ships its full ~880kB uncompressed on each
 	// cold load; gzip brings that to roughly a third. Images and fonts are
@@ -138,8 +159,9 @@ func main() {
 }
 
 // tokenPathPrefixes list the routes whose next path segment is a secret rather
-// than an identifier: an invite token, a share token or an activation token.
-var tokenPathPrefixes = []string{"/api/invites/", "/api/public/shares/", "/enroll/"}
+// than an identifier: an invite token, a share token, an activation token, or a
+// signup verification token.
+var tokenPathPrefixes = []string{"/api/invites/", "/api/public/shares/", "/enroll/", "/sign-up/"}
 
 // redactPath replaces the secret segment of those routes with a placeholder.
 // The token travels in the path because that is how it reaches a person's mail

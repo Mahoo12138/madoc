@@ -16,6 +16,7 @@ import (
 	"madoc/internal/account"
 	"madoc/internal/asset"
 	"madoc/internal/auth"
+	"madoc/internal/config"
 	"madoc/internal/core"
 	"madoc/internal/site"
 )
@@ -31,10 +32,19 @@ type API struct {
 	accounts      *account.Service
 	rooms         RoomInspector
 	secureCookies bool
+	// mail is the already-redacted view of the outbound mail configuration.
+	// Only this shape reaches the API layer, so the SMTP password is not merely
+	// omitted from responses — it never enters the object that serves them.
+	mail config.MailDiagnosis
 }
 
-func New(authService *auth.Service, csrf *auth.CSRF, domain *core.Service, siteStore *site.Store, assets *asset.Service, accounts *account.Service, rooms RoomInspector, secureCookies bool) *API {
-	return &API{auth: authService, csrf: csrf, core: domain, site: siteStore, assets: assets, accounts: accounts, rooms: rooms, secureCookies: secureCookies}
+// New builds the API handler.
+//
+// mail is passed pre-redacted on purpose: giving the API the whole deployment
+// configuration would put the SMTP password one careless change away from a
+// management endpoint.
+func New(authService *auth.Service, csrf *auth.CSRF, domain *core.Service, siteStore *site.Store, assets *asset.Service, accounts *account.Service, rooms RoomInspector, secureCookies bool, mail config.MailDiagnosis) *API {
+	return &API{auth: authService, csrf: csrf, core: domain, site: siteStore, assets: assets, accounts: accounts, rooms: rooms, secureCookies: secureCookies, mail: mail}
 }
 
 func (a *API) Routes() http.Handler {
@@ -58,6 +68,13 @@ func (a *API) Routes() http.Handler {
 	r.With(a.auth.Require).Get("/admin/account-enrollments", a.adminRequired(a.listAccountEnrollments))
 	r.With(a.auth.Require).Post("/admin/account-enrollments", a.adminRequired(a.csrfRequired(a.createAccountEnrollment)))
 	r.With(a.auth.Require).Delete("/admin/account-enrollments/{enrollmentId}", a.adminRequired(a.csrfRequired(a.revokeAccountEnrollment)))
+	r.With(a.auth.Require).Get("/admin/mail", a.adminRequired(a.getMailDiagnosis))
+	// Both public sign-up endpoints are anonymous: the request endpoint holds no
+	// token yet, and the complete endpoint's token is the credential. Both take
+	// the same explicit same-origin check the activation flow uses rather than
+	// the session-bound CSRF middleware, which could never pass here.
+	r.Post("/auth/sign-up/request", a.sameOriginRequired(a.requestSignup))
+	r.Post("/auth/sign-up/complete", a.sameOriginRequired(a.completeSignup))
 	// Anonymous by design: the single-use token is the credential, so this route
 	// gets the origin check instead of the session-bound CSRF middleware.
 	r.Post("/auth/account-enrollments/complete", a.sameOriginRequired(a.completeAccountEnrollment))

@@ -39,6 +39,8 @@ var auditActions = map[string]bool{
 	ActionEnrollmentCreated:            true,
 	ActionEnrollmentRevoked:            true,
 	ActionAccountEnrolled:              true,
+	ActionSignupRequested:              true,
+	ActionSignupCompleted:              true,
 }
 
 // auditTargetTypes is the server-owned whitelist of queryable target types.

@@ -64,6 +64,19 @@ func (a *API) patchSiteSettings(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, settings)
 }
 
+// getMailDiagnosis reports whether outbound mail is configured well enough to
+// run a verification flow, and what it is configured with.
+//
+// The password is never part of this response, and the username is not echoed
+// either — "are credentials present" is the only question a management page
+// needs to answer. A deployer who cannot see whether their relay is set up will
+// keep guessing; a deployer who can read the password back has turned a
+// read-only endpoint into a credential disclosure.
+func (a *API) getMailDiagnosis(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store, private")
+	writeJSON(w, http.StatusOK, a.mail)
+}
+
 func writeSiteError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, site.ErrAdminRequired):

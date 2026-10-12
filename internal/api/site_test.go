@@ -183,15 +183,30 @@ func TestSiteInfoFailsClosed(t *testing.T) {
 		}
 		assertAPIError(t, fixture.request(http.MethodGet, "/site", "", "", false), http.StatusInternalServerError, "INTERNAL")
 	})
-	t.Run("stored open mode is never served", func(t *testing.T) {
+	t.Run("stored open mode is served but not advertised", func(t *testing.T) {
+		// `open` is a real mode now. What must not happen is advertising
+		// registration on an instance that cannot deliver a verification mail:
+		// the mode is reported, the capability is not.
 		fixture := newAdminSettingsFixture(t)
 		if _, err := fixture.db.Exec(`UPDATE server_config SET value=? WHERE key='site_settings'`, storedOpenSiteSettings); err != nil {
 			t.Fatal(err)
 		}
 		response := fixture.request(http.MethodGet, "/site", "", "", false)
-		assertAPIError(t, response, http.StatusInternalServerError, "INTERNAL")
-		if strings.Contains(response.Body.String(), "open") {
-			t.Fatalf("response leaked the unusable mode: %s", response.Body.String())
+		if response.Code != http.StatusOK {
+			t.Fatalf("GET /site status=%d body=%s", response.Code, response.Body.String())
+		}
+		var info struct {
+			RegistrationMode            string `json:"registrationMode"`
+			PublicRegistrationAvailable bool   `json:"publicRegistrationAvailable"`
+		}
+		if err := json.Unmarshal(response.Body.Bytes(), &info); err != nil {
+			t.Fatal(err)
+		}
+		if info.RegistrationMode != "open" {
+			t.Fatalf("registrationMode = %q", info.RegistrationMode)
+		}
+		if info.PublicRegistrationAvailable {
+			t.Fatal("public registration must not be advertised without a mail capability")
 		}
 	})
 }

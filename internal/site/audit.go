@@ -70,6 +70,34 @@ func recordEnrollment(ctx context.Context, q DBTX, actor Actor, action, targetTy
 	return insertAudit(ctx, q, actor, action, targetType, targetID, allowed)
 }
 
+// recordSignup stores an audit row for the public registration lifecycle.
+//
+// It reuses recordEnrollment's whitelist because the two flows write the same
+// kind of business facts. The caller has no user yet, so the row is attributed
+// to the system: actor_kind is constrained to user/system/maintenance, and
+// writing an anonymous request as a user would either violate the foreign key
+// or forge an identity.
+func recordSignup(ctx context.Context, q DBTX, action, targetType, targetID string, changes map[string]any) error {
+	allowed := make(map[string]any, len(changes))
+	for _, key := range []string{
+		KeyEnrollmentEmail,
+		KeyEnrollmentCanCreateWorkspace,
+		KeyEnrollmentID,
+		KeySignupSource,
+	} {
+		if change, ok := changes[key]; ok {
+			allowed[key] = change
+		}
+	}
+	body, err := json.Marshal(allowed)
+	if err != nil {
+		return err
+	}
+	_, err = q.ExecContext(ctx, `INSERT INTO admin_audit_events(actor_kind,actor_user_id,action,target_type,target_id,changes_json,request_id,created_at) VALUES('system',NULL,?,?,?,?,NULL,?)`,
+		action, targetType, targetID, string(body), time.Now().UTC())
+	return err
+}
+
 func insertAudit(ctx context.Context, q DBTX, actor Actor, action, targetType, targetID string, changes map[string]any) error {
 	body, err := json.Marshal(changes)
 	if err != nil {

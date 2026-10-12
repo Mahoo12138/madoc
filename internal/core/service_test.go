@@ -289,18 +289,20 @@ func TestInviteAcceptanceSnapshotsEnabledPolicyAndFailsClosed(t *testing.T) {
 		}
 	}
 
-	// A stored "open" mode is the same class of unusable document: acceptance
-	// must roll back instead of creating an account under a broken policy.
+	// A stored "open" mode is now a legitimate document: invite acceptance
+	// succeeds under it exactly as the registration matrix requires, and the
+	// account takes the invite default in force at that moment.
 	storedOpen := `{"schemaVersion":1,"revision":0,"registrationMode":"open","allowWorkspaceOwnerInviteNewUsers":false,"inviteDefaultCanCreateWorkspace":false,"publicSignupDefaultCanCreateWorkspace":false,"origin":"new"}`
 	if _, err := f.db.Exec(`UPDATE server_config SET value=? WHERE key='site_settings'`, storedOpen); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := f.core.AcceptInvite(f.ctx, openToken, "Open Blocked", "password123", nil); !errors.Is(err, site.ErrCorrupt) {
+	if _, _, err := f.core.AcceptInvite(f.ctx, openToken, "Open Allowed", "password123", nil); err != nil {
 		t.Fatalf("stored open acceptance error = %v", err)
 	}
-	if err := f.db.QueryRow(`SELECT count(*) FROM users WHERE email='openblocked@example.com'`).Scan(&count); err != nil || count != 0 {
-		t.Fatalf("stored open settings created account: count=%d err=%v", count, err)
+	if err := f.db.QueryRow(`SELECT count(*) FROM users WHERE email='openblocked@example.com'`).Scan(&count); err != nil || count != 1 {
+		t.Fatalf("stored open settings account count=%d err=%v", count, err)
 	}
+	// The document itself is left alone: reading the mode must not rewrite it.
 	var raw string
 	if err := f.db.QueryRow(`SELECT value FROM server_config WHERE key='site_settings'`).Scan(&raw); err != nil || raw != storedOpen {
 		t.Fatalf("stored open settings rewritten: %q err=%v", raw, err)

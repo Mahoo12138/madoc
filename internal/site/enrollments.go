@@ -166,14 +166,23 @@ func validEnrollmentEmail(email string) bool {
 type EnrollmentLimits struct {
 	Window   time.Duration
 	PerEmail int
-	Instance int
+	// PerSource bounds one network origin. Public registration needs it
+	// because rotating mailboxes alone would otherwise be enough to spend the
+	// whole instance budget.
+	PerSource int
+	Instance  int
 }
 
 // DefaultEnrollmentLimits is used by every store built with New. The per-email
-// bound keeps one mailbox from spending the whole budget and the instance bound
-// keeps rotating mailboxes from doing it either.
+// bound keeps one mailbox from spending the whole budget, the per-source bound
+// keeps one host from spending it across mailboxes, and the instance bound
+// keeps a distributed rotation from doing it either.
+//
+// These are starting points for a single process, not measured capacities. Any
+// deployment should check them against its own expected traffic before
+// advertising them as a rate limit users can rely on.
 func DefaultEnrollmentLimits() EnrollmentLimits {
-	return EnrollmentLimits{Window: 15 * time.Minute, PerEmail: 5, Instance: 30}
+	return EnrollmentLimits{Window: 15 * time.Minute, PerEmail: 5, PerSource: 20, Instance: 30}
 }
 
 // activationLimiter is a fixed-window counter. Each key owns its own window
@@ -182,9 +191,11 @@ type activationLimiter struct {
 	mu       sync.Mutex
 	window   time.Duration
 	perEmail int
+	perSrc   int
 	instance int
 	total    windowCounter
 	emails   map[string]windowCounter
+	sources  map[string]windowCounter
 }
 
 type windowCounter struct {
@@ -200,8 +211,10 @@ func newActivationLimiter(limits EnrollmentLimits) *activationLimiter {
 	return &activationLimiter{
 		window:   window,
 		perEmail: limits.PerEmail,
+		perSrc:   limits.PerSource,
 		instance: limits.Instance,
 		emails:   map[string]windowCounter{},
+		sources:  map[string]windowCounter{},
 	}
 }
 
@@ -235,12 +248,35 @@ func (l *activationLimiter) claimEmail(now time.Time, email string) (bool, time.
 	return true, 0
 }
 
+// claimSource charges one network origin. A non-positive limit disables the
+// dimension rather than blocking everything, so a deployment that only wants the
+// instance bound can leave it unset.
+func (l *activationLimiter) claimSource(now time.Time, source string) (bool, time.Duration) {
+	if l.perSrc <= 0 {
+		return true, 0
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.sweep(now)
+	counter := l.sources[source]
+	if counter.count >= l.perSrc {
+		return false, l.retryAfter(counter, now)
+	}
+	l.sources[source] = windowCounter{start: counter.startOr(now), count: counter.count + 1}
+	return true, 0
+}
+
 // sweep drops keys whose window is over. Only accepted attempts create keys, so
 // at most one entry exists per admitted request and this stays cheap.
 func (l *activationLimiter) sweep(now time.Time) {
 	for key, counter := range l.emails {
 		if now.Sub(counter.start) >= l.window {
 			delete(l.emails, key)
+		}
+	}
+	for key, counter := range l.sources {
+		if now.Sub(counter.start) >= l.window {
+			delete(l.sources, key)
 		}
 	}
 	if now.Sub(l.total.start) >= l.window {

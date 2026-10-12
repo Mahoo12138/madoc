@@ -28,6 +28,10 @@ type Store struct {
 	// at the exact point where expensive work (password hashing) is about to
 	// start, which only this package knows.
 	enrollmentLimiter *activationLimiter
+	// publicRegistration holds the deployment-side capability public sign-up
+	// needs. Its zero value means "cannot register", which is the correct
+	// default for every store built without it.
+	publicRegistration PublicRegistration
 }
 
 // Settings is the public response representation of the site settings document.
@@ -69,6 +73,14 @@ func New(db *sql.DB) *Store { return NewWithEnrollmentLimits(db, DefaultEnrollme
 // out a production budget; wiring always uses New.
 func NewWithEnrollmentLimits(db *sql.DB, limits EnrollmentLimits) *Store {
 	return &Store{db: db, enrollmentLimiter: newActivationLimiter(limits)}
+}
+
+// EnablePublicRegistration attaches the mail capability the public sign-up flow
+// requires. Passing the zero PublicRegistration leaves the instance unable to
+// register anyone, which is exactly what an SMTP-less deployment wants.
+func (s *Store) EnablePublicRegistration(registration PublicRegistration) *Store {
+	s.publicRegistration = registration
+	return s
 }
 
 // Load reads and validates settings using q. It never falls back to Store.db.
@@ -152,7 +164,12 @@ func (s *Store) Update(ctx context.Context, actor Actor, expectedRevision int, c
 		return Settings{}, err
 	}
 	updated, changed, auditChanges := current.apply(normalized)
-	if updated.RegistrationMode == "open" {
+	// `open` is storable now, but only once the capability behind it exists:
+	// persisting a mode this deployment cannot execute would leave an
+	// administrator looking at "open" while every signup fails. The check runs
+	// before the revision comparison so the verdict does not depend on the
+	// client's view of the document.
+	if updated.RegistrationMode == "open" && !s.publicRegistrationReady() {
 		return Settings{}, ErrRegistrationNotReady
 	}
 	if expectedRevision != current.Revision {
@@ -237,14 +254,6 @@ func decodeDocument(body []byte) (document, error) {
 	}
 	if err := json.Unmarshal(fields[KeyRegistrationMode], &doc.RegistrationMode); err != nil || !validRegistrationMode(doc.RegistrationMode) {
 		return document{}, corrupt("invalid registrationMode")
-	}
-	if doc.RegistrationMode == "open" {
-		// No write path can store "open" because the request side is always
-		// rejected with 422, so reading it means the document was edited from
-		// outside this service. Treating it as corruption here keeps the read and
-		// write sides on one verdict instead of letting a page render a value no
-		// change can ever act on.
-		return document{}, corrupt("stored registrationMode is open")
 	}
 	if doc.AllowWorkspaceOwnerInviteNewUsers, err = strictBool(fields[KeyAllowWorkspaceOwnerInviteNewUsers]); err != nil {
 		return document{}, corrupt("invalid %s", KeyAllowWorkspaceOwnerInviteNewUsers)

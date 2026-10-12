@@ -20,6 +20,7 @@ import (
 	"madoc/internal/account"
 	"madoc/internal/asset"
 	"madoc/internal/auth"
+	"madoc/internal/config"
 	"madoc/internal/core"
 	"madoc/internal/db"
 	"madoc/internal/site"
@@ -102,7 +103,7 @@ func newAdminUsersFixtureWithRealtime(t *testing.T, realtime RoomInspector) *adm
 	}
 	assetRoot := t.TempDir()
 	domain := core.New(conn, siteStore)
-	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), realtime, false).Routes()
+	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), realtime, false, config.MailDiagnosis{}).Routes()
 	spy, _ := realtime.(*roomSpy)
 	return &adminUsersFixture{
 		t: t, db: conn, handler: handler, identity: identity, site: siteStore, domain: domain,

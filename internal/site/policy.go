@@ -17,7 +17,7 @@ var implemented = map[string]bool{
 	KeyRegistrationMode:                      true,
 	KeyAllowWorkspaceOwnerInviteNewUsers:     true,
 	KeyInviteDefaultCanCreateWorkspace:       true,
-	KeyPublicSignupDefaultCanCreateWorkspace: false,
+	KeyPublicSignupDefaultCanCreateWorkspace: true,
 }
 
 // Actor contains the current database-backed facts used by site policies.
