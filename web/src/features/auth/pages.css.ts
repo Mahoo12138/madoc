@@ -132,6 +132,26 @@ export const hint = style({
   textWrap: 'balance',
 });
 
+// 公开注册的受理态：白卡片里的一块纸灰面，用色调分层而不是阴影把它从表单里
+// 分出来。信纸蓝只出现在图标上，正文文字仍是墨色（One Voice Rule）。
+export const accepted = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 10,
+  padding: 16,
+  border: '1px solid var(--mantine-color-gray-2)',
+  borderRadius: 'var(--mantine-radius-sm)',
+  background: 'var(--mantine-color-gray-0)',
+  color: 'var(--mantine-primary-color-filled)',
+});
+export const acceptedText = style({
+  margin: 0,
+  fontSize: 14,
+  lineHeight: 1.6,
+  color: 'var(--mantine-color-text)',
+  textWrap: 'balance',
+});
+
 // Input state vocabulary, scoped to the auth card: Mantine already covers
 // focus / disabled / error natively; these rules add hover affordance, a
 // soft focus ring and a calmer disabled surface.

@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { useReducedMotion } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { useSiteSettings, useUpdateSiteSettings } from '@/api/hooks';
+import { useAdminMail, useSiteSettings, useUpdateSiteSettings } from '@/api/hooks';
 import {
   APIError,
   type RegistrationMode,
@@ -22,6 +22,7 @@ import {
   type SiteSettingsChanges,
 } from '@/api/types';
 import { EmptyState } from '@/features/shared/empty-state';
+import { AdminMailPanel } from './admin-mail-panel';
 import * as styles from './admin.css';
 
 /** 只有布尔设置能由开关直接承载；`registrationMode` 是枚举，由 SegmentedControl 承载。 */
@@ -33,13 +34,17 @@ type Draft =
   | { kind: 'mode'; key: 'registrationMode'; value: RegistrationMode };
 
 /**
- * 阶段 5.2 只完整支持 `closed / invite_only`；`open` 会被服务端以 422
- * `REGISTRATION_NOT_READY` 拒绝，因此不提供为可选项（§13 阶段 5.2）。
+ * 注册模式三个取值都在这里，`open` 的可选性由 SMTP 是否就绪决定（见
+ * `MODE_OPTIONS` 的构造）：公开注册必须能把验证邮件发出去，否则每一步都会被
+ * 服务端拒绝。宁可不给这个选项，也不给一个点了必然 422 的按钮。
  */
-const MODE_OPTIONS: { value: RegistrationMode; label: string }[] = [
-  { value: 'closed', label: '已关闭' },
-  { value: 'invite_only', label: '仅邀请' },
-];
+function modeOptions(openSelectable: boolean): { value: RegistrationMode; label: string; disabled?: boolean }[] {
+  return [
+    { value: 'closed', label: '已关闭' },
+    { value: 'invite_only', label: '仅邀请' },
+    { value: 'open', label: '公开注册', disabled: !openSelectable },
+  ];
+}
 
 /** 展示顺序：先本次已接入的一项，再按 PRD §7.3 的表格顺序。 */
 const SETTING_ORDER: SiteSettingKey[] = [
@@ -68,9 +73,8 @@ const COPY: Record<SiteSettingKey, SettingCopy> = {
   registrationMode: {
     title: '注册模式',
     description:
-      '控制能否通过工作区邀请创建新账号：仅邀请（invite_only）允许受邀者建号加入，已关闭（closed）只接受已有账号登录与加入。',
-    pendingNote:
-      '尚无公开自助注册入口。该设置将在后续版本接入，当前不影响站点行为；所有新账号仍通过工作区邀请创建。',
+      '控制新账号从哪里来：仅邀请（invite_only）允许受邀者建号加入，公开注册（open）额外允许任何人通过邮箱验证自助注册，已关闭（closed）只接受已有账号登录与加入。切换模式不会撤销已经发出的邀请或链接。',
+    pendingNote: '该设置将在后续版本接入，当前不影响站点行为。',
   },
   allowWorkspaceOwnerInviteNewUsers: {
     title: '普通 owner 邀请新用户',
@@ -80,8 +84,9 @@ const COPY: Record<SiteSettingKey, SettingCopy> = {
   },
   publicSignupDefaultCanCreateWorkspace: {
     title: '公开注册新账号默认创建授权',
-    description: '控制通过公开注册新建的账号是否默认可创建工作区。',
-    pendingNote: '公开注册尚未提供，此设置在接入前不会生效。',
+    description:
+      '控制通过公开注册新建的账号是否默认可创建工作区。公开注册创建的是普通用户，不是管理员；仅影响之后注册的新账号，已有账号的授权不变，请在用户管理中单独调整。',
+    pendingNote: '公开注册尚未接入，此设置在接入前不会生效。',
   },
 };
 
@@ -155,6 +160,7 @@ function draftMatchesSettings(draft: Draft, settings: SiteSettings): boolean {
 export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
   const query = useSiteSettings();
   const update = useUpdateSiteSettings();
+  const mail = useAdminMail();
   // 指示器是内联 transition-duration，样式表覆盖不了，只能在 JS 侧关掉。
   const reduceMotion = useReducedMotion();
   // 请求序号：乱序到达的旧响应一律丢弃，不覆盖新状态（PRD P1-6）。
@@ -168,6 +174,14 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
   const pendingKeys = SETTING_ORDER.filter(
     (key) => settings.implemented?.[key] !== true,
   );
+
+  /**
+   * `open` 只有在发信能力**已被服务端确认就绪**时才可选。读不到就当作没就绪：
+   * 服务端会以 422 `REGISTRATION_NOT_READY` 拒绝，页面宁可少给一个选项，也不给
+   * 一个点了必然失败的按钮。
+   */
+  const openSelectable = mail.data?.configured === true;
+  const modeData = modeOptions(openSelectable);
 
   const save = (next: Draft) => {
     if (update.isPending) return;
@@ -238,7 +252,7 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
               <SegmentedControl
                 aria-label={copy.title}
                 value={modeDraft ?? settings.registrationMode}
-                data={MODE_OPTIONS}
+                data={modeData}
                 disabled={update.isPending}
                 transitionDuration={reduceMotion ? 0 : 150}
                 classNames={{ root: styles.modeControl, label: styles.modeLabel }}
@@ -267,8 +281,12 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
             {notEffective && <span className={styles.statusText}>尚未生效</span>}
           </div>
         </div>
-        {key === 'registrationMode' && (
-          <p className={styles.pendingNote}>公开注册尚未提供，暂不能启用。</p>
+        {key === 'registrationMode' && !openSelectable && (
+          // 12px 如实说明为什么不能选，也不承诺「改完就生效」：改的是部署侧环境
+          // 变量，进程读的是启动时的值。
+          <p className={styles.pendingNote}>
+            发送验证邮件所需的 SMTP 尚未配置，部署者需设置环境变量后重启服务才能启用公开注册。
+          </p>
         )}
         {failed && (
           <Alert color="red" role="alert" className={styles.rowAlert}>
@@ -347,18 +365,25 @@ export function AdminSettingsPanel({ settings }: { settings: SiteSettings }) {
         </section>
       )}
 
-      <section className={styles.sectionRule} aria-label="尚未接入的设置">
-        <h2 className={styles.sectionTitle}>尚未接入的设置</h2>
-        {pendingKeys.length > 0 ? (
-          pendingKeys.map((key, index) =>
+      {/* The section exists only while something is still unwired. With every
+          setting implemented, a heading reading "尚未接入的设置" over an empty
+          state would claim a gap that does not exist. */}
+      {pendingKeys.length > 0 && (
+        <section className={styles.sectionRule} aria-label="尚未接入的设置">
+          <h2 className={styles.sectionTitle}>尚未接入的设置</h2>
+          {pendingKeys.map((key, index) =>
             renderReadOnlyRow(key, true, index === 0),
-          )
-        ) : (
-          <div className={styles.emptySection}>
-            <EmptyState size="section" title="暂无可配置的站点设置" />
-          </div>
-        )}
-      </section>
+          )}
+        </section>
+      )}
+
+      <AdminMailPanel
+        mail={mail.data}
+        isPending={mail.isPending}
+        isFetching={mail.isFetching}
+        error={mail.error instanceof APIError ? mail.error : null}
+        onRetry={() => void mail.refetch()}
+      />
 
       <Modal
         opened={conflict !== null}

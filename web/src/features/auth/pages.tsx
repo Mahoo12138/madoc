@@ -1,34 +1,18 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { Alert, Anchor, Button, Center, Loader, PasswordInput, Stack, Text, TextInput, Title, type MantineColor } from '@mantine/core';
+import { useEffect, useState } from 'react';
+import { Anchor, Button, Center, Loader, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { AlertCircle as IconAlertCircle, ArrowRight as IconArrowRight } from 'lucide-react';
+import { ArrowRight as IconArrowRight } from 'lucide-react';
 import { api } from '@/api/client';
 import { queryClient } from '@/api/query-client';
 import { useCompleteAccountEnrollment, useSession, useSiteInfo } from '@/api/hooks';
 import { APIError, type InvitePreview, type SiteInfo } from '@/api/types';
+import { AuthShell, ErrorAlert } from './auth-shell';
 import * as styles from './pages.css';
 
-function Brand() {
-  return (
-    <div className={styles.brand}>
-      <img src="/logo.svg" alt="" aria-hidden className={styles.mark} />
-      <Text className={styles.wordmark}>Madoc</Text>
-    </div>
-  );
-}
-
-function ErrorAlert({ error, color = 'red' }: { error: string; color?: MantineColor }) {
-  return error ? (
-    <Alert color={color} variant="light" radius="sm" icon={<IconAlertCircle size={16} />}>
-      {error}
-    </Alert>
-  ) : null;
-}
-
 /**
- * §10.5：登录页只陈述准入事实。`publicRegistrationAvailable` 为真时由公开注册
- * 入口承担说明；`open` 但没有可用入口时不臆造文案。
+ * §10.5：登录页只陈述准入事实。`publicRegistrationAvailable` 为真时给出公开注册
+ * 入口；否则维持一句说明，`open` 但没有可用入口时不臆造文案。
  */
 function registrationNote(info: SiteInfo | undefined): string {
   if (!info || info.publicRegistrationAvailable) return '';
@@ -40,33 +24,6 @@ function registrationNote(info: SiteInfo | undefined): string {
 /** 服务端以邮箱匹配账号：大小写与首尾空白不构成两个账号。 */
 function sameEmail(a: string, b: string): boolean {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
-}
-
-// Shared frame for every auth screen: drifting paper-blue backdrop, centered
-// brand and a white card whose header carries title + lead before the form.
-function AuthShell({ title, lead, children }: { title: string; lead?: ReactNode; children: ReactNode }) {
-  return (
-    <main className={styles.page}>
-      <div className={styles.decor} aria-hidden>
-        <div className={styles.glowA} />
-        <div className={styles.glowB} />
-      </div>
-      <section className={styles.panel}>
-        <Brand />
-        <div className={styles.card}>
-          <Stack gap="lg">
-            <div>
-              <Title order={1} className={styles.heading}>
-                {title}
-              </Title>
-              {lead ? <Text className={styles.lead}>{lead}</Text> : null}
-            </div>
-            {children}
-          </Stack>
-        </div>
-      </section>
-    </main>
-  );
 }
 
 export function StartPage() {
@@ -120,6 +77,9 @@ export function SignInPage() {
     finally { setLoading(false); }
   });
   const note = registrationNote(siteInfo.data);
+  // 只有服务端说公开注册**确实可用**时才给入口。`registrationMode === 'open'`
+  // 但 SMTP 未就绪时不显示：那是给一个每一步都会被拒绝的流程发路标。
+  const canRegister = siteInfo.data?.publicRegistrationAvailable === true;
   return (
     <AuthShell
       title="欢迎回来"
@@ -133,6 +93,11 @@ export function SignInPage() {
           <Button type="submit" fullWidth size="md" loading={loading}>登录</Button>
         </Stack>
       </form>
+      {canRegister && (
+        <Text size="sm" c="dimmed" ta="center">
+          还没有账号？ <Anchor component={Link} to="/sign-up">创建账号</Anchor>
+        </Text>
+      )}
     </AuthShell>
   );
 }

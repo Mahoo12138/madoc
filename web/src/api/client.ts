@@ -1,4 +1,4 @@
-import type { AccountEnrollment, ActivityEvent, AdminUser, AdminUserChanges, AdminUserDetail, AdminUserList, AdminUserListParams, AuditEventList, AuditEventListParams, BoardScene, CompletedEnrollment, ContentVersion, ContentVersionDetail, ContentVersionUsage, CreatedEnrollment, EnrollmentList, Invite, InvitePreview, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SiteInfo, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
+import type { AccountEnrollment, ActivityEvent, AdminMailStatus, AdminUser, AdminUserChanges, AdminUserDetail, AdminUserList, AdminUserListParams, AuditEventList, AuditEventListParams, BoardScene, CompletedEnrollment, CompletedSignUp, ContentVersion, ContentVersionDetail, ContentVersionUsage, CreatedEnrollment, EnrollmentList, Invite, InvitePreview, Item, ItemCapture, ItemComment, ItemShare, ItemType, MarkdownState, Member, Role, Session, SharedItem, SignUpRequestResult, SiteInfo, SiteSettings, SiteSettingsChanges, User, WhiteboardState, Workspace } from './types';
 import { APIError } from './types';
 
 let csrfToken = '';
@@ -97,5 +97,11 @@ export const api = {
   revokeAccountEnrollment: (id: string) => request<void>(`/admin/account-enrollments/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   // 匿名可用：令牌本身就是凭据，不需要会话。完成后服务端直接建立会话并下发新 CSRF。
   completeAccountEnrollment: async (token: string, body: { name: string; password: string }) => { const result = await request<CompletedEnrollment>('/auth/account-enrollments/complete', { method: 'POST', body: JSON.stringify({ ...body, token }) }); setCSRFToken(result.csrfToken); return result; },
+  // 匿名可用：公开注册只靠同源校验，不依赖已登录会话的 CSRF（§11.5）。
+  // 202 是统一受理响应，三种情况逐字节一致——这里不解析、不缓存、不据此分支。
+  requestSignUp: (email: string) => request<SignUpRequestResult>('/auth/sign-up/request', { method: 'POST', body: JSON.stringify({ email }) }),
+  // 匿名可用：验证令牌本身就是凭据。成功后服务端直接建立会话并下发新 CSRF。
+  completeSignUp: async (token: string, body: { name: string; password: string }) => { const result = await request<CompletedSignUp>('/auth/sign-up/complete', { method: 'POST', body: JSON.stringify({ ...body, token }) }); setCSRFToken(result.csrfToken); return result; },
+  adminMail: () => request<AdminMailStatus>('/admin/mail', { cache: 'no-store' }),
   uploadAsset: (workspaceId: string, file: File, itemId?: string) => { const body = new FormData(); body.append('file', file); if (itemId) body.append('itemId', itemId); return request<{ asset: { id: string }; url: string }>(`/workspaces/${workspaceId}/assets`, { method: 'POST', body }); },
 };

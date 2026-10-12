@@ -54,9 +54,25 @@ export type RegistrationMode = 'closed' | 'invite_only' | 'open';
 /** 最小公开站点信息（`GET /api/site`，不需要登录）。 */
 export interface SiteInfo {
   registrationMode: RegistrationMode;
-  /** 综合判定结果，不等于 `registrationMode === 'open'`。 */
+  /**
+   * 综合判定结果，不等于 `registrationMode === 'open'`：它同时要求模式为 `open`
+   * **且**发送验证邮件所需的 SMTP 已就绪（§11.1）。SMTP 未配置的实例不得显示
+   * 公开注册入口，否则给出的每一步都会被服务端拒绝。
+   */
   publicRegistrationAvailable: boolean;
 }
+
+/**
+ * 公开注册申请的受理响应（`POST /api/auth/sign-up/request`，202）。
+ *
+ * 「可以注册」「邮箱已有账号」「当前不可注册」三种情况的响应**逐字节一致**，
+ * 因此这个类型里不存在、也不允许出现任何能区分邮箱状态的字段。前端只把它当作
+ * 「已受理」，绝不据此推断邮箱是否存在。
+ *
+ * 服务端同响应里还有一个统一的 `message` 文案；页面刻意不渲染它——受理文案只在
+ * 前端有一处来源，页面就不可能因为响应里换了句话而泄露状态。
+ */
+export interface SignUpRequestResult { accepted: boolean }
 /**
  * 站点设置键。与后端 `internal/site` 的 `Key*` 常量一一对应，新增字段必须两侧同时改。
  * 命名约定：DB 列 `snake_case`，JSON `camelCase`。
@@ -200,6 +216,36 @@ export interface EnrollmentList { enrollments: AccountEnrollment[] }
 export interface CreatedEnrollment { enrollment: AccountEnrollment; token: string; url: string }
 /** 完成激活响应：服务端直接建立会话，`email_verified_at` 不会被写入（§11.4）。 */
 export interface CompletedEnrollment { user: User; csrfToken: string }
+
+/**
+ * 完成公开注册响应（`POST /api/auth/sign-up/complete`）。服务端在同一事务里创建
+ * 账号、写入 `email_verified_at`、消耗令牌并建立会话（§11.2），随后直接下发新
+ * 的 CSRF 令牌。
+ */
+export interface CompletedSignUp { user: User; csrfToken: string }
+
+/**
+ * 发信能力诊断（`GET /api/admin/mail`）。
+ *
+ * 这是**部署侧配置**的只读镜像，不是站点设置：页面没有、也不需要有写它的控件。
+ * 结构里刻意没有密码字段——管理页不请求、不展示、也不回显任何凭证；SMTP 用户名
+ * 同样不回显，「配没配认证」是管理页唯一需要知道的事（§11.1）。
+ *
+ * 与 `internal/config.MailDiagnosis` 一一对应。`configured` 才是「能否启用公开注册」
+ * 的前提；`host` / `port` / `from` / `publicUrl` 只是脱敏诊断，未配置时是空值，
+ * 不是一个错误。
+ */
+export interface AdminMailStatus {
+  configured: boolean;
+  host: string;
+  port: number;
+  from: string;
+  /** `none` / `starttls` / `implicit`：传输加密方式，不是布尔开关。 */
+  tls: string;
+  authConfigured: boolean;
+  /** 发信链接使用的公开站点地址；空表示部署者没有显式配置。 */
+  publicUrl: string;
+}
 
 export class APIError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }

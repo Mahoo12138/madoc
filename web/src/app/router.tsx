@@ -13,6 +13,10 @@ import {
   SignInPage,
   StartPage,
 } from '@/features/auth/pages';
+import {
+  SignUpCompletePage,
+  SignUpRequestPage,
+} from '@/features/auth/sign-up-pages';
 import { WorkspaceListPage } from '@/features/workspaces/workspace-list-page';
 import { WorkspacePage } from '@/features/workspaces/workspace-page';
 const AccountSettingsPage = lazyRouteComponent(
@@ -66,6 +70,18 @@ const enrollRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/enroll/$token',
   component: EnrollPage,
+});
+// 公开注册（§11.2）：申请页有入口（登录页在可用时才给），完成页同样只由邮件
+// 链接直达。两条路由都在被关闭时给出明确状态，不依赖登录页藏入口。
+const signUpRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/sign-up',
+  component: SignUpRequestPage,
+});
+const signUpCompleteRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/sign-up/$token',
+  component: SignUpCompletePage,
 });
 const workspacesRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -127,6 +143,8 @@ const routeTree = rootRoute.addChildren([
   signInRoute,
   inviteRoute,
   enrollRoute,
+  signUpRoute,
+  signUpCompleteRoute,
   workspacesRoute,
   accountSettingsRoute,
   workspaceRoute,

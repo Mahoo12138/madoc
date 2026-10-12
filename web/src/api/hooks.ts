@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
-import { APIError, type AdminUser, type AdminUserChanges, type AdminUserDetail, type AdminUserList, type AdminUserListParams, type AuditEventList, type AuditEventListParams, type EnrollmentList, type ItemType, type Role, type SiteInfo, type SiteSettings, type SiteSettingsChanges } from './types';
+import { APIError, type AdminMailStatus, type AdminUser, type AdminUserChanges, type AdminUserDetail, type AdminUserList, type AdminUserListParams, type AuditEventList, type AuditEventListParams, type EnrollmentList, type ItemType, type Role, type SiteInfo, type SiteSettings, type SiteSettingsChanges } from './types';
 
 const retryWorkspaceRead = (count: number, error: Error) =>
   !(error instanceof APIError && [401, 403, 404].includes(error.status)) && count < 3;
@@ -21,7 +21,7 @@ const retryAdminAuditRead = (count: number, error: Error) =>
 const retryEnrollmentRead = (count: number, error: Error) =>
   !(error instanceof APIError && [401, 403, 404, 409].includes(error.status)) && count < 3;
 
-export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const, siteSettings: ['siteSettings'] as const, siteInfo: ['siteInfo'] as const, /** 前缀根：失效后所有筛选与分页重新读取。 */ adminUsers: ['adminUsers'] as const, adminUserList: (params: AdminUserListParams) => ['adminUsers', 'list', params] as const, adminUser: (id: string) => ['adminUsers', 'detail', id] as const, /** 前缀根：撤销或新建后重新读取待激活列表。 */ accountEnrollments: ['accountEnrollments'] as const, /** 前缀根：设置或账号变更后让操作记录重新读取。 */ adminAudit: ['adminAudit'] as const, auditEventList: (params: AuditEventListParams) => ['adminAudit', 'list', params] as const };
+export const keys = { session: ['session'] as const, workspaces: ['workspaces'] as const, workspace: (id: string) => ['workspace', id] as const, items: (id: string) => ['items', id] as const, members: (id: string) => ['members', id] as const, invites: (id: string) => ['invites', id] as const, activity: (id: string) => ['activity', id] as const, markdown: (id: string) => ['markdown', id] as const, whiteboard: (id: string) => ['whiteboard', id] as const, siteSettings: ['siteSettings'] as const, siteInfo: ['siteInfo'] as const, /** 前缀根：失效后所有筛选与分页重新读取。 */ adminUsers: ['adminUsers'] as const, adminUserList: (params: AdminUserListParams) => ['adminUsers', 'list', params] as const, adminUser: (id: string) => ['adminUsers', 'detail', id] as const, /** 前缀根：撤销或新建后重新读取待激活列表。 */ accountEnrollments: ['accountEnrollments'] as const, /** 前缀根：设置或账号变更后让操作记录重新读取。 */ adminAudit: ['adminAudit'] as const, auditEventList: (params: AuditEventListParams) => ['adminAudit', 'list', params] as const, /** 部署侧发信配置：部署者改环境变量并重启后需重新读取。 */ adminMail: ['adminMail'] as const };
 export const useSession = () => useQuery({ queryKey: keys.session, queryFn: api.session, staleTime: 60_000, retry: false, retryOnMount: false });
 export const useWorkspaces = () => useQuery({ queryKey: keys.workspaces, queryFn: api.workspaces });
 export const useWorkspace = (id: string) => useQuery({ queryKey: keys.workspace(id), queryFn: () => api.workspace(id), retry: retryWorkspaceRead, retryOnMount: false });
@@ -99,6 +99,32 @@ export const useCompleteAccountEnrollment = () =>
     mutationFn: (input: { token: string; name: string; password: string }) => api.completeAccountEnrollment(input.token, { name: input.name, password: input.password }),
     retry: false,
   });
+
+/**
+ * 公开注册（§11.2）。
+ *
+ * 申请与完成都不重试：重复申请会多发一封邮件并继续消耗限流额度，重复完成则可能
+ * 把「响应丢失」变成一次真实建号。两者的失败原因也不会自行消失。
+ */
+export const useRequestSignUp = () =>
+  useMutation({
+    mutationFn: (input: { email: string }) => api.requestSignUp(input.email),
+    retry: false,
+  });
+export const useCompleteSignUp = () =>
+  useMutation({
+    mutationFn: (input: { token: string; name: string; password: string }) => api.completeSignUp(input.token, { name: input.name, password: input.password }),
+    retry: false,
+  });
+
+/**
+ * 发信能力诊断。它决定「公开注册」这个选项能不能选，所以 401/403 与 404 都是
+ * 终态答案：重试不会让 SMTP 突然出现，只会把「读不到」拖成「像是坏了」。
+ */
+const retryAdminMailRead = (count: number, error: Error) =>
+  !(error instanceof APIError && [401, 403, 404].includes(error.status)) && count < 3;
+export const useAdminMail = () =>
+  useQuery<AdminMailStatus>({ queryKey: keys.adminMail, queryFn: api.adminMail, retry: retryAdminMailRead, retryOnMount: false });
 
 /**
  * 操作记录按 keyset 游标分页（`before` = 上一页最小的 `id`），不是偏移量：
