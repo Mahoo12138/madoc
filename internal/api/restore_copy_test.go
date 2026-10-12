@@ -12,6 +12,7 @@ import (
 	"madoc/internal/account"
 	"madoc/internal/asset"
 	"madoc/internal/auth"
+	"madoc/internal/config"
 	"madoc/internal/core"
 	"madoc/internal/db"
 	"madoc/internal/site"
@@ -56,7 +57,7 @@ func TestRestoreVersionCopyNotifiesWorkspaceOnlyAfterCommit(t *testing.T) {
 	rooms := &workspaceEventRecorder{}
 	assetRoot := t.TempDir()
 	csrf := auth.NewCSRF([]byte("test-secret"))
-	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), rooms, false).Routes()
+	handler := New(identity, csrf, domain, siteStore, asset.New(conn, domain, assetRoot, 25), account.New(conn, assetRoot), rooms, false, config.MailDiagnosis{}).Routes()
 	session, err := identity.CreateSession(ctx, owner.ID)
 	if err != nil {
 		t.Fatal(err)
