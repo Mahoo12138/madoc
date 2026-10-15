@@ -227,7 +227,7 @@ export function WorkspaceNavigation({
         </Tabs.Tab>
       </Tabs.List>
       <Tabs.Panel value="files" className={styles.navigationPanel}>
-        <Group justify="space-between" mt="md" px={8}>
+        <Group justify="space-between" mt="md" px={6}>
           <Text size="xs" fw={700} c="dimmed">
             内容
           </Text>

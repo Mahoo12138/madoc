@@ -7,7 +7,7 @@ export const outline = style({
   flex: 1,
   minWidth: 0,
   minHeight: 0,
-  paddingTop: 14,
+  paddingTop: 12,
   selectors: {
     '&[data-desktop="true"]': { paddingTop: 0, overflow: 'hidden' },
   },
@@ -37,13 +37,16 @@ export const header = style({
   display: 'flex',
   alignItems: 'center',
   gap: 6,
-  padding: '0 6px 8px 10px',
+  // The label and the tool buttons share the rows' left line: title text and
+  // the chevron column below both start at panel gutter + row inset, so the
+  // outline reads as one indented block instead of a floating caption.
+  padding: '0 6px 8px 6px',
   minHeight: 34,
   flexShrink: 0,
   selectors: {
     [`${outline}[data-desktop="true"] &`]: {
       minHeight: 40,
-      padding: '0 2px 8px',
+      padding: '0 6px 8px',
     },
   },
 });
@@ -54,11 +57,11 @@ export const spacer = style({
   flexShrink: 0,
   '@media': { [touchControls]: { width: 44 } },
 });
-export const children = style({ paddingLeft: 14 });
+export const children = style({ paddingLeft: 'var(--madoc-indent-step)' });
 export const row = style({
   display: 'flex',
   alignItems: 'center',
-  paddingInlineStart: 6,
+  paddingInlineStart: 'var(--madoc-inset-row)',
   borderRadius: 'var(--mantine-radius-sm)',
   color: 'var(--mantine-color-dark-4)',
   selectors: {
@@ -76,7 +79,9 @@ export const heading = style({
   minWidth: 0,
   minHeight: 34,
   '@media': { [touchControls]: { minHeight: 44 } },
-  padding: '7px 8px 7px 2px',
+  // No left padding: the chevron's own box already carries the gutter, and
+  // every row's text starts on one column regardless of nesting depth.
+  padding: '7px 8px 7px 0',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',

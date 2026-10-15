@@ -81,7 +81,12 @@ export function ItemTree({
             <UnstyledButton
               className={styles.treeLink}
               title={item.title}
-              style={{ paddingLeft: 8 + depth * 17 }}
+              // Level-1 chevrons start one row-inset inside the panel gutter;
+              // every nesting level adds the shared indent step, so deep trees
+              // spend their width on titles instead of stacked padding.
+              style={{
+                paddingLeft: `calc(var(--madoc-inset-row) + var(--madoc-indent-step) * ${depth})`,
+              }}
               aria-expanded={isFolder ? !closed : undefined}
               aria-current={activeId === item.id ? 'page' : undefined}
               onClick={() => {

@@ -27,14 +27,18 @@ export const sidebar = style({
   flexDirection: "column",
   background: "var(--mantine-color-gray-0)",
   borderRight: "1px solid var(--mantine-color-gray-2)",
-  padding: "16px 14px 12px",
-  gap: 16,
+  // 12px gutter on every side: the panel is chrome, and a uniform gutter lets
+  // the brand, switcher, search and tree share one left edge (see
+  // --madoc-gutter-panel in styles/layout.css.ts).
+  padding: "var(--madoc-gutter-panel)",
+  gap: 12,
   overflow: "hidden",
   "@media": { [workspaceMedia.mobile]: { display: "none" } },
 });
 export const brandRow = style({
   minHeight: 36,
-  padding: "0 5px 4px",
+  // Align the wordmark with the icon column every list below starts from.
+  padding: "0 var(--madoc-inset-row) 4px",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
@@ -102,8 +106,8 @@ export const footerAction = style({
   display: "flex",
   alignItems: "center",
   justifyContent: "flex-start",
-  gap: 9,
-  padding: "0 9px",
+  gap: "var(--madoc-inset-row)",
+  padding: "0 var(--madoc-inset-row)",
   borderRadius: 7,
   color: "var(--mantine-color-gray-7)",
   fontSize: 14,
@@ -111,7 +115,9 @@ export const footerAction = style({
 });
 export const workspaceButton = style({
   width: "100%",
-  padding: "10px 10px",
+  // Horizontal inset matches the icon column below (avatar left edge = 18px),
+  // so the switcher, the section icons and the tree chevrons form one line.
+  padding: "10px var(--madoc-inset-row)",
   minHeight: 64,
   border: "1px solid transparent",
   borderRadius: "var(--mantine-radius-md)",
@@ -158,7 +164,9 @@ export const navSectionHeader = style({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "0 6px 0 2px",
+  // Section icons sit on the same 18px line as the tree chevrons; the create
+  // action ends flush with the row actions' right edge (no extra inset).
+  padding: "0 0 0 var(--madoc-inset-row)",
 });
 export const navSectionToggle = style({
   "@media": { [touchControls]: { height: 44 } },
@@ -208,7 +216,7 @@ export const treeLink = style({
   height: "100%",
   display: "flex",
   alignItems: "center",
-  gap: 8,
+  gap: "var(--madoc-inset-row)",
   fontSize: "inherit",
   fontWeight: "inherit",
   color: "inherit",
@@ -226,7 +234,7 @@ export const treeRow = style({
   height: 32,
   display: "flex",
   alignItems: "center",
-  gap: 7,
+  gap: "var(--madoc-inset-row)",
   border: 0,
   borderRadius: 7,
   background: "transparent",
@@ -247,7 +255,7 @@ export const treeRowActions = style({
   display: "flex",
   alignItems: "center",
   flexShrink: 0,
-  gap: 7,
+  gap: "var(--madoc-inset-row)",
   // Keep the title width and keyboard focus order stable when icons are hidden.
   opacity: 0,
   selectors: {
@@ -280,7 +288,8 @@ export const outlinePanel = style({
   top: "var(--madoc-header-height)",
   display: "flex",
   flexDirection: "column",
-  padding: "14px 14px 20px",
+  // Same gutter as the sidebar: the two side columns read as one frame.
+  padding: "var(--madoc-gutter-panel)",
   borderLeft: "1px solid var(--mantine-color-gray-2)",
   background: "var(--mantine-color-white)",
   overflow: "hidden",

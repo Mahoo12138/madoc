@@ -3,7 +3,7 @@ import { touchControls } from "@/styles/interaction.css";
 
 export const panel = style({ padding: "2px 0 4px" });
 export const detailedPanel = style({
-  padding: "var(--mantine-spacing-sm) 4px",
+  padding: "var(--mantine-spacing-sm) 0",
 });
 export const row = style({
   display: "flex",
@@ -11,7 +11,9 @@ export const row = style({
   gap: 6,
   minWidth: 0,
   minHeight: 32,
-  padding: "0 4px",
+  // Same row inset as the tree and the outline, so every icon in the sidebar
+  // starts on one vertical line.
+  padding: "0 var(--madoc-inset-row)",
   borderRadius: 7,
   color: "var(--mantine-color-gray-7)",
   selectors: {
@@ -27,7 +29,7 @@ export const link = style({
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
-  padding: "6px 4px",
+  padding: "6px 0",
   borderRadius: "inherit",
   overflowWrap: "anywhere",
   selectors: {
