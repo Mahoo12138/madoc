@@ -1,5 +1,8 @@
 import { style } from '@vanilla-extract/css';
 
+// 视口减去弹窗固定 chrome（约 283px）和 20px 余量后，真正能给结果列表的高度。
+const listBudget = 'calc(90dvh - 300px)';
+
 // 20px：Modal 默认 `--mb-padding: 16px`，620px 宽的弹层里标题、输入框、
 // 结果行全部贴在这条 16px 的内线上，两侧几乎没有留白。统一到设计系统
 // 「卡片内部 20px」，标题、内容区、页脚从此共用同一条左右内线。
@@ -28,12 +31,25 @@ export const results = style({
   display: 'grid',
   // 行与行之间 4px：行内已有 10px 纵向内边距，靠间距而不是分割线分组。
   gap: 4,
-  // 列表高度同时受视口和「固定 chrome」约束：标题 60、说明/输入/页脚约 220，
-  // 留 20px 余量后是 300px。只写 55vh 时，720px 高的窗口里最底部那行
-  //「仅显示前 30 项」会被弹窗自身的滚动裁掉。
-  maxHeight: 'min(55vh, calc(90dvh - 300px))',
+  // grid 默认 stretch 会把唯一的 auto 行拉到容器高度——有了 min-height 之后，
+  // 一行结果会变成 200px 高的可点区域。start 让行保持内容高度。
+  alignContent: 'start',
+  // 上限保持原来的 55vh，只加一道矮窗口兜底：弹窗总高 = 约 283px 的固定
+  // chrome（标题 60 + 说明 21 + 输入 42 + 间隔 48 + 脚注/页脚 92 + 内边距 20）
+  // + 列表高度，55vh 在 720px 高的窗口里会让总高超过 Modal 自身的 90dvh，
+  // 最底部「仅显示前 30 项」被弹窗滚动裁掉。listBudget 是扣掉 chrome 后
+  // 真正可用的高度，两者取小即可。
+  maxHeight: `min(55vh, ${listBudget})`,
   overflowY: 'auto',
   overscrollBehavior: 'contain',
+  selectors: {
+    // 有结果时给列表一个 200px（≈3 行）的下限：结果只剩一两条时列表不会
+    // 塌成一小块，弹窗形状稳定，中间始终有足够留白。
+    // 空状态不托底——那两行说明撑不满 200px，只会变成一个洞。
+    '&:has([role="option"])': {
+      minHeight: `min(200px, ${listBudget})`,
+    },
+  },
 });
 export const content = style({
   minWidth: 0,
