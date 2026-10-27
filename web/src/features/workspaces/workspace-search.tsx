@@ -122,6 +122,10 @@ export function WorkspaceSearch({
       title="快速打开与搜索"
       size="lg"
       fullScreen={mobile}
+      classNames={{
+        content: styles.modalContent,
+        title: styles.modalTitle,
+      }}
     >
       <Stack gap="sm">
         <Text size="sm" c="dimmed">
@@ -172,92 +176,94 @@ export function WorkspaceSearch({
               }
             />
           </Combobox.EventsTarget>
-          {!!query && ready && !!results.data?.staleDocuments && (
-            <Alert color="yellow">
-              {results.data.staleDocuments}{' '}
-              篇文档的最新修改尚未纳入正文检索。可稍后刷新结果。
-            </Alert>
-          )}
-          {error && (
-            <Alert color="red" role="alert">
-              {error instanceof APIError &&
-              (error.status === 403 || error.status === 404)
-                ? '无法搜索此工作区，请确认访问权限。'
-                : '搜索未完成，请检查网络后重试。'}
-              <Button
-                variant="subtle"
-                size="xs"
-                onClick={() =>
-                  void (query ? results.refetch() : items.refetch())
-                }
-              >
-                重试
-              </Button>
-            </Alert>
-          )}
-          <Combobox.Options
-            className={styles.results}
-            aria-label="搜索结果"
-            aria-busy={waiting}
-          >
-            {rows.map((item) => {
-              const Icon = icons[item.type];
-              return (
-                <Combobox.Option
-                  className={styles.option}
-                  value={item.id}
-                  key={item.id}
-                  disabled={waiting}
-                >
-                  <Group align="flex-start" wrap="nowrap" gap="sm">
-                    <Icon size={18} className={styles.icon} />
-                    <div className={styles.content}>
-                      <Group gap="xs">
-                        <Text fw={600} size="sm">
-                          {item.title}
-                        </Text>
-                        <Badge size="xs" variant="light">
-                          {types[item.type]}
-                        </Badge>
-                      </Group>
-                      <Text size="xs" c="dimmed">
-                        {item.path}
-                      </Text>
-                      {item.snippet && (
-                        <Text size="sm" lineClamp={3}>
-                          {item.snippet}
-                        </Text>
-                      )}
-                      {(item.headSeq ?? 0) > (item.cacheSeq ?? 0) && (
-                        <Text size="xs" c="orange">
-                          正文结果尚未覆盖最新修改
-                        </Text>
-                      )}
-                    </div>
-                  </Group>
-                </Combobox.Option>
-              );
-            })}
-            {!waiting && valid && !error && rows.length === 0 && (
-              <Combobox.Empty>
-                {query ? (
-                  <EmptyState
-                    size="inline"
-                    title={`没有匹配「${query}」的内容`}
-                    description="检索范围是当前工作区的标题与已保存正文，试试更短的关键词。"
-                  />
-                ) : (
-                  <EmptyState
-                    size="inline"
-                    title="当前工作区还没有内容"
-                    description="新建文档或白板后，就可以在这里按标题与正文检索。"
-                  />
-                )}
-              </Combobox.Empty>
+          <div className={styles.resultsZone}>
+            {!!query && ready && !!results.data?.staleDocuments && (
+              <Alert color="yellow">
+                {results.data.staleDocuments}{' '}
+                篇文档的最新修改尚未纳入正文检索。可稍后刷新结果。
+              </Alert>
             )}
-          </Combobox.Options>
+            {error && (
+              <Alert color="red" role="alert">
+                {error instanceof APIError &&
+                (error.status === 403 || error.status === 404)
+                  ? '无法搜索此工作区，请确认访问权限。'
+                  : '搜索未完成，请检查网络后重试。'}
+                <Button
+                  variant="subtle"
+                  size="xs"
+                  onClick={() =>
+                    void (query ? results.refetch() : items.refetch())
+                  }
+                >
+                  重试
+                </Button>
+              </Alert>
+            )}
+            <Combobox.Options
+              className={styles.results}
+              aria-label="搜索结果"
+              aria-busy={waiting}
+            >
+              {rows.map((item) => {
+                const Icon = icons[item.type];
+                return (
+                  <Combobox.Option
+                    className={styles.option}
+                    value={item.id}
+                    key={item.id}
+                    disabled={waiting}
+                  >
+                    <Group align="flex-start" wrap="nowrap" gap="sm">
+                      <Icon size={18} className={styles.icon} />
+                      <div className={styles.content}>
+                        <Group gap="xs">
+                          <Text fw={600} size="sm">
+                            {item.title}
+                          </Text>
+                          <Badge size="xs" variant="light">
+                            {types[item.type]}
+                          </Badge>
+                        </Group>
+                        <Text size="xs" c="dimmed">
+                          {item.path}
+                        </Text>
+                        {item.snippet && (
+                          <Text size="sm" lineClamp={3}>
+                            {item.snippet}
+                          </Text>
+                        )}
+                        {(item.headSeq ?? 0) > (item.cacheSeq ?? 0) && (
+                          <Text size="xs" c="orange">
+                            正文结果尚未覆盖最新修改
+                          </Text>
+                        )}
+                      </div>
+                    </Group>
+                  </Combobox.Option>
+                );
+              })}
+              {!waiting && valid && !error && rows.length === 0 && (
+                <Combobox.Empty>
+                  {query ? (
+                    <EmptyState
+                      size="inline"
+                      title={`没有匹配「${query}」的内容`}
+                      description="检索范围是当前工作区的标题与已保存正文，试试更短的关键词。"
+                    />
+                  ) : (
+                    <EmptyState
+                      size="inline"
+                      title="当前工作区还没有内容"
+                      description="新建文档或白板后，就可以在这里按标题与正文检索。"
+                    />
+                  )}
+                </Combobox.Empty>
+              )}
+            </Combobox.Options>
+          </div>
         </Combobox>
-        <Text size="xs" c="dimmed">
+        <Text size="xs" c="dimmed" className={styles.footnote}>
           正文以查询时的已保存内容为准，本地未同步修改不参与检索。
         </Text>
         <Group justify="space-between">
