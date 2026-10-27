@@ -62,12 +62,13 @@ export const pageTitle = style({
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
   color: 'var(--mantine-color-text)',
-  // Headline：页面级标题，桌面 24 / 移动 20（DESIGN.md Hierarchy）。
-  // 小节标题是 16px，靠 24→16 的尺寸差与 600 字重保持层级。
-  fontSize: 24,
+  // Headline 已下调到 16px（DESIGN.md Hierarchy）：管理页头本质是
+  // 「站点管理 / 当前段」面包屑式标题，不需要 Hero 级字号。沿用 Title 档的
+  // 16/1.5，与小节标题(16/600)靠「站点管理 /」前缀与页头位置区分。
+  fontSize: 16,
   fontWeight: 600,
-  lineHeight: 1.4,
-  '@media': { [workspaceMedia.mobile]: { fontSize: 20 } },
+  lineHeight: 1.5,
+  '@media': { [workspaceMedia.mobile]: { fontSize: 16 } },
 });
 export const headerSeparator = style({
   color: 'var(--mantine-color-gray-5)',

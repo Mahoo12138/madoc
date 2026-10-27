@@ -58,12 +58,12 @@ export const titleRow = style({
 });
 export const pageTitle = style({
   margin: 0,
-  // Headline：页面级标题，桌面 24 / 移动 20（DESIGN.md Hierarchy），与管理页一致。
-  fontSize: 24,
+  // Headline：页面级标题，桌面/移动 16（DESIGN.md Hierarchy），与管理页一致。
+  fontSize: 16,
   fontWeight: 600,
-  lineHeight: 1.4,
+  lineHeight: 1.5,
   letterSpacing: 0,
-  '@media': { [workspaceMedia.mobile]: { fontSize: 20 } },
+  '@media': { [workspaceMedia.mobile]: { fontSize: 16 } },
 });
 export const count = style({
   color: 'var(--mantine-color-dimmed)',
