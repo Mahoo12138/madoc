@@ -47,9 +47,11 @@ export function AccountMenu({
   };
   return (
     <Menu
-      width={280}
+      // 240 是这块弹层的内容宽度；窄屏由 menuDropdown 的 max-width 收口
+      //（Popover 默认写死 `width: max-content`，宽度只能在这里给）。
+      width={240}
       shadow="md"
-      radius="md"
+      radius="sm"
       position={compact ? 'bottom-end' : 'top-start'}
       classNames={{
         item: styles.menuItem,
@@ -78,7 +80,7 @@ export function AccountMenu({
       </Menu.Target>
       <Menu.Dropdown className={styles.menuDropdown}>
         <Menu.Label className={styles.menuIdentity}>
-          <Avatar src={user.avatarUrl} radius="xl" size={40}>
+          <Avatar src={user.avatarUrl} radius="xl" size={36}>
             {[...user.name][0]}
           </Avatar>
           <div className={styles.menuIdentityText}>

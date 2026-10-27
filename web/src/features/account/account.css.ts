@@ -252,20 +252,26 @@ export const modalContent = style({
 export const menuDropdown = style([
   modalContent,
   {
-    padding: 8,
+    // 240px 由 Menu 的 width 属性给出（Popover 默认内联 width: max-content）；
+    // 视口不够时收到「视口 - 24px」，避免贴边或溢出。
     maxWidth: 'calc(100vw - 24px)',
+    // 6px：外壳只负责托住行内 hover 底色，不需要比行内 inset 更宽。
+    padding: 6,
     maxHeight: 'calc(100dvh - 32px)',
     overflowY: 'auto',
     overscrollBehavior: 'contain',
-    border: 0,
+    // 不覆盖 border：Popover 默认的 1px 冷灰（--popover-border-color = gray-2）
+    // 正是 DESIGN.md「Menus」要求的样子，原先的 border: 0 是这一处的例外。
   },
 ]);
 export const menuIdentity = style({
   display: 'grid',
-  gridTemplateColumns: '40px minmax(0, 1fr)',
-  alignItems: 'start',
-  gap: 12,
-  padding: '12px 12px 16px',
+  gridTemplateColumns: '36px minmax(0, 1fr)',
+  alignItems: 'center',
+  gap: 10,
+  // 上下收窄到 10/12：身份区与操作行共用 10px 内缩，底部 12px 只负责
+  // 把身份区和操作区分开，形成「区距 > 行距」的层次。
+  padding: '10px 10px 12px',
 });
 export const menuIdentityText = style({
   minWidth: 0,
@@ -281,10 +287,12 @@ export const menuEmail = style({
   overflowWrap: 'anywhere',
   lineHeight: 1.5,
 });
-export const menuActions = style({ display: 'grid', gap: 4 });
+// 行距 2px：36px 行高本身已经提供了呼吸，4px 会让三行操作显得松散。
+export const menuActions = style({ display: 'grid', gap: 2 });
 export const menuItem = style({
-  minHeight: 40,
-  padding: '8px 12px',
+  // 36px：与树行/设置导航同高，弹层里的三行操作不再比侧栏条目更松。
+  minHeight: 36,
+  padding: '7px 10px',
   borderRadius: 'var(--mantine-radius-sm)',
   fontSize: 'var(--mantine-font-size-sm)',
   selectors: {
@@ -296,9 +304,11 @@ export const menuItem = style({
   '@media': { [touchControls]: { minHeight: 44 } },
 });
 export const menuItemSection = style({
-  width: 40,
+  // 40 → 18：图标 17px 居中放进 40px 栅格，图标与文字之间会空出约 23px，
+  // 缩小到刚好包住图标，配合 10px 间距让图标与标签重新成为一组。
+  width: 18,
   flexShrink: 0,
   display: 'grid',
   placeItems: 'center',
-  marginInlineEnd: 12,
+  marginInlineEnd: 10,
 });
