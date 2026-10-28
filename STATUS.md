@@ -1,14 +1,22 @@
 # Madoc Status
 
-更新时间：2026-10-07
+更新时间：2026-10-28
 
 ## 当前结论
+
+首个正式版 **v0.1.0** 以本仓库的发布工作流发行：本地完成 `go test -count=1 ./...`、`go test -race -count=1 ./...`、`go vet ./...`、前端 typecheck / production build 与浏览器全套回归后，推送附注 tag `v0.1.0`，由远端 verify 通过后发布 Linux / macOS 的 amd64 / arm64 单二进制压缩包、SHA256 校验清单、镜像摘要与 GHCR 镜像。内容与已知问题见 [发布说明](docs/releases/v0.1.0.md)，四个 alpha 候选及其远端验收失败记录保留在 `docs/RELEASE.md`，未被本结论覆盖。
+
+相对 alpha.4 新增站点管理与受控注册（阶段 5）、全站空状态与首次引导、前端资源压缩、导航双栏间距统一及页面标题下调；修复 `dev.sh` 启动与真实数据目录问题、公开注册响应拼接、设置空分区滞留与命令面板列表塌缩。已知问题包括单实例部署边界、历史与草稿的保留规则、Safari / Firefox 与真机尚未完整验收，以及公开注册 SMTP 未对接真实服务商。
 
 首个 alpha **[v0.1.0-alpha.4](https://github.com/Mahoo12138/madoc/releases/tag/v0.1.0-alpha.4)** 已发布，固定源码为 `265b3b37a5c87d569d1abab21f163cdbe1bd43f9`。注解 Git tag、GitHub 预发布、Linux / macOS 的 amd64 / arm64 单二进制压缩包及公开的 [GHCR Package](https://github.com/Mahoo12138/madoc/pkgs/container/madoc) 均已核对。`v0.1.0-alpha.1`、`v0.1.0-alpha.2` 与 `v0.1.0-alpha.3` 候选在远端验收失败，保留原 tag 供审计，未创建 Release 或镜像。本次发行不改变公开 API 的命名方式。
 
 远端 [37570726334](https://github.com/Mahoo12138/madoc/actions/runs/37570726334) 的前端 typecheck / build、Go test / race（`-count=1`）/ vet、414 项普通 Chromium、独立 MVP 1 项、真实重启 / 备份恢复 6 项及生产 Linux amd64 候选镜像持久卷检查全部通过，无测试重试。候选通过后创建 tag，再发布六个 Release 附件与 Linux amd64 / arm64 镜像；没有发布 `latest` 镜像标签。
 
 正式下载的六个附件大小及 API SHA256 全部一致，四归档的校验清单、架构、嵌入前端、源码 SHA 与 `vcs.modified=false` 均通过。实际 macOS arm64 二进制的首次初始化、资源 MIME、生产 Cookie / CSRF、优雅退出和重启持久性通过；最终公开镜像以空 Docker 配置匿名拉取，源码 / 版本 OCI 标签、Linux arm64 新卷初始化及容器重建持久性通过。发行镜像摘要为 `sha256:ec3255c02573cfe977fc7ab4864ff6ee09eb36d662d974db6947479346b36dd2`，与 Release 的 `IMAGE_DIGEST` 一致。验收进程、容器和测试卷均已清理；Safari / Firefox、真机和性能容量仍未完整验收，生产环境仍需 HTTPS。完整证据及网络诊断见 [发布检查](docs/RELEASE.md)，安装与边界见 [发布说明](docs/releases/v0.1.0-alpha.4.md)。本次后续文档提交仅记录结果，不改变已发布源码或 tag。
+
+v0.1.0 固定提交前的本机完整门槛还暴露 `mvp.spec.ts:3`：邀请弹窗重做后输入框不再有 `placeholder`，用例一直等待 `getByPlaceholder('member@example.com')` 直到超时，改为按可访问名定位 `邀请邮箱`；邀请链接、接受邀请与协作断言不变。加上下面四条，本次共修五处过时或不稳定夹具，全部只更新夹具、未放宽业务断言。
+
+v0.1.0 固定提交前的本机完整门槛暴露四条浏览器失败：`outline.spec.ts:67` 与 `workspace-polish.spec.ts:129` 是确定性失败，另外两条（`settings-hardening.spec.ts:71`、`whiteboard-save-state.spec.ts:4`）单独复跑通过，属全套负载下的抖动。前两条根因是夹具过时：删除确认早已从 `window.confirm` 换成应用内「移入回收站」弹窗（点「删除」后既无原生对话框也无请求，条目自然不会消失），而平台模拟只覆盖了 `navigator.platform`、应用优先读 `navigator.userAgentData.platform`（MacIntel 分支永远拿到 Ctrl K）。后两条分别是漏用 `normalizedBoardElements`，以及并发点击在按钮禁用后仍为动作可达性反复重试至 60 秒。四处只更新夹具，未放宽业务断言，各自连续复跑 3 次通过。
 
 ## 发布准备与失败记录
 
