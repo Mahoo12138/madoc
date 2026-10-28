@@ -129,11 +129,15 @@ for (const platform of ['MacIntel', 'Win32']) {
   test(`search shortcut and long navigation labels remain clear on ${platform}`, async ({
     page,
   }) => {
-    await page.addInitScript(
-      (value) =>
-        Object.defineProperty(navigator, 'platform', { get: () => value }),
-      platform,
-    );
+    await page.addInitScript((value) => {
+      // 应用优先读 navigator.userAgentData.platform，只改 navigator.platform
+      // 不足以模拟平台，快捷键提示会一直停在 Ctrl。
+      Object.defineProperty(navigator, 'platform', { get: () => value });
+      Object.defineProperty(navigator, 'userAgentData', {
+        configurable: true,
+        get: () => ({ platform: value, brands: [], mobile: false }),
+      });
+    }, platform);
     await page.setViewportSize({ width: 1440, height: 900 });
     const id = await openDocument(page, '# 键盘导航');
     const title = '很长的工作区文档名称LongDocumentName'.repeat(6);

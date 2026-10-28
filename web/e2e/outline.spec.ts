@@ -150,8 +150,12 @@ test("file tree state survives tab and document changes, with whiteboard fallbac
   await files
     .getByRole("button", { name: "改名文档 的操作", exact: true })
     .click();
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("menuitem", { name: "删除", exact: true }).click();
+  // 删除确认早已从 window.confirm 换成弹窗，必须显式确认才会真的移入回收站。
+  await page
+    .getByRole("dialog", { name: "移入回收站" })
+    .getByRole("button", { name: "移入回收站", exact: true })
+    .click();
   await expect(
     files.getByRole("button", { name: "改名文档", exact: true }),
   ).toHaveCount(0);
