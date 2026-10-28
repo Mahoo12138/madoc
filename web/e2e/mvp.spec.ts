@@ -195,7 +195,8 @@ test('first run, invite, collaborative Markdown, whiteboard and export', async (
   await page.getByRole('navigation', { name: '工作区管理导航' }).getByRole('button', { name: '成员管理' }).click();
   await page.getByRole('tab', { name: '邀请' }).click();
   await page.getByRole('button', { name: '创建邀请' }).click();
-  await page.getByPlaceholder('member@example.com').fill('member@example.test');
+  // 邀请弹窗改用带标签的输入框，placeholder 已经不存在。
+  await page.getByRole('textbox', { name: '邀请邮箱' }).fill('member@example.test');
   await page.getByRole('button', { name: '创建链接' }).click();
   const inviteLinkInput = page.getByRole('textbox', { name: '邀请链接' });
   await expect(inviteLinkInput).toBeVisible();
