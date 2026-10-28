@@ -25,7 +25,11 @@ test('idle board and transient tool selection do not continually persist scenes'
   expect((await state()).revision).toBe(saved.revision);
   await page.reload();
   await expect(page.getByText('已保存', { exact: true })).toBeVisible();
-  expect((await state()).scene.elements).toEqual(saved.scene.elements);
+  // 与导出比较一样统一 boundElements：Excalidraw 恢复时会把 null 变成 []，
+  // 其余字段仍严格相等。
+  expect(normalizedBoardElements((await state()).scene.elements)).toEqual(
+    normalizedBoardElements(saved.scene.elements),
+  );
 });
 
 test('partial ACK and remote scenes cannot confirm pending local changes or create an echo loop', async ({ page }) => {

@@ -83,7 +83,14 @@ test('repeated activation of the rename dialog cannot double-submit', async ({
     return route.continue();
   });
   const save = dialog.getByRole('button', { name: '保存', exact: true });
-  await Promise.all([save.click(), save.click(), save.click()]);
+  // 仍然要求三次激活只发出一次 PATCH：提交后按钮会禁用、保存成功后弹窗关闭，
+  // 后两次点击要么落在禁用按钮上、要么因元素被移除而无法完成。
+  // 不设超时时它们的动作可达性重试会拖到 60 秒用例超时，因此给出短超时。
+  await Promise.all([
+    save.click(),
+    save.click({ timeout: 2_000 }).catch(() => undefined),
+    save.click({ timeout: 2_000 }).catch(() => undefined),
+  ]);
   await expect(dialog).toHaveCount(0, { timeout: 15_000 });
   expect(requests).toBe(1);
   await page.unroute('**/api/items/*');
